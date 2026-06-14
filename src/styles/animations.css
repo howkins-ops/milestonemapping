@@ -1,0 +1,246 @@
+/* ============================================================
+   MILESTONE MAPPING — ANIMATION BANK
+   Every keyframe used across the app. Reduced motion respected.
+   ============================================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-pop {
+  0% { opacity: 0; transform: scale(0.88); }
+  60% { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(0, 240, 255, 0.18); }
+  50% { box-shadow: 0 0 32px rgba(0, 240, 255, 0.42); }
+}
+
+@keyframes glow-pulse-gold {
+  0%, 100% { box-shadow: 0 0 14px rgba(255, 209, 102, 0.14); }
+  50% { box-shadow: 0 0 30px rgba(255, 209, 102, 0.35); }
+}
+
+@keyframes neon-border {
+  0%, 100% { border-color: rgba(0, 240, 255, 0.25); }
+  50% { border-color: rgba(0, 240, 255, 0.7); }
+}
+
+@keyframes particle-drift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(-110vh) translateX(24px); opacity: 0; }
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-22px) scale(1.05); }
+}
+
+@keyframes progress-fill {
+  from { width: 0; }
+}
+
+@keyframes confetti-lite {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+@keyframes reward-shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes vault-unlock {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.06) rotate(-4deg); }
+  50% { transform: scale(1.1) rotate(4deg); }
+  75% { transform: scale(1.06) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes xp-float {
+  0% { opacity: 0; transform: translateY(6px) scale(0.9); }
+  20% { opacity: 1; transform: translateY(-4px) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-44px) scale(1); }
+}
+
+@keyframes rank-up-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 209, 102, 0.4)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 26px rgba(255, 209, 102, 0.8)); }
+}
+
+@keyframes boot-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes transmission-flicker {
+  0%, 100% { opacity: 1; text-shadow: 0 0 14px rgba(0, 240, 255, 0.5); }
+  8% { opacity: 0.7; }
+  10% { opacity: 1; }
+  42% { opacity: 0.92; text-shadow: 0 0 22px rgba(0, 240, 255, 0.8); }
+  44% { opacity: 0.65; }
+  46% { opacity: 1; }
+  72% { opacity: 0.88; }
+}
+
+@keyframes card-hover-lift {
+  to { transform: translateY(-4px); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.45); }
+  60% { box-shadow: 0 0 0 14px rgba(0, 240, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+}
+
+@keyframes node-pulse-pink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 62, 219, 0.5); }
+  60% { box-shadow: 0 0 0 14px rgba(255, 62, 219, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 62, 219, 0); }
+}
+
+@keyframes lightning-border {
+  0%, 100% {
+    border-color: rgba(255, 59, 92, 0.7);
+    box-shadow: 0 0 16px rgba(255, 59, 92, 0.35), inset 0 0 10px rgba(255, 62, 219, 0.08);
+  }
+  25% {
+    border-color: rgba(255, 62, 219, 0.9);
+    box-shadow: 0 0 26px rgba(255, 62, 219, 0.5), inset 0 0 14px rgba(255, 59, 92, 0.12);
+  }
+  50% {
+    border-color: rgba(255, 59, 92, 0.5);
+    box-shadow: 0 0 12px rgba(255, 59, 92, 0.25);
+  }
+  75% {
+    border-color: rgba(255, 62, 219, 0.8);
+    box-shadow: 0 0 30px rgba(255, 62, 219, 0.45);
+  }
+}
+
+@keyframes completed-glow {
+  0%, 100% { box-shadow: 0 0 16px rgba(0, 255, 191, 0.2); }
+  50% { box-shadow: 0 0 34px rgba(0, 255, 191, 0.45); }
+}
+
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1) rotate(-1deg); opacity: 1; }
+  25% { transform: scale(1.08) rotate(1deg); opacity: 0.92; }
+  50% { transform: scale(0.96) rotate(-2deg); opacity: 1; }
+  75% { transform: scale(1.05) rotate(2deg); opacity: 0.9; }
+}
+
+@keyframes line-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+@keyframes grid-pan {
+  from { background-position: 0 0; }
+  to { background-position: 0 48px; }
+}
+
+@keyframes type-in {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ---- helper classes ---- */
+
+.anim-fade-in { animation: fade-in 400ms var(--ease-out) both; }
+.anim-slide-up { animation: slide-up 450ms var(--ease-out) both; }
+.anim-scale-pop { animation: scale-pop 350ms var(--ease-out) both; }
+.anim-glow-pulse { animation: glow-pulse 2.4s ease-in-out infinite; }
+.anim-rank-pulse { animation: rank-up-pulse 1.6s ease-in-out infinite; }
+.anim-flame { animation: flame-flicker 1.4s ease-in-out infinite; display: inline-block; }
+.anim-transmission { animation: transmission-flicker 4.5s linear infinite; }
+
+.stagger > * { animation: slide-up 450ms var(--ease-out) both; }
+.stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.stagger > *:nth-child(2)  { animation-delay: 60ms; }
+.stagger > *:nth-child(3)  { animation-delay: 120ms; }
+.stagger > *:nth-child(4)  { animation-delay: 180ms; }
+.stagger > *:nth-child(5)  { animation-delay: 240ms; }
+.stagger > *:nth-child(6)  { animation-delay: 300ms; }
+.stagger > *:nth-child(7)  { animation-delay: 360ms; }
+.stagger > *:nth-child(8)  { animation-delay: 420ms; }
+.stagger > *:nth-child(9)  { animation-delay: 480ms; }
+.stagger > *:nth-child(10) { animation-delay: 540ms; }
+.stagger > *:nth-child(11) { animation-delay: 600ms; }
+.stagger > *:nth-child(12) { animation-delay: 660ms; }
+
+/* ---- science / research card animations ---- */
+
+@keyframes card-flip-in {
+  from { transform: rotateY(90deg); opacity: 0; }
+  to   { transform: rotateY(0deg);  opacity: 1; }
+}
+
+@keyframes science-reveal {
+  from { opacity: 0; filter: blur(8px); transform: translateY(10px); }
+  to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
+}
+
+@keyframes beacon-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
+}
+
+@keyframes stat-flash {
+  0%   { color: var(--brand-cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.9); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+.anim-science-reveal  { animation: science-reveal 550ms var(--ease-out) both; }
+.anim-card-flip-in    { animation: card-flip-in 480ms var(--ease-out) both; }
+.anim-beacon          { animation: beacon-pulse 2s ease-in-out infinite; }
+
+/* ---- reduced motion: kill all motion via settings or OS preference ---- */
+
+@keyframes shock-ring {
+  from { opacity: 0.95; transform: scale(0.15); }
+  to   { opacity: 0;    transform: scale(3.6);  }
+}
+
+@keyframes boot-flash {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes ember-rise {
+  to {
+    transform: translateY(-108vh) translateX(var(--dx, 0px));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+[data-reduced-motion="true"] *,
+[data-reduced-motion="true"] *::before,
+[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

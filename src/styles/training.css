@@ -1,0 +1,611 @@
+/* ============================================================
+   TRAINING SYSTEM — 5 SHIFTS CINEMATIC GAME
+   Full-screen overlay experience. Supplements animations.css.
+   ============================================================ */
+
+/* ---- Cinematic slide entrance ---- */
+@keyframes cinematic-enter {
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cinematic-exit {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
+
+/* ---- Per-slide timer bar ---- */
+@keyframes cinematic-timer {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ---- Game overlay slide up ---- */
+@keyframes game-enter {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Victory burst ---- */
+@keyframes complete-burst {
+  0%   { opacity: 0; transform: scale(0.6) translateY(20px); }
+  60%  { transform: scale(1.08) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ---- Identity burn (old identity fades + scales down) ---- */
+@keyframes identity-burn {
+  0%   { opacity: 1; transform: scale(1); filter: blur(0px); }
+  40%  { opacity: 0.6; transform: scale(0.98); filter: blur(1px); color: #ff3b5c; }
+  100% { opacity: 0; transform: scale(0.94); filter: blur(4px); }
+}
+
+/* ---- New identity materialise ---- */
+@keyframes identity-materialise {
+  0%   { opacity: 0; transform: scale(1.04); filter: blur(4px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+}
+
+/* ---- Node unlock celebration ---- */
+@keyframes node-unlock {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.18); }
+  60%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Myth answer flash ---- */
+@keyframes myth-correct {
+  0%, 100% { background: transparent; }
+  30%       { background: rgba(0, 255, 191, 0.18); }
+}
+
+@keyframes myth-wrong {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-10px); }
+  40%  { transform: translateX(10px); }
+  60%  { transform: translateX(-8px); }
+  80%  { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+
+/* ---- Cinematic layout ---- */
+.cinematic-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cinematic-timer-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cinematic-timer-fill {
+  height: 100%;
+  transform-origin: left;
+  animation: cinematic-timer linear forwards;
+}
+
+.cinematic-image-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cinematic-slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  animation: cinematic-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cinematic-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Game overlay ---- */
+.game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-inner {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 40px;
+  animation: game-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.game-title-block {
+  flex: 1;
+}
+
+.game-kicker {
+  font-family: "Manrope", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.game-title {
+  font-family: "Sora", sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: #eafbff;
+  margin: 2px 0 0;
+}
+
+.game-body {
+  flex: 1;
+  padding: 24px 20px 0;
+}
+
+.game-subtitle {
+  font-size: 15px;
+  color: rgba(234, 251, 255, 0.62);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.game-cta {
+  display: block;
+  width: calc(100% - 40px);
+  margin: 32px 20px 0;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.game-cta:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none !important;
+}
+
+.game-cta:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* ---- Choice chips (intro game / values game) ---- */
+.choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.choice-chip {
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(234, 251, 255, 0.7);
+  font-family: "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.choice-chip.selected {
+  border-color: currentColor;
+  background: rgba(255, 255, 255, 0.1);
+  color: #eafbff;
+}
+
+.choice-chip:active {
+  transform: scale(0.95);
+}
+
+/* ---- Mask cards (Shift 3) ---- */
+.mask-card-select {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 7, 10, 0.8);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 10px;
+}
+
+.mask-card-select.selected {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.mask-sigil {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ---- Essence cards (Shift 3 phase 2) ---- */
+.essence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.essence-card-select {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 7, 10, 0.8);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.essence-card-select.selected {
+  border-color: rgba(139, 92, 246, 0.7);
+  background: rgba(139, 92, 246, 0.12);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+/* ---- Myth buster (Shift 4) ---- */
+.myth-statement {
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 7, 10, 0.9);
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #eafbff;
+  line-height: 1.4;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.myth-statement.correct-flash {
+  animation: myth-correct 0.6s ease-out;
+  border-color: rgba(0, 255, 191, 0.4);
+}
+
+.myth-statement.wrong-shake {
+  animation: myth-wrong 0.5s ease-out;
+  border-color: rgba(255, 59, 92, 0.5);
+}
+
+.myth-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.myth-btn {
+  padding: 16px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 7, 10, 0.8);
+  color: rgba(234, 251, 255, 0.8);
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.myth-btn:active {
+  transform: scale(0.96);
+}
+
+/* ---- Complete overlay ---- */
+.complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow: hidden;
+}
+
+.complete-burst {
+  text-align: center;
+  animation: complete-burst 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.complete-flash-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ---- Progress dots (myth rounds) ---- */
+.round-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.round-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  transition: all 0.3s;
+}
+
+.round-dot.done {
+  background: #00FFBF;
+  border-color: #00FFBF;
+  box-shadow: 0 0 8px rgba(0, 255, 191, 0.5);
+}
+
+.round-dot.current {
+  border-color: #FACC15;
+  background: rgba(250, 204, 21, 0.2);
+}
+
+/* ---- Hub world map ---- */
+.shifts-hub {
+  padding-bottom: 40px;
+}
+
+.shift-node-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.shift-connector {
+  width: 2px;
+  height: 40px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.06) 100%);
+  transition: background 0.5s;
+}
+
+.shift-connector.lit {
+  background: linear-gradient(180deg, rgba(0, 255, 191, 0.4) 0%, rgba(0, 240, 255, 0.2) 100%);
+}
+
+.shift-node-btn {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(5, 7, 10, 0.8);
+  cursor: default;
+  text-align: left;
+  transition: all 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shift-node-btn.available {
+  cursor: pointer;
+  border-color: rgba(255, 62, 219, 0.35);
+}
+
+.shift-node-btn.available:active {
+  transform: scale(0.98);
+}
+
+.shift-node-btn.complete {
+  cursor: pointer;
+  border-color: rgba(0, 255, 191, 0.25);
+  background: rgba(0, 255, 191, 0.03);
+}
+
+.shift-node-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.shift-node-icon.locked {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  filter: grayscale(1) opacity(0.4);
+}
+
+.shift-node-icon.available {
+  animation: node-pulse-pink 2s ease-in-out infinite;
+}
+
+.shift-node-icon.complete {
+  animation: completed-glow 3s ease-in-out infinite;
+}
+
+.anim-node-unlock {
+  animation: node-unlock 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   CINEMATIC SCENE SYSTEM
+   ============================================================ */
+
+/* ---- Word / element bloom (stagger entry) ---- */
+@keyframes word-bloom {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.stagger-item {
+  animation: word-bloom 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* ---- Tap ripple ---- */
+@keyframes tap-ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ---- Scene entrance animations (applied per shift type) ---- */
+@keyframes scene-zoom-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scene-slide-right {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scene-scale-blur {
+  from { opacity: 0; transform: scale(0.95); filter: blur(6px); }
+  to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+}
+
+@keyframes scene-iris {
+  from { clip-path: circle(0% at 50% 50%); }
+  to   { clip-path: circle(150% at 50% 50%); }
+}
+
+/* ---- Highlight pulse (on TITLE_CARD and STATEMENT highlighted spans) ---- */
+@keyframes highlight-pulse {
+  0%, 100% { text-shadow: 0 0 12px var(--shift-color-glow, rgba(255,62,219,0.4)); }
+  50%       { text-shadow: 0 0 28px var(--shift-color-glow, rgba(255,62,219,0.4)), 0 0 44px var(--shift-color-dim, rgba(255,62,219,0.15)); }
+}
+
+/* ---- Neural cursor blink ---- */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.neural-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--shift-color, #00FFBF);
+  animation: cursor-blink 0.6s steps(1) infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+/* ---- Shadow burn ---- */
+@keyframes shadow-burn {
+  from { color: #3d1a5c; text-shadow: none; }
+  to   { color: var(--shift-color, #8B5CF6); text-shadow: 0 0 20px var(--shift-color-glow, rgba(139,92,246,0.4)); }
+}
+
+/* ---- Cycle node appear ---- */
+@keyframes node-appear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ---- Infinity path draw ---- */
+@keyframes path-draw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* ---- Cinematic scene content area ---- */
+.cinematic-scene-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar inside scene */
+.cinematic-scene-wrap ::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Scene highlight span ---- */
+.scene-highlight {
+  color: var(--shift-color, #FF3EDB);
+  text-shadow: 0 0 12px var(--shift-color-glow, rgba(255,62,219,0.4));
+}
+
+/* ---- Contrast panels ---- */
+.contrast-panel-right {
+  box-shadow: 0 0 28px var(--shift-color-dim, rgba(255,62,219,0.1));
+  border-color: var(--shift-color-glow, rgba(255,62,219,0.4)) !important;
+}
+
+/* ---- Mask card entrance ---- */
+@keyframes mask-card-enter {
+  from { opacity: 0; transform: translateY(20px) rotateX(6deg); }
+  to   { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+

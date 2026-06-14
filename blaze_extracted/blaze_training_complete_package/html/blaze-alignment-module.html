@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B.L.A.Z.E. Training — A: Alignment</title>
+  <style>
+    :root{
+      --bg:#030006;--card:#0d0714;--card2:#130a20;--text:#f7edff;--muted:#bca9cf;
+      --purple:#d11eff;--cyan:#00f0ff;--pink:#ff3edb;--mint:#00ffbf;--gold:#ffd166;
+      --danger:#ff477e;--line:rgba(255,255,255,.13);
+    }
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top left,rgba(209,30,255,.18),transparent 35%),radial-gradient(circle at top right,rgba(0,240,255,.15),transparent 33%),linear-gradient(180deg,#030006,#05000b 55%,#000);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;}
+    .shell{max-width:1180px;margin:0 auto;padding:28px 18px 80px}.hero{border:1px solid var(--line);border-radius:30px;padding:30px;background:linear-gradient(135deg,rgba(13,7,20,.96),rgba(8,2,14,.92));box-shadow:0 0 80px rgba(209,30,255,.12),inset 0 0 40px rgba(0,240,255,.04);position:relative;overflow:hidden}.hero:before{content:"";position:absolute;inset:-2px;background:linear-gradient(110deg,transparent,rgba(0,240,255,.08),transparent,rgba(255,62,219,.08));pointer-events:none}.eyebrow{letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);font-size:12px;font-weight:800}.title{font-size:clamp(34px,6vw,72px);line-height:.92;margin:14px 0;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));-webkit-background-clip:text;color:transparent;font-weight:950}.subtitle{max-width:830px;color:var(--muted);font-size:18px;line-height:1.65}.grid{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:20px}.side,.main{border:1px solid var(--line);background:rgba(13,7,20,.88);border-radius:26px;padding:18px}.nav button{width:100%;text-align:left;margin:7px 0;border:1px solid var(--line);background:#08030e;color:var(--text);padding:14px;border-radius:16px;font-weight:800;cursor:pointer;transition:.2s}.nav button.active{border-color:rgba(0,240,255,.8);box-shadow:0 0 20px rgba(0,240,255,.18);background:linear-gradient(90deg,rgba(209,30,255,.18),rgba(0,240,255,.08))}.progress{height:13px;background:#07020d;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:14px 0}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));transition:.4s}.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:#08030e;color:var(--muted);font-size:12px;font-weight:800;margin:5px 5px 5px 0}.lesson h2{font-size:34px;margin:0 0 8px}.lesson p{color:var(--muted);line-height:1.65;font-size:16px}.quote{border-left:4px solid var(--cyan);padding:14px 16px;background:rgba(0,240,255,.06);border-radius:14px;margin:16px 0;color:#eafcff;font-weight:750}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}.card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(19,10,32,.95),rgba(8,3,14,.95));border-radius:20px;padding:17px}.card h3{margin:0 0 8px;color:#fff}.card p,.card li{color:var(--muted);line-height:1.55}.card ul{padding-left:20px;margin:10px 0}.prompt{border:1px solid rgba(209,30,255,.35);background:rgba(209,30,255,.08);border-radius:22px;padding:16px;margin:16px 0}textarea,input{width:100%;background:#05020a;color:var(--text);border:1px solid var(--line);border-radius:16px;padding:14px;font:inherit;outline:none}textarea{min-height:112px;resize:vertical}.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:999px;padding:13px 18px;font-weight:950;cursor:pointer;color:#07020d;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));box-shadow:0 0 24px rgba(209,30,255,.22)}.btn.secondary{background:#0b0412;color:var(--text);border:1px solid var(--line);box-shadow:none}.complete{display:none;margin-top:15px;border:1px solid rgba(0,255,191,.35);background:rgba(0,255,191,.08);border-radius:18px;padding:14px;color:#dffff7}.complete.show{display:block}.stat{font-size:28px;font-weight:950;color:var(--cyan)}.footer{margin-top:24px;text-align:center;color:var(--muted);font-size:13px}@media(max-width:850px){.grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hero{padding:22px}.lesson h2{font-size:27px}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">B.L.A.Z.E. Framework™ / Module 03</div>
+      <h1 class="title">A — Alignment</h1>
+      <p class="subtitle">Alignment is the end of fake hustle. It is where your values, vision, goals, words, environment, and daily actions stop fighting each other — and start pulling in one direction.</p>
+      <div><span class="pill">Values → Vision → Action</span><span class="pill">No hustle for hustle’s sake</span><span class="pill">Congruence creates power</span></div>
+    </section>
+
+    <section class="grid">
+      <aside class="side">
+        <h3>Training Path</h3>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <p><strong id="pct">0%</strong> complete</p>
+        <div class="nav" id="nav"></div>
+        <div class="card">
+          <h3>Alignment Check</h3>
+          <p>Every page asks one question: does this move match the person, mission, and future you say you want?</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div id="content" class="lesson"></div>
+      </main>
+    </section>
+
+    <div class="footer">B.L.A.Z.E. Training OS — A: Alignment. Saved locally in this browser.</div>
+  </div>
+
+<script>
+const STORAGE='blaze_alignment_module_v1';
+const state=JSON.parse(localStorage.getItem(STORAGE)||'{"done":{},"answers":{}}');
+let current=0;
+const pages=[
+ {id:'truth',title:'1. Alignment Truth',html:`<h2>Alignment is power without friction.</h2><p>Most people are not tired because they are doing too much. They are tired because they are split. Their mouth says one thing, their calendar says another. Their vision says freedom, but their habits say comfort. Their values say growth, but their environment keeps them average.</p><div class="quote">Alignment means your inner world and outer actions are finally telling the same story.</div><div class="cards"><div class="card"><h3>Misalignment sounds like:</h3><ul><li>“I want more,” but I keep choosing comfort.</li><li>“This matters,” but I keep delaying it.</li><li>“I’m serious,” but my calendar has no proof.</li></ul></div><div class="card"><h3>Alignment sounds like:</h3><ul><li>“This is who I am becoming.”</li><li>“This is the move that matches that.”</li><li>“This is the proof I will create today.”</li></ul></div></div>`},
+ {id:'values',title:'2. Values Audit',html:`<h2>Your values are not what you claim. They are what you consistently choose.</h2><p>A person can say freedom matters, but choose distraction. They can say health matters, but ignore their body. They can say leadership matters, but avoid hard conversations. Alignment starts when you stop lying to yourself about what your actions are proving.</p><div class="prompt"><h3>Coaching Prompt</h3><p>What do you say matters most right now — and what are your current actions proving matters most?</p><textarea data-answer="values" placeholder="Example: I say freedom matters, but my actions prove comfort and distraction are still winning..."></textarea></div>`},
+ {id:'vision',title:'3. Future Filter',html:`<h2>Stop making decisions from fear. Make them from your future.</h2><p>Alignment gives you a filter. You stop asking, “What feels easy right now?” and start asking, “What would the version of me I am becoming choose here?” That question cuts through confusion fast.</p><div class="cards"><div class="card"><h3>Old filter</h3><p>What avoids discomfort?</p><p>What protects my ego?</p><p>What keeps me safe?</p></div><div class="card"><h3>Aligned filter</h3><p>What matches my vision?</p><p>What builds trust with myself?</p><p>What creates future proof?</p></div></div><div class="prompt"><h3>Decision Filter</h3><p>Name one decision you need to make. Then write the aligned choice.</p><textarea data-answer="vision" placeholder="Decision: ... Aligned choice: ..."></textarea></div>`},
+ {id:'friction',title:'4. Find the Friction',html:`<h2>Misalignment creates drag.</h2><p>Drag is the hidden cost of living split. It shows up as procrastination, overthinking, resentment, anxiety, low energy, and constant restarting. The goal is not to shame yourself. The goal is to locate the leak.</p><div class="cards"><div class="card"><h3>Common leaks</h3><ul><li>A goal you do not actually care about</li><li>A promise you keep breaking</li><li>An environment that reinforces the old you</li><li>A calendar that does not reflect the mission</li></ul></div><div class="card"><h3>Alignment repair</h3><ul><li>Delete what is fake</li><li>Reduce what is draining</li><li>Commit to what is true</li><li>Schedule what matters</li></ul></div></div><div class="prompt"><h3>Friction Audit</h3><p>Where are you currently out of alignment?</p><textarea data-answer="friction" placeholder="The biggest friction point is..."></textarea></div>`},
+ {id:'standard',title:'5. Build the Standard',html:`<h2>Alignment becomes real when it becomes a standard.</h2><p>A standard is a non-negotiable expression of who you are. It is not a mood. It is not a wish. It is a line you decide to live above.</p><div class="quote">The aligned person does not need to be hyped every day. They need a standard they are unwilling to betray.</div><div class="prompt"><h3>Standard Builder</h3><p>Complete this: “Because I am aligned with ________, I no longer ________, and I now ________.”</p><textarea data-answer="standard" placeholder="Because I am aligned with my future, I no longer negotiate with distraction, and I now execute the first proof rep before comfort..."></textarea></div>`},
+ {id:'proof',title:'6. Alignment Proof Rep',html:`<h2>Proof beats intention.</h2><p>Alignment is not proven by what you understand. It is proven by what you do next. Choose one move that creates immediate evidence.</p><div class="cards"><div class="card"><h3>10-minute proof reps</h3><ul><li>Send the message you avoided</li><li>Clean the workspace</li><li>Write the offer</li><li>Practice the pitch</li><li>Make the first call</li><li>Plan tomorrow before tonight ends</li></ul></div><div class="card"><h3>Science of follow-through</h3><p>Implementation-intention research supports specific “if–then” planning as a way to turn goals into action.</p><p><span class="stat">If X, then Y</span></p></div></div><div class="prompt"><h3>Your Proof Rep</h3><p>What aligned action will you complete in the next 10 minutes?</p><textarea data-answer="proof" placeholder="In the next 10 minutes, I will..."></textarea></div>`},
+ {id:'lock',title:'7. Alignment Lock-In',html:`<h2>Write your Alignment Statement.</h2><p>This is the line that turns the module into a stand. Keep it clean, direct, and usable under pressure.</p><div class="prompt"><h3>Alignment Statement</h3><p>“I am aligned when…”</p><textarea data-answer="lock" placeholder="I am aligned when my values, vision, calendar, conversations, and actions are all pointing toward the same future..."></textarea></div><div class="complete show"><strong>Module Complete:</strong> You now have an alignment filter, friction audit, standard, and proof rep.</div>`}
+];
+function save(){localStorage.setItem(STORAGE,JSON.stringify(state));updateProgress();}
+function updateProgress(){const done=Object.keys(state.done).filter(k=>state.done[k]).length;const pct=Math.round(done/pages.length*100);document.getElementById('bar').style.width=pct+'%';document.getElementById('pct').textContent=pct+'%';}
+function renderNav(){document.getElementById('nav').innerHTML=pages.map((p,i)=>`<button class="${i===current?'active':''}" onclick="go(${i})">${state.done[p.id]?'✓ ':'○ '}${p.title}</button>`).join('');}
+function render(){const p=pages[current];document.getElementById('content').innerHTML=p.html+`<div class="btns"><button class="btn" onclick="completePage()">Complete This Page</button><button class="btn secondary" onclick="prev()">Back</button><button class="btn secondary" onclick="next()">Next</button></div><div class="complete ${state.done[p.id]?'show':''}" id="complete">Saved. This page is complete.</div>`;document.querySelectorAll('[data-answer]').forEach(el=>{const key=el.dataset.answer;el.value=state.answers[key]||'';el.addEventListener('input',e=>{state.answers[key]=e.target.value;save();});});renderNav();updateProgress();}
+function completePage(){state.done[pages[current].id]=true;save();document.getElementById('complete').classList.add('show');renderNav();}
+function go(i){current=i;render();window.scrollTo({top:0,behavior:'smooth'});}function next(){if(current<pages.length-1)go(current+1)}function prev(){if(current>0)go(current-1)}
+render();
+</script>
+</body>
+</html>

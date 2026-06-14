@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B.L.A.Z.E. Training — L: Leadership</title>
+  <style>
+    :root{
+      --bg:#030009;--card:#090012;--card2:#11001f;--text:#f7ecff;--muted:#bca9cb;--pink:#ff3edb;--purple:#d11eff;--cyan:#00f0ff;--green:#00ffbf;--gold:#ffd166;--danger:#ff4d6d;
+      --shadow:0 0 34px rgba(209,30,255,.24),0 0 70px rgba(0,240,255,.1);
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at 18% 0%,rgba(209,30,255,.22),transparent 31%),radial-gradient(circle at 88% 8%,rgba(0,240,255,.18),transparent 30%),linear-gradient(180deg,#030009,#07000e 42%,#030009);color:var(--text);min-height:100vh;overflow-x:hidden}
+    .noise{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px, transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at center, black, transparent 80%)}
+    .wrap{max-width:1180px;margin:0 auto;padding:30px 18px 80px;position:relative}.hero{border:1px solid rgba(255,255,255,.12);border-radius:32px;padding:34px;background:linear-gradient(135deg,rgba(17,0,31,.9),rgba(3,0,9,.85));box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:before{content:"";position:absolute;inset:-2px;background:linear-gradient(100deg,transparent,rgba(255,62,219,.22),rgba(0,240,255,.2),transparent);filter:blur(30px);opacity:.8}.hero>*{position:relative}.badge{display:inline-flex;gap:10px;align-items:center;border:1px solid rgba(0,240,255,.35);background:rgba(0,240,255,.08);color:#dffcff;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.title{font-size:clamp(38px,7vw,88px);line-height:.9;margin:20px 0 14px;font-weight:1000;letter-spacing:-.07em}.grad{background:linear-gradient(90deg,var(--pink),var(--purple),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 28px rgba(209,30,255,.3)}.sub{max-width:900px;color:var(--muted);font-size:19px;line-height:1.55}.grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}.card{border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(180deg,rgba(17,0,31,.8),rgba(8,0,16,.93));padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.36)}.card h2,.card h3{margin:0 0 10px}.muted{color:var(--muted);line-height:1.55}.pillrow{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.pill{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.04);color:#eadfff;font-weight:800}.pill.active{border-color:rgba(0,255,191,.7);box-shadow:0 0 20px rgba(0,255,191,.18);color:white}.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:18px 0}.tab{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);border-radius:16px;padding:13px 10px;font-weight:900;cursor:pointer}.tab.active{background:linear-gradient(135deg,rgba(209,30,255,.32),rgba(0,240,255,.18));border-color:rgba(0,240,255,.5)}.screen{display:none}.screen.active{display:block;animation:rise .35s ease both}@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.lesson{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.lesson .mini{border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:18px;background:rgba(255,255,255,.035)}.mini strong{color:white}.callout{border:1px solid rgba(255,62,219,.36);background:linear-gradient(135deg,rgba(255,62,219,.12),rgba(0,240,255,.07));border-radius:22px;padding:18px;margin:14px 0}.quote{font-size:22px;line-height:1.3;font-weight:950}.input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.16);background:#05000d;color:white;border-radius:16px;padding:14px 14px;font-size:15px;outline:none}textarea{min-height:110px;resize:vertical}.label{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#d8c6e8;font-weight:900;margin:16px 0 8px}.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:16px;padding:13px 16px;font-weight:1000;color:#090012;background:linear-gradient(90deg,var(--pink),var(--cyan));cursor:pointer;box-shadow:0 0 24px rgba(0,240,255,.18)}.btn.secondary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:white;box-shadow:none}.progress{height:12px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,var(--pink),var(--purple),var(--cyan),var(--green));width:0%;transition:.4s}.stat{display:grid;gap:10px}.statbox{border:1px solid rgba(0,240,255,.22);background:rgba(0,240,255,.06);border-radius:18px;padding:15px}.big{font-size:30px;font-weight:1000;color:white}.small{font-size:13px;color:var(--muted);line-height:1.45}.check{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}.check input{margin-top:4px;accent-color:#00ffbf}.footer{margin-top:22px;color:var(--muted);font-size:13px}.lockin{border:1px solid rgba(0,255,191,.35);background:rgba(0,255,191,.08);border-radius:22px;padding:18px;margin-top:16px}.hidden{display:none}.navBottom{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.codeword{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#8fffea}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.lesson{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.title{letter-spacing:-.045em}.hero{padding:24px}}
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <main class="wrap">
+    <section class="hero">
+      <span class="badge">B.L.A.Z.E. Module 02</span>
+      <h1 class="title"><span class="grad">L — Leadership</span><br/>Direct the Room. Direct Your Life.</h1>
+      <p class="sub">Leadership is not a title. Leadership is the moment you stop reacting to pressure and start directing your energy, choices, standards, conversations, and future.</p>
+      <div class="pillrow">
+        <span class="pill">Being chose the identity</span><span class="pill active">Leadership directs the identity</span><span class="pill">Alignment checks the path</span><span class="pill">Zeal fuels the move</span><span class="pill">Execution proves it</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <div class="tabs" id="tabs"></div>
+        <div id="screens"></div>
+      </section>
+      <aside class="card">
+        <h2>Leadership Progress</h2>
+        <p class="muted">Complete each page by writing proof. This saves on this device.</p>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <p><strong id="percent">0%</strong> complete</p>
+        <div class="stat">
+          <div class="statbox"><div class="big">85%</div><div class="small">ICF reports most coaches say clients are seeking mental well-being support. Leadership starts with internal state, not external title.</div></div>
+          <div class="statbox"><div class="big">d=.65</div><div class="small">Implementation-intention research found a medium-to-large effect on goal attainment. Translation: leaders pre-decide their response before pressure hits.</div></div>
+          <div class="statbox"><div class="big">740+</div><div class="small">Goal-progress monitoring research has been widely cited; tracking progress is a proven self-regulation strategy. Leaders inspect what they expect.</div></div>
+        </div>
+        <div class="lockin">
+          <h3>Your Leadership Stand</h3>
+          <p class="muted" id="standPreview">Complete the drills to generate your stand.</p>
+        </div>
+        <button class="btn secondary" onclick="resetAll()">Reset Leadership Module</button>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const storageKey = 'blaze_leadership_module_v1';
+    const data = JSON.parse(localStorage.getItem(storageKey)||'{}');
+    const pages = [
+      {id:'overview',tab:'Overview',title:'Leadership Is Direction, Not Position',kind:'lesson',body:`Your book teaches that being a boss is not about owning a company. It is about owning your life. Leadership is the next layer: once Being chooses who you are, Leadership directs that version of you under pressure. A leader does not wait for permission. A leader makes a clean decision, sets the standard, communicates clearly, and moves first.`,prompt:'Where in your life are you currently reacting instead of leading?',drill:'Name one situation where you will stop waiting and start directing today.'},
+      {id:'self',tab:'Self',title:'Self-Leadership: Lead Yourself First',kind:'work',body:`If you cannot lead your own energy, attention, and standards, you will leak power everywhere else. Self-leadership means you do not let mood, fear, comparison, or comfort be the manager of your life. You become the manager.`,prompt:'What is one standard you need to lead yourself with today?',drill:'Create a non-negotiable: “Today, I lead myself by…”'},
+      {id:'energy',tab:'Energy',title:'Energy Leadership: Your State Enters First',kind:'work',body:`Your energy closes before your words do. Leadership is not being loud; it is being anchored. When pressure hits, the reactive version spirals. The leader resets, breathes, chooses the next move, and brings certainty back into the room.`,prompt:'What emotional state do you need to lead from today?',drill:'Build your reset command: “When I feel ___, I will ___.”'},
+      {id:'conversation',tab:'Voice',title:'Conversation Leadership: Say the Thing Clean',kind:'work',body:`A leader does not manipulate. A leader communicates. You lead a conversation by listening, naming what is real, asking better questions, and guiding the next step. In sales, coaching, and life, people trust the person who can stay calm and clear.`,prompt:'What conversation have you been avoiding that leadership would handle cleanly?',drill:'Write the opening sentence you will use to lead that conversation.'},
+      {id:'future',tab:'Future',title:'Future Leadership: Make Decisions From Where You Are Going',kind:'work',body:`Most people make decisions from fear, comfort, or yesterday. Future leadership asks: what would the version of me I am building choose right now? This breaks the loop of waiting, drifting, and hoping.`,prompt:'What decision would your future self make faster than you are making it right now?',drill:'Write the decision, then write the first visible action.'},
+      {id:'lockin',tab:'Lock-In',title:'Leadership Lock-In',kind:'final',body:`Leadership becomes real when it is visible. Not in your head. Not in theory. In behavior. This final page turns the module into a leadership statement you can carry into the day.`,prompt:'Write your Leadership Statement.',drill:'Finish: “Today I lead by…”'}
+    ];
+    function save(){localStorage.setItem(storageKey,JSON.stringify(data));renderProgress();}
+    function complete(id){data[id]=data[id]||{};data[id].done=true;save();}
+    function resetAll(){localStorage.removeItem(storageKey);location.reload();}
+    function renderProgress(){let done=pages.filter(p=>data[p.id]?.done).length;let pct=Math.round(done/pages.length*100);document.getElementById('bar').style.width=pct+'%';document.getElementById('percent').textContent=pct+'%';const stand=[data.self?.answer,data.energy?.answer,data.conversation?.answer,data.future?.answer,data.lockin?.answer].filter(Boolean);document.getElementById('standPreview').textContent=stand.length?stand[stand.length-1]:'Complete the drills to generate your stand.'}
+    function setPage(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');document.getElementById('tab-'+id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+    function updateText(id,val){data[id]=data[id]||{};data[id].answer=val;save();}
+    function render(){
+      const tabs=document.getElementById('tabs'); const screens=document.getElementById('screens');
+      tabs.innerHTML=pages.map((p,i)=>`<button class="tab ${i===0?'active':''}" id="tab-${p.id}" onclick="setPage('${p.id}')">${p.tab}</button>`).join('');
+      screens.innerHTML=pages.map((p,i)=>`<article class="screen ${i===0?'active':''}" id="screen-${p.id}">
+        <h2>${p.title}</h2><p class="muted">${p.body}</p>
+        <div class="callout"><div class="quote">Leader question: “What am I directing right now — my fear, or my future?”</div></div>
+        <div class="lesson">
+          <div class="mini"><h3>Training Point</h3><p class="muted"><strong>Leadership is ownership in motion.</strong> It turns identity into direction. You lead by choosing the standard before the circumstance chooses your state.</p></div>
+          <div class="mini"><h3>Field Application</h3><p class="muted"><strong>Sales:</strong> lead the conversation. <strong>Life:</strong> lead the decision. <strong>Team:</strong> lead the energy. <strong>Self:</strong> lead the next rep.</p></div>
+        </div>
+        <div class="label">Coaching Prompt</div><textarea placeholder="${p.prompt}" oninput="updateText('${p.id}',this.value)">${data[p.id]?.answer||''}</textarea>
+        <div class="label">Micro Drill</div><div class="mini"><p class="muted">${p.drill}</p></div>
+        <div class="check"><input type="checkbox" ${data[p.id]?.done?'checked':''} onchange="complete('${p.id}')"><div><strong>I completed this leadership rep.</strong><div class="small">Check this only when you wrote evidence, not just when you read it.</div></div></div>
+        <div class="navBottom"><button class="btn secondary" onclick="setPage('${pages[Math.max(0,i-1)].id}')">Back</button><button class="btn" onclick="complete('${p.id}');setPage('${pages[Math.min(pages.length-1,i+1)].id}')">Complete + Continue</button></div>
+      </article>`).join('');
+      renderProgress();
+    }
+    render();
+  </script>
+</body>
+</html>

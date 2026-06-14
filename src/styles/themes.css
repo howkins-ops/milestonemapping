@@ -1,0 +1,108 @@
+/* ============================================================
+   THEMES — every theme keeps the black foundation.
+   Themes only re-point the primary accent + glow colors.
+   ============================================================ */
+
+/* dark_neon is the default (:root in globals.css) */
+
+[data-theme="gold_warrior"] {
+  --accent: #FFD166;
+  --accent-2: #FFB000;
+  --accent-glow: rgba(255, 209, 102, 0.12);
+  --accent-border: rgba(255, 209, 102, 0.24);
+  --border: rgba(255, 209, 102, 0.14);
+  --card-shadow: 0 0 30px rgba(255, 209, 102, 0.05);
+}
+
+[data-theme="gold_warrior"] .btn--primary,
+[data-theme="gold_warrior"] .progress-bar__fill {
+  background: linear-gradient(135deg, #FFD166, #FFB000);
+  box-shadow: 0 0 12px rgba(255, 209, 102, 0.5);
+}
+
+[data-theme="gold_warrior"] .sidebar__logo,
+[data-theme="gold_warrior"] .celebration__title {
+  background: linear-gradient(135deg, #FFD166, #FFB000);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="cyber_phoenix"] {
+  --accent: #FF3EDB;
+  --accent-2: #7B2CFF;
+  --accent-glow: rgba(255, 62, 219, 0.12);
+  --accent-border: rgba(255, 62, 219, 0.24);
+  --border: rgba(255, 62, 219, 0.14);
+  --card-shadow: 0 0 30px rgba(255, 62, 219, 0.05);
+}
+
+[data-theme="cyber_phoenix"] .btn--primary,
+[data-theme="cyber_phoenix"] .progress-bar__fill {
+  background: linear-gradient(135deg, #7B2CFF, #FF3EDB);
+  box-shadow: 0 0 12px rgba(255, 62, 219, 0.5);
+  color: #F2F0F4;
+}
+
+[data-theme="cyber_phoenix"] .sidebar__logo,
+[data-theme="cyber_phoenix"] .celebration__title {
+  background: linear-gradient(135deg, #7B2CFF, #FF3EDB);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="clean_focus"] {
+  --accent: #00F0FF;
+  --accent-2: #00F0FF;
+  --accent-glow: rgba(0, 240, 255, 0.06);
+  --accent-border: rgba(0, 240, 255, 0.14);
+  --border: rgba(242, 240, 244, 0.1);
+  --card-shadow: none;
+}
+
+[data-theme="clean_focus"] body { background: #000000 !important; }
+
+[data-theme="bloodline"] {
+  --accent: #FF3B5C;
+  --accent-2: #FF3EDB;
+  --accent-glow: rgba(255, 59, 92, 0.12);
+  --accent-border: rgba(255, 59, 92, 0.26);
+  --border: rgba(255, 59, 92, 0.15);
+  --card-shadow: 0 0 30px rgba(255, 59, 92, 0.05);
+}
+
+[data-theme="bloodline"] .btn--primary,
+[data-theme="bloodline"] .progress-bar__fill {
+  background: linear-gradient(135deg, #FF3B5C, #FF3EDB);
+  box-shadow: 0 0 12px rgba(255, 59, 92, 0.5);
+  color: #F2F0F4;
+}
+
+[data-theme="bloodline"] .sidebar__logo,
+[data-theme="bloodline"] .celebration__title {
+  background: linear-gradient(135deg, #FF3B5C, #FF3EDB);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="empire"] {
+  --accent: #D11EFF;
+  --accent-2: #FFD166;
+  --accent-glow: rgba(209, 30, 255, 0.12);
+  --accent-border: rgba(209, 30, 255, 0.26);
+  --border: rgba(209, 30, 255, 0.16);
+  --card-shadow: 0 0 30px rgba(209, 30, 255, 0.06);
+}
+
+[data-theme="empire"] .btn--primary,
+[data-theme="empire"] .progress-bar__fill {
+  background: linear-gradient(135deg, #D11EFF, #FFD166);
+  box-shadow: 0 0 12px rgba(209, 30, 255, 0.5);
+  color: #05000A;
+}
+
+[data-theme="empire"] .sidebar__logo,
+[data-theme="empire"] .celebration__title {
+  background: linear-gradient(135deg, #D11EFF, #FFD166);
+  -webkit-background-clip: text;
+  background-clip: text;
+}

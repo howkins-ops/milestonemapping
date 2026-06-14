@@ -1,0 +1,174 @@
+import React, { useState } from "react";
+import Card from "../ui/Card.jsx";
+import Button from "../ui/Button.jsx";
+import Badge, { PRIORITY_TONES, PRIORITY_LABELS, STATUS_TONES, STATUS_LABELS } from "../ui/Badge.jsx";
+import ProgressRing from "../ui/ProgressRing.jsx";
+import ConfirmModal from "../ui/ConfirmModal.jsx";
+import MilestoneVisionCard from "./MilestoneVisionCard.jsx";
+import MilestoneIdentityCard from "./MilestoneIdentityCard.jsx";
+import MilestoneActions from "./MilestoneActions.jsx";
+import SmartActionGenerator from "./SmartActionGenerator.jsx";
+import MilestoneWizard from "./MilestoneWizard.jsx";
+import { useMilestones } from "../../hooks/useMilestones.js";
+import { getMilestoneProgress, getRewardStatus } from "../../lib/progress.js";
+import { formatShortDate } from "../../lib/dates.js";
+
+export default function MilestoneDetailPage({ milestoneId, onBack }) {
+  const { milestones, updateMilestone, deleteMilestone, completeMilestone } = useMilestones();
+  const milestone = milestones.find((m) => m.id === milestoneId);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  if (!milestone) {
+    return (
+      <div className="anim-fade-in">
+        <p className="muted">This milestone no longer exists.</p>
+        <Button variant="secondary" onClick={onBack} style={{ marginTop: 14 }}>
+          ← Back to Project
+        </Button>
+      </div>
+    );
+  }
+
+  const progress = getMilestoneProgress(milestone);
+  const reward = getRewardStatus(milestone);
+  const actions = milestone.actions || [];
+  const allDone = actions.length > 0 && actions.every((a) => a.done);
+  const completed = milestone.status === "completed";
+
+  return (
+    <div className="anim-fade-in">
+      <Button variant="ghost" size="sm" onClick={onBack} style={{ marginBottom: 16 }}>
+        ← Back to Project
+      </Button>
+
+      {/* Header */}
+      <Card variant={completed ? "completed" : milestone.priority === "mission_critical" ? "pink" : "neon"}>
+        <div className="row row--between row--wrap" style={{ gap: 20, alignItems: "flex-start" }}>
+          <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+            <div className="row row--wrap" style={{ gap: 6, marginBottom: 12 }}>
+              <Badge tone="cyan">{milestone.category}</Badge>
+              <Badge tone={PRIORITY_TONES[milestone.priority]}>{PRIORITY_LABELS[milestone.priority]}</Badge>
+              <Badge tone={STATUS_TONES[milestone.status]}>{STATUS_LABELS[milestone.status]}</Badge>
+            </div>
+            <h1 style={{ fontSize: "clamp(22px, 3.4vw, 32px)" }}>{milestone.title}</h1>
+            {milestone.description && (
+              <p className="muted" style={{ marginTop: 8 }}>{milestone.description}</p>
+            )}
+            {milestone.targetDate && (
+              <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
+                TARGET: {formatShortDate(milestone.targetDate)}
+              </p>
+            )}
+            <p style={{ fontSize: 13, marginTop: 8, color: "var(--brand-gold)" }}>🎁 {reward.label}</p>
+
+            <div className="row row--wrap" style={{ marginTop: 16 }}>
+              <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+                ✎ Edit Milestone
+              </Button>
+              {!completed && milestone.status !== "paused" && (
+                <Button variant="ghost" size="sm" onClick={() => updateMilestone(milestone.id, { status: "paused" })}>
+                  ⏸ Pause
+                </Button>
+              )}
+              {milestone.status === "paused" && (
+                <Button variant="ghost" size="sm" onClick={() => updateMilestone(milestone.id, { status: "active" })}>
+                  ▶ Resume
+                </Button>
+              )}
+              <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
+                Delete
+              </Button>
+            </div>
+          </div>
+          <ProgressRing value={progress} size={136} label="Mission Progress" />
+        </div>
+      </Card>
+
+      {/* Unlock */}
+      {allDone && !completed && (
+        <Card variant="gold" className="anim-glow-pulse" style={{ marginTop: 16, textAlign: "center" }}>
+          <p style={{ fontWeight: 700, marginBottom: 14, color: "var(--brand-gold)" }}>
+            Every action is complete. The coordinates are reached.
+          </p>
+          <Button variant="gold" size="lg" onClick={() => completeMilestone(milestone.id)}>
+            🏆 UNLOCK MILESTONE
+          </Button>
+        </Card>
+      )}
+
+      <div className="stack" style={{ marginTop: 16 }}>
+        <MilestoneVisionCard milestone={milestone} />
+
+        {milestone.whyItMatters && (
+          <Card variant="gold">
+            <div className="kicker" style={{ color: "var(--brand-gold)", marginBottom: 10 }}>
+              WHY IT MATTERS
+            </div>
+            <h3 style={{ fontSize: 17, marginBottom: 10 }}>Your emotional fuel.</h3>
+            <p className="muted" style={{ lineHeight: 1.7 }}>{milestone.whyItMatters}</p>
+          </Card>
+        )}
+
+        <MilestoneIdentityCard milestone={milestone} />
+
+      </div>
+
+      <MilestoneActions milestone={milestone} />
+      <SmartActionGenerator milestone={milestone} />
+
+      {/* Rewards summary */}
+      {(milestone.rewardSmall || milestone.rewardMedium || milestone.rewardLarge) && (
+        <Card variant="gold" style={{ marginTop: 16 }}>
+          <div className="kicker" style={{ color: "var(--brand-gold)", marginBottom: 12 }}>
+            REWARD LADDER
+          </div>
+          <div className="stack" style={{ gap: 10 }}>
+            {[
+              ["33%", milestone.rewardSmall],
+              ["66%", milestone.rewardMedium],
+              ["100%", milestone.rewardLarge]
+            ]
+              .filter(([, text]) => text)
+              .map(([pct, text]) => (
+                <div key={pct} className="row">
+                  <span className="badge badge--gold">{pct}</span>
+                  <span
+                    style={{
+                      color:
+                        progress >= parseInt(pct, 10) ? "var(--brand-gold)" : "var(--text-soft)"
+                    }}
+                  >
+                    {text}
+                  </span>
+                </div>
+              ))}
+          </div>
+        </Card>
+      )}
+
+      {editOpen && (
+        <MilestoneWizard
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={milestone}
+          onCreate={() => {}}
+          onUpdate={updateMilestone}
+        />
+      )}
+
+      <ConfirmModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          deleteMilestone(milestone.id);
+          onBack();
+        }}
+        title="Delete this milestone?"
+        message={`"${milestone.title}" and all of its actions will be removed from the map. This cannot be undone.`}
+        confirmLabel="Delete Milestone"
+        danger
+      />
+    </div>
+  );
+}

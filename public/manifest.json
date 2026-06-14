@@ -1,0 +1,20 @@
+{
+  "name": "Milestone Mapping",
+  "short_name": "MilestoneMap",
+  "description": "Map your mission. Track your milestones. Become the person.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#D11EFF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle", "health"],
+  "screenshots": []
+}

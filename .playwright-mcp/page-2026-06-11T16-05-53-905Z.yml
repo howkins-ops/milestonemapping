@@ -1,0 +1,158 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]: Milestone Mapping
+    - generic [ref=e6]: Map the mission. Execute the day. Unlock the reward.
+    - navigation "Main navigation" [ref=e7]:
+      - button "Command" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: 🛰️
+        - text: Command
+      - button "Daily" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: ⚡
+        - text: Daily
+      - button "Map" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 🗺️
+        - text: Map
+      - button "Review" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 🧭
+        - text: Review
+      - button "Rewards" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: 🏆
+        - text: Rewards
+      - button "Essence" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: ✦
+        - text: Essence
+      - button "Vision" [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: 🔭
+        - text: Vision
+      - button "Identity" [ref=e22] [cursor=pointer]:
+        - generic [ref=e23]: 🧬
+        - text: Identity
+      - button "Stats" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: 📊
+        - text: Stats
+      - button "Formula" [ref=e26] [cursor=pointer]:
+        - generic [ref=e27]: 🧪
+        - text: Formula
+      - button "Settings" [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: ⚙️
+        - text: Settings
+    - generic [ref=e30]: WARRIOR · 1,040 XP
+  - generic [ref=e31]:
+    - banner [ref=e32]:
+      - generic [ref=e33]: Thursday, June 11, 2026
+      - generic [ref=e34]:
+        - generic [ref=e35]: 🛡 Warrior
+        - button "1040 XP — view stats" [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]: ✦ 1,040 XP · 460 to Architect
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]: Thursday, June 11, 2026
+            - heading "Today is not random. Today is a brick in the empire." [level=1] [ref=e44]
+            - paragraph [ref=e45]: Choose the actions that make the future version of you undeniable.
+            - generic [ref=e46]:
+              - generic [ref=e47]: 🛡 Warrior
+              - generic [ref=e48]: ⚡ 1-day streak
+              - generic [ref=e49]: 🏝 1 active projects
+              - generic [ref=e50]: 🏆 0 conquered
+            - progressbar "1,040 XP — 460 to Architect" [ref=e52]:
+              - generic [ref=e53]:
+                - generic [ref=e54]: 1,040 XP — 460 to Architect
+                - generic [ref=e55]: 39%
+          - 'img "Life Progress: 35%" [ref=e59]':
+            - img [ref=e60]
+            - generic [ref=e63]:
+              - generic [ref=e64]: 35%
+              - generic [ref=e65]: Life Progress
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]: Top 5 Progress
+              - generic [ref=e70]: ⚡
+            - generic [ref=e71]: 5/5
+            - generic [ref=e72]: Day conquered
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - generic [ref=e75]: Active Projects
+              - generic [ref=e76]: 🏝
+            - generic [ref=e77]: "1"
+            - generic [ref=e78]: 3 milestones in motion
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - generic [ref=e81]: Rewards Waiting
+              - generic [ref=e82]: 🎁
+            - generic [ref=e83]: "2"
+            - generic [ref=e84]: Claim what you earned
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - generic [ref=e87]: Weekly Review
+              - generic [ref=e88]: 🧭
+            - generic [ref=e89]: Done
+            - generic [ref=e90]: Map updated
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - generic [ref=e93]: XP Earned
+              - generic [ref=e94]: ✦
+            - generic [ref=e95]: 1,040
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - generic [ref=e98]: Current Rank
+              - generic [ref=e99]: 🛡
+            - generic [ref=e100]: Warrior
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - generic [ref=e103]: 🧭
+            - paragraph [ref=e104]: "Next strategic review: Sunday."
+          - button "Preview Review" [ref=e105] [cursor=pointer]
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Today's Top 5" [level=2] [ref=e110]:
+                - generic [ref=e111]: ⚡
+                - text: Today's Top 5
+              - paragraph [ref=e112]: Day conquered. Momentum earned.
+            - button "Open Daily →" [ref=e113] [cursor=pointer]
+          - generic [ref=e114]:
+            - progressbar "Execution" [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]: Execution
+                - generic [ref=e118]: 100%
+            - list [ref=e121]:
+              - listitem [ref=e122]:
+                - 'button "Uncheck: Ship the landing page" [ref=e123] [cursor=pointer]': ✓
+                - generic [ref=e124]: Ship the landing page
+              - listitem [ref=e125]:
+                - 'button "Uncheck: Train chest + cardio" [ref=e126] [cursor=pointer]': ✓
+                - generic [ref=e127]: Train chest + cardio
+              - listitem [ref=e128]:
+                - 'button "Uncheck: Call 10 leads" [ref=e129] [cursor=pointer]': ✓
+                - generic [ref=e130]: Call 10 leads
+              - listitem [ref=e131]:
+                - 'button "Uncheck: Read 20 pages" [ref=e132] [cursor=pointer]': ✓
+                - generic [ref=e133]: Read 20 pages
+              - listitem [ref=e134]:
+                - 'button "Uncheck: Plan tomorrow''s Top 5" [ref=e135] [cursor=pointer]': ✓
+                - generic [ref=e136]: Plan tomorrow's Top 5
+        - generic [ref=e137]:
+          - generic [ref=e138]:
+            - generic [ref=e139]:
+              - heading "Active Expeditions" [level=2] [ref=e140]:
+                - generic [ref=e141]: 🏝
+                - text: Active Expeditions
+              - paragraph [ref=e142]: Your islands, your treasure trails, in motion.
+            - button "Open World Map →" [ref=e143] [cursor=pointer]
+          - 'button "Personal Growth General Missions 1/4 milestones 35 Next milestone: Transform My Body" [ref=e145] [cursor=pointer]':
+            - generic [ref=e146]:
+              - generic [ref=e147]: 🗺️
+              - generic [ref=e149]: Personal Growth
+            - heading "General Missions" [level=3] [ref=e150]
+            - paragraph [ref=e151]: 1/4 milestones
+            - progressbar "Progress" [ref=e152]:
+              - generic [ref=e154]: 35%
+            - paragraph [ref=e157]: "Next milestone: Transform My Body"
+        - button "▰▰ INCOMING TRANSMISSION — FUTURE SELF ▰▰ “I am the kind of person who maps the mission, executes the day, and follows through until the reward is earned.” Signal verified · encrypted channel · tap to edit identity" [ref=e158] [cursor=pointer]:
+          - generic [ref=e159]: ▰▰ INCOMING TRANSMISSION — FUTURE SELF ▰▰
+          - paragraph [ref=e160]: “I am the kind of person who maps the mission, executes the day, and follows through until the reward is earned.”
+          - paragraph [ref=e161]: Signal verified · encrypted channel · tap to edit identity
+        - paragraph [ref=e162]: ◇ The old version of you waits in comfort. The new version moves. ◇

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLAZE Transformation Lab</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0;background:#030008;">
+  <div id="root"></div>
+  <script type="text/babel">
+const { useEffect, useMemo, useState } = React;
+
+/**
+ * BLAZE Training Module — drop-in React component
+ * Brand: Milestone Mapping / B.L.A.Z.E.
+ * Persistence: localStorage
+ * Styling: pure JSX + inline CSS so it can be dropped into most React apps.
+ */
+
+const STORAGE_KEY = 'blaze_training_module_v1';
+
+const brand = {
+  magenta: '#D11EFF',
+  cyan: '#00F0FF',
+  pink: '#FF3EDB',
+  mint: '#00FFBF',
+  white: '#F2F0F4',
+  black: '#030008',
+  panel: '#080011',
+  deep: '#12001f',
+};
+
+const pillars = [
+  {
+    key: 'being',
+    letter: 'B',
+    title: 'Being',
+    stand: 'I return to essence before I chase outcomes.',
+    question: 'Who am I choosing to be before I execute?',
+    coachingMove: 'Presence, grounding, self-awareness, values alignment.',
+    essence: ['Radiance', 'Love', 'Joy', 'Power', 'Majesty'],
+    ritual: '60-second breath reset: inhale identity, exhale survival mask.',
+  },
+  {
+    key: 'leadership',
+    letter: 'L',
+    title: 'Leadership',
+    stand: 'I create motion for myself and others.',
+    question: 'Where am I waiting for permission instead of leading?',
+    coachingMove: 'Ownership, standards, courageous communication, responsibility.',
+    essence: ['Inspiring', 'Leader', 'Connector'],
+    ritual: 'Name one room, person, or result that needs your leadership today.',
+  },
+  {
+    key: 'alignment',
+    letter: 'A',
+    title: 'Alignment',
+    stand: 'My actions match my values, vision, and commitments.',
+    question: 'What is the cleanest next action that matches the person I say I am?',
+    coachingMove: 'Integrity audit, values hierarchy, goal-to-action mapping.',
+    essence: ['Clarity', 'Integrity', 'Truth'],
+    ritual: 'Pick one commitment and remove one contradiction before noon.',
+  },
+  {
+    key: 'zeal',
+    letter: 'Z',
+    title: 'Zeal',
+    stand: 'I bring energy, devotion, and emotional fire to the mission.',
+    question: 'What would I attack today if I remembered the mission mattered?',
+    coachingMove: 'Meaning, gratitude, emotional activation, future visualization.',
+    essence: ['Fire', 'Gratitude', 'Devotion'],
+    ritual: 'Write three wins, one blessing, and one reason the mission is worth it.',
+  },
+  {
+    key: 'execution',
+    letter: 'E',
+    title: 'Execution',
+    stand: 'I plan today, execute tomorrow, and prove it daily.',
+    question: 'What proof will exist by tonight that I moved?',
+    coachingMove: 'Implementation intention, daily proof, milestone reward loop.',
+    essence: ['Discipline', 'Proof', 'Momentum'],
+    ritual: 'Create one if-then plan: If obstacle X appears, then I will do Y.',
+  },
+];
+
+const stages = [
+  {
+    id: 1,
+    title: 'Choose Your Stand',
+    subtitle: 'Start by selecting the version of you that needs to lead today.',
+    prompt: 'Today, I am standing in...',
+  },
+  {
+    id: 2,
+    title: 'Expose the Mask',
+    subtitle: 'Name the survival mechanism without becoming it.',
+    prompt: 'The mask trying to run me today is...',
+  },
+  {
+    id: 3,
+    title: 'Return to Essence',
+    subtitle: 'Move from reaction to identity before making a plan.',
+    prompt: 'The essence I am returning to is...',
+  },
+  {
+    id: 4,
+    title: 'Map the Milestone',
+    subtitle: 'Convert vision into the next visible checkpoint.',
+    prompt: 'The milestone I am moving toward is...',
+  },
+  {
+    id: 5,
+    title: 'Attach the Reward',
+    subtitle: 'Give your nervous system a reason to enjoy progress.',
+    prompt: 'When I complete this, I will reward myself with...',
+  },
+  {
+    id: 6,
+    title: 'Plan Today, Execute Tomorrow',
+    subtitle: 'Pre-decide the when, where, and how before resistance hits.',
+    prompt: 'Tomorrow, at this time/place, I will execute...',
+  },
+  {
+    id: 7,
+    title: 'Daily Proof',
+    subtitle: 'No drama. No story. Just evidence.',
+    prompt: 'The proof I created today was...',
+  },
+  {
+    id: 8,
+    title: 'Weekly Wisdom Review',
+    subtitle: 'Turn experience into learning, growth, and wisdom.',
+    prompt: 'This week taught me...',
+  },
+];
+
+const masks = [
+  { name: 'Broke King', flip: 'I create value before I demand a crown.' },
+  { name: 'Addict Saint', flip: 'I create intimacy, energy, and integrity instead of consuming escape.' },
+  { name: 'Wasted Genius', flip: 'I turn potential into proof.' },
+  { name: 'Raging Victim', flip: 'I take my power back without needing life to be fair first.' },
+  { name: 'Naive Warrior', flip: 'I stay open-hearted and build stronger discernment.' },
+];
+
+const stats = [
+  {
+    stat: '85%',
+    label: 'of coaches say clients want support for mental well-being',
+    source: 'ICF 2024 Coaching Snapshot',
+    use: 'Position BLAZE as performance + inner game, not just productivity.',
+  },
+  {
+    stat: '122,974',
+    label: 'coach practitioners estimated globally in the 2025 ICF Global Coaching Study',
+    source: 'ICF 2025 Global Coaching Study',
+    use: 'Coaching is a global category, so this module should feel premium and legitimate.',
+  },
+  {
+    stat: '$5.34B',
+    label: 'estimated global coaching industry revenue in 2025',
+    source: 'ICF 2025 Global Coaching Study',
+    use: 'The app can become a serious training/product ecosystem.',
+  },
+  {
+    stat: '64 RCTs',
+    label: 'gratitude intervention trials in a 2023 systematic review/meta-analysis',
+    source: 'Diniz et al., 2023',
+    use: 'Morning gratitude belongs inside the daily ritual because it supports better mental health and fewer anxiety/depression symptoms.',
+  },
+  {
+    stat: 'd = .65',
+    label: 'medium-to-large effect reported for implementation intentions on goal attainment',
+    source: 'Gollwitzer & Sheeran, 2006',
+    use: 'This backs the “plan today, execute tomorrow” mechanic.',
+  },
+];
+
+const defaultState = {
+  selectedPillar: 'being',
+  activeStage: 1,
+  completedStages: [],
+  entries: {},
+  dailyProof: [],
+  wisdomScore: 0,
+};
+
+function loadState() {
+  if (typeof window === 'undefined') return defaultState;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? { ...defaultState, ...JSON.parse(raw) } : defaultState;
+  } catch {
+    return defaultState;
+  }
+}
+
+function BlazeTrainingModule() {
+  const [state, setState] = useState(loadState);
+  const [coachMode, setCoachMode] = useState('Training');
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
+
+  const selected = useMemo(
+    () => pillars.find((p) => p.key === state.selectedPillar) || pillars[0],
+    [state.selectedPillar]
+  );
+
+  const progress = Math.round((state.completedStages.length / stages.length) * 100);
+
+  const updateEntry = (stageId, value) => {
+    setState((s) => ({ ...s, entries: { ...s.entries, [stageId]: value } }));
+  };
+
+  const completeStage = (stageId) => {
+    setState((s) => {
+      const completed = s.completedStages.includes(stageId)
+        ? s.completedStages
+        : [...s.completedStages, stageId];
+      return {
+        ...s,
+        completedStages: completed,
+        activeStage: Math.min(stageId + 1, stages.length),
+        wisdomScore: completed.length * 12 + (s.dailyProof.length * 3),
+      };
+    });
+  };
+
+  const addProof = () => {
+    const proof = state.entries[7];
+    if (!proof || !proof.trim()) return;
+    setState((s) => ({
+      ...s,
+      dailyProof: [{ text: proof.trim(), at: new Date().toLocaleString() }, ...s.dailyProof].slice(0, 12),
+      entries: { ...s.entries, 7: '' },
+      wisdomScore: s.wisdomScore + 5,
+    }));
+  };
+
+  const reset = () => {
+    setState(defaultState);
+    window.localStorage.removeItem(STORAGE_KEY);
+  };
+
+  return (
+    <div className="blaze-shell">
+      <style>{css}</style>
+
+      <section className="hero">
+        <div className="hero-orb" />
+        <div className="eyebrow">Milestone Mapping™ Training OS</div>
+        <h1>B.L.A.Z.E. Transformation Lab</h1>
+        <p>
+          A coaching-grade training module for identity, leadership, alignment, zeal, and execution.
+          Built to help someone choose who they are being, expose the mask, map the milestone,
+          and create proof before motivation disappears.
+        </p>
+        <div className="hero-actions">
+          {['Training', 'Daily Stand', 'Coach View'].map((mode) => (
+            <button key={mode} onClick={() => setCoachMode(mode)} className={coachMode === mode ? 'active' : ''}>
+              {mode}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="panel progress-panel">
+          <div className="panel-top">
+            <span>Transformation Progress</span>
+            <strong>{progress}%</strong>
+          </div>
+          <div className="progress-track"><div style={{ width: `${progress}%` }} /></div>
+          <div className="score-row">
+            <div><b>{state.completedStages.length}/{stages.length}</b><span>stages complete</span></div>
+            <div><b>{state.wisdomScore}</b><span>wisdom score</span></div>
+            <div><b>{state.dailyProof.length}</b><span>proof logs</span></div>
+          </div>
+        </div>
+
+        <div className="panel stand-panel">
+          <span className="mini-label">Today’s Stand</span>
+          <h2>{selected.title}</h2>
+          <p>{selected.stand}</p>
+          <div className="essence-row">
+            {selected.essence.map((word) => <span key={word}>{word}</span>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="pillar-grid">
+        {pillars.map((pillar) => (
+          <button
+            key={pillar.key}
+            className={`pillar-card ${state.selectedPillar === pillar.key ? 'selected' : ''}`}
+            onClick={() => setState((s) => ({ ...s, selectedPillar: pillar.key }))}
+          >
+            <div className="pillar-letter">{pillar.letter}</div>
+            <h3>{pillar.title}</h3>
+            <p>{pillar.question}</p>
+          </button>
+        ))}
+      </section>
+
+      {coachMode === 'Daily Stand' && (
+        <section className="panel ritual-panel">
+          <div>
+            <span className="mini-label">60-second activation</span>
+            <h2>{selected.ritual}</h2>
+            <p>{selected.coachingMove}</p>
+          </div>
+          <div className="breath-orbit"><span /></div>
+        </section>
+      )}
+
+      {coachMode === 'Coach View' && (
+        <section className="panel coach-panel">
+          <span className="mini-label">Coach lens</span>
+          <h2>Ask, don’t tell. Create awareness, then convert awareness into proof.</h2>
+          <div className="coach-grid">
+            <div><b>ICF-style move</b><p>Maintains presence, evokes awareness, listens actively, and facilitates client growth.</p></div>
+            <div><b>BLAZE move</b><p>Identity first, mask second, milestone third, proof fourth.</p></div>
+            <div><b>App mechanic</b><p>Every insight must become a next action, reward, or weekly review.</p></div>
+          </div>
+        </section>
+      )}
+
+      <section className="training-layout">
+        <aside className="stage-rail">
+          {stages.map((stage) => (
+            <button
+              key={stage.id}
+              className={`stage-tab ${state.activeStage === stage.id ? 'active' : ''} ${state.completedStages.includes(stage.id) ? 'done' : ''}`}
+              onClick={() => setState((s) => ({ ...s, activeStage: stage.id }))}
+            >
+              <span>{stage.id}</span>
+              {stage.title}
+            </button>
+          ))}
+        </aside>
+
+        <main className="panel stage-panel">
+          {stages.filter((s) => s.id === state.activeStage).map((stage) => (
+            <div key={stage.id}>
+              <span className="mini-label">Stage {stage.id}</span>
+              <h2>{stage.title}</h2>
+              <p>{stage.subtitle}</p>
+              <label>{stage.prompt}</label>
+              {stage.id === 2 ? (
+                <div className="mask-grid">
+                  {masks.map((mask) => (
+                    <button
+                      key={mask.name}
+                      onClick={() => updateEntry(stage.id, `${mask.name}: ${mask.flip}`)}
+                      className={state.entries[stage.id]?.startsWith(mask.name) ? 'selected-mask' : ''}
+                    >
+                      <b>{mask.name}</b><span>{mask.flip}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <textarea
+                  value={state.entries[stage.id] || ''}
+                  onChange={(e) => updateEntry(stage.id, e.target.value)}
+                  placeholder="Write the truth. Keep it clean. Make it actionable."
+                />
+              )}
+              <div className="stage-actions">
+                {stage.id === 7 && <button className="secondary" onClick={addProof}>Add Daily Proof</button>}
+                <button onClick={() => completeStage(stage.id)}>Complete Stage</button>
+              </div>
+            </div>
+          ))}
+        </main>
+      </section>
+
+      <section className="stats-grid">
+        {stats.map((item) => (
+          <article className="stat-card" key={item.stat}>
+            <strong>{item.stat}</strong>
+            <h3>{item.label}</h3>
+            <p>{item.use}</p>
+            <span>{item.source}</span>
+          </article>
+        ))}
+      </section>
+
+      <section className="panel proof-panel">
+        <div className="panel-top">
+          <div>
+            <span className="mini-label">Evidence Wall</span>
+            <h2>Daily proof beats emotional noise.</h2>
+          </div>
+          <button className="danger" onClick={reset}>Reset Module</button>
+        </div>
+        {state.dailyProof.length === 0 ? (
+          <p className="empty">No proof logged yet. Complete Stage 7 to start building evidence.</p>
+        ) : (
+          <div className="proof-list">
+            {state.dailyProof.map((proof, index) => (
+              <div key={`${proof.at}-${index}`}><b>{proof.at}</b><p>{proof.text}</p></div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+const css = `
+  .blaze-shell { min-height: 100vh; background: radial-gradient(circle at top left, rgba(209,30,255,.22), transparent 32%), radial-gradient(circle at top right, rgba(0,240,255,.18), transparent 30%), #030008; color: #F2F0F4; padding: 28px; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .hero, .panel, .pillar-card, .stat-card { border: 1px solid rgba(242,240,244,.14); background: linear-gradient(145deg, rgba(8,0,17,.96), rgba(18,0,31,.88)); box-shadow: 0 0 32px rgba(209,30,255,.12), inset 0 0 30px rgba(0,240,255,.035); border-radius: 28px; }
+  .hero { position: relative; overflow: hidden; padding: 42px; margin-bottom: 20px; }
+  .hero-orb { position: absolute; width: 320px; height: 320px; right: -80px; top: -80px; border-radius: 50%; background: radial-gradient(circle, rgba(0,240,255,.34), rgba(255,62,219,.14), transparent 68%); filter: blur(2px); animation: pulse 4s ease-in-out infinite; }
+  .eyebrow, .mini-label { color: #00FFBF; text-transform: uppercase; letter-spacing: .18em; font-size: 12px; font-weight: 800; }
+  h1 { font-size: clamp(40px, 8vw, 92px); line-height: .9; margin: 10px 0 18px; background: linear-gradient(90deg, #D11EFF, #00F0FF, #FF3EDB); -webkit-background-clip: text; color: transparent; }
+  h2 { font-size: clamp(24px, 4vw, 42px); margin: 8px 0 10px; }
+  h3 { margin: 8px 0; }
+  p { color: rgba(242,240,244,.78); line-height: 1.55; }
+  button { color: #F2F0F4; border: 1px solid rgba(0,240,255,.22); background: rgba(255,255,255,.03); border-radius: 999px; padding: 12px 16px; cursor: pointer; font-weight: 800; transition: .2s ease; }
+  button:hover, button.active, .pillar-card.selected { transform: translateY(-2px); border-color: #00F0FF; box-shadow: 0 0 22px rgba(0,240,255,.22); }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; position: relative; z-index: 2; }
+  .dashboard-grid { display: grid; grid-template-columns: 1.4fr .9fr; gap: 18px; margin-bottom: 18px; }
+  .panel { padding: 24px; }
+  .panel-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .progress-panel strong { font-size: 34px; color: #00F0FF; }
+  .progress-track { height: 14px; border-radius: 99px; background: rgba(242,240,244,.07); overflow: hidden; margin: 18px 0; }
+  .progress-track div { height: 100%; background: linear-gradient(90deg, #D11EFF, #00F0FF, #00FFBF); box-shadow: 0 0 22px rgba(0,240,255,.5); }
+  .score-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .score-row div { border: 1px solid rgba(242,240,244,.1); border-radius: 18px; padding: 14px; background: rgba(255,255,255,.025); }
+  .score-row b { display: block; font-size: 24px; } .score-row span { color: rgba(242,240,244,.58); font-size: 12px; }
+  .essence-row { display: flex; gap: 8px; flex-wrap: wrap; } .essence-row span { border: 1px solid rgba(255,62,219,.28); color: #FF3EDB; border-radius: 99px; padding: 8px 10px; font-size: 12px; font-weight: 900; }
+  .pillar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+  .pillar-card { text-align: left; padding: 20px; border-radius: 24px; min-height: 210px; }
+  .pillar-letter { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, #D11EFF, #00F0FF); font-size: 28px; font-weight: 1000; }
+  .ritual-panel { display: grid; grid-template-columns: 1fr 180px; align-items: center; margin-bottom: 18px; }
+  .breath-orbit { width: 150px; height: 150px; border-radius: 50%; border: 1px solid rgba(0,240,255,.26); display: grid; place-items: center; animation: breathe 5s infinite ease-in-out; justify-self: center; }
+  .breath-orbit span { width: 72px; height: 72px; border-radius: 50%; background: radial-gradient(circle, #00FFBF, #00F0FF, transparent 70%); }
+  .coach-panel { margin-bottom: 18px; } .coach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; } .coach-grid div { border: 1px solid rgba(242,240,244,.1); padding: 16px; border-radius: 18px; }
+  .training-layout { display: grid; grid-template-columns: 290px 1fr; gap: 18px; margin-bottom: 18px; }
+  .stage-rail { display: flex; flex-direction: column; gap: 10px; }
+  .stage-tab { border-radius: 18px; text-align: left; display: flex; align-items: center; gap: 10px; }
+  .stage-tab span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(209,30,255,.25); }
+  .stage-tab.done span { background: #00FFBF; color: #030008; }
+  .stage-panel label { display: block; color: #00F0FF; font-weight: 900; margin: 18px 0 10px; }
+  textarea { width: 100%; min-height: 180px; border-radius: 20px; padding: 18px; color: #F2F0F4; background: #030008; border: 1px solid rgba(0,240,255,.22); outline: none; resize: vertical; font-size: 16px; }
+  textarea:focus { box-shadow: 0 0 24px rgba(0,240,255,.22); }
+  .stage-actions { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+  .stage-actions button:last-child { background: linear-gradient(90deg, #D11EFF, #00F0FF); border: 0; color: #030008; }
+  .secondary { border-color: rgba(0,255,191,.45); } .danger { border-color: rgba(255,62,219,.32); color: #FF3EDB; }
+  .mask-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .mask-grid button { border-radius: 18px; text-align: left; min-height: 160px; display: flex; flex-direction: column; gap: 8px; }
+  .mask-grid span { color: rgba(242,240,244,.67); font-size: 13px; line-height: 1.4; } .selected-mask { border-color: #FF3EDB; box-shadow: 0 0 22px rgba(255,62,219,.2); }
+  .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+  .stat-card { padding: 20px; border-radius: 22px; }
+  .stat-card strong { font-size: 38px; background: linear-gradient(90deg, #00F0FF, #00FFBF); -webkit-background-clip: text; color: transparent; }
+  .stat-card span { color: #FF3EDB; font-size: 12px; font-weight: 900; }
+  .empty { border: 1px dashed rgba(242,240,244,.2); border-radius: 18px; padding: 18px; }
+  .proof-list { display: grid; gap: 10px; } .proof-list div { border: 1px solid rgba(242,240,244,.1); border-radius: 18px; padding: 14px; background: rgba(255,255,255,.025); }
+  .proof-list b { color: #00FFBF; font-size: 12px; }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+  @keyframes breathe { 0%,100% { transform: scale(.88); box-shadow: 0 0 18px rgba(0,240,255,.15); } 50% { transform: scale(1.08); box-shadow: 0 0 42px rgba(0,240,255,.35); } }
+  @media (max-width: 1100px) { .pillar-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-grid, .training-layout, .ritual-panel { grid-template-columns: 1fr; } .mask-grid, .coach-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .blaze-shell { padding: 14px; } .hero { padding: 26px; } .pillar-grid, .stats-grid, .score-row { grid-template-columns: 1fr; } }
+`;
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<BlazeTrainingModule />);
+  </script>
+</body>
+</html>

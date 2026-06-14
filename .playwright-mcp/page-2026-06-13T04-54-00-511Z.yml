@@ -1,0 +1,20 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e7]: 🗺️
+    - generic [ref=e8]: MILESTONE MAPPING
+  - heading "MISSION CONTROL" [level=1] [ref=e9]
+  - paragraph [ref=e10]: Sign in to sync your milestones across devices.
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - text: EMAIL
+      - textbox "EMAIL" [ref=e13]:
+        - /placeholder: commander@mission.co
+    - generic [ref=e14]:
+      - text: PASSWORD
+      - textbox "PASSWORD" [ref=e15]:
+        - /placeholder: ••••••••
+    - button "SIGN IN" [ref=e16] [cursor=pointer]
+  - generic [ref=e17]:
+    - button "Create account" [ref=e18] [cursor=pointer]
+    - generic [ref=e19]: ·
+    - button "Forgot password?" [ref=e20] [cursor=pointer]
