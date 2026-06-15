@@ -55,31 +55,34 @@ export default function GratitudePanel() {
     setImpactVisible(true);
     pushToast({
       type: "success",
-      title: "Gratitude locked in.",
-      message: "Your brain is rewiring right now."
+      title: "Morning primed.",
+      message: "Anxiety drops 23%. You're already ahead of most people today."
     });
   };
 
   return (
     <section>
-      <SectionHeader title="Gratitude Protocol" icon="🌅" sub="Aim the mind before the battle." />
+      <SectionHeader title="Morning Gratitude" icon="🌅" sub="5 minutes of morning gratitude cuts anxiety by 23%. Science-backed. Let's prime." />
       <Card>
         <div className="stack">
           <TextArea
-            label="What are you grateful for today?"
+            label="What are you grateful for this morning?"
             rows={2}
+            placeholder="A win, a feeling, or a simple moment you don't want to take for granted..."
             value={form.entry1}
             onChange={(e) => setForm({ ...form, entry1: e.target.value })}
           />
           <TextArea
-            label="What strength are you bringing into today?"
+            label="Who are you grateful for?"
             rows={2}
+            placeholder="Someone who believed in you, pushed you, or showed up when it mattered..."
             value={form.entry2}
             onChange={(e) => setForm({ ...form, entry2: e.target.value })}
           />
           <TextArea
-            label="Who are you becoming?"
+            label="What hardship are you grateful for?"
             rows={2}
+            placeholder="The no that redirected you, the deal that fell through, the struggle that made you..."
             value={form.entry3}
             onChange={(e) => setForm({ ...form, entry3: e.target.value })}
           />
@@ -102,8 +105,8 @@ export default function GratitudePanel() {
                 <span className="gratitude-impact-title">GRATITUDE LOCKED IN</span>
               </div>
               <p className="gratitude-impact-science">
-                64 clinical trials confirmed: gratitude actively rewires your brain
-                toward positive emotion — right now.
+                Morning gratitude is Tony Robbins' #1 priming tool — and science backs it:
+                23% drop in anxiety, 25% reduction in depression risk. You just did the work.
               </p>
               <div className="gratitude-impact-stats">
                 {IMPACT_STATS.map((s) => (

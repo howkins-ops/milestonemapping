@@ -129,23 +129,6 @@ export default function BootSequence({ onDone }) {
       role="status"
       aria-label="Mission control booting"
     >
-      {/* Cinematic background images — primary + fallback */}
-      <img
-        src="/game/phoenix-altar.jpg"
-        className={`boot-bg-img${phxDrawing ? " boot-bg-img--visible" : ""}`}
-        alt=""
-        aria-hidden="true"
-        onError={(e) => { e.target.style.display = "none"; }}
-      />
-      <img
-        src="/game/temple-interior.jpg"
-        className="boot-bg-img"
-        alt=""
-        aria-hidden="true"
-        style={{ opacity: diaLanded ? 0.3 : 0 }}
-        onError={(e) => { e.target.style.display = "none"; }}
-      />
-      <div className="boot-bg-overlay" />
 
       {/* ember layer */}
       <div

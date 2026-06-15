@@ -24,6 +24,8 @@ import BlazeRealTrainingOS from "./components/blaze/BlazeRealTrainingOS.jsx";
 import ProfilePage from "./components/profile/ProfilePage.jsx";
 import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
 import TopFivePage from "./components/daily/TopFivePage.jsx";
+import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
+import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
 import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
 
 const BOOT_SESSION_FLAG = "milestone_mapping_boot_shown";
@@ -33,6 +35,7 @@ function AppContent({ signOut }) {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+  const [rpgWorldProjectId, setRpgWorldProjectId] = useState(null);
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
     try {
@@ -59,14 +62,26 @@ function AppContent({ signOut }) {
   const navigate = (page) => {
     setSelectedProjectId(null);
     setSelectedMilestoneId(null);
+    setRpgWorldProjectId(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0 });
   };
 
   const openProject = (id) => {
+    setRpgWorldProjectId(null);
     setSelectedProjectId(id);
     setSelectedMilestoneId(null);
     setCurrentPage("milestones");
+    window.scrollTo({ top: 0 });
+  };
+
+  const openRPGWorld = (projectId) => {
+    setRpgWorldProjectId(projectId);
+    window.scrollTo({ top: 0 });
+  };
+
+  const closeRPGWorld = () => {
+    setRpgWorldProjectId(null);
     window.scrollTo({ top: 0 });
   };
 
@@ -79,6 +94,14 @@ function AppContent({ signOut }) {
   };
 
   function renderPage() {
+    if (rpgWorldProjectId) {
+      return (
+        <RPGWorldPage
+          projectId={rpgWorldProjectId}
+          onExitWorld={closeRPGWorld}
+        />
+      );
+    }
     if (currentPage === "milestones" && selectedMilestoneId) {
       return (
         <MilestoneDetailPage
@@ -99,6 +122,7 @@ function AppContent({ signOut }) {
             window.scrollTo({ top: 0 });
           }}
           onOpenMilestone={openMilestone}
+          onOpenRPGWorld={openRPGWorld}
         />
       );
     }
@@ -139,6 +163,8 @@ function AppContent({ signOut }) {
         return <TopFivePage onNavigate={navigate} />;
       case "openworld":
         return <OpenWorldMap onNavigate={navigate} onOpenProject={openProject} />;
+      case "assets":
+        return <AssetLibraryPage />;
       default:
         return <DashboardPage onNavigate={navigate} onOpenProject={openProject} />;
     }

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import Button from "./Button.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
+import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
 
 const VARIANT_META = {
   day:           { emblem: "⚔️",  color: "",                      cta: "Keep Building" },
@@ -165,6 +166,36 @@ function EmberBurst() {
   );
 }
 
+function AssetEmblem({ variant }) {
+  if (variant === "milestone") {
+    return (
+      <span className="celebration__asset-emblem celebration__asset-emblem--diamond">
+        <img src={MWA.portals.completed} alt="" />
+        <img src={MWA.icons.diamonds} alt="" />
+      </span>
+    );
+  }
+
+  if (variant === "project" || variant === "rank") {
+    return (
+      <span className="celebration__asset-emblem celebration__asset-emblem--phoenix">
+        <img src="/assets/phoenix-shrine/awakened-shrine.png" alt="" />
+        <img src="/assets/phoenix-shrine/phoenix-rising.png" alt="" />
+      </span>
+    );
+  }
+
+  if (variant === "reward") {
+    return (
+      <span className="celebration__asset-emblem celebration__asset-emblem--reward">
+        <img src="/assets/treasure-system/legendary-chest-open.png" alt="" />
+      </span>
+    );
+  }
+
+  return null;
+}
+
 export default function CelebrationOverlay() {
   const { celebrations, dismissCelebration, settings } = useAppData();
   const current = celebrations[0];
@@ -184,6 +215,7 @@ export default function CelebrationOverlay() {
   const usePhoenix    = meta.emblem === "PHX";
   const useDiamond    = current.variant === "milestone";
   const withEmbers    = current.variant === "project" || current.variant === "rank";
+  const hasAssetEmblem = ["milestone", "project", "rank", "reward"].includes(current.variant);
 
   return (
     <div className={`celebration ${meta.color}`} role="alertdialog" aria-label={current.title}>
@@ -192,7 +224,9 @@ export default function CelebrationOverlay() {
 
       <div className="celebration__inner">
         <div className="celebration__emblem" aria-hidden="true" style={{ display: "flex", justifyContent: "center" }}>
-          {usePhoenix ? (
+          {hasAssetEmblem ? (
+            <AssetEmblem variant={current.variant} />
+          ) : usePhoenix ? (
             <PhoenixSVG size={120} />
           ) : useDiamond ? (
             <DiamondSVG size={80} />

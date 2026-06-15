@@ -34,6 +34,13 @@ const STREAK_MILESTONES = [
   }
 ];
 
+const HERO_ICONS = {
+  charted: "/assets/milestone-world/main-card-charted-icon.png",
+  streak: "/assets/milestone-world/main-card-streak-icon.png",
+  maps: "/assets/milestone-world/main-card-maps-icon.png",
+  diamonds: "/assets/milestone-world/main-card-diamonds-icon.png"
+};
+
 export default function MissionHero() {
   const { rank, xp, progress } = useGamification();
   const { streaks } = useDailyLog();
@@ -66,8 +73,8 @@ export default function MissionHero() {
     <div className="mission-hero anim-slide-up">
       {/* phoenix watermark */}
       <PhoenixSVG
-        width={260}
-        style={{ position: "absolute", right: -52, bottom: -32, opacity: 0.14, pointerEvents: "none" }}
+        width={195}
+        style={{ position: "absolute", right: -40, bottom: -24, opacity: 0.14, pointerEvents: "none" }}
       />
 
       <p className="kicker" style={{ marginBottom: 6 }}>{formatDisplayDate()}</p>
@@ -75,66 +82,41 @@ export default function MissionHero() {
         {displayName ? `Welcome back, ${displayName}.` : "Our map."}<br />
         <span className="mission-hero__grad">your transformation.</span>
       </h1>
-      <p className="muted" style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 16 }}>
+      <p className="muted" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 12 }}>
         Every milestone is a diamond. Collect them all.
       </p>
 
       <div className="mission-hero__body">
-        <ProgressRing value={overallProgress} size={96} label="Charted" />
+        <div className="mission-hero__charted">
+          <img src={HERO_ICONS.charted} alt="" aria-hidden="true" />
+          <ProgressRing value={overallProgress} size={72} label="Charted" />
+        </div>
 
-        <div style={{ flex: 1, minWidth: 170 }}>
-          <div className="mission-hero__stats">
-            <div className="mission-hero__stat mission-hero__stat--streak">
-              <span className="mission-hero__stat-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-3.5-2-7-5-11z" fill="#FF3EDB" opacity="0.25"/>
-                  <path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-3.5-2-7-5-11z" stroke="#FF3EDB" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M12 14c0 0-2-2-1-4 0 0 1 2 3 2s2-2 2-2c0 2-1 4-4 4z" fill="#FF3EDB"/>
-                </svg>
-              </span>
-              <span className="mission-hero__stat-n">{streakCount}</span>
-              <span className="mission-hero__stat-l">Streak</span>
-            </div>
-            <div className="mission-hero__stat mission-hero__stat--maps">
-              <span className="mission-hero__stat-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3-6-3z" stroke="#D11EFF" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <line x1="9" y1="4" x2="9" y2="17" stroke="#D11EFF" strokeWidth="1.5"/>
-                  <line x1="15" y1="7" x2="15" y2="20" stroke="#D11EFF" strokeWidth="1.5"/>
-                </svg>
-              </span>
-              <span className="mission-hero__stat-n">{activeCount}</span>
-              <span className="mission-hero__stat-l">Maps</span>
-            </div>
-            <div className="mission-hero__stat mission-hero__stat--diamonds">
-              <span className="mission-hero__stat-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M12 3L3 9l9 12 9-12-9-6z" stroke="#FF3EDB" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M3 9h18M8 9L12 3l4 6" stroke="#FF3EDB" strokeWidth="1.5" strokeLinejoin="round"/>
-                </svg>
-              </span>
-              <span className="mission-hero__stat-n">{conqueredCount}</span>
-              <span className="mission-hero__stat-l">Diamonds</span>
-            </div>
+        <div style={{ flex: 1, minWidth: 170 }} />
+      </div>
+
+      {/* Stat cards — full-width row below the hero body */}
+      <div className="mission-hero__stats">
+        <div className="mission-hero__stat mission-hero__stat--streak">
+          <div className="mission-hero__stat-icon">
+            <img src={HERO_ICONS.streak} alt="" aria-hidden="true" />
           </div>
-          <div style={{ marginTop: 10 }}>
-            <ProgressBar
-              value={progress.percent}
-              max={100}
-              variant="pink"
-            />
-            <div
-              className="mono soft"
-              style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginTop: 6, letterSpacing: "0.1em" }}
-            >
-              <span>{rank.name}</span>
-              <span>
-                {progress.next
-                  ? `${xp.toLocaleString()} / ${progress.next.min.toLocaleString()} XP`
-                  : "MAX RANK"}
-              </span>
-            </div>
+          <span className="mission-hero__stat-n">{streakCount}</span>
+          <span className="mission-hero__stat-l">Streak</span>
+        </div>
+        <div className="mission-hero__stat mission-hero__stat--maps">
+          <div className="mission-hero__stat-icon">
+            <img src={HERO_ICONS.maps} alt="" aria-hidden="true" />
           </div>
+          <span className="mission-hero__stat-n">{activeCount}</span>
+          <span className="mission-hero__stat-l">Maps</span>
+        </div>
+        <div className="mission-hero__stat mission-hero__stat--diamonds">
+          <div className="mission-hero__stat-icon">
+            <img src={HERO_ICONS.diamonds} alt="" aria-hidden="true" />
+          </div>
+          <span className="mission-hero__stat-n">{conqueredCount}</span>
+          <span className="mission-hero__stat-l">Diamonds</span>
         </div>
       </div>
     </div>

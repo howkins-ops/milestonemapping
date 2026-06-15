@@ -56,15 +56,21 @@ export default function DailyPage() {
         <div className="daily-hero">
           <h1 className="daily-hero-title">
             {ritual === "am" ? (
-              <>New Day,<br /><span className="daily-hero-accent daily-hero-accent--am">New Mindset.</span></>
+              <>
+                <span className="daily-hero-line">New Day,</span>
+                <span className="daily-hero-accent daily-hero-accent--am">New Mindset.</span>
+              </>
             ) : (
-              <>Plan Tonight,<br /><span className="daily-hero-accent">Execute Tomorrow.</span></>
+              <>
+                <span className="daily-hero-line">Good Evening.</span>
+                <span className="daily-hero-accent">Set tomorrow's mission.</span>
+              </>
             )}
           </h1>
           <p className="daily-hero-sub">
             {ritual === "am"
-              ? "Everyone starts at zero. What you do today is the only thing that matters."
-              : "Close today. Load tomorrow. Rest with intention."}
+              ? "The person you're becoming is built in moments exactly like this. What moves the mission today?"
+              : "Close the day. Lock in tomorrow. Rest knowing your next victory is already planned."}
           </p>
         </div>
 
@@ -92,8 +98,8 @@ export default function DailyPage() {
           /* ── MORNING: Execute the plan you loaded last night ── */
           <div className="daily-am-flow">
             <MorningPlanRecap />
-            <TopFivePanel />
             <GratitudePanel />
+            <TopFivePanel />
             <BattlePlanPanel />
           </div>
         ) : (
@@ -112,7 +118,7 @@ export default function DailyPage() {
             <div className="night-section-group">
               <div className="night-section-label">
                 <span className="night-section-label-line" />
-                <span>LOAD TOMORROW</span>
+                <span>GOOD EVENING</span>
                 <span className="night-section-label-line" />
               </div>
               <NightWizard />

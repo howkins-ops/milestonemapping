@@ -277,7 +277,7 @@ function FullCupScreen({ streak, level, onClose }) {
   return (
     <div className="fyc-full-screen">
       <div className="fyc-full-screen__inner">
-        <div className="fyc-full-glyph">{level.icon}</div>
+        <div className="fyc-full-glyph">☕</div>
         <h2 className="fyc-full-title">CUP FILLED</h2>
         <p className="fyc-full-body">
           You took care of yourself today.<br />That matters.<br /><br />

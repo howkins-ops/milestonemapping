@@ -6,22 +6,34 @@ import TextArea from "../ui/TextArea.jsx";
 import Select from "../ui/Select.jsx";
 import { VISION_CATEGORIES } from "../../lib/constants.js";
 import { useAppData } from "../../hooks/useAppData.js";
+import { uploadImage } from "../../lib/imageUploadService.js";
 
 const EMPTY = { imageUrl: "", title: "", caption: "", category: "Dream Life", projectId: "" };
 
 export default function VisionBoardForm({ open, onClose, onAdd, defaultProjectId = "" }) {
-  const { projects } = useAppData();
+  const { projects, userId } = useAppData();
   const [form, setForm] = useState({ ...EMPTY, projectId: defaultProjectId });
   const [urlMode, setUrlMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef(null);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleFile = (e) => {
+  const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setForm((f) => ({ ...f, imageUrl: ev.target.result }));
-    reader.readAsDataURL(file);
+    setUploading(true);
+    setUploadError("");
+    try {
+      const url = await uploadImage(file, userId);
+      setForm((f) => ({ ...f, imageUrl: url }));
+    } catch (err) {
+      setUploadError("Upload failed — try a URL instead.");
+      console.error(err);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const clearImage = () => {
@@ -106,23 +118,34 @@ export default function VisionBoardForm({ open, onClose, onAdd, defaultProjectId
                 style={{ display: "none" }}
               />
               <button
-                onClick={() => fileInputRef.current?.click()}
+                type="button"
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                disabled={uploading}
                 style={{
                   width: "100%", padding: "1.25rem", borderRadius: "0.75rem",
                   border: "2px dashed rgba(139,92,246,0.4)",
-                  background: "rgba(139,92,246,0.06)",
-                  color: "var(--text-muted, #888)", cursor: "pointer",
+                  background: uploading ? "rgba(139,92,246,0.1)" : "rgba(139,92,246,0.06)",
+                  color: "var(--text-muted, #888)", cursor: uploading ? "default" : "pointer",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem",
                   transition: "border-color 0.2s, background 0.2s",
+                  opacity: uploading ? 0.7 : 1,
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.8)"; e.currentTarget.style.background = "rgba(139,92,246,0.12)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)"; e.currentTarget.style.background = "rgba(139,92,246,0.06)"; }}
+                onMouseEnter={(e) => { if (!uploading) { e.currentTarget.style.borderColor = "rgba(139,92,246,0.8)"; e.currentTarget.style.background = "rgba(139,92,246,0.12)"; }}}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)"; e.currentTarget.style.background = uploading ? "rgba(139,92,246,0.1)" : "rgba(139,92,246,0.06)"; }}
               >
-                <span style={{ fontSize: "1.75rem" }}>📷</span>
-                <span style={{ fontWeight: 600, color: "var(--text-primary, #fff)", fontSize: "0.9rem" }}>Upload a photo</span>
-                <span style={{ fontSize: "0.75rem" }}>Tap to choose from your camera roll or take a new photo</span>
+                <span style={{ fontSize: "1.75rem" }}>{uploading ? "⏳" : "📷"}</span>
+                <span style={{ fontWeight: 600, color: "var(--text-primary, #fff)", fontSize: "0.9rem" }}>
+                  {uploading ? "Uploading…" : "Upload a photo"}
+                </span>
+                <span style={{ fontSize: "0.75rem" }}>
+                  {uploading ? "Please wait" : "Tap to choose from your camera roll or files"}
+                </span>
               </button>
+              {uploadError && (
+                <p style={{ color: "#ff405d", fontSize: "0.75rem", marginTop: "0.35rem" }}>{uploadError}</p>
+              )}
               <button
+                type="button"
                 onClick={() => setUrlMode(true)}
                 style={{ background: "none", border: "none", color: "var(--neon-purple, #8b5cf6)", cursor: "pointer", fontSize: "0.8rem", marginTop: "0.4rem", padding: 0 }}
               >

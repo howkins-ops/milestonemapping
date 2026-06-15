@@ -33,14 +33,14 @@ export default function BattlePlanPanel() {
 
   return (
     <section>
-      <SectionHeader title="Battle Plan" icon="🎯" sub="One decisive strike." />
+      <SectionHeader title="Battle Plan" icon="🎯" sub="One domino. Everything else is noise." />
       <Card variant="pink">
         <TextArea
-          label="What is the one thing that would make today a win?"
+          label="What is the single move that makes today a victory?"
           rows={3}
           value={plan}
           onChange={(e) => setPlan(e.target.value)}
-          placeholder="The single domino that knocks the rest down..."
+          placeholder="If you could only do ONE thing today and call it a win — what is it?"
         />
         <Button
           variant="secondary"

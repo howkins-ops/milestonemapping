@@ -5,7 +5,11 @@ import ProgressBar from "../ui/ProgressBar.jsx";
 import RewardImageGenerator from "./RewardImageGenerator.jsx";
 import { REWARD_STATUS_LABELS } from "../../lib/rewards.js";
 
-const TIER_ICONS = { small: "🥉", medium: "🥈", large: "🏆" };
+const CHEST_TIER = { small: "small", medium: "medium", large: "legendary" };
+const CHEST_BASE = "/assets/treasure-system";
+function chestSrc(tier, state) {
+  return `${CHEST_BASE}/${CHEST_TIER[tier] || "epic"}-chest-${state}.png`;
+}
 
 const TIER_COLORS = {
   small:  { glow: "rgba(251,146,60,0.35)",  border: "rgba(251,146,60,0.4)",  text: "#FB923C" },
@@ -15,6 +19,13 @@ const TIER_COLORS = {
 
 export default function RewardCard({ reward, onClaim, onSaveImage }) {
   const [showGenerator, setShowGenerator] = useState(false);
+  const [opening, setOpening] = useState(false);
+
+  const handleClaim = () => {
+    setOpening(true);
+    setTimeout(() => setOpening(false), 700);
+    onClaim();
+  };
 
   const claimable = reward.status === "preview_unlocked" || reward.status === "fully_unlocked";
   const locked    = reward.status === "locked";
@@ -65,7 +76,15 @@ export default function RewardCard({ reward, onClaim, onSaveImage }) {
         <div className="reward-card__body">
           <div className="reward-card__top-row">
             <span className="reward-card__tier-icon" aria-hidden="true">
-              {locked ? "🔒" : TIER_ICONS[reward.tier]}
+              {locked ? (
+                <span>🔒</span>
+              ) : (
+                <img
+                  src={chestSrc(reward.tier, claimed ? "open" : opening ? "opening" : "closed")}
+                  alt=""
+                  style={{ width: 44, height: 44, objectFit: "contain", display: "block" }}
+                />
+              )}
             </span>
             <Badge tone={claimed ? "green" : claimable ? "gold" : ""}>
               {REWARD_STATUS_LABELS[reward.status]}
@@ -91,7 +110,7 @@ export default function RewardCard({ reward, onClaim, onSaveImage }) {
           {/* Actions */}
           <div className="reward-card__actions">
             {claimable && (
-              <Button variant="gold" style={{ flex: 1 }} onClick={onClaim}>
+              <Button variant="gold" style={{ flex: 1 }} onClick={handleClaim}>
                 🎁 Claim (+50 XP)
               </Button>
             )}

@@ -1,0 +1,280 @@
+{
+  "milestoneNodes": {
+    "emptyNode": {
+      "src": "/assets/milestone-nodes/empty-node.png",
+      "description": "Milestone exists but has not started."
+    },
+    "hoverNode": {
+      "src": "/assets/milestone-nodes/hover-node.png",
+      "description": "Milestone hover or tap state."
+    },
+    "activeNode": {
+      "src": "/assets/milestone-nodes/active-node.png",
+      "description": "Current milestone being worked on."
+    },
+    "completeNode": {
+      "src": "/assets/milestone-nodes/complete-node.png",
+      "description": "Finished milestone."
+    },
+    "lockedNode": {
+      "src": "/assets/milestone-nodes/locked-node.png",
+      "description": "Future milestone not unlocked yet."
+    },
+    "hiddenNode": {
+      "src": "/assets/milestone-nodes/hidden-node.png",
+      "description": "Unknown future milestone hidden by fog."
+    },
+    "diamondNode": {
+      "src": "/assets/milestone-nodes/diamond-node.png",
+      "description": "Major milestone or high-value goal."
+    },
+    "treasureNode": {
+      "src": "/assets/milestone-nodes/treasure-node.png",
+      "description": "Reward milestone."
+    },
+    "phoenixNode": {
+      "src": "/assets/milestone-nodes/phoenix-node.png",
+      "description": "Transformation milestone or Identity Shift checkpoint."
+    },
+    "finalGoalNode": {
+      "src": "/assets/milestone-nodes/final-goal-node.png",
+      "description": "Final project destination."
+    }
+  },
+  "treasureSystem": {
+    "smallChestClosed": {
+      "src": "/assets/treasure-system/small-chest-closed.png",
+      "description": "Small milestone reward before opening."
+    },
+    "smallChestOpening": {
+      "src": "/assets/treasure-system/small-chest-opening.png",
+      "description": "Small chest opening animation frame."
+    },
+    "smallChestOpen": {
+      "src": "/assets/treasure-system/small-chest-open.png",
+      "description": "Small milestone reward revealed."
+    },
+    "mediumChestClosed": {
+      "src": "/assets/treasure-system/medium-chest-closed.png",
+      "description": "Medium milestone reward before opening."
+    },
+    "mediumChestOpening": {
+      "src": "/assets/treasure-system/medium-chest-opening.png",
+      "description": "Medium chest opening animation frame."
+    },
+    "mediumChestOpen": {
+      "src": "/assets/treasure-system/medium-chest-open.png",
+      "description": "Medium milestone reward revealed."
+    },
+    "epicChestClosed": {
+      "src": "/assets/treasure-system/epic-chest-closed.png",
+      "description": "Epic milestone reward before opening."
+    },
+    "epicChestOpening": {
+      "src": "/assets/treasure-system/epic-chest-opening.png",
+      "description": "Epic chest opening animation frame."
+    },
+    "epicChestOpen": {
+      "src": "/assets/treasure-system/epic-chest-open.png",
+      "description": "Epic milestone reward revealed."
+    },
+    "legendaryChestClosed": {
+      "src": "/assets/treasure-system/legendary-chest-closed.png",
+      "description": "Legendary reward before opening."
+    },
+    "legendaryChestOpening": {
+      "src": "/assets/treasure-system/legendary-chest-opening.png",
+      "description": "Legendary chest opening animation frame."
+    },
+    "legendaryChestOpen": {
+      "src": "/assets/treasure-system/legendary-chest-open.png",
+      "description": "Legendary reward revealed."
+    },
+    "xpBurst": {
+      "src": "/assets/treasure-system/xp-burst.png",
+      "description": "XP gained popup or burst reward effect."
+    },
+    "diamondReward": {
+      "src": "/assets/treasure-system/diamond-reward.png",
+      "description": "Diamond reward animation after a milestone reward opens."
+    },
+    "phoenixReward": {
+      "src": "/assets/treasure-system/phoenix-reward.png",
+      "description": "Transformation reward animation after a milestone reward opens."
+    }
+  },
+  "phoenixShrine": {
+    "dormantShrine": {
+      "src": "/assets/phoenix-shrine/dormant-shrine.png",
+      "description": "Shrine before the user reaches the transformation checkpoint."
+    },
+    "awakenedShrine": {
+      "src": "/assets/phoenix-shrine/awakened-shrine.png",
+      "description": "Shrine state when the transformation checkpoint becomes available."
+    },
+    "phoenixAppears": {
+      "src": "/assets/phoenix-shrine/phoenix-appears.png",
+      "description": "Start of the transformation sequence."
+    },
+    "phoenixRising": {
+      "src": "/assets/phoenix-shrine/phoenix-rising.png",
+      "description": "Transformation animation as the phoenix rises."
+    },
+    "phoenixAscended": {
+      "src": "/assets/phoenix-shrine/phoenix-ascended.png",
+      "description": "Major breakthrough moment in the transformation checkpoint."
+    },
+    "shrineComplete": {
+      "src": "/assets/phoenix-shrine/shrine-complete.png",
+      "description": "Completed transformation checkpoint."
+    },
+    "phoenixFlames": {
+      "src": "/assets/phoenix-shrine/phoenix-flames.png",
+      "description": "Flame overlay effect for the Phoenix Shrine sequence."
+    },
+    "phoenixWings": {
+      "src": "/assets/phoenix-shrine/phoenix-wings.png",
+      "description": "Phoenix wing aura used behind transformation states."
+    },
+    "rebirthSwirl": {
+      "src": "/assets/phoenix-shrine/rebirth-swirl.png",
+      "description": "Rebirth transition swirl effect."
+    },
+    "ascensionBeam": {
+      "src": "/assets/phoenix-shrine/ascension-beam.png",
+      "description": "Final unlock beam effect for the shrine sequence."
+    }
+  },
+  "identityShift": {
+    "brokeKing": {
+      "frontCard": {
+        "src": "/assets/identity-shift/identity/broke-king/front-card.png",
+        "description": "Broke King survival mechanism card."
+      },
+      "awarenessCard": {
+        "src": "/assets/identity-shift/identity/broke-king/awareness-card.png",
+        "description": "Broke King awareness card back design."
+      },
+      "shiftCard": {
+        "src": "/assets/identity-shift/identity/broke-king/shift-card.png",
+        "description": "Broke King decision and transformation moment."
+      },
+      "essenceCard": {
+        "src": "/assets/identity-shift/identity/broke-king/essence-card.png",
+        "description": "Broke King essence reward after awareness."
+      },
+      "activatedCard": {
+        "src": "/assets/identity-shift/identity/broke-king/activated-card.png",
+        "description": "Broke King upgraded identity card."
+      },
+      "legacyCard": {
+        "src": "/assets/identity-shift/identity/broke-king/legacy-card.png",
+        "description": "Broke King legendary identity variant."
+      }
+    },
+    "addictSaint": {
+      "frontCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/front-card.png",
+        "description": "Addict Saint survival mechanism card."
+      },
+      "awarenessCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/awareness-card.png",
+        "description": "Addict Saint awareness card back design."
+      },
+      "shiftCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/shift-card.png",
+        "description": "Addict Saint decision and transformation moment."
+      },
+      "essenceCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/essence-card.png",
+        "description": "Addict Saint essence reward after awareness."
+      },
+      "activatedCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/activated-card.png",
+        "description": "Addict Saint upgraded identity card."
+      },
+      "legacyCard": {
+        "src": "/assets/identity-shift/identity/addict-saint/legacy-card.png",
+        "description": "Addict Saint legendary identity variant."
+      }
+    },
+    "wastedGenius": {
+      "frontCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/front-card.png",
+        "description": "Wasted Genius survival mechanism card."
+      },
+      "awarenessCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/awareness-card.png",
+        "description": "Wasted Genius awareness card back design."
+      },
+      "shiftCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/shift-card.png",
+        "description": "Wasted Genius decision and transformation moment."
+      },
+      "essenceCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/essence-card.png",
+        "description": "Wasted Genius essence reward after awareness."
+      },
+      "activatedCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/activated-card.png",
+        "description": "Wasted Genius upgraded identity card."
+      },
+      "legacyCard": {
+        "src": "/assets/identity-shift/identity/wasted-genius/legacy-card.png",
+        "description": "Wasted Genius legendary identity variant."
+      }
+    },
+    "ragingVictim": {
+      "frontCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/front-card.png",
+        "description": "Raging Victim survival mechanism card."
+      },
+      "awarenessCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/awareness-card.png",
+        "description": "Raging Victim awareness card back design."
+      },
+      "shiftCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/shift-card.png",
+        "description": "Raging Victim decision and transformation moment."
+      },
+      "essenceCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/essence-card.png",
+        "description": "Raging Victim essence reward after awareness."
+      },
+      "activatedCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/activated-card.png",
+        "description": "Raging Victim upgraded identity card."
+      },
+      "legacyCard": {
+        "src": "/assets/identity-shift/identity/raging-victim/legacy-card.png",
+        "description": "Raging Victim legendary identity variant."
+      }
+    },
+    "naiveWarrior": {
+      "frontCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/front-card.png",
+        "description": "Naive Warrior survival mechanism card."
+      },
+      "awarenessCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/awareness-card.png",
+        "description": "Naive Warrior awareness card back design."
+      },
+      "shiftCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/shift-card.png",
+        "description": "Naive Warrior decision and transformation moment."
+      },
+      "essenceCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/essence-card.png",
+        "description": "Naive Warrior essence reward after awareness."
+      },
+      "activatedCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/activated-card.png",
+        "description": "Naive Warrior upgraded identity card."
+      },
+      "legacyCard": {
+        "src": "/assets/identity-shift/identity/naive-warrior/legacy-card.png",
+        "description": "Naive Warrior legendary identity variant."
+      }
+    }
+  }
+}

@@ -15,9 +15,10 @@ import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones, getProjectProgress } from "../../lib/progress.js";
 import { getProjectColorHex } from "../../lib/constants.js";
 import { formatShortDate } from "../../lib/dates.js";
+import { uploadImage } from "../../lib/imageUploadService.js";
 
-export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone }) {
-  const { projects, milestones, visionBoard, createMilestone, updateMilestone, updateProject, deleteProject, addVisionBoardItem, detachVisionFromProject } =
+export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, onOpenRPGWorld }) {
+  const { projects, milestones, visionBoard, userId, createMilestone, updateMilestone, updateProject, deleteProject, addVisionBoardItem, detachVisionFromProject } =
     useAppData();
   const project = projects.find((p) => p.id === projectId);
   const [editOpen, setEditOpen] = useState(false);
@@ -27,17 +28,22 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone }
   const [trailView, setTrailView] = useState(true);
   const [goalUrlMode, setGoalUrlMode] = useState(false);
   const [goalUrlInput, setGoalUrlInput] = useState("");
+  const [goalUploading, setGoalUploading] = useState(false);
   const goalFileRef = useRef(null);
 
-  const handleGoalFile = (e) => {
+  const handleGoalFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      updateProject({ ...project, goalImageUrl: ev.target.result });
+    setGoalUploading(true);
+    try {
+      const url = await uploadImage(file, userId);
+      updateProject({ ...project, goalImageUrl: url });
+    } catch (err) {
+      console.error("Goal image upload failed:", err);
+    } finally {
+      setGoalUploading(false);
       if (goalFileRef.current) goalFileRef.current.value = "";
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleGoalUrl = () => {
@@ -81,7 +87,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone }
           sub="Your path from idea to achievement."
           style={{ margin: 0 }}
         />
-        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0, flexWrap: "wrap" }}>
           <button
             onClick={() => setTrailView(true)}
             style={{
@@ -108,6 +114,14 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone }
           >
             📋 List
           </button>
+          {onOpenRPGWorld && (
+            <button
+              className="rpg-enter-world-btn"
+              onClick={() => onOpenRPGWorld(project.id)}
+            >
+              ⚔️ Enter World
+            </button>
+          )}
           <Button variant="primary" size="sm" onClick={() => setAddMilestoneOpen(true)}>
             + Add
           </Button>

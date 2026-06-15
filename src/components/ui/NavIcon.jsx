@@ -125,6 +125,15 @@ const ICONS = {
       <ellipse cx="12" cy="12" rx="8.5" ry="3.4" transform="rotate(120 12 12)" />
     </>
   ),
+  assets: (
+    <>
+      <path d="M4.5 5.5h15v13h-15v-13Z" />
+      <path d="M7.25 15.75 10.4 12.6l2.15 2.15 1.85-1.85 2.35 2.85" className="nav-icon__spark" />
+      <circle cx="15.75" cy="8.75" r="1.2" className="nav-icon__fill" />
+      <path d="M7 3.5h10" />
+      <path d="M7 20.5h10" />
+    </>
+  ),
   profile: (
     <>
       <circle cx="12" cy="8" r="3.5" />

@@ -9,6 +9,7 @@ import {
   getNextMilestone
 } from "../../lib/progress.js";
 import { formatShortDate, daysUntil } from "../../lib/dates.js";
+import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
 
 export default function ProjectCard({ project, milestones, onOpen }) {
   const hex = getProjectColorHex(project.color);
@@ -23,6 +24,7 @@ export default function ProjectCard({ project, milestones, onOpen }) {
     <Card
       hoverable
       variant={completed ? "completed" : "default"}
+      className={`project-map-card ${completed ? "is-completed" : ""}`}
       onClick={onOpen}
       style={{ cursor: "pointer", borderColor: completed ? undefined : `${hex}33` }}
       role="button"
@@ -31,6 +33,24 @@ export default function ProjectCard({ project, milestones, onOpen }) {
         if (e.key === "Enter") onOpen();
       }}
     >
+      <div className="project-map-card__art" aria-hidden="true">
+        <img
+          className="project-map-card__bg"
+          src={completed ? MWA.backgrounds.goalAchieved : MWA.backgrounds.treasureZone}
+          alt=""
+        />
+        <img
+          className="project-map-card__portal"
+          src={completed ? MWA.portals.completed : MWA.portals.active}
+          alt=""
+        />
+        <img
+          className="project-map-card__avatar"
+          src={completed ? MWA.avatars.victory : MWA.avatars.mapMarker}
+          alt=""
+        />
+      </div>
+
       <div className="row row--between" style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 28 }} aria-hidden="true">{completed ? "🏆" : project.icon}</span>
         <div className="row" style={{ gap: 6 }}>

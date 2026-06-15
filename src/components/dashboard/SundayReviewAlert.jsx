@@ -13,13 +13,13 @@ export default function SundayReviewAlert({ onNavigate }) {
       style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}
     >
       <div className="row" style={{ gap: 12 }}>
-        <span style={{ fontSize: 24 }} aria-hidden="true">🚨</span>
+        <span style={{ fontSize: 18 }} aria-hidden="true">🚨</span>
         <p style={{ fontWeight: 600, color: "var(--brand-gold)" }}>
-          Sunday Review is live. Update the map before the next battle begins.
+          Sunday Review is live. Time to update your map.
         </p>
       </div>
       <Button variant="gold" size="sm" onClick={() => onNavigate("weekly")}>
-        Start Review
+        Update Map
       </Button>
     </Card>
   );

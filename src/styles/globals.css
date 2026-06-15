@@ -74,7 +74,7 @@ body,
 
 body {
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   background: #050007 !important;
@@ -180,7 +180,7 @@ button {
 }
 
 .page-header__title {
-  font-size: clamp(26px, 4vw, 38px);
+  font-size: clamp(21px, 3.2vw, 30px);
   font-weight: 800;
 }
 
@@ -209,7 +209,7 @@ button {
 .sidebar__logo {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 17px;
+  font-size: 14px;
   padding: 0 10px 4px;
   background: var(--grad-primary);
   -webkit-background-clip: text;
@@ -262,15 +262,15 @@ button {
 
 .nav-item__icon {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   flex: none;
   place-items: center;
   border: 1px solid rgba(0, 240, 255, 0.12);
   border-radius: 8px;
   background: rgba(0, 240, 255, 0.04);
   color: currentColor;
-  font-size: 17px;
+  font-size: 14px;
   box-shadow: inset 0 0 12px rgba(0, 240, 255, 0.04);
 }
 
@@ -361,15 +361,15 @@ button {
 }
 
 .app-topbar__diamond {
-  height: 34px;
-  padding: 0 9px 0 7px;
+  height: 29px;
+  padding: 0 8px 0 6px;
   display: flex;
   align-items: center;
   gap: 5px;
   border: 1px solid rgba(0, 240, 255, 0.28);
   border-radius: 10px;
   color: var(--brand-cyan);
-  font-size: 15px;
+  font-size: 13px;
   background: var(--panel);
   box-shadow: 0 0 18px rgba(0, 240, 255, 0.15);
   cursor: pointer;
@@ -377,10 +377,10 @@ button {
 }
 .app-topbar__diamond-icon {
   display: grid;
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   place-items: center;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
 }
 .app-topbar__diamond-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.9; }
@@ -458,15 +458,15 @@ button {
 
 .topbar-dropdown__icon {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   place-items: center;
   border: 1px solid rgba(0, 240, 255, 0.14);
   border-radius: 8px;
   background: rgba(0, 240, 255, 0.05);
   color: var(--brand-cyan);
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
 }
 
@@ -564,15 +564,15 @@ button {
 }
 
 .app-topbar__profile-btn {
-  width: 34px;
-  height: 34px;
+  width: 29px;
+  height: 29px;
   border-radius: 50%;
   background: rgba(0, 240, 255, 0.08);
   border: 1px solid rgba(0, 240, 255, 0.22);
   display: grid;
   place-items: center;
   color: var(--brand-cyan);
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
   transition: background 160ms, border-color 160ms, box-shadow 160ms;
   flex-shrink: 0;
@@ -657,14 +657,14 @@ button {
 .bottom-nav__icon {
   position: relative;
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   place-items: center;
   border: 1px solid rgba(0, 240, 255, 0.12);
   border-radius: 10px;
   background: rgba(0, 240, 255, 0.04);
   color: currentColor;
-  font-size: 19px;
+  font-size: 16px;
   line-height: 1;
   transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out),
     box-shadow 180ms var(--ease-out), color 180ms var(--ease-out);
@@ -683,11 +683,11 @@ button {
 .mission-hero {
   position: relative;
   border: 1.5px solid transparent;
-  border-radius: 26px;
+  border-radius: 22px;
   background: linear-gradient(#04060a, #04060a) padding-box,
               linear-gradient(135deg, #D11EFF 0%, #7B2CFF 45%, #00F0FF 100%) border-box;
-  padding: 24px 20px;
-  margin-bottom: 16px;
+  padding: 16px 15px;
+  margin-bottom: 12px;
   overflow: hidden;
   box-shadow:
     0 0 60px rgba(209, 30, 255, 0.12),
@@ -696,9 +696,9 @@ button {
 }
 
 .mission-hero__title {
-  font-size: clamp(30px, 6vw, 42px);
+  font-size: clamp(22px, 4.5vw, 31px);
   font-weight: 800;
-  margin: 6px 0 8px;
+  margin: 4px 0 6px;
   line-height: 0.95;
   letter-spacing: -0.04em;
 }
@@ -717,53 +717,138 @@ button {
   flex-wrap: wrap;
 }
 
+.mission-hero__charted {
+  position: relative;
+  display: grid;
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  place-items: center;
+}
+
+.mission-hero__charted > img {
+  position: absolute;
+  inset: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% + 20px);
+  object-fit: contain;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 16px rgba(0, 240, 255, 0.32));
+  pointer-events: none;
+}
+
+.mission-hero__charted > :not(img) {
+  position: relative;
+  z-index: 1;
+}
+
 .mission-hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .mission-hero__stat {
-  background: var(--panel);
-  border: 1px solid rgba(0, 240, 255, 0.1);
-  border-radius: 14px;
-  padding: 14px 10px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 22px 10px 20px;
+  min-height: 168px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 62, 219, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(18, 0, 36, 0.97), rgba(5, 0, 12, 0.97));
+  border: 1px solid rgba(255, 62, 219, 0.18);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 30px rgba(209, 30, 255, 0.07),
+    0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* top accent line per card */
+.mission-hero__stat::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, transparent, rgba(255, 62, 219, 0.7), transparent);
 }
 
 .mission-hero__stat-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 62, 219, 0.22);
+  box-shadow:
+    0 0 20px rgba(255, 62, 219, 0.1),
+    inset 0 0 14px rgba(0, 240, 255, 0.05);
+}
+
+.mission-hero__stat-icon img {
   display: block;
-  margin-bottom: 6px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(255, 62, 219, 0.55));
 }
 
 .mission-hero__stat-n {
+  position: relative;
+  z-index: 1;
   display: block;
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--brand-cyan);
-  letter-spacing: -0.01em;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #FF3EDB;
 }
 
 .mission-hero__stat-l {
+  position: relative;
+  z-index: 1;
   display: block;
   font-family: var(--font-body);
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-soft);
-  margin-top: 3px;
+  color: rgba(242, 240, 244, 0.55);
 }
 
-.mission-hero__stat--streak { border-color: rgba(255, 62, 219, 0.25); }
+/* per-card colour variants */
+.mission-hero__stat--streak::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 62, 219, 0.8), transparent);
+}
 .mission-hero__stat--streak .mission-hero__stat-n { color: #FF3EDB; }
+.mission-hero__stat--streak .mission-hero__stat-icon img { filter: drop-shadow(0 0 12px rgba(255, 62, 219, 0.7)); }
+.mission-hero__stat--streak .mission-hero__stat-icon { border-color: rgba(255, 62, 219, 0.28); box-shadow: 0 0 24px rgba(255, 62, 219, 0.14), inset 0 0 14px rgba(255, 62, 219, 0.06); }
 
-.mission-hero__stat--maps { border-color: rgba(209, 30, 255, 0.25); }
+.mission-hero__stat--maps::before {
+  background: linear-gradient(90deg, transparent, rgba(209, 30, 255, 0.8), transparent);
+}
+.mission-hero__stat--maps { border-color: rgba(209, 30, 255, 0.22); background: radial-gradient(circle at 50% 20%, rgba(209, 30, 255, 0.13), transparent 60%), linear-gradient(160deg, rgba(18, 0, 36, 0.97), rgba(5, 0, 12, 0.97)); }
 .mission-hero__stat--maps .mission-hero__stat-n { color: #D11EFF; }
+.mission-hero__stat--maps .mission-hero__stat-icon { border-color: rgba(209, 30, 255, 0.28); box-shadow: 0 0 24px rgba(209, 30, 255, 0.14), inset 0 0 14px rgba(209, 30, 255, 0.06); }
+.mission-hero__stat--maps .mission-hero__stat-icon img { filter: drop-shadow(0 0 12px rgba(209, 30, 255, 0.7)); }
 
-.mission-hero__stat--diamonds { border-color: rgba(255, 62, 219, 0.25); }
-.mission-hero__stat--diamonds .mission-hero__stat-n { color: #FF3EDB; }
+.mission-hero__stat--diamonds::before {
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.7), transparent);
+}
+.mission-hero__stat--diamonds { border-color: rgba(0, 240, 255, 0.2); background: radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.1), transparent 60%), linear-gradient(160deg, rgba(0, 18, 36, 0.97), rgba(0, 5, 12, 0.97)); }
+.mission-hero__stat--diamonds .mission-hero__stat-n { color: #00F0FF; }
+.mission-hero__stat--diamonds .mission-hero__stat-icon { border-color: rgba(0, 240, 255, 0.28); box-shadow: 0 0 24px rgba(0, 240, 255, 0.12), inset 0 0 14px rgba(0, 240, 255, 0.06); }
+.mission-hero__stat--diamonds .mission-hero__stat-icon img { filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.65)); }
 
 /* ============ RITUAL TABS ============ */
 
@@ -889,14 +974,14 @@ button {
 
 .growth-nav__icon {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
   place-items: center;
   border: 1px solid rgba(209, 30, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 7px;
   background: rgba(209, 30, 255, 0.05);
   color: currentColor;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
 }
 
@@ -966,13 +1051,13 @@ button {
 .more-sheet__item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
+  gap: 12px;
+  padding: 11px 14px;
   border: 1px solid rgba(0, 240, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--card);
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   text-align: left;
   transition: background 160ms, border-color 160ms, color 160ms;
@@ -987,15 +1072,15 @@ button {
 
 .more-sheet__icon {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 27px;
+  height: 27px;
   flex: none;
   place-items: center;
   border: 1px solid rgba(0, 240, 255, 0.14);
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(0, 240, 255, 0.05);
   color: var(--brand-cyan);
-  font-size: 20px;
+  font-size: 17px;
 }
 
 .more-sheet__item.is-active .more-sheet__icon {
@@ -1122,7 +1207,7 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--card-shadow);
-  padding: 20px;
+  padding: 17px;
   transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out),
     border-color 220ms var(--ease-out), background 220ms var(--ease-out);
 }
@@ -1161,6 +1246,100 @@ button {
 .card--completed {
   border-color: rgba(0, 255, 191, 0.32);
   box-shadow: 0 0 35px rgba(0, 255, 191, 0.1);
+}
+
+/* ============ FORMULA ACCORDION ============ */
+
+.formula-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 17px;
+  transition: border-color 250ms var(--ease-out), box-shadow 250ms var(--ease-out), background 250ms var(--ease-out);
+}
+
+.formula-card[data-open="true"] {
+  border-color: rgba(0, 240, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.08), 0 0 40px rgba(209, 30, 255, 0.12);
+  background: rgba(0, 240, 255, 0.03);
+}
+
+.formula-card__trigger {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.formula-card__num {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--brand-cyan);
+  border-radius: 8px;
+  min-width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+}
+
+.formula-card__title-wrap {
+  flex: 1;
+}
+
+.formula-card__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.formula-card__hint {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+.formula-card__chevron {
+  color: var(--brand-cyan);
+  font-size: 18px;
+  transition: transform 280ms var(--ease-out);
+  flex-shrink: 0;
+}
+
+.formula-card[data-open="true"] .formula-card__chevron {
+  transform: rotate(180deg);
+}
+
+.formula-card__explanation {
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.formula-card__prompt {
+  color: var(--brand-cyan);
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-top: 12px;
+  line-height: 1.55;
+}
+
+.formula-card__example {
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-style: italic;
+  margin-top: 10px;
 }
 
 /* ============ INPUTS ============ */
@@ -1312,7 +1491,7 @@ button {
   border: 1px solid rgba(0, 240, 255, 0.16);
   border-radius: var(--radius-lg);
   box-shadow: 0 0 60px rgba(0, 240, 255, 0.1);
-  padding: 26px;
+  padding: 22px;
   animation: scale-pop 280ms var(--ease-out);
 }
 
@@ -1326,7 +1505,7 @@ button {
   margin-bottom: 18px;
 }
 
-.modal-title { font-size: 21px; font-weight: 800; }
+.modal-title { font-size: 17px; font-weight: 800; }
 
 .modal-close {
   background: var(--panel-deep);
@@ -1404,15 +1583,15 @@ button {
 
 .empty-state {
   text-align: center;
-  padding: 52px 24px;
+  padding: 44px 20px;
   border: 1px dashed rgba(0, 240, 255, 0.2);
   border-radius: var(--radius-lg);
   background: rgba(2, 3, 4, 0.6);
 }
 
-.empty-state__icon { font-size: 38px; margin-bottom: 12px; }
-.empty-state__title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-.empty-state__desc { color: var(--text-muted); font-size: 14px; max-width: 420px; margin: 0 auto 18px; }
+.empty-state__icon { font-size: 32px; margin-bottom: 10px; }
+.empty-state__title { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.empty-state__desc { color: var(--text-muted); font-size: 13px; max-width: 420px; margin: 0 auto 16px; }
 
 /* ============ SECTION HEADER ============ */
 
@@ -1425,7 +1604,7 @@ button {
 }
 
 .section-header__title {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -1441,7 +1620,7 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--card-shadow);
-  padding: 16px 18px;
+  padding: 13px 15px;
 }
 
 .stat-card__label {
@@ -1455,9 +1634,9 @@ button {
 
 .stat-card__value {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 800;
-  margin-top: 6px;
+  margin-top: 5px;
   color: var(--text-main);
 }
 
@@ -1501,14 +1680,14 @@ button {
 }
 
 .celebration__emblem {
-  font-size: 64px;
-  margin-bottom: 18px;
+  font-size: 51px;
+  margin-bottom: 14px;
   animation: orb-float 3s ease-in-out infinite;
 }
 
 .celebration__title {
   font-family: var(--font-display);
-  font-size: clamp(34px, 7vw, 56px);
+  font-size: clamp(27px, 5.6vw, 45px);
   font-weight: 800;
   letter-spacing: 0.04em;
   background: var(--grad-primary);
@@ -1599,17 +1778,17 @@ button {
 }
 
 .checkbox-glow {
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
-  border-radius: 8px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 7px;
   border: 1.5px solid rgba(0, 240, 255, 0.35);
   background: #020304;
   color: #020304;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   transition: background 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
     border-color 200ms var(--ease-out), color 200ms var(--ease-out);
@@ -1652,6 +1831,12 @@ button {
   background-size: cover;
   filter: saturate(1.12) contrast(1.06);
   opacity: 0.92;
+  animation: trailBgFadeIn 0.7s ease-in both;
+}
+
+@keyframes trailBgFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 0.92; }
 }
 
 .trail-world__vignette {
@@ -1711,7 +1896,7 @@ button {
 .trail-world__header h2 {
   max-width: 21rem;
   margin-top: 2px;
-  font-size: clamp(1.15rem, 3vw, 1.75rem);
+  font-size: clamp(0.92rem, 2.4vw, 1.4rem);
   line-height: 1;
   text-shadow: 0 0 22px rgba(209, 30, 255, 0.42);
 }
@@ -1787,10 +1972,10 @@ button {
 .trail-world__panel {
   position: absolute;
   z-index: 16;
-  width: min(13rem, 28%);
+  width: min(9rem, 20%);
   border: 1px solid rgba(0, 240, 255, 0.26);
-  border-radius: 16px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem;
   background: rgba(3, 0, 8, 0.78);
   box-shadow: 0 0 28px rgba(0, 240, 255, 0.1), inset 0 0 24px rgba(123, 44, 255, 0.12);
   backdrop-filter: blur(16px);
@@ -1808,9 +1993,9 @@ button {
 
 .trail-world__panel-title {
   display: block;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.4rem;
   color: rgba(242, 240, 244, 0.72);
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   font-weight: 800;
 }
 
@@ -1820,22 +2005,22 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.4rem;
   border-top: 1px solid rgba(242, 240, 244, 0.09);
-  padding: 0.6rem 0;
+  padding: 0.3rem 0;
   color: rgba(242, 240, 244, 0.68);
-  font-size: 0.74rem;
+  font-size: 0.62rem;
 }
 
 .trail-world__level strong {
   color: var(--text-main);
-  font-size: 1.8rem;
+  font-size: 1.1rem;
   line-height: 1;
 }
 
 .trail-world__stat strong {
   color: var(--brand-cyan);
-  font-size: 0.78rem;
+  font-size: 0.62rem;
 }
 
 .trail-world__meter {
@@ -1855,10 +2040,10 @@ button {
 }
 
 .trail-world__panel p {
-  margin-top: 0.8rem;
+  margin-top: 0.4rem;
   color: rgba(242, 240, 244, 0.62);
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 0.6rem;
+  line-height: 1.4;
 }
 
 .trail-world__legend-row {
@@ -1868,8 +2053,8 @@ button {
 
 .trail-world__legend-row i {
   display: block;
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.55rem;
+  height: 0.55rem;
   flex: none;
   border-radius: 999px;
 }
@@ -1922,7 +2107,7 @@ button {
 }
 
 .trail-world__diamond {
-  width: min(10rem, 34vw);
+  width: min(8.5rem, 29vw);
   margin-top: 0.2rem;
   filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.88)) drop-shadow(0 0 38px rgba(209, 30, 255, 0.54));
   animation: trail-float 3.4s ease-in-out infinite;
@@ -1958,14 +2143,26 @@ button {
   position: absolute;
   z-index: 9;
   display: block;
-  width: 5.2rem;
-  height: 5.2rem;
+  width: 4.4rem;
+  height: 4.4rem;
   padding: 0;
   transform: translate(-50%, -50%);
   border: 0;
   background: transparent;
   color: var(--brand-cyan);
-  cursor: pointer;
+  cursor: grab;
+}
+
+.trail-node.is-dragging {
+  z-index: 50;
+  cursor: grabbing !important;
+  transform: translate(-50%, -50%) scale(1.1);
+  filter: drop-shadow(0 0 20px var(--brand-cyan));
+}
+
+.trail-node.is-dragging .trail-node__card {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .trail-node__orb {
@@ -2163,7 +2360,7 @@ button {
   position: absolute;
   z-index: 12;
   display: grid;
-  width: 8.5rem;
+  width: 7.2rem;
   transform: translate(-50%, -50%);
   place-items: center;
   pointer-events: none;
@@ -2171,8 +2368,8 @@ button {
 
 .trail-world__avatar span {
   display: block;
-  width: 3rem;
-  height: 5.3rem;
+  width: 2.55rem;
+  height: 4.5rem;
   background: linear-gradient(180deg, rgba(242, 240, 244, 0.95), rgba(0, 240, 255, 0.4) 60%, rgba(3, 0, 6, 0.82));
   clip-path: polygon(50% 0, 72% 16%, 73% 58%, 96% 100%, 4% 100%, 27% 58%, 28% 16%);
   filter:
@@ -2252,6 +2449,468 @@ button {
 @keyframes trail-avatar {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
+}
+
+/* Asset-backed milestone world animation layer */
+.project-map-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.project-map-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: radial-gradient(circle at 76% 18%, rgba(0, 240, 255, 0.18), transparent 11rem);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out);
+}
+
+.project-map-card:hover::after,
+.project-map-card:focus-visible::after {
+  opacity: 1;
+}
+
+.project-map-card__art {
+  position: relative;
+  height: 7.5rem;
+  margin: -0.35rem -0.35rem 0.85rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 240, 255, 0.16);
+  border-radius: 10px;
+  background: #030006;
+}
+
+.project-map-card__bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+  filter: saturate(1.18) contrast(1.08);
+  transform: scale(1.03);
+  transition: transform 600ms var(--ease-out), opacity 300ms var(--ease-out);
+}
+
+.project-map-card__portal,
+.project-map-card__avatar {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.project-map-card__portal {
+  right: 0.55rem;
+  bottom: -1.25rem;
+  width: 6.6rem;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.72));
+  animation: map-card-portal 4.4s ease-in-out infinite;
+}
+
+.project-map-card__avatar {
+  right: 2.25rem;
+  bottom: 0.25rem;
+  width: 2.85rem;
+  filter: drop-shadow(0 0 16px rgba(255, 62, 219, 0.6));
+  animation: map-card-avatar 2.6s ease-in-out infinite;
+}
+
+.project-map-card:hover .project-map-card__bg,
+.project-map-card:focus-visible .project-map-card__bg {
+  opacity: 0.88;
+  transform: scale(1.08);
+}
+
+.project-map-card:hover .project-map-card__portal,
+.project-map-card:focus-visible .project-map-card__portal {
+  animation-duration: 1.7s;
+}
+
+.project-map-card.is-completed .project-map-card__portal {
+  filter: drop-shadow(0 0 22px rgba(255, 209, 102, 0.78));
+}
+
+.trail-world::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 22%, rgba(255, 255, 255, 0.08), transparent 48%);
+  transform: translateX(-120%);
+  animation: trail-world-sweep 9s ease-in-out infinite;
+}
+
+.trail-world.is-goal-complete {
+  border-color: rgba(255, 209, 102, 0.44);
+  box-shadow:
+    0 0 42px rgba(255, 209, 102, 0.14),
+    0 0 58px rgba(255, 62, 219, 0.16),
+    inset 0 0 54px rgba(0, 0, 0, 0.58);
+}
+
+.trail-world.is-goal-complete .trail-world__image {
+  opacity: 0.98;
+  animation: goal-world-arrive 900ms var(--ease-out) both;
+}
+
+.trail-world__diamond {
+  position: relative;
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.trail-world__diamond img {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.trail-world__diamond-ring {
+  width: 100%;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 24px rgba(0, 240, 255, 0.72));
+  animation: trail-portal-spin 8s linear infinite;
+}
+
+.trail-world__diamond-gem {
+  position: absolute;
+  width: 48%;
+  filter: drop-shadow(0 0 20px rgba(255, 209, 102, 0.86));
+  animation: trail-gem-breathe 2.7s ease-in-out infinite;
+}
+
+.trail-world__final.is-complete .trail-world__diamond-ring {
+  filter: drop-shadow(0 0 25px rgba(255, 209, 102, 0.86)) drop-shadow(0 0 42px rgba(255, 62, 219, 0.5));
+}
+
+.trail-node {
+  animation: trail-node-enter 520ms var(--ease-out) both;
+  animation-delay: var(--node-delay, 0ms);
+}
+
+.trail-node__segment {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 6.8rem;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  opacity: 0.46;
+  pointer-events: none;
+}
+
+.trail-node__segment img {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.42));
+  animation: trail-segment-flow 2.8s ease-in-out infinite;
+}
+
+.trail-node.is-locked .trail-node__segment {
+  opacity: 0.22;
+  filter: grayscale(0.75);
+}
+
+.trail-node__orb {
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.trail-node__portal-halo {
+  position: absolute;
+  inset: -0.65rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.2), transparent 58%);
+  opacity: 0.7;
+  animation: trail-halo-pulse 2.2s ease-in-out infinite;
+}
+
+.trail-node__sprite {
+  position: absolute;
+  inset: -0.8rem;
+  width: calc(100% + 1.6rem);
+  height: calc(100% + 1.6rem);
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.68));
+  transition: transform 220ms var(--ease-out), filter 220ms var(--ease-out), opacity 220ms var(--ease-out);
+  animation: trail-portal-spin 7s linear infinite;
+}
+
+.trail-node__state-mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 2.05rem;
+  height: 2.05rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(3, 0, 8, 0.58);
+  box-shadow: inset 0 0 14px rgba(0, 240, 255, 0.16);
+  backdrop-filter: blur(6px);
+}
+
+.trail-node__state-mark svg {
+  width: 72%;
+  height: 72%;
+}
+
+.trail-node:hover .trail-node__sprite,
+.trail-node.is-opening .trail-node__sprite {
+  transform: scale(1.16);
+  filter: drop-shadow(0 0 24px rgba(0, 240, 255, 0.86)) drop-shadow(0 0 34px rgba(255, 62, 219, 0.38));
+}
+
+.trail-node.is-active .trail-node__sprite {
+  animation: trail-portal-spin 5.5s linear infinite, trail-active-breathe 2s ease-in-out infinite;
+}
+
+.trail-node.is-completed .trail-node__sprite {
+  filter: drop-shadow(0 0 20px rgba(0, 255, 191, 0.72));
+}
+
+.trail-node.is-locked .trail-node__sprite {
+  filter: grayscale(0.65) drop-shadow(0 0 18px rgba(123, 44, 255, 0.35));
+  opacity: 0.78;
+  animation-duration: 12s;
+}
+
+.trail-node.is-opening .trail-node__portal-halo {
+  animation: trail-open-shock 360ms var(--ease-out) both;
+}
+
+.trail-node__burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.trail-node__burst i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.24rem;
+  height: 0.24rem;
+  border-radius: 50%;
+  background: var(--brand-cyan);
+  box-shadow: 0 0 12px var(--brand-cyan);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(calc(var(--spark) * 60deg)) translateY(0);
+}
+
+.trail-node.is-opening .trail-node__burst i,
+.trail-node.is-completed .trail-node__burst i {
+  animation: trail-spark-pop 760ms ease-out both;
+  animation-delay: calc(var(--spark) * 34ms);
+}
+
+.trail-node__card {
+  overflow: hidden;
+}
+
+.trail-node__card-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 20%, rgba(0, 240, 255, 0.12), transparent 56%);
+  transform: translateX(-110%);
+  transition: transform 520ms var(--ease-out);
+}
+
+.trail-node:hover .trail-node__card-glow,
+.trail-node.is-opening .trail-node__card-glow {
+  transform: translateX(110%);
+}
+
+.trail-node__chest {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: trail-chest-pop 2.6s ease-in-out infinite;
+}
+
+.trail-node__chest::before {
+  display: none;
+}
+
+.trail-node__chest img {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 14px rgba(255, 209, 102, 0.76));
+}
+
+.trail-node__phoenix {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  clip-path: none;
+}
+
+.trail-node__phoenix img {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 16px rgba(255, 62, 219, 0.82));
+  animation: trail-phoenix-orbit 3.2s ease-in-out infinite;
+}
+
+.trail-world__avatar {
+  animation: trail-avatar-arrive 520ms var(--ease-out) both;
+}
+
+.trail-world__avatar span {
+  width: 3.7rem;
+  height: 4.7rem;
+  background: transparent;
+  clip-path: none;
+  filter:
+    drop-shadow(0 0 18px rgba(0, 240, 255, 0.9))
+    drop-shadow(0 0 32px rgba(209, 30, 255, 0.46));
+}
+
+.trail-world__avatar span img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: trail-avatar 2.2s ease-in-out infinite;
+}
+
+.celebration__asset-emblem {
+  position: relative;
+  display: grid;
+  width: min(11rem, 42vw);
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.celebration__asset-emblem img {
+  position: absolute;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.celebration__asset-emblem img:first-child {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.68));
+  animation: trail-portal-spin 8s linear infinite;
+}
+
+.celebration__asset-emblem img:last-child {
+  width: 48%;
+  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.82));
+  animation: celebration-asset-rise 1.05s var(--ease-out) both, trail-gem-breathe 2.6s ease-in-out infinite 1.05s;
+}
+
+.celebration__asset-emblem--phoenix {
+  width: min(14rem, 52vw);
+}
+
+.celebration__asset-emblem--phoenix img:first-child {
+  width: 118%;
+  height: 118%;
+  object-fit: cover;
+  border-radius: 50%;
+  opacity: 0.72;
+  filter: saturate(1.25) drop-shadow(0 0 30px rgba(255, 62, 219, 0.54));
+}
+
+.celebration__asset-emblem--phoenix img:last-child {
+  width: 38%;
+  bottom: 15%;
+  animation: celebration-asset-rise 900ms var(--ease-out) both, trail-avatar 2.3s ease-in-out infinite 900ms;
+}
+
+@keyframes map-card-portal {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.84; }
+  50% { transform: rotate(8deg) scale(1.08); opacity: 1; }
+}
+
+@keyframes map-card-avatar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.45rem); }
+}
+
+@keyframes trail-world-sweep {
+  0%, 62% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes goal-world-arrive {
+  from { opacity: 0.46; filter: saturate(0.8) blur(3px); }
+  to { opacity: 0.98; filter: saturate(1.16) blur(0); }
+}
+
+@keyframes trail-node-enter {
+  from { opacity: 0; transform: translate(-50%, -42%) scale(0.78); filter: blur(4px); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+}
+
+@keyframes trail-segment-flow {
+  0%, 100% { opacity: 0.34; transform: translateX(-0.1rem); }
+  50% { opacity: 0.72; transform: translateX(0.18rem); }
+}
+
+@keyframes trail-portal-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes trail-gem-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-0.28rem) scale(1.08); }
+}
+
+@keyframes trail-active-breathe {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+
+@keyframes trail-halo-pulse {
+  0%, 100% { transform: scale(0.94); opacity: 0.44; }
+  50% { transform: scale(1.16); opacity: 0.86; }
+}
+
+@keyframes trail-open-shock {
+  from { transform: scale(0.65); opacity: 0.96; }
+  to { transform: scale(2.25); opacity: 0; }
+}
+
+@keyframes trail-spark-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(calc(var(--spark) * 60deg)) translateY(0) scale(0.4); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(calc(var(--spark) * 60deg)) translateY(-2.7rem) scale(1); }
+}
+
+@keyframes trail-chest-pop {
+  0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
+  45% { transform: translateY(-0.24rem) rotate(5deg) scale(1.08); }
+}
+
+@keyframes trail-phoenix-orbit {
+  0%, 100% { transform: translateY(0) rotate(-8deg); opacity: 0.74; }
+  50% { transform: translateY(-0.35rem) rotate(8deg); opacity: 1; }
+}
+
+@keyframes trail-avatar-arrive {
+  from { opacity: 0; transform: translate(-50%, -30%) scale(0.86); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes celebration-asset-rise {
+  0% { opacity: 0; transform: translateY(1.1rem) scale(0.72); filter: blur(6px); }
+  68% { opacity: 1; transform: translateY(-0.2rem) scale(1.08); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 /* ============ QUEST MAP ============ */
@@ -2469,7 +3128,7 @@ button {
     padding: 22px 18px calc(22px + env(safe-area-inset-bottom));
   }
   .btn--md { padding: 13px 20px; }
-  body { font-size: 16px; }
+  body { font-size: 14px; }
   .trail-world {
     border-radius: 18px;
   }
@@ -2505,11 +3164,11 @@ button {
     width: 13rem;
   }
   .trail-world__diamond {
-    width: 7.5rem;
+    width: 6.4rem;
   }
   .trail-node {
-    width: 4.35rem;
-    height: 4.35rem;
+    width: 3.7rem;
+    height: 3.7rem;
   }
   .trail-node__card {
     display: none;
@@ -2526,8 +3185,8 @@ button {
     padding: 0.62rem 0.78rem;
     font-size: 0.64rem;
   }
-  .qmap-node__ring { width: 48px; height: 48px; }
-  .qmap-node__gem { font-size: 15px; }
+  .qmap-node__ring { width: 41px; height: 41px; }
+  .qmap-node__gem { font-size: 13px; }
 }
 
 @media (min-width: 921px) and (max-width: 1180px) {

@@ -137,8 +137,8 @@ export default function TopFivePanel() {
               className="input"
               placeholder={
                 tasks.length === 0
-                  ? "What's your #1 priority today?"
-                  : `Priority ${tasks.length + 1} of 5 — what moves the mission?`
+                  ? "What's the #1 move that changes everything today?"
+                  : `Priority ${tasks.length + 1} of 5 — what moves the mission forward?`
               }
               value={draft}
               onChange={(e) => setDraft(e.target.value)}

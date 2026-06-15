@@ -6,6 +6,7 @@ const MORE_ITEMS = [
   { id: "rewards", label: "Rewards Vault" },
   { id: "stats", label: "Stats" },
   { id: "formula", label: "Mastery Formula" },
+  { id: "assets", label: "Asset Library" },
   { id: "science", label: "The Science" },
   { id: "settings", label: "Settings" },
 ];

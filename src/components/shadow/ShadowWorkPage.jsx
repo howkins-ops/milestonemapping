@@ -64,6 +64,10 @@ const TOOLS = [
 
 const STORAGE_KEY = "shadow_work_takeaways_v1";
 
+function maskCardSrc(maskId, cardType = "front-card") {
+  return `/assets/identity-shift/identity/${maskId.replace(/_/g, "-")}/${cardType}.png`;
+}
+
 function loadTakeaways() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
   catch { return []; }
@@ -87,7 +91,7 @@ export default function ShadowWorkPage() {
 
   return (
     <div style={{ maxWidth: 620, margin: "0 auto" }}>
-      {!tool && <Hub open={setTool} saved={saved} />}
+      {!tool && <Hub open={setTool} />}
       {tool === "stand"     && <DailyStand     onClose={() => setTool(null)} onFinish={finish} />}
       {tool === "spot"      && <SpotMask        onClose={() => setTool(null)} onFinish={finish} />}
       {tool === "name"      && <NameIt          onClose={() => setTool(null)} onFinish={finish} />}
@@ -99,100 +103,85 @@ export default function ShadowWorkPage() {
 }
 
 // ─── Hub ──────────────────────────────────────────────────────────────────────
-function Hub({ open, saved }) {
+function Hub({ open }) {
+  const [hovered, setHovered] = useState(null);
+
   return (
     <div>
-      <div className="page-header">
-        <p className="page-header__kicker">Inner Work</p>
-        <h1 className="page-header__title">Shadow Work</h1>
-        <p className="page-header__sub">
-          Six self-paced stations. Open the one that fits the moment, take your time, leave with a shift.
-          Nothing to win — just work to do.
+      <div style={{ marginBottom: 40, paddingTop: 8 }}>
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--brand-cyan)",
+          letterSpacing: "0.22em", textTransform: "uppercase", margin: "0 0 10px",
+        }}>
+          Inner Work
         </p>
+        <h1 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(32px,6vw,48px)",
+          fontWeight: 900, margin: 0, lineHeight: 1.05, letterSpacing: "-0.01em",
+        }}>
+          Shadow Work
+        </h1>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
-        {TOOLS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => open(t.id)}
-            style={{
-              textAlign: "left",
-              background: "var(--card)",
-              border: `1px solid ${t.color}44`,
-              borderRadius: 16,
-              padding: 18,
-              color: "var(--text-main)",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ fontSize: 26, marginBottom: 10 }}>{t.icon}</div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, lineHeight: 1.15 }}>
-              {t.name}
-            </div>
-            <div style={{ color: "var(--text-muted)", fontSize: 12.5, marginTop: 4 }}>{t.sub}</div>
-            <div style={{
-              fontFamily: "var(--font-mono)", fontSize: 10, color: t.color,
-              marginTop: 12, textTransform: "uppercase", letterSpacing: "0.1em"
-            }}>
-              {t.when}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Your masks reference */}
-      <div style={{ marginBottom: 28 }}>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-soft)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 12 }}>
-          Your Survival Mechanisms
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {MASKS.map((m) => (
-            <div
-              key={m.id}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {TOOLS.map((t, i) => {
+          const isHovered = hovered === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => open(t.id)}
+              onMouseEnter={() => setHovered(t.id)}
+              onMouseLeave={() => setHovered(null)}
               style={{
-                display: "flex", alignItems: "center", gap: 14,
-                background: "var(--card)", border: "1px solid var(--border)",
-                borderRadius: 12, padding: "12px 16px",
+                display: "flex", alignItems: "center", gap: 20,
+                textAlign: "left", cursor: "pointer",
+                background: isHovered ? `${t.color}0d` : "transparent",
+                border: `1px solid ${isHovered ? t.color + "55" : "var(--border)"}`,
+                borderRadius: 14, padding: "20px 22px",
+                color: "var(--text-main)",
+                transition: "all 0.18s ease",
+                boxShadow: isHovered ? `0 0 24px ${t.color}18` : "none",
               }}
             >
-              <span style={{ fontSize: 22, flexShrink: 0 }}>{m.emoji}</span>
+              <div style={{
+                fontFamily: "var(--font-mono)", fontSize: 11,
+                color: isHovered ? t.color : "var(--text-soft)",
+                width: 20, flexShrink: 0, transition: "color 0.18s",
+              }}>
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div style={{ fontSize: 22, flexShrink: 0, opacity: isHovered ? 1 : 0.7, transition: "opacity 0.18s" }}>
+                {t.icon}
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{m.name}</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 12.5, marginTop: 2 }}>{m.tell}</div>
+                <div style={{
+                  fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700,
+                  lineHeight: 1.15, color: isHovered ? "var(--text-main)" : "var(--text-main)",
+                }}>
+                  {t.name}
+                </div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 3, lineHeight: 1.4 }}>
+                  {t.sub}
+                </div>
               </div>
               <div style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--brand-gold)",
-                textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0
+                fontFamily: "var(--font-mono)", fontSize: 10, color: t.color,
+                textTransform: "uppercase", letterSpacing: "0.12em", flexShrink: 0,
+                opacity: isHovered ? 1 : 0.5, transition: "opacity 0.18s",
               }}>
-                → {m.essence}
+                {t.when}
               </div>
-            </div>
-          ))}
-        </div>
+              <div style={{
+                color: t.color, fontSize: 18, flexShrink: 0,
+                opacity: isHovered ? 1 : 0, transition: "opacity 0.18s",
+                transform: isHovered ? "translateX(0)" : "translateX(-6px)",
+              }}>
+                →
+              </div>
+            </button>
+          );
+        })}
       </div>
-
-      {saved.length > 0 && (
-        <div>
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-soft)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 12 }}>
-            Recent Takeaways
-          </p>
-          {saved.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                background: "var(--card)", border: "1px solid var(--border)",
-                borderRadius: 12, padding: "12px 16px", marginBottom: 8,
-              }}
-            >
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--brand-gold)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                {s.tool}
-              </div>
-              <div style={{ fontSize: 14, marginTop: 4, color: "var(--text-main)", lineHeight: 1.45 }}>{s.takeaway}</div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -307,10 +296,19 @@ function Quote({ color, children }) {
   );
 }
 
-function Payoff({ color, title, body, stamp, onDone }) {
+function Payoff({ color, title, body, stamp, onDone, imgSrc }) {
   return (
     <div style={{ textAlign: "center", padding: "32px 0" }}>
-      <div style={{ fontSize: 52, marginBottom: 14 }}>✦</div>
+      {imgSrc ? (
+        <img
+          src={imgSrc}
+          alt=""
+          onError={(e) => { e.target.style.display = "none"; }}
+          style={{ width: 90, height: 126, objectFit: "contain", borderRadius: 10, margin: "0 auto 16px", display: "block" }}
+        />
+      ) : (
+        <div style={{ fontSize: 52, marginBottom: 14 }}>✦</div>
+      )}
       <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 30, color, margin: "0 0 10px" }}>
         {title}
       </h2>
@@ -362,6 +360,7 @@ function SpotMask({ onClose, onFinish }) {
         <Payoff
           color="var(--brand-cyan)"
           title="You saw it."
+          imgSrc={maskCardSrc(mask.id, "activated-card")}
           body={`Naming the ${mask.name} is the whole move. A mask you can see can't drive in the dark.`}
           stamp={`I noticed my ${mask.name} — and noticing means I'm at the wheel.`}
           onDone={() => onFinish("Spot the Mask", `Spotted: ${mask.name}${tell ? ` (${tell})` : ""} · caught ${LEVELS.find(x => x.l === level)?.label}`)}
@@ -388,6 +387,12 @@ function SpotMask({ onClose, onFinish }) {
                   borderRadius: 12, padding: "13px 16px", color: "var(--text-main)", cursor: "pointer",
                 }}
               >
+                <img
+                  src={maskCardSrc(m.id)}
+                  alt=""
+                  onError={(e) => { e.target.style.display = "none"; }}
+                  style={{ width: 40, height: 56, objectFit: "contain", borderRadius: 5, flexShrink: 0 }}
+                />
                 <span style={{ fontSize: 24, flexShrink: 0 }}>{m.emoji}</span>
                 <span>
                   <b style={{ fontSize: 15 }}>{m.name}</b>
@@ -437,6 +442,12 @@ function SpotMask({ onClose, onFinish }) {
         <>
           <Q>Here's the reframe.</Q>
           <Sub>The mask isn't the enemy — it was built to protect you once. Read this slowly:</Sub>
+          <img
+            src={maskCardSrc(mask.id, "shift-card")}
+            alt=""
+            onError={(e) => { e.target.style.display = "none"; }}
+            style={{ width: 80, height: 112, objectFit: "contain", borderRadius: 8, margin: "0 auto 16px", display: "block" }}
+          />
           <Quote color="var(--brand-cyan)">
             "My {mask.name} showed up because part of me felt unsafe. I see it now. And underneath it is my {mask.essence}."
           </Quote>
