@@ -36,7 +36,14 @@ export default function ProjectCard({ project, milestones, onOpen }) {
       <div className="project-map-card__art" aria-hidden="true">
         <img
           className="project-map-card__bg"
-          src={completed ? MWA.backgrounds.goalAchieved : MWA.backgrounds.treasureZone}
+          src={
+            completed
+              ? "/assets/projects/project-card-complete-bg.png"
+              : (days !== null && days < 0)
+                ? "/assets/projects/project-card-overdue-bg.png"
+                : "/assets/projects/project-card-active-bg.png"
+          }
+          onError={(e) => { e.currentTarget.src = completed ? MWA.backgrounds.goalAchieved : MWA.backgrounds.treasureZone; }}
           alt=""
         />
         <img
@@ -52,7 +59,33 @@ export default function ProjectCard({ project, milestones, onOpen }) {
       </div>
 
       <div className="row row--between" style={{ marginBottom: 10 }}>
-        <span style={{ fontSize: 28 }} aria-hidden="true">{completed ? "🏆" : project.icon}</span>
+        <div className="row" style={{ gap: 8, alignItems: "center" }}>
+          <span style={{ fontSize: 28 }} aria-hidden="true">{completed ? "🏆" : project.icon}</span>
+          {completed && (
+            <img
+              src="/assets/projects/badge-conquered.png"
+              alt=""
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              style={{ width: 32, height: 32, objectFit: "contain" }}
+            />
+          )}
+          {!completed && days !== null && days < 0 && (
+            <img
+              src="/assets/projects/badge-overdue.png"
+              alt=""
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              style={{ width: 32, height: 32, objectFit: "contain" }}
+            />
+          )}
+          {!completed && (days === null || days >= 0) && (
+            <img
+              src="/assets/projects/badge-on-track.png"
+              alt=""
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              style={{ width: 32, height: 32, objectFit: "contain" }}
+            />
+          )}
+        </div>
         <div className="row" style={{ gap: 6 }}>
           <Badge tone="cyan">{project.category}</Badge>
           {completed && <Badge tone="gold">Conquered</Badge>}

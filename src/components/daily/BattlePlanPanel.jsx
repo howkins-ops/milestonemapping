@@ -35,6 +35,12 @@ export default function BattlePlanPanel() {
     <section>
       <SectionHeader title="Battle Plan" icon="🎯" sub="One domino. Everything else is noise." />
       <Card variant="pink">
+        <img
+          src="/assets/daily/badge-battle-plan.png"
+          alt=""
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          style={{ width: 48, height: 48, objectFit: "contain", marginBottom: 8 }}
+        />
         <TextArea
           label="What is the single move that makes today a victory?"
           rows={3}

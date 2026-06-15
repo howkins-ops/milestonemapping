@@ -61,6 +61,13 @@ export default function ProjectWizard({ open, onClose, onCreate, onUpdate, initi
       <div style={{ minHeight: 270, marginTop: 22 }} className="anim-fade-in" key={step}>
         {step === 0 && (
           <div className="stack">
+            <img
+              src="/assets/milestone-world/bg-project-create.png"
+              alt=""
+              aria-hidden="true"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 12, marginBottom: 4, opacity: 0.75 }}
+            />
             <h3 style={{ fontSize: 22 }}>What are you building?</h3>
             <TextInput
               label="Project name"

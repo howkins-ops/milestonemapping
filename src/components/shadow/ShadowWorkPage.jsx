@@ -19,12 +19,12 @@ const MASKS = [
     trigger: "Temptation, inconsistency, broken trust",
   },
   {
-    id: "silent_prophet",
-    name: "Silent Prophet",
-    tell: "Going quiet, withdrawing, becoming invisible",
-    essence: "Radiance",
-    emoji: "🌑",
-    trigger: "Lack of visibility, feeling unseen or unheard",
+    id: "wasted_genius",
+    name: "Wasted Genius",
+    tell: "Avoiding the real work, wasting talent on distractions",
+    essence: "Purpose",
+    emoji: "⚡",
+    trigger: "High-stakes opportunity, fear of failing at what matters most",
   },
   {
     id: "raging_victim",
@@ -54,12 +54,12 @@ const IDENTITY_CLAIMS = [
 ];
 
 const TOOLS = [
-  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",           icon: "🛡️",  when: "Start of day",           color: "var(--brand-gold)" },
-  { id: "spot",      name: "Spot the Mask",        sub: "Name what's showing up",            icon: "👁️",  when: "Something feels off",    color: "var(--brand-cyan)" },
-  { id: "name",      name: "Name It to Tame It",   sub: "Find where it lives in you",        icon: "🏷️",  when: "Caught in a pattern",    color: "var(--brand-green)" },
-  { id: "reframe",   name: "Reframe Forge",        sub: "Rewrite the old story",             icon: "🔨",  when: "An old belief is loud",  color: "var(--brand-purple)" },
-  { id: "line",      name: "Hold the Line",        sub: "Breathe through the heat",          icon: "🌬️",  when: "Anger is rising",        color: "var(--brand-red)" },
-  { id: "integrate", name: "Integration",          sub: "Let it sit. Let it pass.",          icon: "🌙",  when: "Closing the loop",       color: "var(--text-muted)" },
+  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",           icon: "🛡️",  imgIcon: "/assets/icons/icon-shield.png",   when: "Start of day",           color: "var(--brand-gold)" },
+  { id: "spot",      name: "Spot the Mask",        sub: "Name what's showing up",            icon: "👁️",  imgIcon: "/assets/icons/icon-compass.png",  when: "Something feels off",    color: "var(--brand-cyan)" },
+  { id: "name",      name: "Name It to Tame It",   sub: "Find where it lives in you",        icon: "🏷️",  imgIcon: "/assets/icons/icon-scroll.png",   when: "Caught in a pattern",    color: "var(--brand-green)" },
+  { id: "reframe",   name: "Reframe Forge",        sub: "Rewrite the old story",             icon: "🔨",  imgIcon: "/assets/icons/icon-flame.png",    when: "An old belief is loud",  color: "var(--brand-purple)" },
+  { id: "line",      name: "Hold the Line",        sub: "Breathe through the heat",          icon: "🌬️",  imgIcon: "/assets/icons/icon-crystal.png",  when: "Anger is rising",        color: "var(--brand-red)" },
+  { id: "integrate", name: "Integration",          sub: "Let it sit. Let it pass.",          icon: "🌙",  imgIcon: "/assets/icons/icon-moon.png",     when: "Closing the loop",       color: "var(--text-muted)" },
 ];
 
 const STORAGE_KEY = "shadow_work_takeaways_v1";
@@ -150,8 +150,13 @@ function Hub({ open }) {
               }}>
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div style={{ fontSize: 22, flexShrink: 0, opacity: isHovered ? 1 : 0.7, transition: "opacity 0.18s" }}>
-                {t.icon}
+              <div style={{ width: 28, height: 28, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: isHovered ? 1 : 0.7, transition: "opacity 0.18s" }}>
+                <img
+                  src={t.imgIcon}
+                  alt=""
+                  onError={(e) => { e.currentTarget.outerHTML = `<span style="font-size:22px">${t.icon}</span>`; }}
+                  style={{ width: 28, height: 28, objectFit: "contain" }}
+                />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{

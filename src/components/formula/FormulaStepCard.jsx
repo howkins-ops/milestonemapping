@@ -1,5 +1,13 @@
 import React, { useState, useRef, useLayoutEffect } from "react";
 
+const STEP_ICONS = [
+  "/assets/formula/step-icon-wisdom.png",
+  "/assets/formula/step-icon-action.png",
+  "/assets/formula/step-icon-identity.png",
+  "/assets/formula/step-icon-vision.png",
+  "/assets/formula/step-icon-reward.png",
+];
+
 export default function FormulaStepCard({ step, index }) {
   const [open, setOpen] = useState(false);
   const bodyRef = useRef(null);
@@ -24,6 +32,14 @@ export default function FormulaStepCard({ step, index }) {
         className="formula-card__trigger"
       >
         <span className="formula-card__num">{String(index + 1).padStart(2, "0")}</span>
+        {STEP_ICONS[index] && (
+          <img
+            src={STEP_ICONS[index]}
+            alt=""
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }}
+          />
+        )}
 
         <div className="formula-card__title-wrap">
           <h3 className="formula-card__title">{step.title}</h3>

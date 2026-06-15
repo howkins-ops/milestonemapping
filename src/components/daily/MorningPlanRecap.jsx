@@ -20,21 +20,6 @@ export default function MorningPlanRecap() {
           Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Three steps. Five minutes. Today is yours.
         </p>
 
-        <div className="morning-activation__cards">
-          <div className="morning-activation__card">
-            <span className="morning-activation__card-label">GRATEFUL FOR THIS NEW DAY</span>
-            <p className="morning-activation__card-text">
-              "I'm still in the fight. Still moving forward. That's the gift — and I'm using every second of it."
-            </p>
-          </div>
-          <div className="morning-activation__card">
-            <span className="morning-activation__card-label">MY #1 PROJECT MOVE TODAY</span>
-            <p className="morning-activation__card-text">
-              "The move that closes the gap between where I am now and where I'm going. I know what it is."
-            </p>
-          </div>
-        </div>
-
         <div className="morning-activation__steps">
           <div className="morning-activation__step">
             <span className="morning-activation__step-num">01</span>

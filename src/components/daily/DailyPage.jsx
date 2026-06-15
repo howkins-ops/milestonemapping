@@ -50,7 +50,17 @@ export default function DailyPage() {
         <ModeTransitionOverlay mode={transitioning} onDone={handleTransitionDone} />
       )}
 
-      <div className={`daily-page-root anim-fade-in ${ritual === "pm" ? "daily-night-mode" : ""}`}>
+      <div className={`daily-page-root anim-fade-in ${ritual === "pm" ? "daily-night-mode" : ""}`} style={{ position: "relative" }}>
+
+        {/* Background art — morning or evening image */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+            backgroundImage: `url(${ritual === "pm" ? "/assets/daily/daily-evening-bg.png" : "/assets/daily/daily-morning-bg.png"})`,
+            backgroundSize: "cover", backgroundPosition: "center top", opacity: 0.13,
+          }}
+        />
 
         {/* Hero header */}
         <div className="daily-hero">

@@ -1,49 +1,70 @@
-import React, { useMemo } from "react";
-import Card from "../ui/Card.jsx";
+import React from "react";
 import MissionHero from "./MissionHero.jsx";
 import TopFivePanel from "../daily/TopFivePanel.jsx";
 import ActiveProjectsPreview from "./ActiveProjectsPreview.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
-import MissionStatusGrid from "./MissionStatusGrid.jsx";
 import Button from "../ui/Button.jsx";
-import { getRandomCopy } from "../../lib/constants.js";
 
-function splitQuote(text) {
-  const sentences = text.split(/(?<=[.!?])\s+/);
-  const lines = [];
-  for (const s of sentences) {
-    const words = s.split(" ");
-    if (words.length <= 5) {
-      lines.push(s);
-    } else {
-      const mid = Math.ceil(words.length / 2);
-      lines.push(words.slice(0, mid).join(" "));
-      lines.push(words.slice(mid).join(" "));
-    }
-  }
-  return lines.filter(Boolean);
-}
+const QUICK_ACTIONS = [
+  { label: "Daily Plan", route: "daily", icon: "⚡", color: "var(--brand-pink)" },
+  { label: "My Maps", route: "milestones", icon: "🗺", color: "var(--brand-magenta)" },
+  { label: "Weekly Review", route: "weekly", icon: "📋", color: "var(--brand-purple)" },
+  { label: "Rewards", route: "rewards", icon: "🎁", color: "var(--brand-cyan)" },
+];
 
 export default function CommandCenter({ onNavigate, onOpenProject }) {
-  const quote = useMemo(() => getRandomCopy(), []);
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Hero — progress ring, XP, streak, rank */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <MissionHero />
 
-      {/* Sunday review alert — Sundays only, sits right under hero */}
       <SundayReviewAlert onNavigate={onNavigate} />
 
-      {/* Today's Top 5 — right under hero for quick access */}
+      {/* Quick Actions */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {QUICK_ACTIONS.map(({ label, route, icon, color }) => (
+          <button
+            key={route}
+            onClick={() => onNavigate(route)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "14px 14px",
+              background: "linear-gradient(160deg, rgba(18,0,36,0.95), rgba(5,0,12,0.95))",
+              border: `1px solid rgba(255,255,255,0.08)`,
+              borderRadius: 14,
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "border-color 0.15s, box-shadow 0.15s",
+              boxShadow: "inset 0 0 20px rgba(0,0,0,0.3)",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = color;
+              e.currentTarget.style.boxShadow = `0 0 16px ${color}22, inset 0 0 20px rgba(0,0,0,0.3)`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.boxShadow = "inset 0 0 20px rgba(0,0,0,0.3)";
+            }}
+          >
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{icon}</span>
+            <span style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.02em",
+              color: "var(--text-primary)",
+              flex: 1,
+            }}>{label}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>→</span>
+          </button>
+        ))}
+      </div>
+
       <TopFivePanel />
 
-      <MissionStatusGrid />
-
-      {/* Active expedition cards */}
       <ActiveProjectsPreview onNavigate={onNavigate} onOpenProject={onOpenProject} />
 
-      {/* New map CTA */}
       <div style={{ display: "flex", gap: 10 }}>
         <Button variant="primary" onClick={() => onNavigate("milestones")} style={{ flex: 1 }}>
           + Chart New Map
@@ -52,49 +73,6 @@ export default function CommandCenter({ onNavigate, onOpenProject }) {
           ✦ The Formula
         </Button>
       </div>
-
-      {/* Motivational quote */}
-      <Card variant="glass" style={{ padding: "24px 22px 20px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          <span style={{
-            fontSize: 27,
-            lineHeight: 0.8,
-            color: "var(--brand-cyan)",
-            opacity: 0.25,
-            fontFamily: "Georgia, serif",
-            marginBottom: 5,
-            display: "block",
-          }}>"</span>
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {splitQuote(quote.text).map((line, i) => (
-              <p key={i} style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(10px, 1.2vw, 12px)",
-                fontWeight: 700,
-                lineHeight: 1.25,
-                letterSpacing: "-0.01em",
-                margin: 0,
-                background: "linear-gradient(90deg, var(--brand-green), var(--brand-cyan), var(--brand-pink))",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}>{line}</p>
-            ))}
-          </div>
-          {quote.source && (
-            <p style={{
-              fontSize: 10,
-              color: "var(--text-muted)",
-              marginTop: 10,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              opacity: 0.6,
-            }}>
-              — {quote.source}
-            </p>
-          )}
-        </div>
-      </Card>
     </div>
   );
 }

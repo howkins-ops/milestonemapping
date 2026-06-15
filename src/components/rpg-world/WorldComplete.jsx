@@ -17,11 +17,33 @@ export default function WorldComplete({ project, milestones, onContinue }) {
         className="rpg-world__bg"
         style={{ backgroundImage: `url(${crystalFrontierAssets.final.congratulations})` }}
       />
+      {/* Phoenix shrine atmospheric layers */}
+      <img
+        src="/assets/phoenix-shrine/ascension-beam.png"
+        aria-hidden="true"
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+        style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "60%", maxWidth: 320, opacity: 0.22, pointerEvents: "none", zIndex: 1 }}
+      />
+      <img
+        src="/assets/phoenix-shrine/phoenix-wings.png"
+        aria-hidden="true"
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+        style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "90%", maxWidth: 480, opacity: 0.14, pointerEvents: "none", zIndex: 1 }}
+      />
 
       <div
         className="rpg-world__content rpg-world-complete__hero"
         style={{ alignItems: "center", gap: 20, paddingBottom: 60, paddingTop: 32 }}
       >
+
+        {/* Phoenix shrine victory visual */}
+        <img
+          src="/assets/phoenix-shrine/phoenix-ascended.png"
+          alt=""
+          aria-hidden="true"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          style={{ width: 140, height: 140, objectFit: "contain", filter: "drop-shadow(0 0 28px rgba(250,204,21,0.45))" }}
+        />
 
         {/* Victory avatar */}
         <img
@@ -50,24 +72,32 @@ export default function WorldComplete({ project, milestones, onContinue }) {
               <div key={m.id} title={m.title} style={{
                 width: 40, height: 40, borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18,
                 background: "rgba(0,255,191,0.12)",
                 border: "1.5px solid #00FFBF",
                 boxShadow: "0 0 14px rgba(0,255,191,0.3)",
               }}>
-                💎
+                <img
+                  src="/assets/treasure-system/diamond-reward.png"
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  style={{ width: 26, height: 26, objectFit: "contain", filter: "drop-shadow(0 0 6px rgba(0,255,191,0.5))" }}
+                />
               </div>
             ))}
             {/* Final stone */}
             <div style={{
               width: 52, height: 52, borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 22,
               background: "rgba(250,204,21,0.14)",
               border: "2px solid #FACC15",
               boxShadow: "0 0 20px rgba(250,204,21,0.4)",
             }}>
-              👑
+              <img
+                src="/assets/treasure-system/phoenix-reward.png"
+                alt=""
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+                style={{ width: 34, height: 34, objectFit: "contain", filter: "drop-shadow(0 0 8px rgba(250,204,21,0.6))" }}
+              />
             </div>
           </div>
         </div>

@@ -66,16 +66,25 @@ export default function FinalGoalWorld({ project, milestones, onBackToMap, onFin
             MILESTONE STONES COLLECTED
           </p>
           <div className="rpg-final__stones">
-            {milestones.map((m, i) => (
+            {milestones.map((m) => (
               <div key={m.id} title={m.title} style={{
                 width: 44, height: 44, borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 20,
                 background: m.status === "completed" ? "rgba(0,255,191,0.12)" : "rgba(255,255,255,0.04)",
                 border: `1.5px solid ${m.status === "completed" ? "#00FFBF" : "rgba(255,255,255,0.1)"}`,
                 boxShadow: m.status === "completed" ? "0 0 12px rgba(0,255,191,0.25)" : "none",
               }}>
-                {m.status === "completed" ? "💎" : "🔮"}
+                <img
+                  src={m.status === "completed" ? "/assets/treasure-system/diamond-reward.png" : "/assets/treasure-system/small-chest-closed.png"}
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  style={{
+                    width: 28, height: 28, objectFit: "contain",
+                    filter: m.status === "completed"
+                      ? "drop-shadow(0 0 6px rgba(0,255,191,0.5))"
+                      : "saturate(0) opacity(0.4)",
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -113,12 +122,27 @@ export default function FinalGoalWorld({ project, milestones, onBackToMap, onFin
             </div>
           </div>
 
+          <img
+            src="/assets/phoenix-shrine/phoenix-appears.png"
+            alt=""
+            aria-hidden="true"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            style={{ width: 90, height: 90, objectFit: "contain", filter: "drop-shadow(0 0 18px rgba(250,204,21,0.4))", marginBottom: 8 }}
+          />
+
           <button
             className="rpg-final__cta"
             onClick={handleClaim}
             disabled={claiming}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
           >
-            {claiming ? "✨ Claiming Final Stone…" : "💎 Claim Final Stone"}
+            <img
+              src={claiming ? "/assets/treasure-system/xp-burst.png" : "/assets/treasure-system/phoenix-reward.png"}
+              alt=""
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              style={{ width: 28, height: 28, objectFit: "contain" }}
+            />
+            {claiming ? "Claiming Final Stone…" : "Claim Final Stone"}
           </button>
         </div>
       </div>

@@ -1,25 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { getMilestoneProgress } from "../../lib/progress.js";
 import { useAppData } from "../../hooks/useAppData.js";
+import { REWARD_TIERS as TIERS, chestAssets } from "../../data/assetRegistry.js";
 
-const TIERS = [
-  { key: "small",  threshold: 33,  icon: "🪙", label: "Small Reward",  field: "rewardSmall",  claimKey: "small"  },
-  { key: "medium", threshold: 66,  icon: "💜", label: "Medium Reward", field: "rewardMedium", claimKey: "medium" },
-  { key: "large",  threshold: 100, icon: "💎", label: "Final Reward",  field: "rewardLarge",  claimKey: "large"  },
-];
+function chestSrc(tier, state) {
+  return chestAssets.src(tier, state);
+}
 
 export default function RewardChest({ milestone }) {
   const { updateMilestone, addXP } = useAppData();
+  const [justClaimed, setJustClaimed] = useState(null);
   const progress = getMilestoneProgress(milestone);
   const claimed = milestone.rewardsClaimed || {};
 
   const handleClaim = (tier) => {
     if (claimed[tier.claimKey]) return;
-    updateMilestone({
-      ...milestone,
+    setJustClaimed(tier.claimKey);
+    updateMilestone(milestone.id, {
       rewardsClaimed: { ...claimed, [tier.claimKey]: true },
     });
     addXP(50, `${tier.label} claimed`);
+    setTimeout(() => setJustClaimed(null), 1200);
   };
 
   return (
@@ -33,15 +34,47 @@ export default function RewardChest({ milestone }) {
           const unlocked = progress >= tier.threshold;
           const isClaimed = !!claimed[tier.claimKey];
           const isEmpty = !rewardText;
+          const isFlashing = justClaimed === tier.claimKey;
+          const state = isClaimed ? "open" : unlocked ? "opening" : "closed";
 
           return (
             <div
               key={tier.key}
               className={`reward-chest__tier${unlocked && !isClaimed ? " is-unlocked" : ""}${isClaimed ? " is-claimed" : ""}`}
             >
-              <span className="reward-chest__tier-icon" style={{ opacity: unlocked ? 1 : 0.35 }}>
-                {isClaimed ? "✅" : unlocked ? tier.icon : "🔒"}
-              </span>
+              {/* Chest image */}
+              <div style={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
+                <img
+                  src={chestSrc(tier.chestTier, state)}
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  style={{
+                    width: 48, height: 48, objectFit: "contain",
+                    opacity: unlocked ? 1 : 0.3,
+                    filter: isClaimed
+                      ? "drop-shadow(0 0 10px rgba(0,255,191,0.65))"
+                      : unlocked
+                      ? "drop-shadow(0 0 8px rgba(250,204,21,0.55))"
+                      : "saturate(0)",
+                    transition: "filter 0.35s ease, opacity 0.35s ease",
+                  }}
+                />
+                {isFlashing && (
+                  <img
+                    src={chestAssets.xpBurst}
+                    alt=""
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    style={{
+                      position: "absolute", top: -10, left: -10,
+                      width: 68, height: 68, objectFit: "contain",
+                      animation: "xpBurst 1.2s ease-out forwards",
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Tier info */}
               <div className="reward-chest__tier-body">
                 <div className="reward-chest__tier-label">
                   {tier.label} · {tier.threshold}%
@@ -49,7 +82,7 @@ export default function RewardChest({ milestone }) {
                 <div className={`reward-chest__tier-text${!unlocked ? " is-locked" : ""}`}>
                   {isEmpty ? (
                     <span style={{ fontStyle: "italic", opacity: 0.4 }}>No reward set</span>
-                  ) : unlocked ? rewardText : "Unlock at " + tier.threshold + "% progress"}
+                  ) : unlocked ? rewardText : `Unlock at ${tier.threshold}% progress`}
                 </div>
               </div>
 

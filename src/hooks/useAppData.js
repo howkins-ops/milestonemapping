@@ -7,6 +7,36 @@ import React, {
   useRef,
   useState
 } from "react";
+
+// Pure function: enforce sequential milestone unlocking across all projects.
+// idempotent — calling it on already-normalized data returns the same result.
+function normalizeMilestoneStatuses(milestones) {
+  if (!Array.isArray(milestones) || milestones.length === 0) return milestones;
+  const byProject = {};
+  milestones.forEach((m) => {
+    if (!m.projectId) return;
+    if (!byProject[m.projectId]) byProject[m.projectId] = [];
+    byProject[m.projectId].push(m);
+  });
+  const updates = {};
+  Object.values(byProject).forEach((group) => {
+    const sorted = [...group].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    let foundCurrent = false;
+    sorted.forEach((m) => {
+      if (m.status === "completed") return;
+      if (!foundCurrent) {
+        const hasDone = (m.actions || []).some((a) => a.done);
+        updates[m.id] = hasDone ? "in_progress" : "active";
+        foundCurrent = true;
+      } else {
+        updates[m.id] = "locked";
+      }
+    });
+  });
+  const hasChanges = milestones.some((m) => updates[m.id] !== undefined && updates[m.id] !== m.status);
+  if (!hasChanges) return milestones;
+  return milestones.map((m) => (updates[m.id] !== undefined ? { ...m, status: updates[m.id] } : m));
+}
 import { useLocalStorage } from "./useLocalStorage.js";
 import { STORAGE_KEYS, DEFAULT_SETTINGS, DEFAULT_IDENTITY } from "../lib/constants.js";
 import { safeRemove } from "../lib/storage.js";
@@ -85,7 +115,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
         if (row?.data) {
           const d = row.data;
           if (Array.isArray(d.projects)) setProjects(d.projects);
-          if (Array.isArray(d.milestones)) setMilestones(d.milestones);
+          if (Array.isArray(d.milestones)) setMilestones(normalizeMilestoneStatuses(d.milestones));
           if (d.dailyLogs && typeof d.dailyLogs === "object") setDailyLogs(d.dailyLogs);
           if (Array.isArray(d.weeklyReviews)) setWeeklyReviews(d.weeklyReviews);
           if (Array.isArray(d.visionBoard)) setVisionBoard(d.visionBoard);
@@ -233,6 +263,17 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, projects, milestones, dailyLogs, weeklyReviews, visionBoard, identity, settings, achievements, xp]);
 
+  // One-time migration: enforce sequential status on existing localStorage data
+  const statusMigratedRef = useRef(false);
+  useEffect(() => {
+    if (statusMigratedRef.current) return;
+    if (milestones.length === 0) return;
+    statusMigratedRef.current = true;
+    const normalized = normalizeMilestoneStatuses(milestones);
+    if (normalized !== milestones) setMilestones(normalized);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [milestones]);
+
   // One-time migration: milestones without a project get a home
   const migratedRef = useRef(false);
   useEffect(() => {
@@ -281,7 +322,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       const shells = milestoneTitles
         .map((t) => t.trim())
         .filter(Boolean)
-        .map((title) => ({
+        .map((title, i) => ({
           id: uid("ms"),
           projectId: project.id,
           title,
@@ -293,13 +334,13 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
           newIdentity: "",
           targetDate: "",
           priority: "medium",
-          status: "active",
+          status: i === 0 ? "active" : "locked",
           rewardSmall: "",
           rewardMedium: "",
           rewardLarge: "",
           actions: [],
           notes: "",
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(Date.now() + i).toISOString(),
           completedAt: null,
           rewardsClaimed: { small: false, medium: false, large: false }
         }));
@@ -347,6 +388,12 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
 
   const createMilestone = useCallback(
     (data) => {
+      const existingForProject = data?.projectId
+        ? milestones.filter((m) => m.projectId === data.projectId)
+        : [];
+      const hasNonLocked = existingForProject.some(
+        (m) => m.status === "active" || m.status === "in_progress" || m.status === "completed"
+      );
       const milestone = {
         id: uid("ms"),
         title: "",
@@ -358,7 +405,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
         newIdentity: "",
         targetDate: "",
         priority: "medium",
-        status: "active",
+        status: hasNonLocked ? "locked" : "active",
         rewardSmall: "",
         rewardMedium: "",
         rewardLarge: "",
@@ -408,13 +455,24 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
     (id) => {
       const target = milestones.find((m) => m.id === id);
       if (!target || target.status === "completed") return;
+
+      // Find next locked milestone in this project (will be unlocked)
+      const projectMilestones = milestones
+        .filter((m) => m.projectId === target.projectId && m.id !== id)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      const nextLocked = projectMilestones.find((m) => m.status === "locked");
+
       setMilestones((prev) =>
-        prev.map((m) =>
-          m.id === id
-            ? { ...m, status: "completed", completedAt: new Date().toISOString() }
-            : m
-        )
+        prev.map((m) => {
+          if (m.id === id) return { ...m, status: "completed", completedAt: new Date().toISOString() };
+          if (nextLocked && m.id === nextLocked.id) return { ...m, status: "active" };
+          return m;
+        })
       );
+
+      if (userId && nextLocked) {
+        upsertMilestone(userId, { ...nextLocked, status: "active" });
+      }
       celebrate({
         variant: "milestone",
         title: "MILESTONE ACHIEVED",

@@ -130,6 +130,28 @@ export default function BootSequence({ onDone }) {
       aria-label="Mission control booting"
     >
 
+      {/* background art */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+          backgroundImage: "url(/assets/boot/boot-phoenix-bg.png)",
+          backgroundSize: "cover", backgroundPosition: "center",
+          opacity: 0.35,
+        }}
+      />
+      {/* Phoenix flames atmosphere */}
+      <img
+        src="/assets/phoenix-shrine/phoenix-flames.png"
+        aria-hidden="true"
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+        style={{
+          position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)",
+          width: "70%", maxWidth: 360, pointerEvents: "none", zIndex: 1,
+          opacity: 0.28, objectFit: "contain",
+        }}
+      />
+
       {/* ember layer */}
       <div
         ref={emberRef}

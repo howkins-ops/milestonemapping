@@ -12,9 +12,9 @@ import { setMemory } from "../../lib/memoryService.js";
 import { getTodayKey } from "../../lib/dates.js";
 
 const IMPACT_STATS = [
-  { label: "Depression Risk", value: "↓ 25%", color: "#00FFBF", delay: 0 },
-  { label: "Anxiety Levels", value: "↓ 23%", color: "#00FFBF", delay: 120 },
-  { label: "XP Earned", value: "+50 XP", color: "#FACC15", delay: 240 },
+  { label: "Depression Risk", value: "↓ 25%", color: "#00FFBF", delay: 0,   icon: "/assets/daily/stat-heart-icon.png" },
+  { label: "Anxiety Levels", value: "↓ 23%", color: "#00FFBF", delay: 120,  icon: "/assets/daily/stat-calm-icon.png" },
+  { label: "XP Earned",       value: "+50 XP", color: "#FACC15", delay: 240, icon: "/assets/daily/stat-xp-icon.png" },
 ];
 
 export default function GratitudePanel() {
@@ -101,6 +101,12 @@ export default function GratitudePanel() {
           {impactVisible && (
             <div className="gratitude-impact anim-scale-pop">
               <div className="gratitude-impact-header">
+                <img
+                  src="/assets/daily/gratitude-locked-seal.png"
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }}
+                />
                 <span className="gratitude-impact-check">✓</span>
                 <span className="gratitude-impact-title">GRATITUDE LOCKED IN</span>
               </div>
@@ -115,6 +121,12 @@ export default function GratitudePanel() {
                     className="gratitude-impact-stat anim-slide-up"
                     style={{ animationDelay: `${s.delay}ms`, "--stat-color": s.color }}
                   >
+                    <img
+                      src={s.icon}
+                      alt=""
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      style={{ width: 28, height: 28, objectFit: "contain" }}
+                    />
                     <span className="gratitude-impact-stat-value" style={{ color: s.color }}>
                       {s.value}
                     </span>

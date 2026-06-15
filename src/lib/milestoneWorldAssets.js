@@ -98,3 +98,78 @@ export function getMilestoneBackground(index, isComplete) {
     ? crystalFrontierAssets.milestones[`${slot}Complete`]
     : crystalFrontierAssets.milestones[slot];
 }
+
+// ── App-wide asset paths (all components point here) ──────────────────────────
+export const appAssets = {
+  dashboard: {
+    heroBannerBg:   "/assets/dashboard/hero-banner-bg.png",
+    quoteScrollBg:  "/assets/dashboard/quote-scroll-bg.png",
+  },
+  daily: {
+    morningBg:       "/assets/daily/daily-morning-bg.png",
+    eveningBg:       "/assets/daily/daily-evening-bg.png",
+    badgeBattlePlan: "/assets/daily/badge-battle-plan.png",
+    badgeTopFive:    "/assets/daily/badge-top-five.png",
+    badgeGratitude:  "/assets/daily/badge-gratitude.png",
+    badgeReflection: "/assets/daily/badge-reflection.png",
+    statHeart:       "/assets/daily/stat-heart-icon.png",
+    statCalm:        "/assets/daily/stat-calm-icon.png",
+    statXP:          "/assets/daily/stat-xp-icon.png",
+    gratitudeSeal:   "/assets/daily/gratitude-locked-seal.png",
+    morningHeroBg:   "/assets/daily/morning-hero-bg.png",
+  },
+  projects: {
+    cardActiveBg:    "/assets/projects/project-card-active-bg.png",
+    cardCompleteBg:  "/assets/projects/project-card-complete-bg.png",
+    cardOverdueBg:   "/assets/projects/project-card-overdue-bg.png",
+    badgeConquered:  "/assets/projects/badge-conquered.png",
+    badgeOverdue:    "/assets/projects/badge-overdue.png",
+    badgeOnTrack:    "/assets/projects/badge-on-track.png",
+  },
+  achievements: {
+    firstMilestone:  "/assets/achievements/achievement-first-milestone.png",
+    firstProject:    "/assets/achievements/achievement-first-project.png",
+    streak7:         "/assets/achievements/achievement-streak-7.png",
+    streak30:        "/assets/achievements/achievement-streak-30.png",
+    allMilestones:   "/assets/achievements/achievement-all-milestones.png",
+    worldComplete:   "/assets/achievements/achievement-world-complete.png",
+  },
+  celebrations: {
+    bgMilestone:     "/assets/celebrations/celebrate-bg-milestone.png",
+    bgProject:       "/assets/celebrations/celebrate-bg-project.png",
+    bgRankUp:        "/assets/celebrations/celebrate-bg-rankup.png",
+  },
+  boot: {
+    bg:              "/assets/boot/boot-phoenix-bg.png",
+    impactHalo:      "/assets/boot/boot-impact-halo.png",
+    embers:          "/assets/boot/boot-embers.png",
+  },
+  formula: {
+    iconWisdom:      "/assets/formula/step-icon-wisdom.png",
+    iconAction:      "/assets/formula/step-icon-action.png",
+    iconIdentity:    "/assets/formula/step-icon-identity.png",
+    iconVision:      "/assets/formula/step-icon-vision.png",
+    iconReward:      "/assets/formula/step-icon-reward.png",
+  },
+  ui: {
+    alertSunday:     "/assets/ui/alert-sunday-badge.png",
+  },
+  icons: {
+    target:   "/assets/icons/icon-target.png",
+    lightning:"/assets/icons/icon-lightning.png",
+    moon:     "/assets/icons/icon-moon.png",
+    sun:      "/assets/icons/icon-sun.png",
+    diamond:  "/assets/icons/icon-diamond.png",
+    crown:    "/assets/icons/icon-crown.png",
+    flame:    "/assets/icons/icon-flame.png",
+    shield:   "/assets/icons/icon-shield.png",
+    scroll:   "/assets/icons/icon-scroll.png",
+    compass:  "/assets/icons/icon-compass.png",
+    crystal:  "/assets/icons/icon-crystal.png",
+    portal:   "/assets/icons/icon-portal.png",
+    check:    "/assets/icons/icon-check.png",
+    lock:     "/assets/icons/icon-lock.png",
+    star:     "/assets/icons/icon-star.png",
+    phoenix:  "/assets/icons/icon-phoenix.png",
+  },
+};

@@ -35,10 +35,11 @@ const STREAK_MILESTONES = [
 ];
 
 const HERO_ICONS = {
-  charted: "/assets/milestone-world/main-card-charted-icon.png",
-  streak: "/assets/milestone-world/main-card-streak-icon.png",
-  maps: "/assets/milestone-world/main-card-maps-icon.png",
-  diamonds: "/assets/milestone-world/main-card-diamonds-icon.png"
+  brandMark: "/assets/icons/icon-crystal.png",
+  charted:   "/assets/icons/icon-compass.png",
+  streak:    "/assets/icons/icon-flame.png",
+  maps:      "/assets/icons/icon-portal.png",
+  diamonds:  "/assets/icons/icon-diamond.png",
 };
 
 export default function MissionHero() {
@@ -71,11 +72,37 @@ export default function MissionHero() {
 
   return (
     <div className="mission-hero anim-slide-up">
+      {/* background art */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, borderRadius: "inherit",
+          backgroundImage: "url(/assets/dashboard/hero-banner-bg.png)",
+          backgroundSize: "cover", backgroundPosition: "center", opacity: 0.22,
+        }}
+      />
+
       {/* phoenix watermark */}
       <PhoenixSVG
         width={195}
         style={{ position: "absolute", right: -40, bottom: -24, opacity: 0.14, pointerEvents: "none" }}
       />
+
+      {/* Brand mark */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+        <img
+          src={HERO_ICONS.brandMark}
+          alt=""
+          aria-hidden="true"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          style={{
+            width: 28,
+            height: 28,
+            objectFit: "contain",
+            filter: "drop-shadow(0 0 8px rgba(0, 240, 255, 0.7)) drop-shadow(0 0 16px rgba(0, 240, 255, 0.35))",
+          }}
+        />
+      </div>
 
       <p className="kicker" style={{ marginBottom: 6 }}>{formatDisplayDate()}</p>
       <h1 className="mission-hero__title">

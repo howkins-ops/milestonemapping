@@ -3,6 +3,12 @@ import Button from "./Button.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
 
+const VARIANT_BG = {
+  milestone: "/assets/celebrations/celebrate-bg-milestone.png",
+  project:   "/assets/celebrations/celebrate-bg-project.png",
+  rank:      "/assets/celebrations/celebrate-bg-rankup.png",
+};
+
 const VARIANT_META = {
   day:           { emblem: "⚔️",  color: "",                      cta: "Keep Building" },
   milestone:     { emblem: "💎",  color: "celebration--gold",     cta: "Claim the Moment" },
@@ -219,6 +225,16 @@ export default function CelebrationOverlay() {
 
   return (
     <div className={`celebration ${meta.color}`} role="alertdialog" aria-label={current.title}>
+      {VARIANT_BG[current.variant] && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+            backgroundImage: `url(${VARIANT_BG[current.variant]})`,
+            backgroundSize: "cover", backgroundPosition: "center", opacity: 0.18,
+          }}
+        />
+      )}
       {!settings.reducedMotion && <ConfettiBurst />}
       {!settings.reducedMotion && withEmbers && <EmberBurst />}
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import TreasureMap from "../projects/TreasureMap.jsx";
+import ProjectMap from "../milestone-map/ProjectMap.jsx";
 import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
-import MilestoneWorld from "./MilestoneWorld.jsx";
+import MilestoneWorld from "../milestone-world/MilestoneWorld.jsx";
 import FinalGoalWorld from "./FinalGoalWorld.jsx";
 import WorldComplete from "./WorldComplete.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -18,6 +18,7 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
   const [activeMilestoneId, setActiveMilestoneId] = useState(null);
   const [activeMilestoneIndex, setActiveMilestoneIndex] = useState(0);
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
+  const [justUnlocked, setJustUnlocked] = useState(false);
 
   if (!project) {
     return (
@@ -47,7 +48,10 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
     if (othersAllDone && list.length > 0) {
       setScreen("final-goal");
     } else {
+      setJustUnlocked(true);
       setScreen("map");
+      const t = setTimeout(() => setJustUnlocked(false), 2500);
+      return () => clearTimeout(t);
     }
   };
 
@@ -161,11 +165,12 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
           </button>
         </div>
       ) : (
-        <TreasureMap
+        <ProjectMap
           project={project}
           milestones={list}
           onOpenMilestone={handleEnterMilestone}
           onAddMilestone={() => setAddMilestoneOpen(true)}
+          justUnlocked={justUnlocked}
         />
       )}
 

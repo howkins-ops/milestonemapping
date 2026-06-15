@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Milestone Mapping — Asset Gallery</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #050007;
+    color: #F2F0F4;
+    font-family: system-ui, sans-serif;
+    padding: 24px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #7B2CFF, #D11EFF, #00F0FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { font-size: 13px; color: rgba(242,240,244,0.5); margin-bottom: 28px; }
+  .batch {
+    margin-bottom: 40px;
+  }
+  .batch-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(0,240,255,0.7);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(123,44,255,0.2);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .grid.wide {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .tile {
+    background: rgba(9,2,20,0.92);
+    border: 1px solid rgba(123,44,255,0.22);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .tile:hover {
+    border-color: rgba(0,240,255,0.5);
+    transform: translateY(-2px);
+  }
+  .tile img {
+    width: 100%;
+    display: block;
+    background: repeating-conic-gradient(#111 0% 25%, #1a1a1a 0% 50%) 0 0 / 16px 16px;
+  }
+  .tile-label {
+    padding: 6px 8px;
+    font-size: 10px;
+    color: rgba(242,240,244,0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Lightbox */
+  #lb { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 999; align-items: center; justify-content: center; cursor: zoom-out; }
+  #lb.open { display: flex; }
+  #lb img { max-width: 90vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 0 60px rgba(0,240,255,0.2); }
+  #lb-name { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; color: rgba(242,240,244,0.6); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; }
+  .missing { opacity: 0.3; filter: grayscale(1); }
+  .missing .tile-label { color: rgba(255,62,62,0.6); }
+</style>
+</head>
+<body>
+
+<h1>Milestone Mapping — Asset Gallery</h1>
+<p class="subtitle">All generated app assets. Click any image to enlarge. Checkerboard = transparent background.</p>
+
+<div id="lb"><img id="lb-img" src="" /><div id="lb-name"></div></div>
+
+<script>
+const BASE = './public/assets';
+
+const BATCHES = [
+  {
+    title: 'Batch 1–4 — Crystal Frontier Maps & Milestones (20 existing)',
+    wide: true,
+    images: [
+      'project-worlds/crystal-frontier/map/state-00-start.png',
+      'project-worlds/crystal-frontier/map/state-02-m1-complete.png',
+      'project-worlds/crystal-frontier/map/state-04-m2-complete.png',
+      'project-worlds/crystal-frontier/map/state-06-m3-complete.png',
+      'project-worlds/crystal-frontier/map/state-08-m4-complete.png',
+      'project-worlds/crystal-frontier/map/state-11-final-goal.png',
+      'project-worlds/crystal-frontier/map/state-12-world-complete.png',
+      'project-worlds/crystal-frontier/milestones/milestone-01-world.png',
+      'project-worlds/crystal-frontier/milestones/milestone-02-world.png',
+      'project-worlds/crystal-frontier/milestones/milestone-03-world.png',
+      'project-worlds/crystal-frontier/milestones/milestone-04-world.png',
+      'project-worlds/crystal-frontier/milestones/milestone-05-world.png',
+      'project-worlds/crystal-frontier/milestones/milestone-01-complete.png',
+      'project-worlds/crystal-frontier/milestones/milestone-02-complete.png',
+      'project-worlds/crystal-frontier/milestones/milestone-03-complete.png',
+      'project-worlds/crystal-frontier/milestones/milestone-04-complete.png',
+      'project-worlds/crystal-frontier/milestones/milestone-05-complete.png',
+      'project-worlds/crystal-frontier/final/final-goal-world.png',
+      'project-worlds/crystal-frontier/final/final-goal-achieved.png',
+      'project-worlds/crystal-frontier/final/congratulations-world-complete.png',
+    ]
+  },
+  {
+    title: 'Batch 5 — Dashboard',
+    wide: true,
+    images: [
+      'dashboard/hero-banner-bg.png',
+      'milestone-world/main-card-charted-icon.png',
+      'milestone-world/main-card-streak-icon.png',
+      'milestone-world/main-card-maps-icon.png',
+      'milestone-world/main-card-diamonds-icon.png',
+    ]
+  },
+  {
+    title: 'Batch 6 — Daily Ritual',
+    wide: false,
+    images: [
+      'daily/daily-morning-bg.png',
+      'daily/daily-evening-bg.png',
+      'daily/morning-hero-bg.png',
+      'daily/badge-battle-plan.png',
+      'daily/badge-top-five.png',
+      'daily/badge-gratitude.png',
+      'daily/badge-reflection.png',
+      'daily/stat-heart-icon.png',
+      'daily/stat-calm-icon.png',
+      'daily/stat-xp-icon.png',
+      'daily/gratitude-locked-seal.png',
+    ]
+  },
+  {
+    title: 'Batch 7 — Project Cards',
+    wide: false,
+    images: [
+      'projects/project-card-active-bg.png',
+      'projects/project-card-complete-bg.png',
+      'projects/project-card-overdue-bg.png',
+      'projects/badge-conquered.png',
+      'projects/badge-overdue.png',
+      'projects/badge-on-track.png',
+    ]
+  },
+  {
+    title: 'Batch 8 — Achievement Badges',
+    wide: false,
+    images: [
+      'achievements/achievement-first-milestone.png',
+      'achievements/achievement-first-project.png',
+      'achievements/achievement-streak-7.png',
+      'achievements/achievement-streak-30.png',
+      'achievements/achievement-all-milestones.png',
+      'achievements/achievement-world-complete.png',
+    ]
+  },
+  {
+    title: 'Batch 9 — Celebrations',
+    wide: true,
+    images: [
+      'celebrations/celebrate-bg-milestone.png',
+      'celebrations/celebrate-bg-project.png',
+      'celebrations/celebrate-bg-rankup.png',
+    ]
+  },
+  {
+    title: 'Batch 10 — Boot Sequence',
+    wide: false,
+    images: [
+      'boot/boot-phoenix-bg.png',
+      'boot/boot-impact-halo.png',
+      'boot/boot-embers.png',
+    ]
+  },
+  {
+    title: 'Batch 11 — Formula Step Icons',
+    wide: false,
+    images: [
+      'formula/step-icon-wisdom.png',
+      'formula/step-icon-action.png',
+      'formula/step-icon-identity.png',
+      'formula/step-icon-vision.png',
+      'formula/step-icon-reward.png',
+    ]
+  },
+  {
+    title: 'Batch 12 — Reward System',
+    wide: false,
+    images: [
+      'treasure-system/diamond-reward.png',
+      'treasure-system/phoenix-reward.png',
+      'treasure-system/xp-burst.png',
+    ]
+  },
+  {
+    title: 'Batch 13 — UI Alerts',
+    wide: false,
+    images: [
+      'ui/alert-sunday-badge.png',
+      'milestone-world/bg-project-create.png',
+    ]
+  },
+  {
+    title: 'Batch 14 — Icon Library (16)',
+    wide: false,
+    images: [
+      'icons/icon-target.png',
+      'icons/icon-lightning.png',
+      'icons/icon-moon.png',
+      'icons/icon-sun.png',
+      'icons/icon-diamond.png',
+      'icons/icon-crown.png',
+      'icons/icon-flame.png',
+      'icons/icon-shield.png',
+      'icons/icon-scroll.png',
+      'icons/icon-compass.png',
+      'icons/icon-crystal.png',
+      'icons/icon-portal.png',
+      'icons/icon-check.png',
+      'icons/icon-lock.png',
+      'icons/icon-star.png',
+      'icons/icon-phoenix.png',
+    ]
+  },
+  {
+    title: 'Milestone World Assets',
+    wide: false,
+    images: [
+      'milestone-world/portal-active.png',
+      'milestone-world/portal-completed.png',
+      'milestone-world/portal-cyan-ring.png',
+      'milestone-world/portal-locked.png',
+      'milestone-world/portal-purple-ring.png',
+      'milestone-world/trail-active-glow.png',
+      'milestone-world/trail-completed-glow.png',
+      'milestone-world/trail-broken-locked.png',
+      'milestone-world/trail-locked-fog.png',
+      'milestone-world/trail-curve-left.png',
+      'milestone-world/trail-curve-right.png',
+      'milestone-world/trail-fork.png',
+      'milestone-world/avatar-hooded-front.png',
+      'milestone-world/avatar-hooded-back.png',
+      'milestone-world/avatar-map-marker.png',
+      'milestone-world/avatar-portal-glow.png',
+      'milestone-world/avatar-victory.png',
+      'milestone-world/avatar-walking-trail.png',
+      'milestone-world/bg-cosmic-void.png',
+      'milestone-world/bg-empty-trail-start.png',
+      'milestone-world/bg-full-trail-path.png',
+      'milestone-world/bg-goal-achieved.png',
+      'milestone-world/bg-locked-future-trail.png',
+      'milestone-world/bg-mobile-splash.png',
+      'milestone-world/bg-phoenix-shrine.png',
+      'milestone-world/bg-treasure-trail.png',
+      'milestone-world/bg-treasure-zone.png',
+    ]
+  },
+  {
+    title: 'Milestone Nodes',
+    wide: false,
+    images: [
+      'milestone-nodes/active-node.png',
+      'milestone-nodes/complete-node.png',
+      'milestone-nodes/diamond-node.png',
+      'milestone-nodes/empty-node.png',
+      'milestone-nodes/final-goal-node.png',
+      'milestone-nodes/hidden-node.png',
+      'milestone-nodes/hover-node.png',
+      'milestone-nodes/locked-node.png',
+      'milestone-nodes/phoenix-node.png',
+      'milestone-nodes/treasure-node.png',
+    ]
+  },
+  {
+    title: 'Phoenix Shrine',
+    wide: false,
+    images: [
+      'phoenix-shrine/dormant-shrine.png',
+      'phoenix-shrine/awakened-shrine.png',
+      'phoenix-shrine/phoenix-appears.png',
+      'phoenix-shrine/phoenix-rising.png',
+      'phoenix-shrine/phoenix-wings.png',
+      'phoenix-shrine/phoenix-flames.png',
+      'phoenix-shrine/phoenix-ascended.png',
+      'phoenix-shrine/ascension-beam.png',
+      'phoenix-shrine/rebirth-swirl.png',
+      'phoenix-shrine/shrine-complete.png',
+    ]
+  },
+  {
+    title: 'Treasure System',
+    wide: false,
+    images: [
+      'treasure-system/small-chest-closed.png',
+      'treasure-system/small-chest-opening.png',
+      'treasure-system/small-chest-open.png',
+      'treasure-system/medium-chest-closed.png',
+      'treasure-system/medium-chest-opening.png',
+      'treasure-system/medium-chest-open.png',
+      'treasure-system/epic-chest-closed.png',
+      'treasure-system/epic-chest-opening.png',
+      'treasure-system/epic-chest-open.png',
+      'treasure-system/legendary-chest-closed.png',
+      'treasure-system/legendary-chest-opening.png',
+      'treasure-system/legendary-chest-open.png',
+    ]
+  },
+];
+
+const container = document.body;
+let total = 0, loaded = 0;
+
+BATCHES.forEach(batch => {
+  const section = document.createElement('div');
+  section.className = 'batch';
+  section.innerHTML = `<div class="batch-title">${batch.title}</div>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid' + (batch.wide ? ' wide' : '');
+
+  batch.images.forEach(path => {
+    total++;
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    const name = path.split('/').pop();
+    tile.innerHTML = `
+      <img src="${BASE}/${path}" alt="${name}" loading="lazy" onerror="this.closest('.tile').classList.add('missing')" onload="onImgLoad()" />
+      <div class="tile-label">${name}</div>
+    `;
+    tile.addEventListener('click', () => openLightbox(`${BASE}/${path}`, name));
+    grid.appendChild(tile);
+  });
+
+  section.appendChild(grid);
+  container.appendChild(section);
+});
+
+function onImgLoad() {
+  loaded++;
+  document.title = `Asset Gallery (${loaded}/${total} loaded)`;
+}
+
+const lb = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+const lbName = document.getElementById('lb-name');
+
+function openLightbox(src, name) {
+  lbImg.src = src;
+  lbName.textContent = name;
+  lb.classList.add('open');
+}
+lb.addEventListener('click', () => lb.classList.remove('open'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+</script>
+</body>
+</html>
