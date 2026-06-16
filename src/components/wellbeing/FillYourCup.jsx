@@ -512,7 +512,6 @@ export default function FillYourCup() {
 
   return (
     <div className="fyc">
-      <ParticleField pct={state.pct} />
       {state.pct >= 100 && <Confetti />}
 
       {/* Kill streak cinematic */}
@@ -523,10 +522,6 @@ export default function FillYourCup() {
       {/* Header */}
       <div className="fyc-hero">
         <h1 className="fyc-title">FILL YOUR CUP</h1>
-        <p className="fyc-subtitle">
-          You can't pour into customers, teammates, or your future<br />
-          if you're running on empty.
-        </p>
       </div>
 
       {/* Level badge */}
@@ -541,17 +536,19 @@ export default function FillYourCup() {
       )}
 
       {/* Cup */}
-      <div className="fyc-cup-wrap">
-        {floatMsg && (
-          <FloatMessage text={floatMsg.text} id={floatMsg.id} onDone={() => setFloatMsg(null)} />
-        )}
-        <AnimatedCup pct={state.pct} />
-        {state.pct >= 100 && (
-          <button type="button" className="fyc-full-label" onClick={() => setShowFull(true)}>
+      {state.pct > 0 && (
+        <div className="fyc-cup-wrap">
+          {floatMsg && (
+            <FloatMessage text={floatMsg.text} id={floatMsg.id} onDone={() => setFloatMsg(null)} />
+          )}
+          <AnimatedCup pct={state.pct} />
+          {state.pct >= 100 && (
+            <button type="button" className="fyc-full-label" onClick={() => setShowFull(true)}>
             CUP FILLED — TAP TO CELEBRATE
-          </button>
-        )}
-      </div>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="fyc-progress-bar">

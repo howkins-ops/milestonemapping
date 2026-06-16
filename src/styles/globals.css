@@ -347,7 +347,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 10px 16px;
   max-width: 680px;
   margin: 0 auto;
   width: 100%;
@@ -365,11 +365,13 @@ button {
 }
 
 .app-topbar__diamond {
-  height: 29px;
-  padding: 0 8px 0 6px;
+  width: 50px;
+  height: 40px;
+  padding: 4px 5px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 3px;
   border: 1px solid rgba(0, 240, 255, 0.28);
   border-radius: 10px;
   color: var(--brand-cyan);
@@ -381,13 +383,14 @@ button {
 }
 .app-topbar__diamond-icon {
   display: grid;
-  width: 16px;
-  height: 16px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   font-size: 15px;
   line-height: 1;
+  overflow: hidden;
+  border-radius: 8px;
 }
-.app-topbar__diamond-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.9; }
 .app-topbar__chevron {
   width: 6px;
   height: 6px;
@@ -398,6 +401,17 @@ button {
 }
 .app-topbar__chevron.is-open {
   transform: translateY(1px) rotate(225deg);
+}
+.app-topbar__icon-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  filter:
+    saturate(1.08)
+    brightness(1.02)
+    drop-shadow(0 0 8px rgba(0, 240, 255, 0.24));
 }
 .app-topbar__diamond:hover,
 .app-topbar__diamond.is-open {
@@ -568,8 +582,9 @@ button {
 }
 
 .app-topbar__profile-btn {
-  width: 29px;
-  height: 29px;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
   border-radius: 50%;
   background: rgba(0, 240, 255, 0.08);
   border: 1px solid rgba(0, 240, 255, 0.22);
@@ -580,6 +595,7 @@ button {
   cursor: pointer;
   transition: background 160ms, border-color 160ms, box-shadow 160ms;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .app-topbar__profile-btn:hover {
   background: rgba(0, 240, 255, 0.16);
@@ -3987,15 +4003,15 @@ h4,
 }
 
 .app-topbar {
-  min-height: 64px;
+  min-height: 58px;
 }
 
 .app-topbar__diamond,
-.app-topbar__profile-btn,
-.app-topbar__rank {
+.app-topbar__profile-btn {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.025) inset,
-    0 10px 22px rgba(0, 0, 0, 0.22);
+    0 10px 22px rgba(0, 0, 0, 0.22),
+    0 0 18px rgba(0, 240, 255, 0.1);
 }
 
 .app-topbar__diamond {
@@ -4005,16 +4021,11 @@ h4,
     rgba(8, 4, 18, 0.94);
 }
 
-.app-topbar__rank {
-  min-height: 32px;
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(255, 209, 102, 0.08), rgba(0, 240, 255, 0.035)),
-    rgba(9, 5, 20, 0.9);
-}
-
 .app-topbar__profile-btn {
   border-radius: 8px;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(0, 240, 255, 0.14), transparent 62%),
+    rgba(8, 4, 18, 0.94);
 }
 
 .bottom-nav {

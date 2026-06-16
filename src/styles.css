@@ -1455,7 +1455,8 @@ h2 {
   --tool-accent: var(--brand-cyan);
   position: relative;
   display: grid;
-  min-height: 232px;
+  grid-template-rows: auto 1fr auto;
+  min-height: 166px;
   overflow: hidden;
   padding: 14px;
   border: 1px solid color-mix(in srgb, var(--tool-accent) 28%, transparent);
@@ -1557,58 +1558,9 @@ h2 {
   text-align: right;
 }
 
-.shadow-tool-card__relic {
-  position: relative;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  width: 118px;
-  height: 118px;
-  margin: 8px auto 12px;
-}
-
-.shadow-tool-card__orbit {
-  position: absolute;
-  inset: 8px;
-  border: 1px solid color-mix(in srgb, var(--tool-accent) 42%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 28px color-mix(in srgb, var(--tool-accent) 22%, transparent),
-    inset 0 0 24px rgba(255, 255, 255, 0.045);
-  animation: shadowToolSpin 9s linear infinite;
-}
-
-.shadow-tool-card__orbit::before,
-.shadow-tool-card__orbit::after {
-  position: absolute;
-  inset: 14px;
-  border: 1px dashed color-mix(in srgb, var(--tool-accent) 32%, transparent);
-  border-radius: inherit;
-  content: "";
-}
-
-.shadow-tool-card__orbit::after {
-  inset: 28px;
-  border-style: solid;
-  opacity: 0.7;
-  animation: shadowToolPulse 2.8s ease-in-out infinite;
-}
-
-.shadow-tool-card__icon {
-  position: relative;
-  z-index: 2;
-  width: 76px;
-  height: 76px;
-  object-fit: contain;
-  filter:
-    drop-shadow(0 0 16px color-mix(in srgb, var(--tool-accent) 68%, transparent))
-    saturate(1.16);
-  transform: translateY(0);
-  animation: shadowToolFloat 3.4s ease-in-out infinite;
-}
-
 .shadow-tool-card__body {
   align-self: end;
+  padding-top: 22px;
 }
 
 .shadow-tool-card__relic-name {
@@ -1683,12 +1635,6 @@ h2 {
   transform: translateY(0);
 }
 
-.shadow-tool-card:hover .shadow-tool-card__icon,
-.shadow-tool-card:focus-visible .shadow-tool-card__icon,
-.shadow-tool-card.is-hovered .shadow-tool-card__icon {
-  animation-duration: 1.9s;
-}
-
 @keyframes shadowToolEnter {
   to {
     opacity: 1;
@@ -1730,34 +1676,6 @@ h2 {
   88% {
     opacity: 0;
     transform: translateY(330%);
-  }
-}
-
-@keyframes shadowToolSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes shadowToolPulse {
-  0%,
-  100% {
-    opacity: 0.42;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 0.96;
-    transform: scale(1.06);
-  }
-}
-
-@keyframes shadowToolFloat {
-  0%,
-  100% {
-    transform: translateY(-3px);
-  }
-  50% {
-    transform: translateY(4px);
   }
 }
 
@@ -1840,18 +1758,7 @@ h2 {
   }
 
   .shadow-tool-card {
-    min-height: 196px;
-  }
-
-  .shadow-tool-card__relic {
-    width: 98px;
-    height: 98px;
-    margin-top: 2px;
-  }
-
-  .shadow-tool-card__icon {
-    width: 64px;
-    height: 64px;
+    min-height: 154px;
   }
 }
 

@@ -3,9 +3,7 @@ import BottomNav from "./BottomNav.jsx";
 import MoreSheet from "./MoreSheet.jsx";
 import AnimatedBackground from "./AnimatedBackground.jsx";
 import SyncStatus from "../ui/SyncStatus.jsx";
-import { useGamification } from "../../hooks/useGamification.js";
 import { useAppData } from "../../hooks/useAppData.js";
-import { TRAINERS } from "../../lib/constants.js";
 import NavIcon from "../ui/NavIcon.jsx";
 
 const GROWTH_MENU = [
@@ -17,15 +15,17 @@ const GROWTH_MENU = [
   { id: "blaze", label: "B.L.A.Z.E.", sub: "Advanced training lab" },
 ];
 
+const TOPBAR_ICONS = {
+  paths: "/assets/topbar/topbar-paths.png",
+  more: "/assets/topbar/topbar-more.png",
+  profile: "/assets/topbar/topbar-profile.png",
+};
+
 export default function AppShell({ currentPage, onNavigate, onSignOut, children }) {
-  const { rank, xp, progress } = useGamification();
-  const { settings, profile, syncStatus } = useAppData();
+  const { profile, syncStatus } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const menuRef = useRef(null);
-
-  const activeTrainerId = settings.activeTrainer || "blaze";
-  const trainer = TRAINERS.find((t) => t.id === activeTrainerId) || TRAINERS[0];
 
   // Close on outside click
   useEffect(() => {
@@ -64,9 +64,8 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                     aria-haspopup="menu"
                   >
                     <span className="app-topbar__diamond-icon" aria-hidden="true">
-                      <NavIcon name="paths" />
+                      <img className="app-topbar__icon-art" src={TOPBAR_ICONS.paths} alt="" />
                     </span>
-                    <span className="app-topbar__diamond-label">PATHS</span>
                     <span className={`app-topbar__chevron ${menuOpen ? "is-open" : ""}`} aria-hidden="true" />
                   </button>
 
@@ -115,26 +114,10 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                     </div>
                   )}
                 </div>
-
-                <div>
-                  <b className="app-topbar__name">MILESTONE MAPPING</b>
-                  <span className="app-topbar__tag">The more you learn, the more you earn</span>
-                </div>
               </div>
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
-                <button
-                  type="button"
-                  className="app-topbar__rank"
-                  onClick={() => onNavigate("stats")}
-                  aria-label={`${xp} XP - view stats`}
-                >
-                  <span className="app-topbar__rank-name">{rank.name}</span>
-                  <span className="app-topbar__rank-xp">
-                    {xp.toLocaleString()} XP{progress.next ? ` / ${progress.needed} to ${progress.next.name}` : ""}
-                  </span>
-                </button>
                 <button
                   type="button"
                   className="app-topbar__profile-btn"
@@ -142,7 +125,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                   aria-label="More options"
                   aria-haspopup="dialog"
                 >
-                  <NavIcon name="more" />
+                  <img className="app-topbar__icon-art" src={TOPBAR_ICONS.more} alt="" />
                 </button>
                 <button
                   type="button"
@@ -150,7 +133,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                   onClick={() => onNavigate("profile")}
                   aria-label="View profile"
                 >
-                  <NavIcon name="profile" />
+                  <img className="app-topbar__icon-art" src={TOPBAR_ICONS.profile} alt="" />
                 </button>
               </div>
             </header>

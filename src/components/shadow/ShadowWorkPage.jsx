@@ -55,12 +55,12 @@ const IDENTITY_CLAIMS = [
 ];
 
 const TOOLS = [
-  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",    mark: "WARD",   relic: "Oath Shield",      imgIcon: "/assets/icons/icon-shield.png",   when: "Start of day",          color: "var(--brand-gold)",    accent: "#FACC15" },
-  { id: "spot",      name: "Spot the Mask",       sub: "Name what's showing up",     mark: "REVEAL", relic: "Truth Compass",    imgIcon: "/assets/icons/icon-compass.png",  when: "Something feels off",   color: "var(--brand-cyan)",    accent: "#00F0FF" },
-  { id: "name",      name: "Name It to Tame It",  sub: "Find where it lives in you", mark: "TRACE",  relic: "Pattern Scroll",    imgIcon: "/assets/icons/icon-scroll.png",   when: "Caught in a pattern",   color: "var(--brand-green)",   accent: "#00FFBF" },
-  { id: "reframe",   name: "Reframe Forge",       sub: "Rewrite the old story",      mark: "FORGE",  relic: "Belief Flame",      imgIcon: "/assets/icons/icon-flame.png",    when: "An old belief is loud", color: "var(--brand-purple)",  accent: "#7B2CFF" },
-  { id: "line",      name: "Hold the Line",       sub: "Breathe through the heat",   mark: "STEADY", relic: "Pressure Crystal",  imgIcon: "/assets/icons/icon-crystal.png",  when: "Anger is rising",       color: "var(--brand-red)",     accent: "#FF3B5C" },
-  { id: "integrate", name: "Integration",         sub: "Let it sit. Let it pass.",   mark: "SEAL",   relic: "Moon Gate",         imgIcon: "/assets/icons/icon-moon.png",     when: "Closing the loop",      color: "var(--brand-magenta)", accent: "#D11EFF" },
+  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",    mark: "WARD",   relic: "Oath Shield",      when: "Start of day",          color: "var(--brand-gold)",    accent: "#FACC15" },
+  { id: "spot",      name: "Spot the Mask",       sub: "Name what's showing up",     mark: "REVEAL", relic: "Truth Compass",    when: "Something feels off",   color: "var(--brand-cyan)",    accent: "#00F0FF" },
+  { id: "name",      name: "Name It to Tame It",  sub: "Find where it lives in you", mark: "TRACE",  relic: "Pattern Scroll",    when: "Caught in a pattern",   color: "var(--brand-green)",   accent: "#00FFBF" },
+  { id: "reframe",   name: "Reframe Forge",       sub: "Rewrite the old story",      mark: "FORGE",  relic: "Belief Flame",      when: "An old belief is loud", color: "var(--brand-purple)",  accent: "#7B2CFF" },
+  { id: "line",      name: "Hold the Line",       sub: "Breathe through the heat",   mark: "STEADY", relic: "Pressure Crystal",  when: "Anger is rising",       color: "var(--brand-red)",     accent: "#FF3B5C" },
+  { id: "integrate", name: "Integration",         sub: "Let it sit. Let it pass.",   mark: "SEAL",   relic: "Moon Gate",         when: "Closing the loop",      color: "var(--brand-magenta)", accent: "#D11EFF" },
 ];
 
 const STORAGE_KEY = "shadow_work_takeaways_v1";
@@ -170,14 +170,6 @@ function Hub({ open, brokeKingShadow }) {
               <div className="shadow-tool-card__topline">
                 <span>{t.mark}</span>
                 <span>{t.when}</span>
-              </div>
-              <div className="shadow-tool-card__relic" aria-hidden="true">
-                <span className="shadow-tool-card__orbit" />
-                <img
-                  src={t.imgIcon}
-                  alt=""
-                  className="shadow-tool-card__icon"
-                />
               </div>
               <div className="shadow-tool-card__body">
                 <span className="shadow-tool-card__relic-name">{t.relic}</span>

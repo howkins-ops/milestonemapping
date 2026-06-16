@@ -8,19 +8,6 @@
   overflow-x: hidden;
 }
 
-/* Scanline grid */
-.wiz::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(209, 30, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
 .wiz > * { position: relative; z-index: 1; }
 
 /* ─── Shared header ──────────────────────────────────────── */
@@ -51,7 +38,7 @@
 /* ─── Titles ─────────────────────────────────────────────── */
 
 .wiz-title {
-  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  font-size: clamp(1.53rem, 5.95vw, 2.38rem);
   font-weight: 900;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -60,18 +47,12 @@
     0 0 20px #D11EFF,
     0 0 50px rgba(209, 30, 255, 0.45);
   margin: 0;
-  animation: wiz-glow 3s ease-in-out infinite;
 }
 
 .wiz-title--sm {
   font-size: clamp(1.1rem, 5vw, 1.6rem);
   flex: 1;
   text-align: center;
-}
-
-@keyframes wiz-glow {
-  0%, 100% { text-shadow: 0 0 20px #D11EFF, 0 0 50px rgba(209,30,255,0.45); }
-  50%       { text-shadow: 0 0 30px #D11EFF, 0 0 80px rgba(209,30,255,0.7), 0 0 120px rgba(0,240,255,0.25); }
 }
 
 /* ─── Counter badge ──────────────────────────────────────── */

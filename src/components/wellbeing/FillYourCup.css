@@ -16,35 +16,15 @@
 }
 
 /* Grid lines overlay */
-.fyc::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(209, 30, 255, 0.04) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 70%);
-}
-
 .fyc > * { position: relative; z-index: 1; }
 
 /* ─── Particles canvas ───────────────────────────────────── */
-
-.fyc-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
 
 /* ─── Hero ───────────────────────────────────────────────── */
 
 .fyc-hero {
   text-align: center;
-  padding: 2rem 1rem 0.5rem;
+  padding: 1.5rem 1rem 0.75rem;
 }
 
 .fyc-streak {
@@ -88,16 +68,10 @@
     0 0 20px #D11EFF,
     0 0 60px rgba(209, 30, 255, 0.5),
     0 0 100px rgba(209, 30, 255, 0.25);
-  animation: fyc-title-pulse 3s ease-in-out infinite;
 }
 
 .fyc-title--sm {
   font-size: clamp(1.5rem, 6vw, 2.2rem);
-}
-
-@keyframes fyc-title-pulse {
-  0%, 100% { text-shadow: 0 0 20px #D11EFF, 0 0 60px rgba(209,30,255,0.5); }
-  50%       { text-shadow: 0 0 30px #D11EFF, 0 0 80px rgba(209,30,255,0.7), 0 0 120px rgba(0,240,255,0.3); }
 }
 
 .fyc-subtitle {
