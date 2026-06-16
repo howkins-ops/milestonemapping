@@ -11,14 +11,14 @@ export default function MorningPlanRecap() {
       <div className="morning-activation anim-fade-in">
         <div className="morning-activation__glow" />
 
-        <span className="morning-activation__badge">MORNING ACTIVATION</span>
-
-        <h2 className="morning-activation__headline">
-          Win the morning.<br />Own the day.
-        </h2>
-        <p className="morning-activation__sub">
-          Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Three steps. Five minutes. Today is yours.
-        </p>
+        <div className="morning-activation__content">
+          <h2 className="morning-activation__headline">
+            Win the morning.<br />Own the day.
+          </h2>
+          <p className="morning-activation__sub">
+            Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Three steps. Five minutes. Today is yours.
+          </p>
+        </div>
 
         <div className="morning-activation__steps">
           <div className="morning-activation__step">

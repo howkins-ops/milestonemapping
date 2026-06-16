@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'blazeRealTrainingOS.v2';
+const ASSET_BASE = '/assets/blaze/';
 
-const pages = [
+const legacyPages = [
   { id: 'overview',    badge: '🔥', label: 'Overview'  },
   { id: 'being',       badge: 'B',  label: 'Being'     },
   { id: 'leadership',  badge: 'L',  label: 'Lead'      },
@@ -13,9 +14,27 @@ const pages = [
   { id: 'recap',       badge: '🏆', label: 'Recap'     },
 ];
 
-const modules = {
+const pages = [
+  { id: 'overview', badge: 'OS', label: 'Overview' },
+  { id: 'being', badge: 'B', label: 'Being' },
+  { id: 'leadership', badge: 'L', label: 'Lead' },
+  { id: 'alignment', badge: 'A', label: 'Align' },
+  { id: 'zeal', badge: 'Z', label: 'Zeal' },
+  { id: 'execution', badge: 'E', label: 'Execute' },
+  { id: 'integration', badge: 'I', label: 'Loop' },
+  { id: 'recap', badge: 'R', label: 'Recap' },
+];
+
+const art = {
+  overview: `${ASSET_BASE}blaze-overview-hero.png`,
+  integration: `${ASSET_BASE}blaze-integration.png`,
+  recap: `${ASSET_BASE}blaze-recap.png`,
+};
+
+const legacyModules = {
   being: {
     color: '#d11eff',
+    art: `${ASSET_BASE}blaze-being.png`,
     name: 'Being',
     letter: 'B',
     tagline: 'Identity before action.',
@@ -31,6 +50,7 @@ const modules = {
   },
   leadership: {
     color: '#00f0ff',
+    art: `${ASSET_BASE}blaze-leadership.png`,
     name: 'Leadership',
     letter: 'L',
     tagline: 'Self-command before you command anything else.',
@@ -46,6 +66,7 @@ const modules = {
   },
   alignment: {
     color: '#00ffbf',
+    art: `${ASSET_BASE}blaze-alignment.png`,
     name: 'Alignment',
     letter: 'A',
     tagline: 'Actions that match your values.',
@@ -61,6 +82,7 @@ const modules = {
   },
   zeal: {
     color: '#ff3edb',
+    art: `${ASSET_BASE}blaze-zeal.png`,
     name: 'Zeal',
     letter: 'Z',
     tagline: 'Directed fire — not burnout.',
@@ -76,6 +98,7 @@ const modules = {
   },
   execution: {
     color: '#ffd166',
+    art: `${ASSET_BASE}blaze-execution.png`,
     name: 'Execution',
     letter: 'E',
     tagline: 'Proof, reps, results.',
@@ -92,6 +115,89 @@ const modules = {
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────────
+const modules = {
+  being: {
+    color: '#d11eff',
+    art: `${ASSET_BASE}blaze-being.png`,
+    name: 'Being',
+    letter: 'B',
+    tagline: 'Identity before action.',
+    thesis: 'Your results will always match your identity. Before you chase action, choose the version of you who is leading the action.',
+    learn: [
+      { num: '01', text: 'Being is not a mood. It is the identity you operate from under pressure.' },
+      { num: '02', text: 'The Survival Being waits for certainty. The Boss Being chooses, moves, and owns the outcome.' },
+      { num: '03', text: 'Replace "I should" with "I choose." Replace "I am trying" with "I am training."' },
+    ],
+    drill: 'Write: "Today I am being the person who ____ even when ____."',
+    prompt: 'Who do you need to be today before you execute? What old identity are you refusing to let lead?',
+    stand: ['The Boss', 'The Builder', 'The Closer', 'The Coachable Student', 'The Calm Leader'],
+  },
+  leadership: {
+    color: '#00f0ff',
+    art: `${ASSET_BASE}blaze-leadership.png`,
+    name: 'Leadership',
+    letter: 'L',
+    tagline: 'Self-command before you command anything else.',
+    thesis: 'Leadership is not a title. It is the ability to direct your state, decisions, conversations, and future.',
+    learn: [
+      { num: '01', text: 'Leadership starts with self-command: you do what you said you would when the feeling is gone.' },
+      { num: '02', text: 'A leader does not react to the day. A leader frames the day.' },
+      { num: '03', text: 'In sales, leadership means guiding the client to clarity without pressure or fake energy.' },
+    ],
+    drill: 'Write the conversation or decision you need to lead today, then define the standard you will hold.',
+    prompt: 'Where are you currently reacting when you should be leading?',
+    stand: ['Direct', 'Decisive', 'Grounded', 'Responsible', 'Unshakeable'],
+  },
+  alignment: {
+    color: '#00ffbf',
+    art: `${ASSET_BASE}blaze-alignment.png`,
+    name: 'Alignment',
+    letter: 'A',
+    tagline: 'Actions that match your values.',
+    thesis: "No more hustle for hustle's sake. Alignment means your actions match your values, vision, and real target.",
+    learn: [
+      { num: '01', text: 'Misalignment creates friction: you can work hard and feel off because the effort points at the wrong life.' },
+      { num: '02', text: 'Aligned goals are specific, measurable, emotionally honest, and connected to who you are becoming.' },
+      { num: '03', text: 'Alignment removes the leak between what you say matters and what your calendar proves matters.' },
+    ],
+    drill: 'Audit one goal: Does this match my values, my future vision, and the person I said I am becoming?',
+    prompt: 'What action would make today feel aligned instead of just busy?',
+    stand: ['Clear', 'Congruent', 'Focused', 'Values-Led', 'Locked In'],
+  },
+  zeal: {
+    color: '#ff3edb',
+    art: `${ASSET_BASE}blaze-zeal.png`,
+    name: 'Zeal',
+    letter: 'Z',
+    tagline: 'Directed fire, not burnout.',
+    thesis: 'Zeal is the intensity switch: passion, conviction, urgency, and commitment without burning yourself out.',
+    learn: [
+      { num: '01', text: 'Zeal is not chaos. It is directed fire.' },
+      { num: '02', text: 'Burnout comes from unmanaged pressure. Zeal comes from meaningful mission plus regulated energy.' },
+      { num: '03', text: 'The strongest performers know how to turn it on, reset fast, and return with power.' },
+    ],
+    drill: 'Choose a power phrase for today and attach it to one action you will complete before the day ends.',
+    prompt: 'What are you willing to bring real fire to today, and how will you protect your energy while doing it?',
+    stand: ['On Fire', 'Committed', 'Courageous', 'Alive', 'All In'],
+  },
+  execution: {
+    color: '#ffd166',
+    art: `${ASSET_BASE}blaze-execution.png`,
+    name: 'Execution',
+    letter: 'E',
+    tagline: 'Proof, reps, results.',
+    thesis: 'Execution turns identity into evidence. No more overthinking. Proof, reps, results.',
+    learn: [
+      { num: '01', text: 'Execution beats intention every time. A goal without a next rep is just a wish.' },
+      { num: '02', text: 'Implementation intentions work: pre-decide behavior. If X happens, then I will do Y.' },
+      { num: '03', text: 'Daily proof builds identity. Every completed rep tells your nervous system: this is who I am now.' },
+    ],
+    drill: 'Write one if-then plan: "If ____ happens today, then I will ____." Then complete one proof rep.',
+    prompt: 'What is the one rep that would prove you are not just thinking about change, you are becoming it?',
+    stand: ['Fast Mover', 'Finisher', 'Operator', 'Proof Builder', 'Relentless'],
+  },
+};
+
 function Field({ id, label, placeholder, value, onChange }) {
   return (
     <div className="bl-field">
@@ -147,6 +253,11 @@ function ModulePage({ id, m, answers, done, onToggleDone, onSetAnswer }) {
         >
           {done ? '✓ Complete' : 'Mark Complete'}
         </button>
+      </div>
+
+      <div className="bl-art-card" style={{ borderColor: m.color + '55' }}>
+        <img src={m.art} alt={`${m.name} training artwork`} />
+        <div className="bl-art-glow" style={{ background: m.color }} />
       </div>
 
       {/* Thesis */}
@@ -216,7 +327,7 @@ function ModulePage({ id, m, answers, done, onToggleDone, onSetAnswer }) {
 }
 
 // ── IntegrationPage ───────────────────────────────────────────────────────────
-function IntegrationPage({ answers, done, onToggleDone, onSetAnswer }) {
+function LegacyIntegrationPage({ answers, done, onToggleDone, onSetAnswer }) {
   return (
     <div className="bl-module">
       <div className="bl-mod-header" style={{ borderColor: '#00f0ff33' }}>
@@ -273,7 +384,68 @@ function IntegrationPage({ answers, done, onToggleDone, onSetAnswer }) {
 }
 
 // ── RecapPage ─────────────────────────────────────────────────────────────────
-function RecapPage({ answers, done, onToggleDone, onReset }) {
+function IntegrationPage({ answers, done, onToggleDone, onSetAnswer }) {
+  return (
+    <div className="bl-module">
+      <div className="bl-mod-header" style={{ borderColor: '#00f0ff33' }}>
+        <div className="bl-mod-letter" style={{ color: '#00f0ff', textShadow: '0 0 40px #00f0ff', fontSize: 48 }}>I</div>
+        <div>
+          <div className="bl-mod-tag" style={{ color: '#00f0ff', borderColor: '#00f0ff44' }}>Integration</div>
+          <h2 className="bl-mod-name">The Blaze Loop</h2>
+          <p className="bl-mod-tagline">Choose, clarify, commit, execute, integrate.</p>
+        </div>
+        <button
+          className={`bl-done-btn${done ? ' done' : ''}`}
+          style={done ? { borderColor: '#00ffbf', color: '#00ffbf' } : {}}
+          onClick={() => onToggleDone('integration')}
+        >
+          {done ? 'Complete' : 'Mark Complete'}
+        </button>
+      </div>
+
+      <div className="bl-art-card wide" style={{ borderColor: '#00f0ff55' }}>
+        <img src={art.integration} alt="Blaze integration loop artwork" />
+        <div className="bl-art-glow" style={{ background: '#00f0ff' }} />
+      </div>
+
+      <div className="bl-thesis" style={{ borderLeftColor: '#00f0ff' }}>
+        Run all five pillars in sequence. Use this as your daily morning activation or pre-session reset.
+      </div>
+
+      <div className="bl-section-title">Run Today's B.L.A.Z.E. Loop</div>
+      <Field id="loop_being" label="B - Who am I being today?" placeholder="I am being a calm closer who moves before fear talks me out of it." value={answers.loop_being} onChange={onSetAnswer} />
+      <Field id="loop_leadership" label="L - What must I lead today?" placeholder="I must lead my energy and one hard conversation." value={answers.loop_leadership} onChange={onSetAnswer} />
+      <Field id="loop_alignment" label="A - What aligned action am I taking?" placeholder="40 quality conversations, not busy work." value={answers.loop_alignment} onChange={onSetAnswer} />
+      <Field id="loop_zeal" label="Z - What fire am I bringing?" placeholder="Urgency without panic, conviction without pressure." value={answers.loop_zeal} onChange={onSetAnswer} />
+      <Field id="loop_execution" label="E - What proof rep will be done by end of day?" placeholder="Pitch roleplay + first 20 doors before 4 PM." value={answers.loop_execution} onChange={onSetAnswer} />
+
+      <div className="bl-section-title" style={{ marginTop: 32 }}>Pillar Scores (1-10)</div>
+      <p className="bl-score-hint">Rate each pillar. Your lowest score is your training priority today.</p>
+      {Object.keys(modules).map((k) => {
+        const val = parseInt(answers[`${k}_score`] || 5, 10);
+        const m = modules[k];
+        return (
+          <div className="bl-score-row" key={k}>
+            <span className="bl-score-label" style={{ color: m.color }}>{m.name}</span>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={val}
+              style={{ accentColor: m.color }}
+              onChange={(e) => onSetAnswer(`${k}_score`, e.target.value)}
+            />
+            <span className="bl-score-val" style={{ color: val <= 4 ? '#ff477e' : val <= 7 ? '#ffd166' : '#00ffbf' }}>
+              {val}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function LegacyRecapPage({ answers, done, onToggleDone, onReset }) {
   return (
     <div className="bl-module">
       <div className="bl-recap-hero">
@@ -312,6 +484,95 @@ function RecapPage({ answers, done, onToggleDone, onReset }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
+function RecapPage({ answers, done, onToggleDone, onReset }) {
+  return (
+    <div className="bl-module">
+      <div className="bl-recap-hero">
+        <div className="bl-recap-icon">R</div>
+        <h2>Training Locked In</h2>
+        <p>You do not need more hype. You need a state, a standard, a target, a fire, and a rep.</p>
+      </div>
+
+      <div className="bl-art-card wide victory">
+        <img src={art.recap} alt="Blaze completion artwork" />
+        <div className="bl-art-glow" style={{ background: '#ffd166' }} />
+      </div>
+
+      <div className="bl-section-title">Your Pillar Reflections</div>
+      {Object.entries(modules).map(([k, m]) => (
+        <div className="bl-recap-card" key={k} style={{ borderLeftColor: m.color }}>
+          <div className="bl-recap-pill" style={{ color: m.color }}>
+            <span className="bl-recap-letter" style={{ background: m.color + '22', borderColor: m.color + '44' }}>{m.letter}</span>
+            {m.name}
+          </div>
+          <p className="bl-recap-answer">
+            {answers[`${k}_reflection`] || <span className="bl-recap-empty">No answer yet. Go back and complete this pillar.</span>}
+          </p>
+        </div>
+      ))}
+
+      <div className="bl-recap-actions">
+        <button
+          className={`bl-done-btn big${done ? ' done' : ''}`}
+          style={done ? { borderColor: '#00ffbf', color: '#00ffbf' } : { borderColor: '#d11eff', color: '#d11eff' }}
+          onClick={() => onToggleDone('recap')}
+        >
+          {done ? 'B.L.A.Z.E. Complete' : 'Complete Training'}
+        </button>
+        <button className="bl-reset-btn" onClick={onReset}>
+          Reset & Start Over
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OverviewPage({ done, onSetPage }) {
+  return (
+    <div className="bl-module">
+      <div className="bl-overview-hero">
+        <img className="bl-overview-img" src={art.overview} alt="Blaze Training OS energy engine" />
+        <div className="bl-overview-scrim" />
+        <div className="bl-overview-copy">
+          <div className="bl-overview-eyebrow">Execution Engine</div>
+          <h1 className="bl-overview-title">B.L.A.Z.E.</h1>
+          <p className="bl-overview-sub">
+            Five pillars. One engine. <b>Being, Leadership, Alignment, Zeal, Execution.</b>{' '}
+            Not motivation. A method. Choose the stand, answer the prompt, create the proof.
+          </p>
+          <button className="bl-start-btn" onClick={() => onSetPage('being')}>
+            Start Training
+          </button>
+        </div>
+      </div>
+
+      <div className="bl-pillar-list elevated">
+        {Object.entries(modules).map(([k, m]) => (
+          <button key={k} className="bl-pillar-row" onClick={() => onSetPage(k)}>
+            <span className="bl-pillar-thumb">
+              <img src={m.art} alt="" />
+            </span>
+            <span className="bl-pillar-row-letter" style={{ color: m.color, borderColor: m.color + '66' }}>
+              {m.letter}
+            </span>
+            <span className="bl-pillar-row-text">
+              <b>{m.name}</b>
+              <span>{m.tagline}</span>
+            </span>
+            <span className="bl-pillar-row-check" style={{ color: done[k] ? '#00ffbf' : 'transparent' }}>Done</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="bl-stats-row">
+        <div className="bl-stat-card"><b>85%</b><span>of coaches say clients want mental well-being support</span></div>
+        <div className="bl-stat-card"><b>$5.34B</b><span>global coaching industry revenue (ICF 2025)</span></div>
+        <div className="bl-stat-card"><b>d=.65</b><span>effect size for if-then planning on goal attainment</span></div>
+      </div>
+    </div>
+  );
+}
+
 export default function BlazeRealTrainingOS() {
   const [state, setState] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
@@ -347,7 +608,9 @@ export default function BlazeRealTrainingOS() {
   const nextPage     = pages[Math.min(pages.length - 1, currentIndex + 1)].id;
 
   const renderPage = () => {
-    if (current === 'overview') return (
+    if (current === 'overview') return <OverviewPage done={done} onSetPage={setPage} />;
+
+    if (false && current === 'overview') return (
       <div className="bl-module">
         <div className="bl-overview-hero">
           <div className="bl-overview-eyebrow">Execution Engine</div>
@@ -451,12 +714,17 @@ export default function BlazeRealTrainingOS() {
       <div className="bl-footer">
         <button
           className="bl-nav-btn"
+          data-label="Prev"
           onClick={() => setPage(prevPage)}
           disabled={currentIndex === 0}
         >
           ← Prev
         </button>
-        <button className="bl-nav-btn primary" onClick={() => completeAndGo(current)}>
+        <button
+          className="bl-nav-btn primary"
+          data-label={currentIndex === pages.length - 1 ? 'Complete Training' : 'Done & Next'}
+          onClick={() => completeAndGo(current)}
+        >
           {currentIndex === pages.length - 1 ? 'Complete ✓' : 'Done & Next →'}
         </button>
       </div>
@@ -737,5 +1005,99 @@ const CSS = `
   background:linear-gradient(135deg,#d11eff,#ff3edb);
   color:#05000b;border:none;
   box-shadow:0 0 22px rgba(209,30,255,.35);
+}
+
+/* Cinematic polish */
+.bl-shell{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 18% -12%,rgba(209,30,255,.32),transparent 34%),
+    radial-gradient(circle at 86% 10%,rgba(0,240,255,.2),transparent 30%),
+    linear-gradient(180deg,#030006 0%,#07000f 48%,#020006 100%);
+}
+.bl-shell:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:46px 46px;mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 72%);
+}
+.bl-topbar,.bl-tabs-wrap,.bl-content,.bl-footer{position:relative;z-index:1}
+.bl-topbar{
+  border-bottom-color:rgba(0,240,255,.14);
+  box-shadow:0 18px 60px rgba(0,0,0,.28);
+}
+.bl-content{max-width:1120px;padding:24px 20px 112px}
+.bl-overview-hero{
+  position:relative;min-height:430px;padding:0;overflow:hidden;border-radius:26px;
+  border:1px solid rgba(0,240,255,.22);
+  background:#05000b;box-shadow:0 28px 90px rgba(0,0,0,.48),0 0 42px rgba(209,30,255,.13);
+}
+.bl-overview-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.12) contrast(1.04);
+}
+.bl-overview-scrim{
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(3,0,6,.92),rgba(3,0,6,.58) 42%,rgba(3,0,6,.18) 70%),
+             linear-gradient(0deg,rgba(3,0,6,.86),transparent 42%);
+}
+.bl-overview-copy{
+  position:relative;z-index:1;max-width:620px;padding:52px 36px;
+}
+.bl-overview-title{font-size:clamp(58px,10vw,118px);letter-spacing:0;text-shadow:0 0 38px rgba(0,240,255,.28)}
+.bl-overview-sub{font-size:17px;max-width:560px;color:#d8d0e8}
+.bl-start-btn{
+  border-radius:14px;background:linear-gradient(135deg,#00f0ff,#00ffbf);
+  box-shadow:0 0 28px rgba(0,240,255,.34);color:#02100f;
+}
+.bl-pillar-list.elevated{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:18px 0}
+.bl-pillar-row{
+  position:relative;min-height:112px;overflow:hidden;border-radius:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.028));
+}
+.bl-pillar-thumb{position:absolute;inset:0;opacity:.3}
+.bl-pillar-thumb img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1)}
+.bl-pillar-row:after{
+  content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,0,10,.12),rgba(4,0,10,.88));pointer-events:none;
+}
+.bl-pillar-row-letter,.bl-pillar-row-text,.bl-pillar-row-check{position:relative;z-index:1}
+.bl-pillar-row-text b{font-size:16px}
+.bl-pillar-row-text span{color:#d0c2df}
+.bl-pillar-row-check{font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}
+.bl-art-card{
+  position:relative;overflow:hidden;border:1px solid;border-radius:24px;margin:-4px 0 22px;
+  aspect-ratio:16/7;background:#05000b;box-shadow:0 22px 70px rgba(0,0,0,.42);
+}
+.bl-art-card img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.08) contrast(1.03)}
+.bl-art-card:after{
+  content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(3,0,8,.64));pointer-events:none;
+}
+.bl-art-card.wide{aspect-ratio:16/7}
+.bl-art-card.victory{border-color:rgba(255,209,102,.45)}
+.bl-art-glow{position:absolute;right:6%;bottom:-22%;width:260px;height:160px;border-radius:999px;filter:blur(46px);opacity:.28}
+.bl-mod-header{
+  align-items:center;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.bl-thesis,.bl-learn-item,.bl-prompt-box,.bl-drill,.bl-recap-card,.bl-stat-card{
+  backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.bl-stand-btn,.bl-done-btn,.bl-nav-btn{border-radius:12px}
+.bl-footer .bl-nav-btn{font-size:0}
+.bl-footer .bl-nav-btn:after{content:attr(data-label);font-size:14px}
+.bl-footer .bl-nav-btn.primary:after{content:attr(data-label)}
+.bl-tab-check{font-size:0}
+.bl-tab-check:after{content:"Done";font-size:10px}
+@media(max-width:820px){
+  .bl-content{padding:18px 14px 112px}
+  .bl-overview-hero{min-height:520px}
+  .bl-overview-scrim{background:linear-gradient(0deg,rgba(3,0,6,.94),rgba(3,0,6,.58) 70%,rgba(3,0,6,.25))}
+  .bl-overview-copy{padding:34px 22px;position:absolute;left:0;right:0;bottom:0}
+  .bl-pillar-list.elevated{grid-template-columns:1fr}
+  .bl-pillar-row{min-height:96px}
+  .bl-mod-header{display:grid;grid-template-columns:auto 1fr;gap:14px}
+  .bl-done-btn{grid-column:1/-1;margin-left:0;text-align:center}
+  .bl-art-card{aspect-ratio:16/10;border-radius:20px}
+  .bl-stats-row{grid-template-columns:1fr}
 }
 `;

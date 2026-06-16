@@ -128,11 +128,11 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                   type="button"
                   className="app-topbar__rank"
                   onClick={() => onNavigate("stats")}
-                  aria-label={`${xp} XP — view stats`}
+                  aria-label={`${xp} XP - view stats`}
                 >
                   <span className="app-topbar__rank-name">{rank.name}</span>
                   <span className="app-topbar__rank-xp">
-                    {xp.toLocaleString()} XP{progress.next ? ` · ${progress.needed} to ${progress.next.name}` : ""}
+                    {xp.toLocaleString()} XP{progress.next ? ` / ${progress.needed} to ${progress.next.name}` : ""}
                   </span>
                 </button>
                 <button

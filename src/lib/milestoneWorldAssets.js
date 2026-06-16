@@ -90,13 +90,17 @@ export function getMapBackground(completedCount, allDone, finalGoalActive) {
   return crystalFrontierAssets.map[key];
 }
 
-const MS_KEYS = ["m1", "m2", "m3", "m4", "m5"];
-
 export function getMilestoneBackground(index, isComplete) {
-  const slot = MS_KEYS[index % MS_KEYS.length];
-  return isComplete
-    ? crystalFrontierAssets.milestones[`${slot}Complete`]
-    : crystalFrontierAssets.milestones[slot];
+  const polishedMilestoneScenes = [
+    milestoneWorldAssets.backgrounds.treasureZone,
+    milestoneWorldAssets.backgrounds.phoenixShrine,
+    milestoneWorldAssets.backgrounds.floatingIslands,
+    milestoneWorldAssets.backgrounds.treasureTrail,
+    milestoneWorldAssets.backgrounds.fullTrail,
+  ];
+
+  if (isComplete) return milestoneWorldAssets.backgrounds.goalAchieved;
+  return polishedMilestoneScenes[index % polishedMilestoneScenes.length];
 }
 
 // ── App-wide asset paths (all components point here) ──────────────────────────

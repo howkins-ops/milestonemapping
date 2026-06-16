@@ -4,19 +4,22 @@ import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
 import MilestoneWorld from "../milestone-world/MilestoneWorld.jsx";
 import FinalGoalWorld from "./FinalGoalWorld.jsx";
 import WorldComplete from "./WorldComplete.jsx";
+import MapQuestMap from "../map-quest/MapQuestMap.jsx";
+import ChapterAnchor from "../map-quest/chapters/ChapterAnchor.jsx";
+import ChapterShadow from "../map-quest/chapters/ChapterShadow.jsx";
+import { useMapQuestState } from "../map-quest/useMapQuestState.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
 
 export default function RPGWorldPage({ projectId, onExitWorld }) {
   const { projects, milestones, createMilestone, updateMilestone } = useAppData();
   const project = projects.find((p) => p.id === projectId);
+  const { mode, setMode, completeChapter, isChapterComplete } = useMapQuestState();
 
-  // State machine
   const [screen, setScreen] = useState("map");
-  // "map" | "milestone-world" | "final-goal" | "world-complete"
-
   const [activeMilestoneId, setActiveMilestoneId] = useState(null);
   const [activeMilestoneIndex, setActiveMilestoneIndex] = useState(0);
+  const [activeChapterKey, setActiveChapterKey] = useState(null);
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState(false);
 
@@ -24,7 +27,9 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
     return (
       <div className="rpg-world" style={{ alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "rgba(234,251,255,0.4)" }}>Project not found.</p>
-        <button className="rpg-back-btn" style={{ marginTop: 16 }} onClick={onExitWorld}>← Back</button>
+        <button className="rpg-back-btn" style={{ marginTop: 16 }} onClick={onExitWorld}>
+          Back
+        </button>
       </div>
     );
   }
@@ -32,7 +37,6 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
   const list = getProjectMilestones(milestones, project.id);
   const allMilestonesDone = list.length > 0 && list.every((m) => m.status === "completed");
 
-  // When a milestone node is clicked on the map
   const handleEnterMilestone = (id) => {
     const idx = list.findIndex((m) => m.id === id);
     setActiveMilestoneId(id);
@@ -40,30 +44,41 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
     setScreen("milestone-world");
   };
 
-  // When a milestone is completed inside MilestoneWorld
+  const handleEnterChapter = (chapterKey) => {
+    setActiveChapterKey(chapterKey);
+    setScreen(chapterKey);
+  };
+
+  const handleChapterComplete = (outputs) => {
+    if (activeChapterKey) {
+      completeChapter(activeChapterKey, outputs || {});
+    }
+    setScreen("map");
+  };
+
   const handleMilestoneComplete = (completedId) => {
     const othersAllDone = list
       .filter((m) => m.id !== completedId)
       .every((m) => m.status === "completed");
+
     if (othersAllDone && list.length > 0) {
       setScreen("final-goal");
-    } else {
-      setJustUnlocked(true);
-      setScreen("map");
-      const t = setTimeout(() => setJustUnlocked(false), 2500);
-      return () => clearTimeout(t);
+      return;
     }
+
+    setJustUnlocked(true);
+    setScreen("map");
+    const timer = setTimeout(() => setJustUnlocked(false), 2500);
+    return () => clearTimeout(timer);
   };
 
-  // When final goal stone is claimed
-  const handleFinalGoalClaimed = () => {
-    setScreen("world-complete");
-  };
+  if (screen === "chapter-anchor") {
+    return <ChapterAnchor onComplete={handleChapterComplete} />;
+  }
 
-  // When WorldComplete "Continue" is pressed
-  const handleContinue = () => {
-    onExitWorld();
-  };
+  if (screen === "chapter-shadow") {
+    return <ChapterShadow onComplete={handleChapterComplete} />;
+  }
 
   if (screen === "milestone-world" && activeMilestoneId) {
     return (
@@ -83,85 +98,78 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
         project={project}
         milestones={list}
         onBackToMap={() => setScreen("map")}
-        onFinalGoalClaimed={handleFinalGoalClaimed}
+        onFinalGoalClaimed={() => setScreen("world-complete")}
       />
     );
   }
 
   if (screen === "world-complete") {
-    return (
-      <WorldComplete
-        project={project}
-        milestones={list}
-        onContinue={handleContinue}
-      />
-    );
+    return <WorldComplete project={project} milestones={list} onContinue={onExitWorld} />;
   }
 
-  // "map" screen — show TreasureMap + optional final goal enter button
   return (
-    <div className="anim-fade-in" style={{ position: "relative" }}>
-      {/* RPG World header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        marginBottom: 12, flexWrap: "wrap", gap: 10
-      }}>
+    <div className="anim-fade-in rpg-map-screen">
+      <header className="rpg-map-screen__header">
         <div>
-          <button
-            className="rpg-back-btn"
-            onClick={onExitWorld}
-            style={{ marginBottom: 6 }}
-          >
-            ← Back to Project
+          <button className="rpg-back-btn" onClick={onExitWorld}>
+            Back to Project
           </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(0,240,255,0.55)" }}>
-              RPG WORLD
-            </span>
-            <span style={{ fontSize: 11, color: "rgba(234,251,255,0.6)", fontWeight: 600 }}>
-              {project.icon} {project.title}
-            </span>
+          <div className="rpg-map-screen__eyebrow">
+            {mode === "quest" ? "Map Quest" : "Treasure Map"}
           </div>
         </div>
 
-        {/* Final goal unlock button — only when all milestones done */}
-        {allMilestonesDone && project.status !== "completed" && (
-          <button
-            className="rpg-final__cta"
-            style={{ maxWidth: 280, fontSize: 13, padding: "10px 20px" }}
-            onClick={() => setScreen("final-goal")}
-          >
-            👑 Enter Final Goal
-          </button>
-        )}
+        <div className="rpg-map-screen__actions">
+          <div className="rpg-mode-toggle" role="tablist" aria-label="World mode">
+            <button
+              type="button"
+              onClick={() => setMode("treasure")}
+              className={mode === "treasure" ? "is-active" : ""}
+              aria-selected={mode === "treasure"}
+            >
+              Treasure Map
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("quest")}
+              className={mode === "quest" ? "is-active is-quest" : "is-quest"}
+              aria-selected={mode === "quest"}
+            >
+              Map Quest
+            </button>
+          </div>
 
-        {project.status === "completed" && (
-          <button
-            className="rpg-world-complete__continue"
-            style={{ maxWidth: 240, fontSize: 12, padding: "10px 18px" }}
-            onClick={() => setScreen("world-complete")}
-          >
-            🏆 View World Complete
-          </button>
-        )}
-      </div>
+          {allMilestonesDone && project.status !== "completed" && (
+            <button
+              className="rpg-final__cta rpg-map-screen__compact-cta"
+              onClick={() => setScreen("final-goal")}
+            >
+              Enter Final Goal
+            </button>
+          )}
 
-      {/* World map */}
-      {list.length === 0 ? (
-        <div style={{
-          padding: "48px 24px", textAlign: "center",
-          background: "rgba(8,5,20,0.82)", border: "1px solid rgba(0,240,255,0.12)",
-          borderRadius: 16
-        }}>
-          <p style={{ color: "rgba(234,251,255,0.4)", marginBottom: 16, fontSize: 14 }}>
-            No milestones charted yet. Map your first coordinate to begin the journey.
-          </p>
-          <button
-            className="rpg-complete-btn"
-            style={{ maxWidth: 260, margin: "0 auto" }}
-            onClick={() => setAddMilestoneOpen(true)}
-          >
-            + Add First Milestone
+          {project.status === "completed" && (
+            <button
+              className="rpg-world-complete__continue rpg-map-screen__compact-cta"
+              onClick={() => setScreen("world-complete")}
+            >
+              View World Complete
+            </button>
+          )}
+        </div>
+      </header>
+
+      {mode === "quest" ? (
+        <MapQuestMap
+          project={project}
+          isChapterComplete={isChapterComplete}
+          onEnterChapter={handleEnterChapter}
+        />
+      ) : list.length === 0 ? (
+        <div className="rpg-empty-map">
+          <p>No milestones charted yet. Map your first coordinate to begin the trail.</p>
+          <button className="rpg-complete-btn" onClick={() => setAddMilestoneOpen(true)}>
+            Add First Milestone
           </button>
         </div>
       ) : (
@@ -174,7 +182,6 @@ export default function RPGWorldPage({ projectId, onExitWorld }) {
         />
       )}
 
-      {/* Add milestone modal */}
       {addMilestoneOpen && (
         <MilestoneWizard
           open={addMilestoneOpen}

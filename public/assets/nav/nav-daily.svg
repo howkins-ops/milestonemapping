@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Daily">
+  <defs>
+    <radialGradient id="sun" cx="48" cy="28" r="33" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff5b8"/>
+      <stop offset=".38" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#ff3edb" stop-opacity=".05"/>
+    </radialGradient>
+    <linearGradient id="bolt" x1="35" y1="15" x2="63" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00ffbf"/>
+      <stop offset=".42" stop-color="#00f0ff"/>
+      <stop offset="1" stop-color="#d11eff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="7" y="7" width="82" height="82" rx="22" fill="#07101c"/>
+  <circle cx="48" cy="32" r="25" fill="url(#sun)" opacity=".8"/>
+  <path d="M22 65c10-7 18-7 26 0s16 7 26 0" fill="none" stroke="#00f0ff" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <path d="M53 14 25 52h19l-4 30 31-43H51l2-25Z" fill="url(#bolt)" stroke="#f2f0f4" stroke-width="3" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M23 30h8M65 24h9M18 44h6M69 51h9" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/>
+</svg>

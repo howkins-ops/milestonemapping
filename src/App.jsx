@@ -23,6 +23,9 @@ import FillYourCup from "./components/wellbeing/FillYourCup.jsx";
 import BlazeRealTrainingOS from "./components/blaze/BlazeRealTrainingOS.jsx";
 import ProfilePage from "./components/profile/ProfilePage.jsx";
 import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
+import SeekerCity from "./components/game/SeekerCity.jsx";
+import ChapterAnchor from "./components/map-quest/chapters/ChapterAnchor.jsx";
+import ChapterShadow from "./components/map-quest/chapters/ChapterShadow.jsx";
 import TopFivePage from "./components/daily/TopFivePage.jsx";
 import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
 import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
@@ -162,7 +165,13 @@ function AppContent({ signOut }) {
       case "topfive":
         return <TopFivePage onNavigate={navigate} />;
       case "openworld":
+        return <SeekerCity onNavigate={navigate} onOpenProject={openProject} />;
+      case "openworld-legacy":
         return <OpenWorldMap onNavigate={navigate} onOpenProject={openProject} />;
+      case "chapter-anchor":
+        return <ChapterAnchor onComplete={() => navigate("openworld")} />;
+      case "chapter-shadow":
+        return <ChapterShadow onComplete={() => navigate("openworld")} />;
       case "assets":
         return <AssetLibraryPage />;
       default:

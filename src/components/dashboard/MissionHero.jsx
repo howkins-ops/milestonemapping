@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import ProgressBar from "../ui/ProgressBar.jsx";
 import ProgressRing from "../ui/ProgressRing.jsx";
 import PhoenixSVG from "../ui/PhoenixSVG.jsx";
 import { formatDisplayDate } from "../../lib/dates.js";
@@ -34,13 +33,16 @@ const STREAK_MILESTONES = [
   }
 ];
 
-const HERO_ICONS = {
-  brandMark: "/assets/icons/icon-crystal.png",
-  charted:   "/assets/icons/icon-compass.png",
-  streak:    "/assets/icons/icon-flame.png",
-  maps:      "/assets/icons/icon-portal.png",
-  diamonds:  "/assets/icons/icon-diamond.png",
-};
+function IconCrystal() {
+  return (
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"
+      style={{ filter: "drop-shadow(0 0 8px rgba(0,240,255,0.7)) drop-shadow(0 0 16px rgba(0,240,255,0.35))" }}>
+      <polygon points="16,2 28,11 28,21 16,30 4,21 4,11" fill="rgba(0,240,255,0.12)" stroke="#00F0FF" strokeWidth="1.5" />
+      <polygon points="16,8 24,14 24,18 16,24 8,18 8,14" fill="rgba(0,240,255,0.22)" stroke="#00F0FF" strokeWidth="1" />
+      <circle cx="16" cy="16" r="3" fill="#00F0FF" fillOpacity="0.6" />
+    </svg>
+  );
+}
 
 export default function MissionHero() {
   const { rank, xp, progress } = useGamification();
@@ -72,50 +74,44 @@ export default function MissionHero() {
 
   return (
     <div className="mission-hero anim-slide-up">
-      {/* background art */}
+      <img
+        className="mission-hero__art"
+        src="/assets/dashboard/command-center-hero.png"
+        alt=""
+        aria-hidden="true"
+      />
+      {/* Subtle radial glow background — no PNG needed */}
       <div
         aria-hidden="true"
+        className="mission-hero__wash"
         style={{
-          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, borderRadius: "inherit",
-          backgroundImage: "url(/assets/dashboard/hero-banner-bg.png)",
-          backgroundSize: "cover", backgroundPosition: "center", opacity: 0.22,
+          background: "radial-gradient(ellipse at 70% 40%, rgba(209,30,255,0.18), transparent 60%), radial-gradient(ellipse at 20% 60%, rgba(0,240,255,0.12), transparent 50%)",
         }}
       />
 
-      {/* phoenix watermark */}
+      {/* Phoenix watermark (SVG component — no PNG) */}
       <PhoenixSVG
         width={195}
         style={{ position: "absolute", right: -40, bottom: -24, opacity: 0.14, pointerEvents: "none" }}
       />
 
-      {/* Brand mark */}
+      {/* Brand mark — inline SVG crystal */}
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-        <img
-          src={HERO_ICONS.brandMark}
-          alt=""
-          aria-hidden="true"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-          style={{
-            width: 28,
-            height: 28,
-            objectFit: "contain",
-            filter: "drop-shadow(0 0 8px rgba(0, 240, 255, 0.7)) drop-shadow(0 0 16px rgba(0, 240, 255, 0.35))",
-          }}
-        />
+        <IconCrystal />
       </div>
 
       <p className="kicker" style={{ marginBottom: 6 }}>{formatDisplayDate()}</p>
-      <h1 className="mission-hero__title">
-        {displayName ? `Welcome back, ${displayName}.` : "Our map."}<br />
-        <span className="mission-hero__grad">your transformation.</span>
-      </h1>
+      {displayName && <p className="mission-hero__welcome">Welcome back, {displayName}.</p>}
+      <h1 className="mission-hero__title">Milestone Mapping</h1>
+      <p className="mission-hero__slogan">
+        Our map. <span className="mission-hero__grad">your transformation.</span>
+      </p>
       <p className="muted" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 12 }}>
         Every milestone is a diamond. Collect them all.
       </p>
 
       <div className="mission-hero__body">
         <div className="mission-hero__charted">
-          <img src={HERO_ICONS.charted} alt="" aria-hidden="true" />
           <ProgressRing value={overallProgress} size={72} label="Charted" />
         </div>
 
@@ -126,21 +122,21 @@ export default function MissionHero() {
       <div className="mission-hero__stats">
         <div className="mission-hero__stat mission-hero__stat--streak">
           <div className="mission-hero__stat-icon">
-            <img src={HERO_ICONS.streak} alt="" aria-hidden="true" />
+            <img src="/assets/milestone-world/main-card-streak-neon-icon.png" alt="" aria-hidden="true" />
           </div>
           <span className="mission-hero__stat-n">{streakCount}</span>
           <span className="mission-hero__stat-l">Streak</span>
         </div>
         <div className="mission-hero__stat mission-hero__stat--maps">
           <div className="mission-hero__stat-icon">
-            <img src={HERO_ICONS.maps} alt="" aria-hidden="true" />
+            <img src="/assets/milestone-world/main-card-maps-neon-v2-icon.png" alt="" aria-hidden="true" />
           </div>
           <span className="mission-hero__stat-n">{activeCount}</span>
           <span className="mission-hero__stat-l">Maps</span>
         </div>
         <div className="mission-hero__stat mission-hero__stat--diamonds">
           <div className="mission-hero__stat-icon">
-            <img src={HERO_ICONS.diamonds} alt="" aria-hidden="true" />
+            <img src="/assets/milestone-world/main-card-diamonds-neon-v2-icon.png" alt="" aria-hidden="true" />
           </div>
           <span className="mission-hero__stat-n">{conqueredCount}</span>
           <span className="mission-hero__stat-l">Diamonds</span>

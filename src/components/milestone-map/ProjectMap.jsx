@@ -1,13 +1,7 @@
-// Phase 4: Replace TreasureMap.jsx by updating its import in RPGWorldPage.jsx:
-//   import ProjectMap from "../milestone-map/ProjectMap.jsx";
-// and renaming the component reference. TreasureMap.jsx will then be a thin re-export.
-
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useSettings } from "../../hooks/useSettings.js";
 import { useProjectProgress } from "../../hooks/useProjectProgress.js";
 import { useCharacterMovement } from "../../hooks/useCharacterMovement.js";
-import { getMapBackground } from "../../data/assetRegistry.js";
-import { milestoneWorldAssets as MWA } from "../../data/assetRegistry.js";
 import MapBackground from "./MapBackground.jsx";
 import MapPath from "./MapPath.jsx";
 import MapNode from "./MapNode.jsx";
@@ -15,7 +9,6 @@ import CharacterMarker from "./CharacterMarker.jsx";
 import JourneyStatusPanel from "./JourneyStatusPanel.jsx";
 import MapLegend from "./MapLegend.jsx";
 
-// ── Layout constants (keep in sync with TreasureMap.jsx until full swap) ──────
 const NODE_X_SEQ   = [50, 61, 42, 58, 44, 55, 39, 63];
 const MAP_MIN_HEIGHT = 900;
 const MAP_STEP     = 126;
@@ -23,7 +16,6 @@ const TOP_PAD      = 116;
 const BOT_PAD      = 144;
 const POS_STORAGE_KEY = "treasure_map_positions_v1";
 
-// ── Pure helpers ──────────────────────────────────────────────────────────────
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
 function normalizeStatus(milestone) {
@@ -75,32 +67,57 @@ function persistPositions(projectId, milestones, positions) {
   } catch {}
 }
 
-// ── FinalDiamond (local — same as TreasureMap) ────────────────────────────────
-import { nodeAssets } from "../../data/assetRegistry.js";
-
 function FinalDiamond({ complete, label }) {
+  const color = complete ? "#FACC15" : "#D11EFF";
+  const inner = complete ? "#FFD166" : "#FF3EDB";
+
   return (
     <div className={`trail-world__final ${complete ? "is-complete" : ""}`}>
       <span className="trail-world__final-kicker">FINAL GOAL</span>
       <div className="trail-world__diamond" aria-hidden="true">
-        <img
-          className="trail-world__diamond-marker"
-          src={complete ? nodeAssets.finalActive : nodeAssets.finalLocked}
-          alt=""
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-        />
-        <img className="trail-world__diamond-gem" src={MWA.icons.diamonds} alt="" />
+        <svg viewBox="0 0 100 100" className="trail-world__diamond-svg">
+          {complete && Array.from({ length: 8 }, (_, i) => {
+            const angle = (i * 45 - 22.5) * Math.PI / 180;
+            return (
+              <line
+                key={i}
+                x1={50 + Math.cos(angle) * 46}
+                y1={50 + Math.sin(angle) * 46}
+                x2={50 + Math.cos(angle) * 56}
+                y2={50 + Math.sin(angle) * 56}
+                stroke={color}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                opacity="0.85"
+              />
+            );
+          })}
+          <polygon
+            points="50,6 94,50 50,94 6,50"
+            fill={`${color}1a`}
+            stroke={color}
+            strokeWidth="2"
+            style={{ filter: `drop-shadow(0 0 14px ${color})` }}
+          />
+          <polygon
+            points="50,22 78,50 50,78 22,50"
+            fill={`${inner}2a`}
+            stroke={inner}
+            strokeWidth="1.5"
+            opacity="0.7"
+          />
+          <circle cx="50" cy="50" r="10" fill={color} fillOpacity="0.55" />
+          <circle cx="50" cy="50" r="4" fill={color} />
+        </svg>
       </div>
       <strong>{complete ? "GOAL ACHIEVED" : label}</strong>
     </div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function ProjectMap({ project, milestones, onOpenMilestone, onAddMilestone, justUnlocked }) {
   const { settings } = useSettings();
   const { doneCount, allDone, averageProgress, fillPct, xp } = useProjectProgress(milestones);
-  const bgUrl = getMapBackground(doneCount, allDone, false);
   const totalHeight = Math.max(MAP_MIN_HEIGHT, TOP_PAD + BOT_PAD + 270 + milestones.length * MAP_STEP);
 
   const milestoneIdsKey = milestones.map((m) => m.id).join(",");
@@ -197,7 +214,7 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
       className={`trail-world ${allDone ? "is-goal-complete" : ""}`}
       style={{ "--trail-height": `${totalHeight}px` }}
     >
-      <MapBackground bgUrl={bgUrl} />
+      <MapBackground />
 
       <div className="trail-world__header">
         <div>
@@ -223,7 +240,7 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
           label={project.futureVision || project.rewardLarge || "The Destination"}
         />
 
-        <MapPath pathD={pathD} totalHeight={totalHeight} fillPct={fillPct} />
+        <MapPath pathD={pathD} totalHeight={totalHeight} fillPct={fillPct} positions={positions} />
 
         {milestones.map((milestone, index) => {
           const point = positions[index];
@@ -236,7 +253,6 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
               point={point}
               status={status}
               index={index}
-              isFinalGoal={index === milestones.length - 1}
               isOpening={openingIndex === index}
               isNewlyUnlocked={newlyUnlockedIndex === index}
               isShaking={shakingId === milestone.id}

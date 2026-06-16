@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useMapQuestState } from "../map-quest/useMapQuestState.js";
 
 // ─── John's personal masks & essences (from Survival Mechanism Manual) ───────
 const MASKS = [
@@ -54,12 +55,12 @@ const IDENTITY_CLAIMS = [
 ];
 
 const TOOLS = [
-  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",           icon: "🛡️",  imgIcon: "/assets/icons/icon-shield.png",   when: "Start of day",           color: "var(--brand-gold)" },
-  { id: "spot",      name: "Spot the Mask",        sub: "Name what's showing up",            icon: "👁️",  imgIcon: "/assets/icons/icon-compass.png",  when: "Something feels off",    color: "var(--brand-cyan)" },
-  { id: "name",      name: "Name It to Tame It",   sub: "Find where it lives in you",        icon: "🏷️",  imgIcon: "/assets/icons/icon-scroll.png",   when: "Caught in a pattern",    color: "var(--brand-green)" },
-  { id: "reframe",   name: "Reframe Forge",        sub: "Rewrite the old story",             icon: "🔨",  imgIcon: "/assets/icons/icon-flame.png",    when: "An old belief is loud",  color: "var(--brand-purple)" },
-  { id: "line",      name: "Hold the Line",        sub: "Breathe through the heat",          icon: "🌬️",  imgIcon: "/assets/icons/icon-crystal.png",  when: "Anger is rising",        color: "var(--brand-red)" },
-  { id: "integrate", name: "Integration",          sub: "Let it sit. Let it pass.",          icon: "🌙",  imgIcon: "/assets/icons/icon-moon.png",     when: "Closing the loop",       color: "var(--text-muted)" },
+  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",    mark: "WARD",   relic: "Oath Shield",      imgIcon: "/assets/icons/icon-shield.png",   when: "Start of day",          color: "var(--brand-gold)",    accent: "#FACC15" },
+  { id: "spot",      name: "Spot the Mask",       sub: "Name what's showing up",     mark: "REVEAL", relic: "Truth Compass",    imgIcon: "/assets/icons/icon-compass.png",  when: "Something feels off",   color: "var(--brand-cyan)",    accent: "#00F0FF" },
+  { id: "name",      name: "Name It to Tame It",  sub: "Find where it lives in you", mark: "TRACE",  relic: "Pattern Scroll",    imgIcon: "/assets/icons/icon-scroll.png",   when: "Caught in a pattern",   color: "var(--brand-green)",   accent: "#00FFBF" },
+  { id: "reframe",   name: "Reframe Forge",       sub: "Rewrite the old story",      mark: "FORGE",  relic: "Belief Flame",      imgIcon: "/assets/icons/icon-flame.png",    when: "An old belief is loud", color: "var(--brand-purple)",  accent: "#7B2CFF" },
+  { id: "line",      name: "Hold the Line",       sub: "Breathe through the heat",   mark: "STEADY", relic: "Pressure Crystal",  imgIcon: "/assets/icons/icon-crystal.png",  when: "Anger is rising",       color: "var(--brand-red)",     accent: "#FF3B5C" },
+  { id: "integrate", name: "Integration",         sub: "Let it sit. Let it pass.",   mark: "SEAL",   relic: "Moon Gate",         imgIcon: "/assets/icons/icon-moon.png",     when: "Closing the loop",      color: "var(--brand-magenta)", accent: "#D11EFF" },
 ];
 
 const STORAGE_KEY = "shadow_work_takeaways_v1";
@@ -81,6 +82,8 @@ function saveTakeaways(list) {
 export default function ShadowWorkPage() {
   const [tool, setTool] = useState(null);
   const [saved, setSaved] = useState(loadTakeaways);
+  const { getBrokeKingShadow } = useMapQuestState();
+  const brokeKingShadow = getBrokeKingShadow();
 
   const finish = (toolName, takeaway) => {
     const next = [{ tool: toolName, takeaway, at: Date.now() }, ...saved].slice(0, 12);
@@ -90,8 +93,8 @@ export default function ShadowWorkPage() {
   };
 
   return (
-    <div style={{ maxWidth: 620, margin: "0 auto" }}>
-      {!tool && <Hub open={setTool} />}
+    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      {!tool && <Hub open={setTool} brokeKingShadow={brokeKingShadow} />}
       {tool === "stand"     && <DailyStand     onClose={() => setTool(null)} onFinish={finish} />}
       {tool === "spot"      && <SpotMask        onClose={() => setTool(null)} onFinish={finish} />}
       {tool === "name"      && <NameIt          onClose={() => setTool(null)} onFinish={finish} />}
@@ -103,7 +106,7 @@ export default function ShadowWorkPage() {
 }
 
 // ─── Hub ──────────────────────────────────────────────────────────────────────
-function Hub({ open }) {
+function Hub({ open, brokeKingShadow }) {
   const [hovered, setHovered] = useState(null);
 
   return (
@@ -123,66 +126,65 @@ function Hub({ open }) {
         </h1>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {/* Map Quest: Broke King shadow attached */}
+      {brokeKingShadow && (
+        <div style={{
+          marginBottom: 24, padding: "14px 18px", borderRadius: 14,
+          background: "linear-gradient(135deg, rgba(255,201,77,0.1), rgba(123,44,255,0.1))",
+          border: "1px solid rgba(255,201,77,0.4)",
+          boxShadow: "0 0 20px rgba(255,201,77,0.1)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 28 }}>👑</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#FFC94D", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 3 }}>
+                MAP QUEST · SHADOW ATTACHED
+              </div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, color: "var(--text-main)" }}>
+                The Broke King walks with you
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>
+                Use &ldquo;Spot the Mask&rdquo; or &ldquo;Name It to Tame It&rdquo; when you feel money panic, shame spirals, or the sense of being behind.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      <div className="shadow-tool-grid" aria-label="Shadow work tools">
         {TOOLS.map((t, i) => {
           const isHovered = hovered === t.id;
           return (
             <button
               key={t.id}
+              className={`shadow-tool-card ${isHovered ? "is-hovered" : ""}`}
               onClick={() => open(t.id)}
               onMouseEnter={() => setHovered(t.id)}
               onMouseLeave={() => setHovered(null)}
-              style={{
-                display: "flex", alignItems: "center", gap: 20,
-                textAlign: "left", cursor: "pointer",
-                background: isHovered ? `${t.color}0d` : "transparent",
-                border: `1px solid ${isHovered ? t.color + "55" : "var(--border)"}`,
-                borderRadius: 14, padding: "20px 22px",
-                color: "var(--text-main)",
-                transition: "all 0.18s ease",
-                boxShadow: isHovered ? `0 0 24px ${t.color}18` : "none",
-              }}
+              style={{ "--tool-accent": t.accent, "--tool-index": i }}
+              aria-label={`Open ${t.name}`}
             >
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: 11,
-                color: isHovered ? t.color : "var(--text-soft)",
-                width: 20, flexShrink: 0, transition: "color 0.18s",
-              }}>
-                {String(i + 1).padStart(2, "0")}
+              <div className="shadow-tool-card__aura" />
+              <div className="shadow-tool-card__scan" />
+              <div className="shadow-tool-card__topline">
+                <span>{t.mark}</span>
+                <span>{t.when}</span>
               </div>
-              <div style={{ width: 28, height: 28, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: isHovered ? 1 : 0.7, transition: "opacity 0.18s" }}>
+              <div className="shadow-tool-card__relic" aria-hidden="true">
+                <span className="shadow-tool-card__orbit" />
                 <img
                   src={t.imgIcon}
                   alt=""
-                  onError={(e) => { e.currentTarget.outerHTML = `<span style="font-size:22px">${t.icon}</span>`; }}
-                  style={{ width: 28, height: 28, objectFit: "contain" }}
+                  className="shadow-tool-card__icon"
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700,
-                  lineHeight: 1.15, color: isHovered ? "var(--text-main)" : "var(--text-main)",
-                }}>
-                  {t.name}
-                </div>
-                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 3, lineHeight: 1.4 }}>
-                  {t.sub}
-                </div>
+              <div className="shadow-tool-card__body">
+                <span className="shadow-tool-card__relic-name">{t.relic}</span>
+                <h2>{t.name}</h2>
+                <p>{t.sub}</p>
               </div>
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, color: t.color,
-                textTransform: "uppercase", letterSpacing: "0.12em", flexShrink: 0,
-                opacity: isHovered ? 1 : 0.5, transition: "opacity 0.18s",
-              }}>
-                {t.when}
-              </div>
-              <div style={{
-                color: t.color, fontSize: 18, flexShrink: 0,
-                opacity: isHovered ? 1 : 0, transition: "opacity 0.18s",
-                transform: isHovered ? "translateX(0)" : "translateX(-6px)",
-              }}>
-                →
-              </div>
+              <span className="shadow-tool-card__launch">Enter</span>
             </button>
           );
         })}

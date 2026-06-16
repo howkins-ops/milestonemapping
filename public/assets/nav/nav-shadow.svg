@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Shadow">
+  <defs>
+    <radialGradient id="moon" cx="39" cy="34" r="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f2f0f4"/>
+      <stop offset=".45" stop-color="#b9fbff"/>
+      <stop offset="1" stop-color="#7b2cff"/>
+    </radialGradient>
+    <linearGradient id="mask" x1="22" y1="42" x2="74" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d11eff"/>
+      <stop offset=".58" stop-color="#30125b"/>
+      <stop offset="1" stop-color="#00f0ff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="7" y="7" width="82" height="82" rx="22" fill="#080410"/>
+  <path d="M60 18a25 25 0 1 0 13 41 29 29 0 0 1-34-38 25 25 0 0 0 21-3Z" fill="url(#moon)" opacity=".94" filter="url(#glow)"/>
+  <path d="M23 50c13-10 37-10 50 0-1 19-11 29-25 29S24 69 23 50Z" fill="url(#mask)" stroke="#f2f0f4" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M34 57c5-4 10-4 14 0M48 57c5-4 10-4 14 0" fill="none" stroke="#050007" stroke-width="4" stroke-linecap="round"/>
+  <path d="M39 68c6 4 12 4 18 0" fill="none" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/>
+  <path d="M73 23v8M69 27h8M24 24v6M21 27h6" stroke="#ff3edb" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -140,15 +140,24 @@ export default function BootSequence({ onDone }) {
           opacity: 0.35,
         }}
       />
-      {/* Phoenix flames atmosphere */}
-      <img
-        src="/assets/phoenix-shrine/phoenix-flames.png"
+      {/* Atmospheric glow */}
+      <div
         aria-hidden="true"
-        onError={(e) => { e.currentTarget.style.display = "none"; }}
         style={{
-          position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)",
-          width: "70%", maxWidth: 360, pointerEvents: "none", zIndex: 1,
-          opacity: 0.28, objectFit: "contain",
+          position: "absolute",
+          left: "50%",
+          bottom: "-18%",
+          width: "min(68vw, 420px)",
+          height: "min(68vw, 420px)",
+          transform: "translateX(-50%)",
+          pointerEvents: "none",
+          zIndex: 1,
+          background:
+            "radial-gradient(circle at 50% 52%, rgba(0,240,255,0.14), transparent 18%), " +
+            "radial-gradient(ellipse at 50% 62%, rgba(209,30,255,0.24), transparent 54%), " +
+            "radial-gradient(ellipse at 50% 76%, rgba(123,44,255,0.18), transparent 62%)",
+          filter: "blur(10px)",
+          opacity: 0.88
         }}
       />
 

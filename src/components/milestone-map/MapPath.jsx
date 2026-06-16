@@ -1,6 +1,16 @@
 import React from "react";
 
-export default function MapPath({ pathD, totalHeight, fillPct }) {
+export default function MapPath({ pathD, totalHeight, fillPct, positions }) {
+  const midpoints = [];
+  if (positions && positions.length > 1) {
+    for (let i = 0; i < positions.length - 1; i++) {
+      midpoints.push({
+        x: (positions[i].x + positions[i + 1].x) / 2,
+        y: (positions[i].y + positions[i + 1].y) / 2,
+      });
+    }
+  }
+
   return (
     <svg
       className="trail-world__path"
@@ -21,16 +31,41 @@ export default function MapPath({ pathD, totalHeight, fillPct }) {
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        <filter id="trailAuraBlur">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
       </defs>
+
+      {/* Layer 0: Wide outer aura — creates the broad atmospheric glow */}
+      <path className="trail-world__path-aura" d={pathD} filter="url(#trailAuraBlur)" />
+
+      {/* Layer 1: Drop shadow */}
       <path className="trail-world__path-shadow" d={pathD} />
+
+      {/* Layer 2: Dashed base guide */}
       <path className="trail-world__path-base" d={pathD} />
+
+      {/* Layer 3: Progress fill with animated gradient */}
       <path
         className="trail-world__path-fill"
         d={pathD}
         pathLength="100"
         strokeDasharray={`${fillPct} ${100 - fillPct}`}
       />
+
+      {/* Layer 4: Flowing energy sparks */}
       <path className="trail-world__path-spark" d={pathD} />
+
+      {/* Waypoint diamonds at midpoints between nodes */}
+      {midpoints.map((pt, i) => (
+        <circle
+          key={i}
+          className="trail-world__waypoint"
+          cx={pt.x}
+          cy={pt.y}
+          r="2"
+        />
+      ))}
     </svg>
   );
 }

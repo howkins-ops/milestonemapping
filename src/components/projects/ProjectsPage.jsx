@@ -60,7 +60,7 @@ export default function ProjectsPage({ onOpenProject, onNavigate }) {
               whiteSpace: "nowrap",
             }}
           >
-            🌍 Your Empire
+            Your Empire
           </button>
         )}
       </div>
@@ -88,7 +88,9 @@ export default function ProjectsPage({ onOpenProject, onNavigate }) {
 
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "52px 24px", border: "1px dashed rgba(0,240,255,.2)", borderRadius: 20 }}>
-          <div style={{ fontSize: 38, marginBottom: 12 }}>🗺️</div>
+          <div className="empty-map-glyph" aria-hidden="true">
+            <span />
+          </div>
           <h3 style={{ marginBottom: 8 }}>
             {projects.length === 0 ? "No maps charted yet" : `No maps in "${filter}"`}
           </h3>

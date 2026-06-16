@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import ProgressBar from "../ui/ProgressBar.jsx";
-import SectionHeader from "../ui/SectionHeader.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
-import { TOP_FIVE_STATES } from "../../lib/constants.js";
 import { uid } from "../../lib/id.js";
 
 export default function TopFivePanel() {
@@ -57,12 +55,14 @@ export default function TopFivePanel() {
 
   return (
     <section>
-      <SectionHeader
-        title="Execute Your Top 5"
-        icon="⚡"
-        sub={TOP_FIVE_STATES[Math.min(doneCount, 5)]}
-      />
-      <Card variant="neon">
+      <Card variant="neon" className="daily-action-card daily-action-card--top-five ritual-image-card ritual-image-card--top-five">
+        <div className="daily-action-card__art" aria-hidden="true" />
+        <div className="daily-action-card__header">
+          <div>
+            <span className="daily-action-card__eyebrow">EXECUTION PATH</span>
+            <h3 className="daily-action-card__title">Five Moves Forward</h3>
+          </div>
+        </div>
         {tasks.length > 0 && (
           <ProgressBar value={doneCount} max={5} label="Daily execution" />
         )}

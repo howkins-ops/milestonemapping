@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import TextArea from "../ui/TextArea.jsx";
-import SectionHeader from "../ui/SectionHeader.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useToasts } from "../../hooks/useToasts.js";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -33,14 +32,14 @@ export default function BattlePlanPanel() {
 
   return (
     <section>
-      <SectionHeader title="Battle Plan" icon="🎯" sub="One domino. Everything else is noise." />
-      <Card variant="pink">
-        <img
-          src="/assets/daily/badge-battle-plan.png"
-          alt=""
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-          style={{ width: 48, height: 48, objectFit: "contain", marginBottom: 8 }}
-        />
+      <Card variant="pink" className="daily-action-card daily-action-card--battle ritual-image-card ritual-image-card--battle">
+        <div className="daily-action-card__art" aria-hidden="true" />
+        <div className="daily-action-card__header">
+          <div>
+            <span className="daily-action-card__eyebrow">DECISIVE WIN</span>
+            <h3 className="daily-action-card__title">Pick the Battle</h3>
+          </div>
+        </div>
         <TextArea
           label="What is the single move that makes today a victory?"
           rows={3}

@@ -254,10 +254,10 @@ export default function ModeTransitionOverlay({ mode, onDone }) {
       <canvas ref={canvasRef} className="mode-transition-canvas" />
       <div className="mode-transition-label">
         <span className="mode-transition-eyebrow">
-          {isNight ? "NIGHT MODE" : "MORNING MODE"}
+          {isNight ? "EVENING MODE" : "MORNING MODE"}
         </span>
         <p className="mode-transition-headline">
-          {isNight ? "Load tomorrow." : "Time to execute."}
+          {isNight ? "Evening Loading" : "Time to execute."}
         </p>
       </div>
     </div>

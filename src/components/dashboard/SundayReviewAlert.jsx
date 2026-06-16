@@ -13,12 +13,11 @@ export default function SundayReviewAlert({ onNavigate }) {
       style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}
     >
       <div className="row" style={{ gap: 12 }}>
-        <img
-          src="/assets/ui/alert-sunday-badge.png"
-          alt=""
-          onError={(e) => { e.currentTarget.replaceWith(Object.assign(document.createElement("span"), { textContent: "🚨", style: "font-size:18px" })); }}
-          style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }}
-        />
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <path d="M12 3L22 20H2L12 3Z" stroke="var(--brand-gold)" strokeWidth="2" strokeLinejoin="round" fill="rgba(250,204,21,0.12)" />
+          <line x1="12" y1="10" x2="12" y2="15" stroke="var(--brand-gold)" strokeWidth="2.5" strokeLinecap="round" />
+          <circle cx="12" cy="18" r="1.2" fill="var(--brand-gold)" />
+        </svg>
         <p style={{ fontWeight: 600, color: "var(--brand-gold)" }}>
           Sunday Review is live. Time to update your map.
         </p>

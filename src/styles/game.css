@@ -1187,6 +1187,58 @@
 .daily-night-mode {
   --accent: #7B2CFF;
   --accent-2: #D11EFF;
+  isolation: isolate;
+  margin-inline: -16px;
+  padding: 18px 16px 10px;
+  background:
+    radial-gradient(ellipse at 16% 6%, rgba(0, 240, 255, 0.18), transparent 46%),
+    radial-gradient(ellipse at 82% 32%, rgba(123, 44, 255, 0.28), transparent 54%),
+    radial-gradient(ellipse at 42% 88%, rgba(255, 62, 219, 0.18), transparent 48%),
+    linear-gradient(180deg, rgba(0, 4, 14, 0.88), rgba(10, 0, 20, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(0, 240, 255, 0.22),
+    inset 0 -1px 0 rgba(209, 30, 255, 0.14);
+}
+
+.daily-night-mode::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(209, 30, 255, 0.06) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: linear-gradient(180deg, transparent, #000 16%, #000 82%, transparent);
+  opacity: 0.28;
+}
+
+.daily-night-mode > :not([aria-hidden="true"]) {
+  position: relative;
+  z-index: 1;
+}
+
+.daily-night-mode .daily-hero {
+  margin-bottom: 22px;
+}
+
+.daily-night-mode .daily-hero-line {
+  text-shadow:
+    0 0 28px rgba(0, 240, 255, 0.14),
+    0 18px 54px rgba(0, 0, 0, 0.72);
+}
+
+.daily-night-mode .daily-hero-accent {
+  background: linear-gradient(90deg, #7B2CFF 0%, #D11EFF 42%, #FF3EDB 74%, #00F0FF 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.daily-night-mode .daily-hero-sub {
+  color: rgba(248, 251, 255, 0.74);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.72);
 }
 
 /* â”€â”€ Daily Hero â”€â”€ */
@@ -1482,11 +1534,46 @@
 /* â”€â”€ Daily Commit Panel â”€â”€ */
 .daily-commit-section {
   position: relative;
-  background: linear-gradient(135deg, #060010 0%, #0c0020 100%);
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.94), rgba(5, 0, 12, 0.5) 58%, rgba(5, 0, 12, 0.72)),
+    linear-gradient(135deg, #060010 0%, #0c0020 100%);
   border: 1px solid rgba(0, 240, 255, 0.22);
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 28px 24px 24px;
   overflow: hidden;
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(0, 240, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.daily-commit-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/assets/dashboard/action-streak-v2.png");
+  background-size: cover;
+  background-position: 64% 42%;
+  opacity: 0.46;
+  filter: saturate(1.2) contrast(1.08);
+}
+
+.daily-commit-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.94), rgba(5, 0, 12, 0.62) 54%, rgba(5, 0, 12, 0.76)),
+    linear-gradient(180deg, rgba(5, 0, 12, 0.1), rgba(5, 0, 12, 0.82));
+}
+
+.daily-commit-section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .daily-commit-top-line {
@@ -1637,11 +1724,47 @@
 
 /* â”€â”€ Make a Stand Panel â”€â”€ */
 .make-stand-section {
-  background: linear-gradient(135deg, #100010 0%, #1a0022 100%);
+  position: relative;
+  background:
+    linear-gradient(90deg, rgba(8, 0, 16, 0.94), rgba(8, 0, 16, 0.56) 58%, rgba(8, 0, 16, 0.76)),
+    linear-gradient(135deg, #100010 0%, #1a0022 100%);
   border: 1px solid rgba(255, 62, 219, 0.22);
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 22px 24px;
   overflow: hidden;
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(255, 62, 219, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.make-stand-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/assets/dashboard/action-review-v2.png");
+  background-size: cover;
+  background-position: 68% 42%;
+  opacity: 0.42;
+  filter: saturate(1.18) contrast(1.08);
+}
+
+.make-stand-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(8, 0, 16, 0.94), rgba(8, 0, 16, 0.62) 56%, rgba(8, 0, 16, 0.78)),
+    linear-gradient(180deg, rgba(8, 0, 16, 0.16), rgba(8, 0, 16, 0.82));
+}
+
+.make-stand-section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .make-stand-header {
@@ -1963,13 +2086,55 @@
 
 /* Execution report */
 .night-execution-report {
-  background: linear-gradient(135deg, #0a0018 0%, #080012 100%);
-  border: 1px solid rgba(139,92,246,0.2);
-  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.94), rgba(5, 0, 12, 0.5) 60%, rgba(5, 0, 12, 0.74)),
+    radial-gradient(circle at 100% 0%, rgba(0, 240, 255, 0.14), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(209, 30, 255, 0.18), transparent 48%),
+    linear-gradient(135deg, rgba(8, 0, 20, 0.92), rgba(16, 0, 30, 0.88));
+  border: 1px solid rgba(209, 30, 255, 0.42);
+  border-radius: 10px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    0 0 34px rgba(123, 44, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(1.25);
+}
+
+.night-execution-report::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/assets/dashboard/action-review-v2.png");
+  background-size: cover;
+  background-position: 70% 44%;
+  opacity: 0.38;
+  filter: saturate(1.2) contrast(1.1);
+}
+
+.night-execution-report::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.95), rgba(5, 0, 12, 0.66) 56%, rgba(5, 0, 12, 0.78)),
+    linear-gradient(110deg, transparent 12%, rgba(255, 255, 255, 0.07), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 36%);
+  opacity: 0.55;
+}
+
+.night-execution-report > * {
+  position: relative;
+  z-index: 1;
 }
 
 .night-exec-header {
@@ -2056,10 +2221,11 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: rgba(139,92,246,0.08);
-  border: 1px solid rgba(139,92,246,0.2);
-  border-radius: 12px;
+  background: rgba(123, 44, 255, 0.14);
+  border: 1px solid rgba(209, 30, 255, 0.34);
+  border-radius: 8px;
   padding: 14px 16px;
+  box-shadow: inset 0 0 22px rgba(0, 240, 255, 0.04);
 }
 
 .night-coach-icon {
@@ -2142,6 +2308,7 @@
   font-family: var(--font-mono);
   text-transform: uppercase;
   margin: 4px 0;
+  text-shadow: 0 0 16px rgba(209, 30, 255, 0.45);
 }
 
 .night-section-label-line {
@@ -2329,13 +2496,52 @@
 
 /* â”€â”€ BedtimeChecklist â”€â”€ */
 .bedtime-section {
-  background: linear-gradient(135deg, #05000e 0%, #0a001a 100%);
-  border: 1px solid rgba(139,92,246,0.2);
-  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.94), rgba(5, 0, 12, 0.56) 58%, rgba(5, 0, 12, 0.76)),
+    radial-gradient(circle at 100% 0%, rgba(0, 240, 255, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(7, 0, 16, 0.9), rgba(18, 0, 30, 0.86));
+  border: 1px solid rgba(209, 30, 255, 0.34);
+  border-radius: 10px;
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  box-shadow:
+    0 18px 54px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(209, 30, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px) saturate(1.22);
+}
+
+.bedtime-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/assets/dashboard/action-rewards-v2.png");
+  background-size: cover;
+  background-position: 68% 44%;
+  opacity: 0.36;
+  filter: saturate(1.16) contrast(1.08);
+}
+
+.bedtime-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 0, 12, 0.95), rgba(5, 0, 12, 0.66) 58%, rgba(5, 0, 12, 0.78)),
+    linear-gradient(180deg, rgba(5, 0, 12, 0.12), rgba(5, 0, 12, 0.84));
+}
+
+.bedtime-section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .bedtime-header {
@@ -2354,7 +2560,7 @@
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.18em;
-  color: #7B2CFF;
+  color: #C58CFF;
   font-family: var(--font-mono);
   text-transform: uppercase;
 }
@@ -2397,16 +2603,19 @@
   align-items: flex-start;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   transition: background 0.2s;
 }
 
 .bedtime-item:hover {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.045);
+  border-color: rgba(0, 240, 255, 0.14);
 }
 
 .bedtime-item.is-checked {
-  background: rgba(0,255,191,0.04);
+  background: rgba(0,255,191,0.06);
+  border-color: rgba(0,255,191,0.18);
 }
 
 .bedtime-checkbox {
@@ -2529,6 +2738,52 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  position: relative;
+  overflow: hidden;
+  padding: 22px 20px 20px;
+  border: 1px solid rgba(0, 240, 255, 0.34);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(4, 0, 14, 0.94), rgba(4, 0, 14, 0.52) 58%, rgba(4, 0, 14, 0.78)),
+    radial-gradient(circle at 16% 0%, rgba(0, 240, 255, 0.16), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(209, 30, 255, 0.20), transparent 44%),
+    linear-gradient(145deg, rgba(4, 0, 14, 0.92), rgba(18, 0, 30, 0.88));
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(0, 240, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(1.25);
+}
+
+.night-wizard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/assets/dashboard/action-maps-v2.png");
+  background-size: cover;
+  background-position: 68% 42%;
+  opacity: 0.34;
+  filter: saturate(1.15) contrast(1.08);
+}
+
+.night-wizard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 0, 14, 0.95), rgba(4, 0, 14, 0.68) 56%, rgba(4, 0, 14, 0.8)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 34%),
+    linear-gradient(110deg, transparent 18%, rgba(255, 255, 255, 0.07), transparent 46%);
+  opacity: 0.5;
+}
+
+.night-wizard > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Step track + dots */
@@ -2546,7 +2801,7 @@
   left: 22px;
   right: 22px;
   height: 2px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.1);
   border-radius: 2px;
   z-index: 0;
 }
@@ -2626,7 +2881,7 @@
 /* Step tip */
 .night-wizard-tip {
   font-size: 12px;
-  color: rgba(242,240,244,0.38);
+  color: rgba(248,251,255,0.62);
   font-style: italic;
   text-align: center;
   margin: 0;
@@ -2665,9 +2920,11 @@
 /* Done screen */
 .night-wizard-done {
   position: relative;
-  background: linear-gradient(135deg, #060010 0%, #0c0020 100%);
-  border: 1px solid rgba(0,255,191,0.25);
-  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(0,255,191,0.22), transparent 46%),
+    linear-gradient(135deg, rgba(6,0,16,0.94), rgba(12,0,32,0.92));
+  border: 1px solid rgba(0,255,191,0.36);
+  border-radius: 10px;
   padding: 32px 24px 28px;
   overflow: hidden;
   display: flex;
@@ -5363,3 +5620,1431 @@
   box-shadow: 0 0 20px rgba(0,240,255,0.18);
 }
 
+/* -- Map Quest / Treasure Map split -------------------------------------- */
+.rpg-map-screen {
+  position: relative;
+}
+
+.rpg-map-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.rpg-map-screen__eyebrow {
+  margin-top: 8px;
+  color: rgba(0, 240, 255, 0.58);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rpg-map-screen__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rpg-map-screen__compact-cta {
+  width: auto !important;
+  max-width: 280px;
+  padding: 10px 18px !important;
+  font-size: 12px !important;
+}
+
+.rpg-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(123, 44, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(8, 5, 20, 0.82);
+  box-shadow: inset 0 0 20px rgba(123, 44, 255, 0.1);
+}
+
+.rpg-mode-toggle button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: transparent;
+  color: rgba(234, 251, 255, 0.48);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.rpg-mode-toggle button.is-active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.24), rgba(123, 44, 255, 0.24));
+  color: #00F0FF;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.2);
+}
+
+.rpg-mode-toggle button.is-active.is-quest {
+  background: linear-gradient(135deg, rgba(123, 44, 255, 0.36), rgba(209, 30, 255, 0.24));
+  color: #D11EFF;
+  box-shadow: 0 0 14px rgba(209, 30, 255, 0.24);
+}
+
+.rpg-empty-map {
+  border: 1px solid rgba(0, 240, 255, 0.14);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.08), transparent 42%),
+    rgba(8, 5, 20, 0.82);
+  padding: 46px 24px;
+  text-align: center;
+}
+
+.rpg-empty-map p {
+  margin: 0 auto 16px;
+  max-width: 360px;
+  color: rgba(234, 251, 255, 0.48);
+  font-size: 14px;
+}
+
+.mq-shell {
+  position: relative;
+  min-height: min(760px, calc(100vh - 220px));
+  overflow: hidden;
+  border: 1px solid rgba(123, 44, 255, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(123, 44, 255, 0.28), transparent 36%),
+    radial-gradient(circle at 18% 76%, rgba(0, 240, 255, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(12, 6, 28, 0.96), rgba(3, 2, 10, 0.98));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38), inset 0 0 60px rgba(123, 44, 255, 0.08);
+  isolation: isolate;
+}
+
+.mq-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(0, 240, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(209, 30, 255, 0.04) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 78%);
+}
+
+.mq-ambient {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+.mq-ambient--violet {
+  top: 10%;
+  left: 12%;
+  background: rgba(123, 44, 255, 0.16);
+}
+
+.mq-ambient--cyan {
+  right: 8%;
+  bottom: 4%;
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.mq-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 10px;
+}
+
+.mq-kicker {
+  margin: 0 0 7px;
+  color: #D11EFF;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.mq-header h2 {
+  margin: 0;
+  color: #F2F0F4;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: clamp(24px, 4vw, 38px);
+  letter-spacing: 0;
+}
+
+.mq-header p:not(.mq-kicker) {
+  max-width: 520px;
+  margin: 8px 0 0;
+  color: rgba(234, 251, 255, 0.58);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mq-progress-pill {
+  flex: 0 0 auto;
+  min-width: 142px;
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  padding: 12px 14px;
+  text-align: right;
+}
+
+.mq-progress-pill strong {
+  display: block;
+  color: #00F0FF;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.mq-progress-pill span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(234, 251, 255, 0.42);
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mq-path-wrap {
+  position: relative;
+  z-index: 1;
+  min-height: 620px;
+  padding: 8px 24px 34px;
+}
+
+.mq-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mq-path__glow,
+.mq-path__line {
+  fill: none;
+  stroke: url(#mqPathGradient);
+  stroke-linecap: round;
+}
+
+.mq-path__glow {
+  stroke-width: 5;
+  opacity: 0.18;
+  filter: blur(5px);
+}
+
+.mq-path__line {
+  stroke-width: 0.8;
+  opacity: 0.86;
+  stroke-dasharray: 1 3;
+  animation: mqPathFlow 1.4s linear infinite;
+}
+
+.mq-chapters {
+  position: relative;
+  max-width: 760px;
+  min-height: 620px;
+  margin: 0 auto;
+}
+
+.mq-node {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: min(460px, 86%);
+  transform: translateX(-50%);
+}
+
+.mq-node:nth-child(1) { top: 4%; }
+.mq-node:nth-child(2) { top: 30%; }
+.mq-node:nth-child(3) { top: 56%; }
+.mq-node:nth-child(4) { top: 80%; }
+
+.mq-node--left {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.mq-node--right {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.mq-node__orb {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  width: 92px;
+  height: 92px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(209, 30, 255, 0.34), rgba(6, 3, 14, 0.94) 64%),
+    #05030c;
+  color: #D11EFF;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(209, 30, 255, 0.62), 0 0 32px rgba(123, 44, 255, 0.48);
+}
+
+.mq-node__orb::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 1px solid rgba(209, 30, 255, 0.3);
+  border-radius: inherit;
+}
+
+.mq-node__orb span {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.mq-node.is-ready .mq-node__orb,
+.mq-node.is-active .mq-node__orb {
+  color: #00F0FF;
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.7), 0 0 34px rgba(0, 240, 255, 0.36);
+  animation: mqOrbPulse 2.2s ease-in-out infinite;
+}
+
+.mq-node.is-complete .mq-node__orb {
+  color: #00FFBF;
+  box-shadow: 0 0 0 2px rgba(0, 255, 191, 0.7), 0 0 36px rgba(0, 255, 191, 0.35);
+}
+
+.mq-node.is-locked .mq-node__orb,
+.mq-node.is-coming .mq-node__orb {
+  color: rgba(234, 251, 255, 0.24);
+  cursor: default;
+  filter: grayscale(0.6);
+  opacity: 0.55;
+  box-shadow: 0 0 0 1px rgba(234, 251, 255, 0.12);
+}
+
+.mq-node__card {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid rgba(123, 44, 255, 0.38);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(14, 8, 31, 0.92), rgba(4, 3, 12, 0.94));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), inset 0 0 24px rgba(123, 44, 255, 0.05);
+  padding: 15px 16px;
+}
+
+.mq-node.is-complete .mq-node__card {
+  border-color: rgba(0, 255, 191, 0.42);
+}
+
+.mq-node.is-ready .mq-node__card,
+.mq-node.is-active .mq-node__card {
+  border-color: rgba(0, 240, 255, 0.48);
+}
+
+.mq-node.is-locked .mq-node__card,
+.mq-node.is-coming .mq-node__card {
+  opacity: 0.62;
+}
+
+.mq-node__topline,
+.mq-node__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mq-node__topline span,
+.mq-node__topline i,
+.mq-node__footer span,
+.mq-node__footer em,
+.mq-node__you {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mq-node__topline span {
+  color: #00F0FF;
+}
+
+.mq-node__topline i,
+.mq-node__footer em {
+  color: rgba(234, 251, 255, 0.36);
+}
+
+.mq-node__card h3 {
+  margin: 8px 0 6px;
+  color: #fff;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.mq-node__card p {
+  margin: 0 0 14px;
+  color: rgba(234, 251, 255, 0.58);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mq-node__footer span {
+  color: #FACC15;
+}
+
+.mq-node__footer button {
+  border: 1px solid rgba(209, 30, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(209, 30, 255, 0.12);
+  color: #D11EFF;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 7px 12px;
+  text-transform: uppercase;
+}
+
+.mq-node__you {
+  margin-top: 10px;
+  color: #00F0FF;
+}
+
+@keyframes mqPathFlow {
+  to { stroke-dashoffset: -8; }
+}
+
+@keyframes mqOrbPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+/* -- Milestone world polish ---------------------------------------------- */
+.rpg-world__bg {
+  filter: saturate(1.14) contrast(1.04) brightness(0.74);
+}
+
+.rpg-world__bg::after {
+  background:
+    radial-gradient(circle at 50% 14%, rgba(0, 240, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 84% 20%, rgba(209, 30, 255, 0.15), transparent 30%),
+    linear-gradient(
+      to bottom,
+      rgba(5, 0, 15, 0.68) 0%,
+      rgba(5, 0, 15, 0.38) 36%,
+      rgba(5, 0, 15, 0.62) 72%,
+      rgba(5, 0, 15, 0.94) 100%
+    );
+}
+
+.rpg-card {
+  border-radius: 8px;
+  background: rgba(5, 7, 18, 0.78);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), inset 0 0 30px rgba(0, 240, 255, 0.035);
+}
+
+@media (max-width: 720px) {
+  .mq-header,
+  .rpg-map-screen__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mq-progress-pill {
+    text-align: left;
+  }
+
+  .mq-path-wrap,
+  .mq-chapters {
+    min-height: 780px;
+  }
+
+  .mq-node {
+    left: 0;
+    width: 100%;
+    transform: none;
+  }
+
+  .mq-node--left,
+  .mq-node--right {
+    flex-direction: row;
+  }
+
+  .mq-node__orb {
+    width: 74px;
+    height: 74px;
+  }
+
+  .mq-node__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* -- Simplified Alchemist chapter path ----------------------------------- */
+.mq-shell {
+  min-height: 0;
+  padding: 18px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(123, 44, 255, 0.16), transparent 32%),
+    rgba(6, 4, 15, 0.88);
+  box-shadow: inset 0 0 34px rgba(123, 44, 255, 0.055);
+}
+
+.mq-shell::before,
+.mq-ambient,
+.mq-path,
+.mq-path-wrap {
+  display: none;
+}
+
+.mq-header {
+  padding: 0 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  align-items: center;
+}
+
+.mq-header h2 {
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.05;
+}
+
+.mq-progress-pill {
+  min-width: auto;
+  border-color: rgba(0, 240, 255, 0.22);
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #00F0FF;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: rgba(0, 240, 255, 0.06);
+}
+
+.mq-chapters {
+  display: grid;
+  gap: 10px;
+  max-width: none;
+  min-height: 0;
+  margin: 16px 0 0;
+}
+
+.mq-node,
+.mq-node:nth-child(1),
+.mq-node:nth-child(2),
+.mq-node:nth-child(3),
+.mq-node:nth-child(4) {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  transform: none;
+  gap: 12px;
+}
+
+.mq-node__orb {
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 0 0 1px rgba(123, 44, 255, 0.5), 0 0 18px rgba(123, 44, 255, 0.2);
+}
+
+.mq-node__orb::before {
+  inset: -5px;
+}
+
+.mq-node__orb span {
+  font-size: 14px;
+}
+
+.mq-node.is-ready .mq-node__orb,
+.mq-node.is-active .mq-node__orb {
+  animation: none;
+  box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.75), 0 0 18px rgba(0, 240, 255, 0.22);
+}
+
+.mq-node__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: none;
+}
+
+.mq-node__card h3 {
+  margin: 0;
+  font-size: clamp(17px, 3vw, 20px);
+}
+
+.mq-node__action {
+  flex: 0 0 auto;
+  border: 1px solid rgba(209, 30, 255, 0.46);
+  border-radius: 999px;
+  background: rgba(209, 30, 255, 0.1);
+  color: #D11EFF;
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 7px 12px;
+  text-transform: uppercase;
+}
+
+.mq-node__status {
+  flex: 0 0 auto;
+  color: rgba(234, 251, 255, 0.36);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 520px) {
+  .mq-shell {
+    padding: 14px;
+  }
+
+  .mq-node__card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mq-node__action {
+    width: 100%;
+  }
+}
+
+/* -- Quest Book Map ------------------------------------------------------- */
+.mq-book {
+  position: relative;
+  overflow: hidden;
+  min-height: min(760px, calc(100vh - 220px));
+  border: 1px solid rgba(123, 44, 255, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 22% 14%, rgba(0, 240, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 76% 82%, rgba(209, 30, 255, 0.12), transparent 32%),
+    linear-gradient(145deg, rgba(11, 7, 27, 0.98), rgba(2, 2, 9, 0.98));
+  box-shadow: inset 0 0 80px rgba(123, 44, 255, 0.08), 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.mq-book::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 42%, #000 0 38%, transparent 78%);
+  pointer-events: none;
+}
+
+.mq-book__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px 8px;
+}
+
+.mq-book__header span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(0, 240, 255, 0.72);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.mq-book__header h2 {
+  margin: 0;
+  color: #F2F0F4;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.mq-book__header strong {
+  display: grid;
+  min-width: 62px;
+  min-height: 40px;
+  place-items: center;
+  border: 1px solid rgba(0, 240, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 240, 255, 0.055);
+  color: #00F0FF;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.mq-book__page {
+  position: relative;
+  z-index: 1;
+  height: 660px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.mq-book__trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mq-book__trail-glow,
+.mq-book__trail-line {
+  fill: none;
+  stroke: url(#questInk);
+  stroke-linecap: round;
+}
+
+.mq-book__trail-glow {
+  stroke-width: 18;
+  opacity: 0.22;
+  filter: url(#questInkGlow);
+}
+
+.mq-book__trail-line {
+  stroke-width: 5;
+  opacity: 0.9;
+  stroke-dasharray: 10 16;
+  animation: questInkTravel 1.8s linear infinite;
+}
+
+.mq-book__nodes {
+  position: absolute;
+  inset: 0;
+}
+
+.mq-seal {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(340px, 88%);
+}
+
+.mq-seal--1 { top: 54px; left: 42px; }
+.mq-seal--2 { top: 234px; right: 30px; flex-direction: row-reverse; text-align: right; }
+.mq-seal--3 { top: 422px; left: 56px; }
+.mq-seal--4 { top: 540px; right: 86px; flex-direction: row-reverse; text-align: right; }
+
+.mq-seal__stone {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  width: 88px;
+  height: 88px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(0, 240, 255, 0.28), rgba(6, 3, 14, 0.94) 64%),
+    #05030c;
+  color: #00F0FF;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.62), 0 0 32px rgba(0, 240, 255, 0.22);
+}
+
+.mq-seal__stone::before,
+.mq-seal__stone::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.mq-seal__stone::before {
+  inset: -9px;
+  border: 1px solid rgba(0, 240, 255, 0.26);
+}
+
+.mq-seal__stone::after {
+  inset: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mq-seal__stone span {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.mq-seal__card-art {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: 82px;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid rgba(0, 240, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(3, 2, 10, 0.92);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.42), 0 0 24px rgba(0, 240, 255, 0.14);
+  cursor: pointer;
+  padding: 0;
+  transform: rotate(-2deg);
+}
+
+.mq-seal--2 .mq-seal__card-art,
+.mq-seal--4 .mq-seal__card-art {
+  transform: rotate(2deg);
+}
+
+.mq-seal__card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.04) contrast(1.04) brightness(0.9);
+}
+
+.mq-seal__card-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent 28%, rgba(0, 0, 0, 0.42));
+  pointer-events: none;
+}
+
+.mq-seal__card-art span {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  z-index: 1;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(0, 240, 255, 0.46);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.64);
+  color: #00F0FF;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mq-seal.is-active .mq-seal__card-art,
+.mq-seal.is-ready .mq-seal__card-art {
+  border-color: rgba(0, 240, 255, 0.72);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.44), 0 0 30px rgba(0, 240, 255, 0.28);
+}
+
+.mq-seal.is-active .mq-seal__card-art {
+  width: 102px;
+}
+
+.mq-seal.is-complete .mq-seal__card-art {
+  border-color: rgba(0, 255, 191, 0.58);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.4), 0 0 24px rgba(0, 255, 191, 0.18);
+}
+
+.mq-seal.is-complete .mq-seal__card-art span {
+  border-color: rgba(0, 255, 191, 0.55);
+  color: #00FFBF;
+}
+
+.mq-seal.is-coming .mq-seal__card-art,
+.mq-seal.is-locked .mq-seal__card-art {
+  cursor: default;
+  opacity: 0.58;
+  filter: grayscale(0.5);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
+}
+
+.mq-seal.is-ready .mq-seal__stone,
+.mq-seal.is-active .mq-seal__stone {
+  animation: questSealPulse 2.4s ease-in-out infinite;
+}
+
+.mq-seal.is-complete .mq-seal__stone {
+  color: #00FFBF;
+  box-shadow: 0 0 0 2px rgba(0, 255, 191, 0.6), 0 0 32px rgba(0, 255, 191, 0.22);
+}
+
+.mq-seal.is-coming .mq-seal__stone,
+.mq-seal.is-locked .mq-seal__stone {
+  color: rgba(234, 251, 255, 0.28);
+  cursor: default;
+  opacity: 0.62;
+  filter: grayscale(0.8);
+  box-shadow: 0 0 0 1px rgba(234, 251, 255, 0.12);
+}
+
+.mq-seal__label {
+  min-width: 0;
+  max-width: 230px;
+  border: 1px solid rgba(123, 44, 255, 0.32);
+  border-radius: 8px;
+  background: rgba(5, 4, 14, 0.76);
+  padding: 13px 14px;
+  backdrop-filter: blur(12px);
+}
+
+.mq-seal.is-active .mq-seal__label {
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 26px rgba(0, 240, 255, 0.12);
+}
+
+.mq-seal.is-coming .mq-seal__label,
+.mq-seal.is-locked .mq-seal__label {
+  opacity: 0.68;
+}
+
+.mq-seal__label h3 {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 20px;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.mq-seal__label p {
+  margin: 8px 0 0;
+  color: rgba(234, 251, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mq-seal__label button,
+.mq-seal__label em {
+  display: inline-flex;
+  margin-top: 11px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mq-seal__label button {
+  border: 1px solid rgba(209, 30, 255, 0.48);
+  border-radius: 999px;
+  background: rgba(209, 30, 255, 0.12);
+  color: #D11EFF;
+  cursor: pointer;
+  padding: 7px 12px;
+}
+
+.mq-seal__label em {
+  color: rgba(234, 251, 255, 0.38);
+}
+
+@keyframes questInkTravel {
+  to { stroke-dashoffset: -26; }
+}
+
+@keyframes questSealPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+@media (max-width: 720px) {
+  .mq-book {
+    min-height: 720px;
+  }
+
+  .mq-book__header {
+    padding-inline: 16px;
+  }
+
+  .mq-book__page {
+    height: 660px;
+    max-width: 420px;
+  }
+
+  .mq-book__trail {
+    transform: scaleX(0.72);
+    transform-origin: center;
+  }
+
+  .mq-seal {
+    width: min(320px, 94%);
+  }
+
+  .mq-seal--1 { top: 60px; left: 12px; }
+  .mq-seal--2 { top: 236px; right: 12px; }
+  .mq-seal--3 { top: 416px; left: 12px; }
+  .mq-seal--4 { top: 544px; right: 12px; }
+
+  .mq-seal__stone {
+    width: 70px;
+    height: 70px;
+  }
+
+  .mq-seal__card-art {
+    width: 70px;
+  }
+
+  .mq-seal.is-active .mq-seal__card-art {
+    width: 82px;
+  }
+
+  .mq-seal__label {
+    max-width: 210px;
+  }
+}
+
+/* ============================================================
+   DAILY RITUAL VISUAL UPGRADE
+   ============================================================ */
+
+.daily-page-root {
+  isolation: isolate;
+}
+
+.daily-page-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(0, 240, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 86% 42%, rgba(209, 30, 255, 0.17), transparent 38%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.46));
+}
+
+.daily-page-root > *:not([aria-hidden="true"]) {
+  position: relative;
+  z-index: 1;
+}
+
+.daily-am-flow,
+.daily-pm-flow {
+  gap: 24px;
+}
+
+.daily-hero {
+  margin-bottom: 22px;
+}
+
+.daily-hero-title {
+  font-size: clamp(36px, 8vw, 64px);
+  line-height: 0.95;
+  text-shadow: 0 18px 50px rgba(0, 0, 0, 0.65);
+}
+
+.daily-hero-accent--am {
+  filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.34));
+}
+
+.daily-ritual-toggle {
+  margin-bottom: 28px;
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.morning-activation {
+  min-height: 0;
+  padding: clamp(18px, 3.4vw, 26px);
+  border-color: rgba(0, 240, 255, 0.28);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 80% 24%, rgba(250, 204, 21, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(2, 5, 12, 0.98), rgba(3, 11, 18, 0.94));
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.64),
+    0 0 44px rgba(0, 240, 255, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.morning-activation::before {
+  content: "";
+  position: absolute;
+  top: clamp(16px, 3vw, 24px);
+  right: clamp(16px, 3vw, 24px);
+  bottom: clamp(16px, 3vw, 24px);
+  left: clamp(18px, 3.4vw, 26px);
+  z-index: 0;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(1, 6, 12, 0.82) 0%, rgba(1, 6, 12, 0.58) 38%, rgba(1, 6, 12, 0.16) 100%),
+    linear-gradient(180deg, rgba(1, 6, 12, 0.1), rgba(1, 6, 12, 0.42)),
+    url("/assets/daily/morning-activation-sunrise.png") center right / cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.morning-activation__glow,
+.morning-activation__content,
+.morning-activation__steps {
+  position: relative;
+  z-index: 2;
+}
+
+.morning-activation__badge {
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  width: fit-content;
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 240, 255, 0.08);
+}
+
+.morning-activation__headline {
+  max-width: 560px;
+  font-size: clamp(34px, 7.2vw, 56px);
+  line-height: 0.94;
+  text-wrap: balance;
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.08),
+    0 18px 55px rgba(0, 0, 0, 0.72),
+    0 0 36px rgba(0, 240, 255, 0.18);
+}
+
+.morning-activation__sub {
+  max-width: 500px;
+  margin-top: 12px;
+  font-size: clamp(14px, 2.4vw, 16px);
+}
+
+.morning-activation__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+.morning-activation__step {
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(0, 240, 255, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(0, 0, 0, 0.28);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.morning-activation__step span:last-child {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.morning-activation__step-num {
+  font-size: 13px;
+}
+
+.ritual-image-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 42px rgba(0, 240, 255, 0.09);
+}
+
+.ritual-image-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%),
+    radial-gradient(circle at 20% 0%, rgba(250, 204, 21, 0.14), transparent 30%),
+    radial-gradient(circle at 92% 16%, rgba(0, 240, 255, 0.13), transparent 30%);
+}
+
+.ritual-image-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gratitude-card {
+  padding: clamp(22px, 4vw, 32px);
+  border-color: rgba(0, 255, 191, 0.28);
+  background:
+    linear-gradient(135deg, rgba(8, 4, 10, 0.92), rgba(24, 8, 28, 0.78)),
+    rgba(0, 0, 0, 0.72);
+}
+
+.gratitude-card__art,
+.daily-action-card__art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/assets/daily/daily-ritual-cards.png");
+  background-repeat: no-repeat;
+  background-size: 300% 100%;
+  opacity: 0.2;
+  filter: saturate(1.12) contrast(1.07);
+  pointer-events: none;
+}
+
+.gratitude-card__art {
+  background-position: left center;
+}
+
+.daily-action-card--top-five .daily-action-card__art {
+  background-position: center center;
+}
+
+.daily-action-card--battle .daily-action-card__art {
+  background-position: right center;
+}
+
+.gratitude-card__art::after,
+.daily-action-card__art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 2, 8, 0.92), rgba(4, 2, 8, 0.48)),
+    linear-gradient(180deg, rgba(4, 2, 8, 0.12), rgba(4, 2, 8, 0.9));
+}
+
+.gratitude-card__header,
+.daily-action-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 18px;
+}
+
+.gratitude-card__eyebrow,
+.daily-action-card__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #00FFBF;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(0, 255, 191, 0.38);
+}
+
+.gratitude-card__title,
+.daily-action-card__title {
+  margin: 0;
+  color: #F8FBFF;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 6vw, 46px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-shadow: 0 14px 42px rgba(0, 0, 0, 0.68);
+}
+
+.gratitude-card__sub {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: rgba(242, 240, 244, 0.75);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.gratitude-prompt-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.gratitude-prompt {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(0, 0, 0, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.gratitude-prompt .field__label {
+  margin-bottom: 2px;
+  color: rgba(248, 251, 255, 0.9);
+  font-size: clamp(14px, 2.6vw, 17px);
+  letter-spacing: 0.035em;
+}
+
+.gratitude-prompt .textarea {
+  min-height: 104px;
+  border-color: rgba(0, 255, 191, 0.24);
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow:
+    inset 0 0 28px rgba(250, 204, 21, 0.06),
+    0 12px 30px rgba(0, 0, 0, 0.22);
+}
+
+.gratitude-prompt--person .textarea {
+  border-color: rgba(0, 240, 255, 0.24);
+}
+
+.gratitude-prompt--hardship .textarea {
+  border-color: rgba(250, 204, 21, 0.28);
+}
+
+.gratitude-lock-btn {
+  align-self: flex-start;
+  margin-top: 18px;
+  min-height: 48px;
+  padding-inline: 24px;
+  border-color: rgba(250, 204, 21, 0.32);
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(209, 30, 255, 0.16));
+  color: #F8FBFF;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+}
+
+.gratitude-impact {
+  margin-top: 18px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(0, 255, 191, 0.14), rgba(0, 240, 255, 0.07)),
+    rgba(0, 0, 0, 0.42);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 34px rgba(0, 255, 191, 0.1);
+}
+
+.daily-action-card {
+  padding: clamp(20px, 4vw, 28px);
+  min-height: 190px;
+}
+
+.daily-action-card.card--neon {
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.daily-action-card.card--pink {
+  border-color: rgba(255, 62, 219, 0.32);
+}
+
+.daily-action-card__header {
+  margin-bottom: 18px;
+}
+
+.daily-action-card__title {
+  font-size: clamp(24px, 5vw, 38px);
+}
+
+.daily-action-card--battle .daily-action-card__eyebrow {
+  color: #FF7BE8;
+  text-shadow: 0 0 14px rgba(255, 62, 219, 0.42);
+}
+
+.daily-action-card .row {
+  position: relative;
+  z-index: 1;
+}
+
+.daily-action-card .input,
+.daily-action-card .textarea {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 28px rgba(0, 240, 255, 0.06);
+}
+
+@media (max-width: 920px) {
+  .daily-hero-title {
+    font-size: clamp(34px, 10vw, 52px);
+  }
+
+  .morning-activation {
+    min-height: 0;
+    padding: 22px 18px 18px;
+  }
+
+  .morning-activation__headline {
+    font-size: clamp(38px, 11vw, 54px);
+  }
+
+  .morning-activation__steps {
+    grid-template-columns: 1fr;
+  }
+
+  .morning-activation__step {
+    min-height: 0;
+  }
+
+  .gratitude-card__header,
+  .daily-action-card__header {
+    align-items: flex-start;
+  }
+
+  .gratitude-impact-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .daily-am-flow,
+  .daily-pm-flow {
+    gap: 18px;
+  }
+
+  .daily-ritual-tab {
+    flex: 1;
+    justify-content: center;
+    padding-inline: 12px;
+  }
+
+  .morning-activation__headline {
+    font-size: clamp(36px, 11vw, 50px);
+  }
+
+  .gratitude-card,
+  .daily-action-card {
+    padding: 18px 14px;
+  }
+
+  .gratitude-card__title,
+  .daily-action-card__title {
+    font-size: clamp(25px, 8vw, 34px);
+  }
+
+  .gratitude-card__sub {
+    font-size: 13px;
+  }
+}

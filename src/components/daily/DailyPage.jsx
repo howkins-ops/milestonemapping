@@ -58,7 +58,7 @@ export default function DailyPage() {
           style={{
             position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
             backgroundImage: `url(${ritual === "pm" ? "/assets/daily/daily-evening-bg.png" : "/assets/daily/daily-morning-bg.png"})`,
-            backgroundSize: "cover", backgroundPosition: "center top", opacity: 0.13,
+            backgroundSize: "cover", backgroundPosition: "center top", opacity: ritual === "pm" ? 0.34 : 0.13,
           }}
         />
 
@@ -77,11 +77,11 @@ export default function DailyPage() {
               </>
             )}
           </h1>
-          <p className="daily-hero-sub">
-            {ritual === "am"
-              ? "The person you're becoming is built in moments exactly like this. What moves the mission today?"
-              : "Close the day. Lock in tomorrow. Rest knowing your next victory is already planned."}
-          </p>
+          {ritual === "pm" && (
+            <p className="daily-hero-sub">
+              Close the day. Lock in tomorrow. Rest knowing your next victory is already planned.
+            </p>
+          )}
         </div>
 
         {/* Mode toggle */}

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>The 5 Shifts — The Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b14; --bg2:#0b1220; --panel:#0f1a2c; --panel2:#13233a;
+    --line:rgba(120,160,210,.14); --teal:#06b6d4; --amber:#ffa94d;
+    --ink:#eef4fc; --mut:#90a4be; --mut2:#5d6f8a;
+    --rad:#ffd166; --love:#f06a8a; --joy:#7ad97a; --pow:#5b8def; --maj:#b67af0;
+    --diamond:#9fe3ff; --rust:#e0683b; --fire:#ff7a45; --ok:#41d18e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;color-scheme:dark only;background:#070b14}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:980px;margin:0 auto;padding:0 22px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* HERO */
+  header.hero{position:relative;overflow:hidden;padding:84px 0 56px;
+    background:radial-gradient(125% 90% at 82% -15%, rgba(255,122,69,.18), transparent 52%),
+      radial-gradient(95% 75% at 6% 118%, rgba(6,182,212,.14), transparent 60%),
+      linear-gradient(160deg,#0b1220,#070b14 80%);}
+  header.hero::before{content:"";position:absolute;inset:0;opacity:.5;
+    background:radial-gradient(2px 2px at 20% 30%,rgba(255,209,102,.5),transparent),
+      radial-gradient(2px 2px at 70% 20%,rgba(159,227,255,.5),transparent),
+      radial-gradient(1px 1px at 45% 60%,rgba(255,255,255,.4),transparent),
+      radial-gradient(1.5px 1.5px at 85% 50%,rgba(240,106,138,.4),transparent);
+    mask:linear-gradient(180deg,#000,transparent 78%)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.36em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:20px;position:relative}
+  h1.title{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(46px,9vw,92px);
+    line-height:.92;letter-spacing:-.02em;position:relative}
+  h1.title em{font-style:italic;color:var(--fire)}
+  .sub{margin-top:22px;max-width:600px;color:#c4d4e8;font-size:17px;position:relative}
+  .howto{margin-top:22px;display:inline-flex;gap:9px;align-items:center;position:relative;
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--diamond);border:1px solid rgba(159,227,255,.3);border-radius:30px;padding:8px 16px}
+
+  nav.toc{position:sticky;top:0;z-index:40;background:rgba(7,11,20,.94);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding:11px 22px;max-width:980px}
+  nav.toc a{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--mut);text-decoration:none;white-space:nowrap;
+    padding:7px 12px;border-radius:5px;transition:.15s}
+  nav.toc a:hover{background:var(--fire);color:#1a0c06}
+
+  section{padding:54px 0 14px}
+  .shead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .snum{font-family:'Fraunces',serif;font-weight:700;font-size:54px;color:var(--sc,var(--amber));line-height:.8}
+  .stag{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--sc,var(--amber))}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,5vw,46px);
+    line-height:1.02;letter-spacing:-.015em;margin-bottom:10px}
+  .law{font-family:'Fraunces',serif;font-style:italic;font-size:19px;color:#cdd9e7;
+    max-width:680px;margin-bottom:14px;border-left:3px solid var(--sc,var(--amber));padding-left:16px}
+  .teach{color:var(--mut);max-width:700px;margin-bottom:26px;font-size:15.5px}
+
+  /* EXERCISE CARD */
+  .ex{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:26px 24px;margin-bottom:14px;position:relative}
+  .ex::before{content:"THE WORK";position:absolute;top:-10px;left:22px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
+    background:var(--sc,var(--amber));color:#0a0f1a;padding:4px 11px;border-radius:20px;font-weight:600}
+  .ex h3{font-family:'Fraunces',serif;font-weight:600;font-size:23px;margin:6px 0 6px;color:var(--ink)}
+  .ex .inst{font-size:14.5px;color:#bccadb;margin-bottom:16px}
+  .step{margin-bottom:16px}
+  .step .sl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--sc,var(--amber));margin-bottom:8px;display:flex;gap:8px;align-items:center}
+  .step .sl b{background:var(--sc,var(--amber));color:#0a0f1a;width:20px;height:20px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+  textarea,input.tf{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:9px;
+    color:var(--ink);font-family:'Inter Tight',sans-serif;font-size:14.5px;padding:12px 14px;resize:vertical}
+  textarea:focus,input.tf:focus{outline:none;border-color:var(--sc,var(--amber))}
+  textarea::placeholder,input.tf::placeholder{color:var(--mut2)}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .lie-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;align-items:center}
+  .lie-row .tagL,.lie-row .tagT{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+    text-transform:uppercase;margin-bottom:4px;display:block}
+  .lie-row .tagL{color:var(--rust)} .lie-row .tagT{color:var(--ok)}
+
+  /* VALUES TRIANGLE */
+  .vtri-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .vtri{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+  .vrow{display:flex;align-items:center;justify-content:center;color:#0a0f1a;font-weight:700;
+    font-family:'Fraunces',serif;border-radius:6px;position:relative;min-height:46px;
+    transition:.2s;text-align:center;padding:4px 10px;font-size:15px}
+  .vrow .rank{position:absolute;left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6}
+  .vrow input{background:transparent;border:none;color:#0a0f1a;font-family:'Fraunces',serif;
+    font-weight:700;text-align:center;font-size:15px;width:78%}
+  .vrow input:focus{outline:none}.vrow input::placeholder{color:rgba(10,15,26,.45)}
+  .v1{width:48%;background:linear-gradient(90deg,#ffe08a,#ffce6a)}
+  .v2{width:62%;background:linear-gradient(90deg,#9fe3ff,#6fd0f5)}
+  .v3{width:76%;background:linear-gradient(90deg,#7ad97a,#5fc97f)}
+  .v4{width:90%;background:linear-gradient(90deg,#f0a06a,#e0683b)}
+  .v5{width:100%;background:linear-gradient(90deg,#c98af0,#b67af0)}
+  .vexp{font-size:13.5px;color:#bccadb;line-height:1.6}
+  .vexp b{color:var(--ink)}
+  .vexp .hl{color:var(--diamond)}
+
+  /* GAP REVEAL */
+  .gap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px}
+  .gapcol{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .gapcol .gk{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:9px}
+  .gapcol.shadow .gk{color:var(--rust)} .gapcol.think .gk{color:var(--rad)} .gapcol.goal .gk{color:var(--ok)}
+  .gapcol input.tf{margin-bottom:7px;padding:8px 10px;font-size:13px}
+  .reveal-btn{margin-top:14px}
+  .reveal-box{margin-top:14px;background:rgba(255,122,69,.1);border:1px solid rgba(255,122,69,.32);
+    border-radius:12px;padding:18px 20px;display:none}
+  .reveal-box.show{display:block;animation:fade .5s}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .reveal-box .rk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--fire);margin-bottom:7px}
+  .reveal-box p{font-size:15px;color:#dbe6f2} .reveal-box b{color:var(--ink)}
+
+  /* IDENTITY TRIANGLE (climb) */
+  .itri{display:flex;flex-direction:column;gap:6px;max-width:560px;margin:0 auto}
+  .ilevel{border-radius:10px;padding:15px 18px;position:relative;cursor:pointer;transition:.25s;
+    border:1px solid var(--line)}
+  .ilevel .ik{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;margin-bottom:3px}
+  .ilevel h4{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--ink)}
+  .ilevel p{font-size:13px;color:#bccadb;margin-top:5px;max-height:0;overflow:hidden;transition:.3s}
+  .ilevel.open p{max-height:80px;margin-top:8px}
+  .il4{width:55%;margin:0 auto;background:linear-gradient(160deg,rgba(159,227,255,.18),rgba(159,227,255,.05));border-color:rgba(159,227,255,.4)}
+  .il4 .ik{color:var(--diamond)}
+  .il3{width:72%;margin:0 auto;background:linear-gradient(160deg,rgba(122,217,122,.14),rgba(122,217,122,.04));border-color:rgba(122,217,122,.3)}
+  .il3 .ik{color:var(--joy)}
+  .il2{width:86%;margin:0 auto;background:linear-gradient(160deg,rgba(255,209,102,.12),rgba(255,209,102,.03));border-color:rgba(255,209,102,.28)}
+  .il2 .ik{color:var(--rad)}
+  .il1{width:100%;background:linear-gradient(160deg,rgba(224,104,59,.14),rgba(224,104,59,.04));border-color:rgba(224,104,59,.32)}
+  .il1 .ik{color:var(--rust)}
+  .itri-cap{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--mut2);margin-top:10px}
+
+  /* MASK PICKER */
+  .mpick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+  .mp{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 8px;
+    text-align:center;cursor:pointer;transition:.18s}
+  .mp:hover{border-color:var(--mc)} .mp.sel{border-color:var(--mc);background:rgba(240,106,138,.08)}
+  .mp .emoji{font-size:20px;display:block;margin-bottom:5px}
+  .mp .mn{font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:var(--ink);line-height:1.1}
+  .mp .me{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--mut2);margin-top:3px;letter-spacing:.04em}
+
+  .nameit{background:rgba(159,227,255,.07);border:1px solid rgba(159,227,255,.22);
+    border-radius:12px;padding:16px 18px;margin-top:14px}
+  .nameit .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--diamond);margin-bottom:6px}
+  .nameit p{font-size:14px;color:#cdd9e7} .nameit b{color:var(--ink)}
+
+  .declare{background:linear-gradient(155deg,rgba(255,122,69,.12),rgba(159,227,255,.06));
+    border:1px solid rgba(255,122,69,.3);border-radius:14px;padding:20px 22px;margin-top:14px}
+  .declare .dk{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--fire);margin-bottom:10px}
+  .declare .dline{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);margin-bottom:10px}
+  .declare .dline input{background:var(--bg2);border:none;border-bottom:2px solid var(--fire);
+    color:var(--fire);font-family:'Fraunces',serif;font-size:18px;font-style:italic;padding:2px 8px;min-width:160px}
+  .declare .dline input:focus{outline:none}
+
+  .btn{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    padding:11px 20px;border-radius:8px;border:1px solid var(--fire);background:var(--fire);
+    color:#1a0c06;cursor:pointer;font-weight:600;transition:.18s}
+  .btn:hover{background:#ff8a55;border-color:#ff8a55}
+
+  .callout{background:rgba(159,227,255,.08);border-left:3px solid var(--diamond);
+    padding:16px 20px;border-radius:0 12px 12px 0;margin-top:18px}
+  .callout .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--diamond);margin-bottom:6px}
+  .callout p{font-size:15px;color:#dbe6f2}.callout b{color:var(--ink)}
+
+  footer{padding:46px 0 70px;text-align:center;color:var(--mut2);
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em}
+  footer .big{font-family:'Fraunces',serif;font-style:italic;font-size:21px;color:var(--fire);
+    text-transform:none;letter-spacing:0;margin-bottom:10px;display:block}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:8px 0}
+
+  @media(max-width:760px){.vtri-wrap{grid-template-columns:1fr}.gap{grid-template-columns:1fr}
+    .twocol{grid-template-columns:1fr}.lie-row{grid-template-columns:1fr}.mpick{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">The Deep Training · Do The Work</div>
+    <h1 class="title">The 5 <em>Shifts</em></h1>
+    <p class="sub">Not five things to read — five things to do. Each shift is a real exercise that exposes the gap between who you think you are and who your calendar says you are. Work through them in order.</p>
+    <div class="howto">✎ Type directly into the fields — this is your worksheet</div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#s1">1 · Integrity</a>
+    <a href="#s2">2 · Alignment</a>
+    <a href="#s3">3 · Identity</a>
+    <a href="#s4">4 · Essence</a>
+    <a href="#s5">5 · Coaching</a>
+  </div>
+</nav>
+
+<!-- SHIFT 1 — INTEGRITY -->
+<section id="s1" class="wrap" style="--sc:#5b8def">
+  <div class="shead"><div class="snum">1</div><div class="stag">Shift One · The Foundation</div></div>
+  <h2>Integrity — Call out your own bullshit</h2>
+  <div class="law">"When you break your word, you break yourself. Integrity is doing what you said you'd do, long after the feeling you said it in has left."</div>
+  <p class="teach">No integrity, no foundation — goals, habits, and confidence all collapse. And it always starts the same way: you lie to yourself first. This exercise has one job — get real. Stop being nice to yourself. Write the lie, then write the truth underneath it.</p>
+
+  <div class="ex">
+    <h3>Face the lie</h3>
+    <p class="inst">For each area, write the comfortable story you tell yourself — then the raw truth right beside it. Don't soften it. The truth has to sting a little or it's not the truth yet.</p>
+
+    <div class="step">
+      <div class="sl"><b>1</b> Where are you out of integrity right now?</div>
+      <div class="lie-row">
+        <div><span class="tagL">The lie you tell</span><input class="tf" placeholder="e.g. I knocked enough today"></div>
+        <div><span class="tagT">The truth underneath</span><input class="tf" placeholder="e.g. I stopped early because I got rejected"></div>
+      </div>
+      <div class="lie-row">
+        <div><input class="tf" placeholder="e.g. I'll start the gym Monday"></div>
+        <div><input class="tf" placeholder="e.g. I've been avoiding it for weeks"></div>
+      </div>
+      <div class="lie-row">
+        <div><input class="tf" placeholder="e.g. It's just one drink"></div>
+        <div><input class="tf" placeholder="e.g. I broke my word to myself"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sl"><b>2</b> What is it costing you?</div>
+      <textarea rows="2" placeholder="Time, money, trust, confidence, self-respect... be specific about the price you're paying."></textarea>
+    </div>
+
+    <div class="declare">
+      <div class="dk">Recommit · Declaration + Proof</div>
+      <div class="dline">I declare I am <input placeholder="back in integrity"> —</div>
+      <div class="dline">and today I recommit to <input placeholder="one small promise I will keep"></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="lbl">Why this is first</div>
+    <p>You can't build identity, alignment, or anything else on a cracked foundation. <b>Confidence is rebuilt by keeping the little promises</b> — admitting the lie is the only door in.</p>
+  </div>
+</section>
+
+<!-- SHIFT 2 — ALIGNMENT -->
+<section id="s2" class="wrap" style="--sc:#7ad97a">
+  <div class="shead"><div class="snum">2</div><div class="stag">Shift Two · The GPS</div></div>
+  <h2>Alignment — Your values run your life, like it or not</h2>
+  <div class="law">"Show me your values and I'll predict your future. What you value most becomes what you prioritize daily."</div>
+  <p class="teach">Your values are a hierarchy, not a list — and the one at the top quietly controls your time, your money, and every choice you make. The problem is almost nobody actually knows their real hierarchy. They know the one they wish they had. This exercise closes that gap in three moves.</p>
+
+  <div class="ex">
+    <h3>The values gap</h3>
+    <p class="inst">Do these in order. Don't skip ahead or look at step 2 while doing step 1 — the whole power is in the surprise.</p>
+
+    <div class="gap">
+      <div class="gapcol shadow">
+        <div class="gk">① If someone shadowed you</div>
+        <p style="font-size:12px;color:var(--mut);margin-bottom:8px">If someone followed you all day, every day, with a camera — based only on what they SAW, what would they say you value?</p>
+        <input class="tf" placeholder="1."><input class="tf" placeholder="2."><input class="tf" placeholder="3.">
+      </div>
+      <div class="gapcol think">
+        <div class="gk">② What you THINK you value</div>
+        <p style="font-size:12px;color:var(--mut);margin-bottom:8px">Now write what you believe your top values are — the ones you'd say out loud.</p>
+        <input class="tf" placeholder="1."><input class="tf" placeholder="2."><input class="tf" placeholder="3.">
+      </div>
+      <div class="gapcol goal">
+        <div class="gk">③ Your actual goals</div>
+        <p style="font-size:12px;color:var(--mut);margin-bottom:8px">Write your top goals for this season. Income, recruiting, fitness, the launch — whatever they really are.</p>
+        <input class="tf" placeholder="1."><input class="tf" placeholder="2."><input class="tf" placeholder="3.">
+      </div>
+    </div>
+
+    <button class="btn reveal-btn" onclick="document.getElementById('gapReveal').classList.add('show')">Reveal the gap ›</button>
+    <div class="reveal-box" id="gapReveal">
+      <div class="rk">The realization</div>
+      <p>Look at column ① against column ③. <b>The values your behavior actually demonstrates are not the values your goals require.</b> You set "recruit 50 / launch the app / lose 20 lbs" — but your shadowed day shows comfort, distraction, scrolling. That's why off-season goals die: <b>old values keep driving while new goals just sit there.</b> Your goals changed. Your values didn't. Fix that and the habits follow on their own.</p>
+    </div>
+  </div>
+
+  <div class="ex">
+    <h3>Build your priority triangle</h3>
+    <p class="inst">Now rebuild on purpose. Put the value that must sit at the TOP of the hierarchy this season at the peak — the one that, if you lived from it, would make every goal inevitable. Stack the supporting values below. This triangle is your GPS: the top controls everything beneath it.</p>
+    <div class="vtri-wrap">
+      <div class="vtri">
+        <div class="vrow v1"><input placeholder="#1 — peak value"></div>
+        <div class="vrow v2"><input placeholder="#2"></div>
+        <div class="vrow v3"><input placeholder="#3"></div>
+        <div class="vrow v4"><input placeholder="#4"></div>
+        <div class="vrow v5"><input placeholder="#5 — base"></div>
+      </div>
+      <div class="vexp">
+        <p style="margin-bottom:10px"><b>How to read your triangle:</b></p>
+        <p style="margin-bottom:10px">The <span class="hl">peak</span> is what you prioritize first when there's a conflict — when comfort and discipline both call, this is who wins. It controls your calendar whether you chose it consciously or not.</p>
+        <p style="margin-bottom:10px">Each level <b>supports the one above it.</b> If the goal is "recruit 50," the stack might be Growth → Courage → Consistency → Connection → Influence. Lock those in and 50 isn't a dream — it's inevitable.</p>
+        <p>The test: <b>does this hierarchy actually produce your goal?</b> If your peak value is "comfort," no goal above survival will ever get hit. Drop the values that don't serve the goal. Build a top 5 that fuels execution.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHIFT 3 — IDENTITY -->
+<section id="s3" class="wrap" style="--sc:#ffd166">
+  <div class="shead"><div class="snum">3</div><div class="stag">Shift Three · The Climb</div></div>
+  <h2>Identity — You fall to the level of who you're being</h2>
+  <div class="law">"You don't rise to the level of your goals — you fall to the level of your identity."</div>
+  <p class="teach">This is the hierarchy of who you're being in any moment — your real Shift #3 triangle. Most people live at the bottom, run by survival, and wonder why goals don't stick. The climb is the work: from Survival Mechanism at the base, up through Awareness and the Higher Self, to Essence at the peak. Tap each level.</p>
+
+  <div class="ex">
+    <h3>The identity triangle — climb it</h3>
+    <p class="inst">Read bottom to top. You can't skip levels — Awareness is the rung that lets you climb out of Survival. Tap each to open.</p>
+    <div class="itri">
+      <div class="ilevel il4" onclick="this.classList.toggle('open')">
+        <div class="ik">The peak · your highest self</div>
+        <h4>◇ Essence</h4>
+        <p>Who you were before the masks. Love, Power, Joy, Radiance, Majesty. Acting from here, the right action is effortless — you're not forcing, you're flowing.</p>
+      </div>
+      <div class="ilevel il3" onclick="this.classList.toggle('open')">
+        <div class="ik">Your higher self</div>
+        <h4>The Chooser</h4>
+        <p>Once aware, you get to choose: mask or Essence. This is where free will lives. The pause between trigger and reaction.</p>
+      </div>
+      <div class="ilevel il2" onclick="this.classList.toggle('open')">
+        <div class="ik">Your state</div>
+        <h4>Awareness</h4>
+        <p>The moment you catch yourself: "that's my mask running right now." Naming it shifts you from being it to observing it. The first rung out.</p>
+      </div>
+      <div class="ilevel il1" onclick="this.classList.toggle('open')">
+        <div class="ik">Your lower self</div>
+        <h4>Survival Mechanism</h4>
+        <p>Fear-driven, masked, on autopilot. It protected you once. Now it runs the day in the dark — complaining louder than it knocks. The base everyone starts at.</p>
+      </div>
+    </div>
+    <div class="itri-cap">▲ Climb: Survival → Awareness → Choice → Essence</div>
+  </div>
+
+  <div class="ex">
+    <h3>Identity over outcomes</h3>
+    <p class="inst">Stop chasing the outcome. Attach a new identity to it instead — "I am" not "I want." The identity creates the habits that create the outcome on their own.</p>
+    <div class="twocol">
+      <div>
+        <div class="step"><div class="sl"><b>1</b> The outcome you've been chasing</div>
+          <input class="tf" placeholder="e.g. Close 25 deals"></div>
+        <input class="tf" placeholder="e.g. Lose 10 lbs" style="margin-bottom:8px">
+        <input class="tf" placeholder="e.g. Save $5,000">
+      </div>
+      <div>
+        <div class="step"><div class="sl"><b>2</b> The identity that produces it</div>
+          <input class="tf" placeholder="e.g. I am a closer who signs deals daily"></div>
+        <input class="tf" placeholder="e.g. I am an athlete who trains consistently" style="margin-bottom:8px">
+        <input class="tf" placeholder="e.g. I am disciplined with money">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHIFT 4 — SURVIVAL TO ESSENCE -->
+<section id="s4" class="wrap" style="--sc:#f06a8a;--mc:#f06a8a">
+  <div class="shead"><div class="snum">4</div><div class="stag">Shift Four · Name It To Tame It</div></div>
+  <h2>Survival → Essence — Catch the mask</h2>
+  <div class="law">"Survival may protect you, but it also imprisons you. Freedom begins when you choose Essence over fear."</div>
+  <p class="teach">Your masks were forged by fear and rejection — but they hardened into a cage. The way out is to catch one in the act. When you label it, brain activity shifts from the amygdala (fear) to the prefrontal cortex (choice), and the charge drops. You stop being the mask and start watching it.</p>
+
+  <div class="ex">
+    <h3>Recognize → name → choose</h3>
+    <div class="step">
+      <div class="sl"><b>1</b> Recall a moment you felt free, alive, powerful — fully yourself</div>
+      <input class="tf" placeholder="What were you doing? What quality showed up — Love, Power, Joy, Courage, Radiance?">
+    </div>
+    <div class="step">
+      <div class="sl"><b>2</b> Now recall a stuck, reactive, frustrated moment</div>
+      <input class="tf" placeholder="What were you doing? What excuse were you making?">
+    </div>
+    <div class="step">
+      <div class="sl"><b>3</b> Which mask was that? Pick one.</div>
+      <div class="mpick">
+        <div class="mp" onclick="selMask(this)"><span class="emoji">😭</span><span class="mn">Crybaby Closer</span><span class="me">→ Love</span></div>
+        <div class="mp" onclick="selMask(this)"><span class="emoji">👑</span><span class="mn">Excuse King</span><span class="me">→ Majesty</span></div>
+        <div class="mp" onclick="selMask(this)"><span class="emoji">🏴</span><span class="mn">Rebel No Results</span><span class="me">→ Joy</span></div>
+        <div class="mp" onclick="selMask(this)"><span class="emoji">🧟</span><span class="mn">Zombie Knocker</span><span class="me">→ Radiance</span></div>
+        <div class="mp" onclick="selMask(this)"><span class="emoji">🏆</span><span class="mn">Champion Quitter</span><span class="me">→ Power</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sl"><b>4</b> Name it out loud, then choose</div>
+      <input class="tf" placeholder='Finish: "That was my ______ showing up. Next time it appears, I choose ______ (the Essence)."'>
+    </div>
+    <div class="nameit">
+      <div class="k">Two layers · same mask</div>
+      <p>The <b>funny name</b> (Excuse King) makes it safe to spot without shame — if you can laugh at it, it loses control. Underneath, the <b>real root</b> is the survival pattern it grew from — the pain it once protected. The laugh gets you in the door. The root is where the transformation happens.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SHIFT 5 — COACHING -->
+<section id="s5" class="wrap" style="--sc:#9fe3ff;--mc:#9fe3ff">
+  <div class="shead"><div class="snum">5</div><div class="stag">Shift Five · The Mirror</div></div>
+  <h2>Coaching — See what you can't see alone</h2>
+  <div class="law">"A coach sees what you can't see, hears what you can't hear, and says what you don't want to hear — so you can be who you've always known you could be."</div>
+  <p class="teach">You just did four shifts of work — but here's the catch: you can't fully see your own masks. The fish doesn't notice the water. A coach (or an AI trained to spot the pattern) catches the blind spots you're too close to. This final exercise points you at what's next.</p>
+
+  <div class="ex">
+    <h3>The accountability close</h3>
+    <div class="step">
+      <div class="sl"><b>1</b> What pattern showed up most across these four shifts?</div>
+      <input class="tf" placeholder="The same mask, excuse, or avoidance kept appearing in... ">
+    </div>
+    <div class="step">
+      <div class="sl"><b>2</b> What's the one thing you've been avoiding hearing?</div>
+      <input class="tf" placeholder="The truth a coach would say to your face...">
+    </div>
+    <div class="step">
+      <div class="sl"><b>3</b> Your one proof action in the next 24 hours</div>
+      <input class="tf" placeholder="Small, specific, and you'll actually do it. This is the bridge from insight to identity.">
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="lbl">The whole shift, in one move</div>
+    <p>Integrity gives you the foundation. Alignment points the GPS. Identity changes who's driving. Essence frees you from the mask. And Coaching makes sure you don't lie to yourself about any of it. <b>Five shifts, one outcome: you stop falling to the level of your goals and start rising to the level of who you've decided to be.</b></p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <span class="big">You don't rise to your goals. You fall to your identity.</span>
+  THE 5 SHIFTS · THE TRANSFORMATION · DO THE WORK
+</footer>
+
+<script>
+  function selMask(el){
+    el.parentElement.querySelectorAll('.mp').forEach(m=>m.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+</script>
+
+</body>
+</html>

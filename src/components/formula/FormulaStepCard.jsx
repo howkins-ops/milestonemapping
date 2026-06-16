@@ -1,17 +1,10 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
-
-const STEP_ICONS = [
-  "/assets/formula/step-icon-wisdom.png",
-  "/assets/formula/step-icon-action.png",
-  "/assets/formula/step-icon-identity.png",
-  "/assets/formula/step-icon-vision.png",
-  "/assets/formula/step-icon-reward.png",
-];
+import React, { useLayoutEffect, useRef, useState } from "react";
 
 export default function FormulaStepCard({ step, index }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(index === 0);
   const bodyRef = useRef(null);
   const [height, setHeight] = useState(0);
+  const stepNumber = String(index + 1).padStart(2, "0");
 
   useLayoutEffect(() => {
     if (bodyRef.current) {
@@ -20,10 +13,14 @@ export default function FormulaStepCard({ step, index }) {
   }, [open]);
 
   return (
-    <div
+    <article
       className="anim-slide-up formula-card"
       data-open={open}
-      style={{ animationDelay: `${index * 60}ms` }}
+      style={{
+        "--step-accent": step.accent,
+        "--step-delay": `${index * 70}ms`,
+        animationDelay: `${index * 60}ms`
+      }}
     >
       <button
         type="button"
@@ -31,34 +28,44 @@ export default function FormulaStepCard({ step, index }) {
         aria-expanded={open}
         className="formula-card__trigger"
       >
-        <span className="formula-card__num">{String(index + 1).padStart(2, "0")}</span>
-        {STEP_ICONS[index] && (
-          <img
-            src={STEP_ICONS[index]}
-            alt=""
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-            style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }}
-          />
-        )}
+        <span className="formula-card__rail" aria-hidden="true">
+          <span className="formula-card__num">{stepNumber}</span>
+        </span>
 
-        <div className="formula-card__title-wrap">
-          <h3 className="formula-card__title">{step.title}</h3>
-          {!open && <p className="formula-card__hint">Tap to expand</p>}
-        </div>
+        <span className="formula-card__title-wrap">
+          <span className="formula-card__meta">{step.label} layer</span>
+          <span className="formula-card__title">{step.title}</span>
+          <span className="formula-card__concept">{step.concept}</span>
+        </span>
 
-        <span className="formula-card__chevron" aria-hidden="true">▾</span>
+        <span className="formula-card__status" aria-hidden="true">
+          <span className="formula-card__status-text">{open ? "Open" : "View"}</span>
+          <span className="formula-card__chevron">+</span>
+        </span>
       </button>
 
       <div
         className="formula-card__body"
-        style={{ height, overflow: "hidden", transition: "height 300ms cubic-bezier(0.16,1,0.3,1)" }}
+        style={{
+          height,
+          overflow: "hidden",
+          transition: "height 340ms cubic-bezier(0.16, 1, 0.3, 1)"
+        }}
       >
-        <div ref={bodyRef} style={{ paddingTop: 16, paddingLeft: 58, paddingBottom: 4 }}>
+        <div ref={bodyRef} className="formula-card__body-inner">
           <p className="formula-card__explanation">{step.explanation}</p>
-          <p className="formula-card__prompt">▸ {step.prompt}</p>
-          <p className="formula-card__example">Example: {step.example}</p>
+          <div className="formula-card__payload">
+            <div>
+              <span>Activation prompt</span>
+              <p className="formula-card__prompt">{step.prompt}</p>
+            </div>
+            <div>
+              <span>Field example</span>
+              <p className="formula-card__example">{step.example}</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

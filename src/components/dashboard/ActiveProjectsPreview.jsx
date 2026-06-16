@@ -13,7 +13,12 @@ export default function ActiveProjectsPreview({ onNavigate, onOpenProject }) {
     <section>
       <SectionHeader
         title="Active Expeditions"
-        icon="🏝"
+        icon={
+          <svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+            <circle cx="9" cy="7" r="4" />
+            <path d="M5 11 Q9 16 13 11" />
+          </svg>
+        }
         sub="Your islands, your treasure trails, in motion."
         action={
           <Button variant="ghost" size="sm" onClick={() => onNavigate("milestones")}>
@@ -23,7 +28,13 @@ export default function ActiveProjectsPreview({ onNavigate, onOpenProject }) {
       />
       {preview.length === 0 ? (
         <EmptyState
-          icon="🏝️"
+          icon={
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="10" r="5" />
+              <path d="M7 15 Q12 22 17 15" />
+              <line x1="4" y1="22" x2="20" y2="22" />
+            </svg>
+          }
           title="No active projects"
           description="The ocean is empty. Chart your first island and give your future coordinates."
           actionLabel="+ Map New Project"

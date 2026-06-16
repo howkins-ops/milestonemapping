@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>The Diamond Path — Story Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080d19; --bg2:#0c1422; --panel:#101b2e; --panel2:#142339;
+    --line:rgba(120,160,210,.14); --teal:#06b6d4; --amber:#ffa94d;
+    --ink:#eaf2fb; --mut:#8fa3bd; --mut2:#62748f;
+    --rad:#ffd166; --love:#f06a8a; --joy:#7ad97a; --pow:#5b8def; --maj:#b67af0;
+    --diamond:#9fe3ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;color-scheme:dark only;background:#080d19}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 22px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* HERO */
+  header.hero{position:relative;overflow:hidden;padding:76px 0 56px;
+    background:
+      radial-gradient(120% 80% at 80% -10%, rgba(159,227,255,.16), transparent 55%),
+      radial-gradient(90% 70% at 8% 115%, rgba(255,169,77,.10), transparent 60%),
+      linear-gradient(160deg,#0c1422,#080d19 78%);}
+  header.hero::before{content:"";position:absolute;inset:0;opacity:.06;
+    background-image:linear-gradient(rgba(159,227,255,.5) 1px,transparent 1px),
+      linear-gradient(60deg,rgba(159,227,255,.5) 1px,transparent 1px),
+      linear-gradient(-60deg,rgba(159,227,255,.5) 1px,transparent 1px);
+    background-size:54px 54px;mask:linear-gradient(180deg,#000,transparent 82%)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.34em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:18px;position:relative}
+  h1.title{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(46px,8.5vw,90px);
+    line-height:.95;letter-spacing:-.015em;position:relative}
+  h1.title em{font-style:italic;color:var(--diamond)}
+  .sub{margin-top:20px;max-width:640px;color:#bcd0e6;font-size:16.5px;position:relative}
+  .promise{margin-top:22px;font-family:'Fraunces',serif;font-style:italic;font-size:19px;
+    color:var(--amber);position:relative;max-width:600px}
+  .arc-strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:28px;position:relative}
+  .arc-strip span{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;padding:6px 10px;border:1px solid var(--line);
+    border-radius:3px;color:var(--mut);background:rgba(16,27,46,.5)}
+
+  nav.toc{position:sticky;top:0;z-index:20;background:rgba(8,13,25,.93);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding:11px 22px}
+  nav.toc a{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--mut);text-decoration:none;white-space:nowrap;
+    padding:7px 12px;border-radius:4px;transition:.15s}
+  nav.toc a:hover{background:var(--diamond);color:#04222a}
+
+  section{padding:56px 0 12px}
+  .part-tag{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,5vw,50px);
+    line-height:1.02;letter-spacing:-.01em;margin-bottom:10px}
+  .lead{color:var(--mut);max-width:660px;margin-bottom:32px;font-size:16px}
+
+  /* CONCEPT BLOCKS */
+  .concept{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .cbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}
+  .cbox .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+  .cbox h3{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin-bottom:8px;color:var(--ink)}
+  .cbox p{font-size:14.5px;color:#cdd9e7}
+  .cbox p+p{margin-top:10px}
+  .cbox .turn{margin-top:12px;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--diamond)}
+
+  /* LOOP */
+  .loop{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;counter-reset:l}
+  .loop .step{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:13px 13px 14px;position:relative}
+  .loop .step::before{counter-increment:l;content:counter(l,decimal-leading-zero);
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--diamond);letter-spacing:.1em}
+  .loop .step b{display:block;font-size:13.5px;margin-top:4px;color:var(--ink);font-weight:600}
+  .loop .step span{font-size:11.5px;color:var(--mut)}
+
+  /* SURVIVAL MASKS */
+  .mask{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:22px;margin-bottom:14px;border-left:4px solid var(--maskc,var(--rust))}
+  .mask .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .mask h3{font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--ink)}
+  .mask .trigger{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--mut2)}
+  .mask .says{margin:12px 0;padding:12px 16px;background:var(--bg2);border-radius:8px;
+    font-style:italic;font-size:14.5px;color:#cdd9e7;border-left:2px solid var(--line)}
+  .mask .lesson{font-size:14.5px;color:#cdd9e7}
+  .mask .lesson b{color:var(--ink)}
+  .mask .essence{display:inline-block;margin-top:12px;font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;
+    border-radius:20px;border:1px solid var(--ecol,var(--line));color:var(--ecol,var(--ink));
+    background:var(--ebg,transparent)}
+
+  /* ESSENCE GRID */
+  .egrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .ecard{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:20px 16px;text-align:center;border-top:3px solid var(--ec,var(--teal))}
+  .ecard .glyph{font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--ec,var(--teal));line-height:1}
+  .ecard h4{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin:8px 0 6px;color:var(--ink)}
+  .ecard p{font-size:13px;color:var(--mut)}
+
+  /* CHAPTER TIMELINE */
+  .timeline{position:relative;margin-left:8px}
+  .timeline::before{content:"";position:absolute;left:13px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(var(--rust,#e06a3b),var(--amber),var(--diamond))}
+  .ch{position:relative;padding:0 0 34px 54px}
+  .ch::before{content:"";position:absolute;left:5px;top:3px;width:18px;height:18px;
+    background:var(--bg);border:3px solid var(--amber);z-index:2;
+    transform:rotate(45deg);border-radius:3px}
+  .ch[data-z="ordeal"]::before{border-color:var(--diamond);box-shadow:0 0 0 4px rgba(159,227,255,.12)}
+  .ch[data-z="return"]::before{border-color:var(--teal)}
+  .ch .cn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--amber)}
+  .ch h3{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin:4px 0 8px;color:var(--ink)}
+  .ch .body{font-size:15px;color:#cdd9e7;max-width:700px}
+  .ch .ex{margin-top:13px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .ch .ex .lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--diamond);margin-bottom:7px}
+  .ch .ex .qs{font-size:13.5px;color:var(--mut);line-height:1.7}
+  .ch .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.05em;
+    padding:4px 9px;border-radius:3px;border:1px solid var(--line);background:var(--panel);color:#cdd9e7}
+  .chip.alc{background:rgba(255,169,77,.1);border-color:rgba(255,169,77,.3);color:var(--amber)}
+  .chip.mask{background:rgba(224,106,59,.12);border-color:rgba(224,106,59,.32);color:#f0926a}
+
+  .callout{background:rgba(159,227,255,.08);border-left:3px solid var(--diamond);
+    padding:18px 20px;border-radius:0 10px 10px 0;margin-top:24px}
+  .callout .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--diamond);margin-bottom:6px}
+  .callout p{font-size:15.5px;color:#dbe6f2}
+  .callout b{color:var(--ink)}
+  .callout.amber{background:rgba(255,169,77,.09);border-color:var(--amber)}
+  .callout.amber .lbl{color:var(--amber)}
+
+  /* FORMULA */
+  .formula{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin-top:8px}
+  .fstep{background:var(--panel);border:1px solid var(--line);padding:11px 14px;
+    font-size:13px;color:#cdd9e7;position:relative;flex:1;min-width:140px}
+  .fstep b{color:var(--diamond)}
+  .fstep:not(:last-child)::after{content:"↓";position:absolute;right:8px;bottom:-2px;color:var(--amber);font-size:11px}
+
+  footer{padding:44px 0 64px;text-align:center;color:var(--mut2);
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em}
+  footer .big{font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--diamond);
+    text-transform:none;letter-spacing:0;margin-bottom:10px;display:block}
+
+  @media(max-width:820px){.egrid{grid-template-columns:repeat(2,1fr)}.loop{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.concept{grid-template-columns:1fr}.egrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Gameplay Story Bible · v1</div>
+    <h1 class="title">The Diamond <em>Path</em></h1>
+    <p class="sub">A coaching transformation disguised as a quest. The player thinks they came to hit a goal. They leave having met the version of themselves who could hold it.</p>
+    <p class="promise">The Alchemist had "Personal Legend." The Diamond Path has "The Milestone" — and the milestone is measurable, so the dream is forced into proof, and proof exposes the mask.</p>
+    <div class="arc-strip">
+      <span>Dream</span><span>Map</span><span>Trade</span><span>Confusion</span><span>Forge</span>
+      <span>Comfort Trap</span><span>Crossing</span><span>Oasis</span><span>Pattern</span>
+      <span>Shadow Gate</span><span>Alchemist Within</span><span>Impossible Test</span><span>Treasure</span><span>Return</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#concept">01 · Concept</a>
+    <a href="#loop">02 · Loop</a>
+    <a href="#masks">03 · Masks</a>
+    <a href="#essence">04 · Essence</a>
+    <a href="#arc">05 · The 14 Chapters</a>
+    <a href="#formula">06 · Formula</a>
+  </div>
+</nav>
+
+<!-- 01 CONCEPT -->
+<section id="concept" class="wrap">
+  <div class="part-tag">Part 01 · Core Concept</div>
+  <h2>The milestone is a mirror</h2>
+  <p class="lead">The player enters chasing something external. The system uses that goal as the entry point — then quietly turns the quest inward.</p>
+
+  <div class="concept">
+    <div class="cbox">
+      <div class="k">The Seeker</div>
+      <h3>The main character is the user</h3>
+      <p>Someone with a big dream, stuck in a pattern: starts strong then fades, gets excited then avoids, knows what to do but doesn't do it, wants success but fears being seen.</p>
+      <p>They believe the problem is discipline. The journey reveals the truth: they're chasing the dream while wearing a mask.</p>
+      <div class="turn">The problem was never wanting it. It was wearing the mask while reaching for it.</div>
+    </div>
+    <div class="cbox">
+      <div class="k">The Treasure</div>
+      <h3>The goal is real — and a decoy</h3>
+      <p>Sell 200 accounts. Publish the app. Make $1M. Build the body. Launch the company. At the start, the treasure looks like an outcome.</p>
+      <p>The outcome stays real. The money, the body, the business — all real. But the greater treasure is revealed at the gate: who the player became to earn it.</p>
+      <div class="turn">The milestone was the proof. The identity was the treasure.</div>
+    </div>
+  </div>
+
+  <div class="callout amber">
+    <div class="lbl">Why this beats "Personal Legend"</div>
+    <p>Coelho's calling is mystical and unmeasurable. <b>A milestone is countable</b> — 200 sales, one launch, a finished manuscript. That measurability is the trap that works <em>for</em> the player: it forces the dream into daily proof, and the proof is what exposes the survival mechanism hiding underneath.</p>
+  </div>
+</section>
+
+<!-- 02 LOOP -->
+<section id="loop" class="wrap">
+  <div class="part-tag">Part 02 · The Engine</div>
+  <h2>The core gameplay loop</h2>
+  <p class="lead">This 16-beat loop repeats through every chapter. The game isn't won by motivation — it's won by proof.</p>
+  <div class="loop">
+    <div class="step"><b>Name a dream</b><span>The Seeker speaks the want.</span></div>
+    <div class="step"><b>Dream → project</b><span>The want gets a container.</span></div>
+    <div class="step"><b>Project → map</b><span>Broken into milestones.</span></div>
+    <div class="step"><b>Milestone → gate</b><span>Each one a threshold.</span></div>
+    <div class="step"><b>Gate → weekly action</b><span>The gate has a price.</span></div>
+    <div class="step"><b>Weekly → daily proof</b><span>Proof, not feelings.</span></div>
+    <div class="step"><b>Resistance appears</b><span>The avoidance shows.</span></div>
+    <div class="step"><b>Survival mechanism detected</b><span>A mask is named.</span></div>
+    <div class="step"><b>Awareness Mirror</b><span>The Seeker looks.</span></div>
+    <div class="step"><b>Name the mask</b><span>Out of shame, into sight.</span></div>
+    <div class="step"><b>Return to Essence</b><span>The missing power.</span></div>
+    <div class="step"><b>Choose one proof action</b><span>Clean, small, real.</span></div>
+    <div class="step"><b>Proof moves milestone</b><span>The map advances.</span></div>
+    <div class="step"><b>Milestone unlocks reward</b><span>Earned, not given.</span></div>
+    <div class="step"><b>Reward reveals lesson</b><span>Identity confirmed.</span></div>
+    <div class="step"><b>Next gate opens</b><span>The loop renews.</span></div>
+  </div>
+</section>
+
+<!-- 03 MASKS -->
+<section id="masks" class="wrap">
+  <div class="part-tag">Part 03 · The Shadows</div>
+  <h2>The five survival mechanisms</h2>
+  <p class="lead">Not random enemies — old protectors. Each is a way the player once learned to survive. You don't defeat them by fighting. You transform by returning to the Essence they're guarding.</p>
+
+  <div class="mask" style="--maskc:#5b8def;--ecol:#5b8def;--ebg:rgba(91,141,239,.1)">
+    <div class="top"><h3>Broke King</h3><div class="trigger">Appears when · money feels unsafe</div></div>
+    <div class="says">"You're behind. You lost too much. You can't afford to fail. You need the money before you can become powerful. You're not safe yet."</div>
+    <div class="lesson"><b>Lesson:</b> Money does not create power. Power creates the ability to hold money.</div>
+    <div class="essence">Essence Return → Power</div>
+  </div>
+
+  <div class="mask" style="--maskc:#f06a8a;--ecol:#f06a8a;--ebg:rgba(240,106,138,.1)">
+    <div class="top"><h3>Addict Saint</h3><div class="trigger">Appears when · overwhelmed, wanting escape</div></div>
+    <div class="says">"You've worked hard. You deserve to check out. Just numb this feeling. Start again tomorrow. You can't face this much pressure sober."</div>
+    <div class="lesson"><b>Lesson:</b> The part that escapes isn't evil — it's seeking relief. But relief without truth becomes a prison.</div>
+    <div class="essence">Essence Return → Love</div>
+  </div>
+
+  <div class="mask" style="--maskc:#ffd166;--ecol:#ffd166;--ebg:rgba(255,209,102,.1)">
+    <div class="top"><h3>Silent Prophet</h3><div class="trigger">Appears when · meant to be seen / heard / published</div></div>
+    <div class="says">"Not yet. It's not ready. Who are you to say this? What if they judge you? What if no one cares?"</div>
+    <div class="lesson"><b>Lesson:</b> Your voice isn't for validation. It's proof you're no longer hiding from the calling.</div>
+    <div class="essence">Essence Return → Radiance</div>
+  </div>
+
+  <div class="mask" style="--maskc:#b67af0;--ecol:#b67af0;--ebg:rgba(182,122,240,.1)">
+    <div class="top"><h3>Raging Victim</h3><div class="trigger">Appears when · pain becomes identity</div></div>
+    <div class="says">"Look what happened to you. You should be further ahead. They took from you. You lost your chance. You're allowed to stay stuck because life was unfair."</div>
+    <div class="lesson"><b>Lesson:</b> Pain may explain the wound. But pain cannot become the throne.</div>
+    <div class="essence">Essence Return → Majesty</div>
+  </div>
+
+  <div class="mask" style="--maskc:#7ad97a;--ecol:#7ad97a;--ebg:rgba(122,217,122,.1)">
+    <div class="top"><h3>Naive Warrior</h3><div class="trigger">Appears when · desperate to move fast</div></div>
+    <div class="says">"Go now. Trust them. This is the one. You're behind, so move faster. Don't slow down to think."</div>
+    <div class="lesson"><b>Lesson:</b> Wisdom is not fear. Wisdom is clean movement.</div>
+    <div class="essence">Essence Return → Joy</div>
+  </div>
+</section>
+
+<!-- 04 ESSENCE -->
+<section id="essence" class="wrap">
+  <div class="part-tag">Part 04 · The Powers</div>
+  <h2>The five Essence powers</h2>
+  <p class="lead">The Seeker doesn't beat the masks. They return to what the mask was covering. Each Essence is a way of being that makes clean action possible.</p>
+  <div class="egrid">
+    <div class="ecard" style="--ec:#ffd166"><div class="glyph">◇</div><h4>Radiance</h4><p>The power to be seen. Post, speak, sell, lead, publish, show proof.</p></div>
+    <div class="ecard" style="--ec:#f06a8a"><div class="glyph">◇</div><h4>Love</h4><p>The power to reconnect. Heal shame, regulate, forgive, stop self-abandoning.</p></div>
+    <div class="ecard" style="--ec:#7ad97a"><div class="glyph">◇</div><h4>Joy</h4><p>The power of clean movement. Create, play, act, stop making it heavy.</p></div>
+    <div class="ecard" style="--ec:#5b8def"><div class="glyph">◇</div><h4>Power</h4><p>The power of ownership. Decide, lead, execute, protect money, hold pressure.</p></div>
+    <div class="ecard" style="--ec:#b67af0"><div class="glyph">◇</div><h4>Majesty</h4><p>The power of identity. Raise standards, set boundaries, walk with dignity.</p></div>
+  </div>
+  <div class="callout">
+    <div class="lbl">The transmutation</div>
+    <p>Scarcity → Power. Escape → Love. Silence → Radiance. Blame → Majesty. Rushing → Joy. <b>Alchemy isn't metal into gold. It's survival into Essence.</b></p>
+  </div>
+</section>
+
+<!-- 05 THE ARC -->
+<section id="arc" class="wrap">
+  <div class="part-tag">Part 05 · The Journey</div>
+  <h2>The 14 chapters</h2>
+  <p class="lead">The Alchemist's shape, rebuilt as a coaching arc. Each chapter pairs a story beat with a real Milestone Mapping exercise — that pairing is the whole trick: the player thinks they're playing, they're actually being coached.</p>
+
+  <div class="timeline">
+
+    <div class="ch">
+      <div class="cn">Chapter 1 · Ordinary World</div>
+      <h3>The Dream Under the Ruins</h3>
+      <div class="body">The Seeker is busy, tired, surviving — doing what life requires. But a dream keeps returning and won't leave them alone. The first question appears: <em>"What treasure are you actually chasing?"</em> The first project is born.</div>
+      <div class="ex"><div class="lbl">Exercise · Create the Project</div><div class="qs">What do I want? Why does it matter? What's the external outcome? What would change if I achieved it? Who would I have to become to receive it?</div></div>
+      <div class="meta"><span class="chip alc">≈ The recurring dream</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 2 · Meeting the Mentor</div>
+      <h3>The Cartographer Appears</h3>
+      <div class="body">The first guide gives not the treasure but the map. <em>"A dream without a map becomes fantasy. A map without proof becomes decoration. Proof is the bridge."</em> The dream becomes visible; the impossible becomes staged. The Seeker sees the first gate.</div>
+      <div class="ex"><div class="lbl">Exercise · Break Into Milestone Gates</div><div class="qs">For each milestone: What's the measurable result? What must be true before this gate completes? What reward is attached? What weekly actions move it? What proof shows progress?</div></div>
+      <div class="meta"><span class="chip alc">≈ Melchizedek names the path</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 3 · Crossing the Threshold</div>
+      <h3>The First Trade</h3>
+      <div class="body">The Seeker can't carry the old life and the new quest at once. Every dream has a cost — not just money, but attention, time, pride, old habits, old masks. They choose the first proof action. The gate opens.</div>
+      <div class="ex"><div class="lbl">Exercise · Commitment Contract</div><div class="qs">What must I stop carrying? What old identity is too expensive now? What comfort is delaying the dream? What's the first proof action?</div></div>
+      <div class="meta"><span class="chip alc">≈ Selling the sheep</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 4 · The First Test</div>
+      <h3>The City of Confusion</h3>
+      <div class="body">They expected momentum; they meet confusion. A mistake, a wrong trust, lost confidence. The first mask appears — usually <b>Naive Warrior</b> (rushed ahead), then <b>Broke King</b> after the loss. The teaching: the first setback doesn't mean the dream was wrong. Innocence is being upgraded into wisdom.</div>
+      <div class="ex"><div class="lbl">Exercise · Awareness Mirror</div><div class="qs">What happened? What story did I make it mean? What mask appeared? What was it trying to protect? What's the lesson without shame?</div></div>
+      <div class="meta"><span class="chip alc">≈ Robbed in Tangier</span><span class="chip mask">Naive Warrior · Broke King</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 5 · The Road of Trials</div>
+      <h3>The Proof Forge</h3>
+      <div class="body">The second guide, The Operator, teaches that dreams aren't built by emotion but by repeated proof. <em>"Don't worship the outcome. Don't wait for motivation. Do the action. Track the proof. Review the week. Adjust the map."</em> Small, boring, repeated actions — and the Seeker realizes this is where the dream becomes real.</div>
+      <div class="ex"><div class="lbl">Exercise · Daily Proof</div><div class="qs">What proof did I create today? What action did I complete? What did I avoid? What moved the milestone? What did today reveal about who I'm becoming?</div></div>
+      <div class="meta"><span class="chip alc">≈ The crystal shop</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 6 · The Temptation to Stop</div>
+      <h3>The Comfort Trap</h3>
+      <div class="body">Progress happens. Money, attention, momentum, the first reward chest. Then comfort whispers: <em>"You've done enough. You're better than before. You can slow down now."</em> Many stop here — not from failure, but from mistaking a little success for transformation. The Seeker must choose: return slightly more confident, or keep following the deeper calling.</div>
+      <div class="ex"><div class="lbl">Exercise · Weekly Review</div><div class="qs">What progress did I make? Where did I get comfortable? What reward did I earn? Did it strengthen or distract me? What's the next gate? What actions matter this week?</div></div>
+      <div class="meta"><span class="chip alc">≈ Going home richer, untransformed</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 7 · The Desert</div>
+      <h3>The Long Crossing</h3>
+      <div class="body">The middle stretch — the goal no longer exciting, not yet complete. Discipline becomes spiritual. Fatigue, silence, delay, doubt, comparison, money pressure. The Operator: <em>"Your feelings are weather. Your proof is the road."</em></div>
+      <div class="ex"><div class="lbl">Exercise · Weekly Action Reset</div><div class="qs">My Top 5 highest-leverage actions this week? The one action I keep avoiding? What would make this week a win? The minimum proof to stay on path?</div></div>
+      <div class="meta"><span class="chip alc">≈ The caravan crossing</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 8 · Meeting the Ally</div>
+      <h3>The Oasis of the Heart</h3>
+      <div class="body">A place of beauty: love, rest, connection, gratitude, healing. The Heartkeeper teaches that achievement without inner connection becomes another mask. <em>You can't hate yourself into greatness. You can't become free while at war with yourself.</em> This is where Fill the Cup enters.</div>
+      <div class="ex"><div class="lbl">Exercise · Fill the Cup</div><div class="qs">What am I grateful for? Where am I emotionally empty? What must I receive before I produce? What value do I want to live from today? What would Love do right now?</div></div>
+      <div class="meta"><span class="chip alc">≈ Fatima at the oasis</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 9 · Reading the Omens</div>
+      <h3>The Omen Becomes a Pattern</h3>
+      <div class="body">The Seeker notices the same resistance keeps appearing — not random. They avoid when exposed, numb under pressure, blame when ashamed, rush when behind, shrink when they should be seen, sabotage when success gets close. <b>Pattern Detected.</b> The question shifts from "What do I need to do?" to "What pattern is running me?"</div>
+      <div class="ex"><div class="lbl">Exercise · Pattern Recognition</div><div class="qs">Where have I seen this before? What emotion came before the pattern? What mask showed up? What did it protect? What Essence was missing? What proof breaks the loop?</div></div>
+      <div class="meta"><span class="chip alc">≈ Learning to read omens</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 10 · The Innermost Cave</div>
+      <h3>The Shadow Gate</h3>
+      <div class="body">Near a major milestone, resistance gets loudest. At 195 of 200 sales, Broke King appears. Before publishing, Silent Prophet. Before a breakthrough, Addict Saint. Before leadership, Raging Victim. Before a big decision, Naive Warrior. The realization: <b>the shadow doesn't guard the past — it guards the next level.</b></div>
+      <div class="ex"><div class="lbl">Exercise · Survival Mechanism Boss Encounter</div><div class="qs">What mask is active? What is it saying? What's it protecting? What's the old belief? What's the Essence truth? What proof action proves the new identity?</div></div>
+      <div class="meta"><span class="chip alc">≈ The horseman / war zone</span><span class="chip mask">Any mask, at full volume</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="cn">Chapter 11 · The True Mentor</div>
+      <h3>The Alchemist Within</h3>
+      <div class="body">The final mentor isn't another person — it's the higher self, the version that already knows. <em>"Alchemy is not turning metal into gold. Alchemy is turning survival into Essence."</em> The Seeker learns to transmute scarcity, escape, silence, blame, and rushing into their Essence powers.</div>
+      <div class="ex"><div class="lbl">Exercise · Essence Return (the ritual)</div><div class="qs">Mask Detected → Awareness Mirror → Breathing Reset → Essence Activated → Proof Action Selected → Milestone Progress Updated → Reward Earned.</div></div>
+      <div class="meta"><span class="chip alc">≈ The Alchemist teaches the heart</span></div>
+    </div>
+
+    <div class="ch" data-z="ordeal">
+      <div class="cn">Chapter 12 · The Supreme Ordeal</div>
+      <h3>The Impossible Test</h3>
+      <div class="body">The Seeker is asked to do what the old identity cannot: speak when they want to hide, stay sober when they want to escape, lead when they want to blame, decide when they want to freeze. The "become the wind" moment — passable not by strategy but by <b>being</b> the Essence. Not think about Power — be Power. Not want Joy — be Joy.</div>
+      <div class="ex"><div class="lbl">Exercise · Being Before Doing</div><div class="qs">Who am I being right now? What mask wants to act? What Essence must lead? What would that Essence do in the next 10 minutes? What proof will I create before the day ends?</div></div>
+      <div class="meta"><span class="chip alc">≈ Turning into the wind</span></div>
+    </div>
+
+    <div class="ch" data-z="ordeal">
+      <div class="cn">Chapter 13 · The Reward</div>
+      <h3>The Treasure Gate</h3>
+      <div class="body">The final milestone is reached. The sale count hit, the app launched, the money made, the body transformed. The chest opens — and inside is a mirror. The game asks: <em>"Who did you become?"</em> The Seeker sees the whole journey and realizes the milestone was the proof; the identity was the treasure.</div>
+      <div class="ex"><div class="lbl">Exercise · Completion Reflection</div><div class="qs">What did I achieve? Who did I become? What mask did I outgrow? What Essence did I strengthen? What proof changed everything? What reward did I earn? What's the next dream?</div></div>
+      <div class="meta"><span class="chip alc">≈ The treasure, finally recognizable</span></div>
+    </div>
+
+    <div class="ch" data-z="return">
+      <div class="cn">Chapter 14 · Return with the Elixir</div>
+      <h3>The Return Home</h3>
+      <div class="body">The Seeker returns to ordinary life — but it's no longer ordinary. Same work, same body, same money, same relationships, all different, because <b>the Seeker is different.</b> They were never escaping life; they were learning to live it from Essence. The next dream appears. The map resets. A new project begins.</div>
+      <div class="ex"><div class="lbl">Final Teaching</div><div class="qs">You don't complete one milestone and become finished. You complete one and become ready for the next level. The treasure was the transformation — and the transformation becomes the new starting point.</div></div>
+      <div class="meta"><span class="chip alc">≈ Home, now legible</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 06 FORMULA -->
+<section id="formula" class="wrap">
+  <div class="part-tag">Part 06 · The Spine</div>
+  <h2>The complete story formula</h2>
+  <p class="lead">Every chapter, every project, every loop follows this chain. It's the DNA of the whole system.</p>
+  <div class="formula">
+    <div class="fstep">A <b>dream</b> appears</div>
+    <div class="fstep">becomes a <b>project</b></div>
+    <div class="fstep">becomes a <b>map</b></div>
+    <div class="fstep">reveals the <b>gates</b></div>
+    <div class="fstep">gates require <b>proof</b></div>
+    <div class="fstep">proof creates <b>resistance</b></div>
+    <div class="fstep">resistance reveals the <b>mask</b></div>
+    <div class="fstep">mask reveals the <b>wound</b></div>
+    <div class="fstep">wound reveals missing <b>Essence</b></div>
+    <div class="fstep">Essence creates <b>clean action</b></div>
+    <div class="fstep">action creates <b>progress</b></div>
+    <div class="fstep">progress earns <b>reward</b></div>
+    <div class="fstep">reward confirms <b>identity</b></div>
+    <div class="fstep">identity unlocks the <b>next dream</b></div>
+  </div>
+
+  <div class="callout amber">
+    <div class="lbl">The core message</div>
+    <p>Milestone Mapping is not goal setting. It's <b>identity alchemy.</b> They enter with a dream and leave with proof. They enter chasing success and leave understanding themselves. They enter wanting the treasure — and leave realizing the treasure was who they became.</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <span class="big">The treasure was who they became.</span>
+  THE DIAMOND PATH · GAMEPLAY STORY BIBLE · STORY FOUNDATION — NOT A BUILD
+</footer>
+
+</body>
+</html>

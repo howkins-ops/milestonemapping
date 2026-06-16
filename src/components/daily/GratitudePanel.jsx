@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import TextArea from "../ui/TextArea.jsx";
-import SectionHeader from "../ui/SectionHeader.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useToasts } from "../../hooks/useToasts.js";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -61,38 +60,50 @@ export default function GratitudePanel() {
   };
 
   return (
-    <section>
-      <SectionHeader title="Morning Gratitude" icon="🌅" sub="5 minutes of morning gratitude cuts anxiety by 23%. Science-backed. Let's prime." />
-      <Card>
-        <div className="stack">
+    <section className="gratitude-ritual">
+      <Card className="gratitude-card ritual-image-card ritual-image-card--gratitude">
+        <div className="gratitude-card__art" aria-hidden="true" />
+        <div className="gratitude-card__header">
+          <div>
+            <span className="gratitude-card__eyebrow">PRIME YOUR STATE</span>
+            <h2 className="gratitude-card__title">Gratitude Lock-In</h2>
+            <p className="gratitude-card__sub">Find the win, honor the person, alchemize the hard thing.</p>
+          </div>
+        </div>
+
+        <div className="gratitude-prompt-grid">
           <TextArea
+            className="gratitude-prompt gratitude-prompt--win"
             label="What are you grateful for this morning?"
             rows={2}
-            placeholder="A win, a feeling, or a simple moment you don't want to take for granted..."
+            placeholder="A win, a feeling, a moment..."
             value={form.entry1}
             onChange={(e) => setForm({ ...form, entry1: e.target.value })}
           />
           <TextArea
+            className="gratitude-prompt gratitude-prompt--person"
             label="Who are you grateful for?"
             rows={2}
-            placeholder="Someone who believed in you, pushed you, or showed up when it mattered..."
+            placeholder="Someone who showed up for you..."
             value={form.entry2}
             onChange={(e) => setForm({ ...form, entry2: e.target.value })}
           />
           <TextArea
+            className="gratitude-prompt gratitude-prompt--hardship"
             label="What hardship are you grateful for?"
             rows={2}
-            placeholder="The no that redirected you, the deal that fell through, the struggle that made you..."
+            placeholder="A struggle that made you stronger..."
             value={form.entry3}
             onChange={(e) => setForm({ ...form, entry3: e.target.value })}
           />
+        </div>
 
           {!impactVisible && (
             <Button
               variant="secondary"
+              className="gratitude-lock-btn"
               onClick={save}
               disabled={!allFilled || saving}
-              style={{ alignSelf: "flex-start" }}
             >
               {saving ? "Saving..." : "Lock In Gratitude"}
             </Button>
@@ -146,7 +157,6 @@ export default function GratitudePanel() {
               </button>
             </div>
           )}
-        </div>
       </Card>
     </section>
   );

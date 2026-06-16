@@ -1,26 +1,87 @@
 import React from "react";
-import { getNodeAsset, milestoneWorldAssets as MWA } from "../../data/assetRegistry.js";
 
-function NodeIcon({ status }) {
+function NodeOrbSVG({ status }) {
   if (status === "completed") {
     return (
-      <svg viewBox="0 0 42 42" aria-hidden="true">
-        <path d="M11 22.5 18 29l14-17" />
+      <svg viewBox="0 0 44 44" aria-hidden="true" className="trail-node__glyph" style={{ overflow: "visible" }}>
+        <circle cx="22" cy="22" r="20" style={{ fill: "currentColor", fillOpacity: 0.1, stroke: "none" }} />
+        <circle cx="22" cy="22" r="20" style={{ fill: "none", stroke: "currentColor", strokeWidth: 1, strokeOpacity: 0.3 }} />
+        <path
+          d="M12 23 19 30 33 14"
+          style={{
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: 3,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            filter: "drop-shadow(0 0 5px currentColor)",
+          }}
+        />
       </svg>
     );
   }
+
   if (status === "locked") {
     return (
-      <svg viewBox="0 0 42 42" aria-hidden="true">
-        <path d="M13 19h16v14H13z" />
-        <path d="M17 19v-5a4 4 0 0 1 8 0v5" />
+      <svg viewBox="0 0 44 44" aria-hidden="true" className="trail-node__glyph" style={{ overflow: "visible" }}>
+        <polygon
+          points="22,2 40,12 40,32 22,42 4,32 4,12"
+          style={{ fill: "currentColor", fillOpacity: 0.06, stroke: "currentColor", strokeWidth: 1.5, strokeOpacity: 0.4 }}
+        />
+        <rect
+          x="14" y="22" width="16" height="12" rx="2"
+          style={{ fill: "currentColor", fillOpacity: 0.18, stroke: "currentColor", strokeWidth: 2 }}
+        />
+        <path
+          d="M17 22v-5a5 5 0 0 1 10 0v5"
+          style={{ fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" }}
+        />
       </svg>
     );
   }
+
+  if (status === "in_progress") {
+    return (
+      <svg viewBox="0 0 44 44" aria-hidden="true" className="trail-node__glyph" style={{ overflow: "visible" }}>
+        <circle cx="22" cy="22" r="20" style={{ fill: "currentColor", fillOpacity: 0.08, stroke: "none" }} />
+        <circle
+          cx="22" cy="22" r="17"
+          className="trail-node__orbit"
+          style={{ fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeDasharray: "4 6", strokeOpacity: 0.7 }}
+        />
+        <path
+          d="M18 30 L22 14 L26 23 L29 18"
+          style={{
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: 2.5,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            filter: "drop-shadow(0 0 5px currentColor)",
+          }}
+        />
+      </svg>
+    );
+  }
+
+  // active (default)
   return (
-    <svg viewBox="0 0 42 42" aria-hidden="true">
-      <path d="M7 31h28L25.5 12 19 24l-4-7L7 31Z" />
-      <path d="M24 12h8l-2 4 2 4h-8" />
+    <svg viewBox="0 0 44 44" aria-hidden="true" className="trail-node__glyph" style={{ overflow: "visible" }}>
+      <circle cx="22" cy="22" r="20" style={{ fill: "currentColor", fillOpacity: 0.1, stroke: "none" }} />
+      <circle cx="22" cy="22" r="19" style={{ fill: "none", stroke: "currentColor", strokeWidth: 0.8, strokeOpacity: 0.35 }} />
+      <circle cx="22" cy="22" r="15" style={{ fill: "none", stroke: "currentColor", strokeWidth: 0.5, strokeOpacity: 0.2 }} />
+      <path
+        d="M8 33h28L26 11 20 24l-5-7L8 33Z"
+        style={{
+          fill: "currentColor",
+          fillOpacity: 0.2,
+          stroke: "currentColor",
+          strokeWidth: 2,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          filter: "drop-shadow(0 0 6px currentColor)",
+        }}
+      />
     </svg>
   );
 }
@@ -30,7 +91,6 @@ export default function MapNode({
   point,
   status,
   index,
-  isFinalGoal,
   isOpening,
   isNewlyUnlocked,
   isShaking,
@@ -40,51 +100,61 @@ export default function MapNode({
   onPointerMove,
   onPointerUp,
 }) {
-  const trailSrc =
-    status === "locked"
-      ? MWA.trails.locked
-      : status === "completed"
-      ? MWA.trails.completed
-      : MWA.trails.active;
-
   const className = [
     "trail-node",
     `is-${status}`,
-    isDragging      ? "is-dragging"        : "",
-    isOpening       ? "is-opening"         : "",
-    isNewlyUnlocked ? "is-newly-unlocked"  : "",
-    isShaking       ? "is-shake"           : "",
+    isDragging      ? "is-dragging"       : "",
+    isOpening       ? "is-opening"        : "",
+    isNewlyUnlocked ? "is-newly-unlocked" : "",
+    isShaking       ? "is-shake"          : "",
   ].filter(Boolean).join(" ");
+
+  const cardSide = point.side || (index % 2 === 0 ? "right" : "left");
+
+  const statusLabel =
+    status === "in_progress" ? "In Progress"
+    : status === "completed" ? "Completed"
+    : status === "active"    ? "Active"
+    : "Locked";
 
   return (
     <button
       type="button"
       className={className}
-      style={{ left: `${point.x}%`, top: point.y, touchAction: "none", "--node-delay": `${index * 70}ms` }}
+      style={{
+        left: `${point.x}%`,
+        top: point.y,
+        touchAction: "none",
+        "--node-delay": `${index * 70}ms`,
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       aria-label={`${milestone.title}: ${status}`}
     >
-      <span className="trail-node__segment" aria-hidden="true">
-        <img src={trailSrc} alt="" />
-      </span>
       <span className="trail-node__orb">
-        <img
-          className="trail-node__sprite"
-          src={getNodeAsset(status, isFinalGoal)}
-          alt=""
-          onError={(e) => { e.currentTarget.style.opacity = "0.4"; }}
-        />
-        <span className="trail-node__state-mark">
-          <NodeIcon status={status} />
-        </span>
+        <NodeOrbSVG status={status} />
       </span>
+
       {status !== "locked" && (
         <span className="trail-node__burst" aria-hidden="true">
-          {Array.from({ length: 6 }, (_, spark) => <i key={spark} style={{ "--spark": spark }} />)}
+          {Array.from({ length: 6 }, (_, spark) => (
+            <i key={spark} style={{ "--spark": spark }} />
+          ))}
         </span>
       )}
+
+      <span className={`trail-node__card trail-node__card--${cardSide}`}>
+        <span className="trail-node__title">Milestone {index + 1}</span>
+        <strong>{milestone.title}</strong>
+        <span className="trail-node__progress">{statusLabel}</span>
+        {(status === "active" || status === "in_progress") && (
+          <span className="trail-node__bar">
+            <i style={{ width: `${milestone.progress ?? 0}%` }} />
+          </span>
+        )}
+      </span>
+
       {showLockedTooltip && (
         <span className="trail-node__locked-tip" role="tooltip">
           Complete the previous milestone first.
