@@ -5,10 +5,36 @@ import { supabase } from "../../lib/supabase.js";
 
 function LogoSVG({ size = 22 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M12 2L3 7v13l9-3 9 3V7L12 2z" fill="rgba(29,232,255,0.15)" stroke="#1de8ff" strokeWidth="1.5" strokeLinejoin="round"/>
-      <path d="M12 2v17" stroke="#1de8ff" strokeWidth="1.5"/>
-      <path d="M3 7l9 3 9-3" stroke="#1de8ff" strokeWidth="1.5" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 72 72" fill="none" style={{ flexShrink: 0, display: "block" }}>
+      <defs>
+        <linearGradient id="brandWing" x1="12" y1="24" x2="60" y2="58" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#00e7ff"/>
+          <stop offset="0.48" stopColor="#4f72ff"/>
+          <stop offset="1" stopColor="#ff35d4"/>
+        </linearGradient>
+        <linearGradient id="brandDiamond" x1="26" y1="6" x2="47" y2="28" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#18f6ff"/>
+          <stop offset="0.55" stopColor="#7c5cff"/>
+          <stop offset="1" stopColor="#ff4be1"/>
+        </linearGradient>
+        <filter id="brandGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.8" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path d="M12 48C9 33 18 17 34 13" stroke="#00e7ff" strokeWidth="1.7" strokeLinecap="round" opacity="0.78"/>
+      <path d="M58 20c8 15 2 33-14 41" stroke="#ff35d4" strokeWidth="1.7" strokeLinecap="round" strokeDasharray="4 4" opacity="0.78"/>
+      <circle cx="12" cy="48" r="3.3" stroke="#27dfff" strokeWidth="1.7"/>
+      <circle cx="58" cy="20" r="3.3" stroke="#b36cff" strokeWidth="1.7"/>
+      <g filter="url(#brandGlow)">
+        <path d="M36 9 48 21 36 31 24 21 36 9Z" fill="rgba(24,246,255,0.08)" stroke="url(#brandDiamond)" strokeWidth="2" strokeLinejoin="round"/>
+        <path d="M24 21h24M30 12l6 19 6-19M30 12h12" stroke="#dffbff" strokeWidth="1.1" opacity="0.85"/>
+        <path d="M36 31c-4 2-7 5-8 9 3-2 5-2 8-1 3-1 5-1 8 1-1-4-4-7-8-9Z" fill="#eafcff" opacity="0.92"/>
+        <path d="M35 38c-7 0-14-4-22-15 2 12 10 19 20 22-8 2-15 0-21-4 4 8 12 12 22 11-5 4-9 6-14 7 8 3 15 1 20-5l-4 12c10-8 14-19 10-31-2 3-5 4-11 3Z" fill="url(#brandWing)"/>
+        <path d="M37 38c7 0 14-4 22-15-2 12-10 19-20 22 8 2 15 0 21-4-4 8-12 12-22 11 5 4 9 6 14 7-8 3-15 1-20-5l4 12c-10-8-14-19-10-31 2 3 5 4 11 3Z" fill="url(#brandWing)" opacity="0.92"/>
+        <path d="M36 36c-3 5-4 14-1 26 5-8 9-15 7-24-2 1-4 0-6-2Z" fill="url(#brandWing)"/>
+        <path d="M39 35c3 0 5-1 7-3-4-1-8-1-12 1 1 2 3 3 5 2Z" fill="#eefcff"/>
+      </g>
     </svg>
   );
 }
@@ -238,7 +264,7 @@ export default function AuthGate({ children }) {
         {/* Q1 — Hero text */}
         <div style={{ ...S.q1, ...(isNarrow ? S.q1Mobile : null) }}>
           <div style={S.logo}>
-            <LogoSVG size={24} />
+            <LogoSVG size={34} />
             <div>
               <div style={S.logoLine1}>MILESTONE</div>
               <div style={S.logoLine2}>MAPPING</div>
@@ -329,7 +355,7 @@ export default function AuthGate({ children }) {
           <div style={S.glowBar} />
 
           <div style={S.loginLogo}>
-            <LogoSVG size={16} />
+            <LogoSVG size={24} />
             <span style={S.loginLogoText}>MILESTONE MAPPING</span>
           </div>
 
