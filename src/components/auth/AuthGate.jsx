@@ -462,7 +462,8 @@ const S = {
   // Q1 — hero text
   q1: {
     padding: "2.4rem 2.2rem",
-    borderRight: BORDER,
+    borderLeft: BORDER,
+    gridColumn: 2,
     gridRow: "1 / span 2",
     background:
       "radial-gradient(ellipse at 0% 0%, rgba(255,63,180,0.07) 0%, transparent 60%)," +
@@ -473,7 +474,9 @@ const S = {
   },
   q1Mobile: {
     order: 3,
+    gridColumn: "auto",
     gridRow: "auto",
+    borderLeft: "none",
     borderRight: "none",
     borderTop: BORDER,
     borderBottom: "none",
@@ -485,6 +488,8 @@ const S = {
   q3: {
     padding: "1.65rem 2.2rem 1.35rem",
     borderBottom: BORDER,
+    gridColumn: 1,
+    gridRow: 1,
     background: "rgba(4,6,14,0.6)",
     display: "flex",
     flexDirection: "column",
@@ -492,12 +497,16 @@ const S = {
   },
   q3Mobile: {
     order: 1,
+    gridColumn: "auto",
+    gridRow: "auto",
     padding: "1.1rem 1.1rem 0.95rem",
   },
 
   // Q4 — login (pure black)
   q4: {
     padding: "2.15rem 2.2rem",
+    gridColumn: 1,
+    gridRow: 2,
     background: "#000000",
     display: "flex",
     flexDirection: "column",
@@ -507,6 +516,8 @@ const S = {
   },
   q4Mobile: {
     order: 2,
+    gridColumn: "auto",
+    gridRow: "auto",
     padding: "1.35rem 1.2rem 1.55rem",
     justifyContent: "center",
     minHeight: "calc(100dvh - 170px)",
