@@ -169,12 +169,21 @@ export default function AuthGate({ children }) {
   const [error, setError]       = useState("");
   const [info, setInfo]         = useState("");
   const [busy, setBusy]         = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     if (!supabase) { setSession(null); return; }
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s ?? null));
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const handleChange = () => setIsNarrow(query.matches);
+    handleChange();
+    query.addEventListener("change", handleChange);
+    return () => query.removeEventListener("change", handleChange);
   }, []);
 
   if (session === undefined) {
@@ -220,14 +229,14 @@ export default function AuthGate({ children }) {
   const loginCTA   = mode === "signup" ? "CREATE ACCOUNT" : mode === "reset" ? "SEND RESET LINK" : "SIGN IN";
 
   return (
-    <div style={S.root}>
+    <div style={{ ...S.root, ...(isNarrow ? S.rootMobile : null) }}>
       <div style={S.scanline} />
 
       {/* ── 2×2 GRID ─────────────────────────────────────────── */}
-      <div style={S.grid}>
+      <div style={{ ...S.grid, ...(isNarrow ? S.gridMobile : null) }}>
 
         {/* Q1 — Hero text */}
-        <div style={S.q1}>
+        <div style={{ ...S.q1, ...(isNarrow ? S.q1Mobile : null) }}>
           <div style={S.logo}>
             <LogoSVG size={24} />
             <div>
@@ -268,13 +277,8 @@ export default function AuthGate({ children }) {
           </p>
         </div>
 
-        {/* Q2 — Phoenix */}
-        <div style={S.q2}>
-          <PhoenixHero />
-        </div>
-
         {/* Q3 — Enter the Map */}
-        <div style={S.q3}>
+        <div style={{ ...S.q3, ...(isNarrow ? S.q3Mobile : null) }}>
           <h2 style={S.enterTitle}>ENTER THE MAP</h2>
           <p style={S.enterSub}>Continue your transformation.<br/>Your next milestone is waiting.</p>
 
@@ -321,7 +325,7 @@ export default function AuthGate({ children }) {
         </div>
 
         {/* Q4 — Login (pure black) */}
-        <div style={S.q4}>
+        <div style={{ ...S.q4, ...(isNarrow ? S.q4Mobile : null) }}>
           <div style={S.glowBar} />
 
           <div style={S.loginLogo}>
@@ -390,7 +394,7 @@ export default function AuthGate({ children }) {
       </div>
 
       {/* Footer */}
-      <footer style={S.footer}>
+      <footer style={{ ...S.footer, ...(isNarrow ? S.footerMobile : null) }}>
         <span>© 2024 Milestone Mapping. All rights reserved.</span>
         <div style={{ display: "flex", gap: "1.2rem" }}>
           <span style={S.footerLink}>Privacy Policy</span>
@@ -422,6 +426,11 @@ const S = {
     color: "#eafbff",
     position: "relative",
   },
+  rootMobile: {
+    alignItems: "stretch",
+    justifyContent: "flex-start",
+    padding: "0.75rem",
+  },
   scanline: {
     position: "fixed",
     inset: 0,
@@ -433,53 +442,65 @@ const S = {
   // ── 2×2 grid ──
   grid: {
     display: "grid",
-    gridTemplateColumns: "55fr 45fr",
+    gridTemplateColumns: "minmax(0, 1.05fr) minmax(360px, 0.95fr)",
     gridTemplateRows: "auto auto",
     width: "100%",
-    maxWidth: "1240px",
+    maxWidth: "1040px",
     border: BORDER,
     borderRadius: "14px",
     overflow: "hidden",
     boxShadow: "0 0 60px rgba(29,232,255,0.05), 0 0 120px rgba(139,92,255,0.04)",
+  },
+  gridMobile: {
+    gridTemplateColumns: "1fr",
+    gridTemplateRows: "auto",
+    maxWidth: "520px",
   },
 
   // Q1 — hero text
   q1: {
     padding: "2.4rem 2.2rem",
     borderRight: BORDER,
-    borderBottom: BORDER,
+    gridRow: "1 / span 2",
     background:
       "radial-gradient(ellipse at 0% 0%, rgba(255,63,180,0.07) 0%, transparent 60%)," +
       "rgba(4,6,14,0.7)",
     display: "flex",
     flexDirection: "column",
+    justifyContent: "center",
   },
-
-  // Q2 — phoenix
-  q2: {
+  q1Mobile: {
+    gridRow: "auto",
+    borderRight: "none",
     borderBottom: BORDER,
-    background: "rgba(4,6,14,0.5)",
-    minHeight: "420px",
-    position: "relative",
-    overflow: "hidden",
+    padding: "1.45rem 1.25rem",
+    justifyContent: "flex-start",
   },
 
   // Q3 — enter the map
   q3: {
     padding: "2rem 2.2rem",
-    borderRight: BORDER,
+    borderBottom: BORDER,
     background: "rgba(4,6,14,0.6)",
     display: "flex",
     flexDirection: "column",
   },
+  q3Mobile: {
+    padding: "1.35rem 1.25rem",
+  },
 
   // Q4 — login (pure black)
   q4: {
-    padding: "2rem 2.2rem",
+    padding: "2.15rem 2.2rem",
     background: "#000000",
     display: "flex",
     flexDirection: "column",
+    justifyContent: "center",
     position: "relative",
+  },
+  q4Mobile: {
+    padding: "1.5rem 1.25rem 1.7rem",
+    justifyContent: "flex-start",
   },
 
   // Logo
@@ -629,6 +650,13 @@ const S = {
     alignItems: "center",
     fontSize: "0.65rem",
     color: "rgba(234,251,255,0.28)",
+  },
+  footerMobile: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    gap: "0.55rem",
+    maxWidth: "520px",
+    padding: "0.75rem 0.1rem",
   },
   footerLink: { color: "rgba(234,251,255,0.4)", cursor: "pointer" },
 };
