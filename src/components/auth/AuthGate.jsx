@@ -430,6 +430,8 @@ const S = {
     alignItems: "stretch",
     justifyContent: "flex-start",
     padding: "0.75rem",
+    minHeight: "100dvh",
+    overflowY: "auto",
   },
   scanline: {
     position: "fixed",
@@ -470,23 +472,27 @@ const S = {
     justifyContent: "center",
   },
   q1Mobile: {
+    order: 3,
     gridRow: "auto",
     borderRight: "none",
-    borderBottom: BORDER,
+    borderTop: BORDER,
+    borderBottom: "none",
     padding: "1.45rem 1.25rem",
     justifyContent: "flex-start",
   },
 
   // Q3 — enter the map
   q3: {
-    padding: "2rem 2.2rem",
+    padding: "1.65rem 2.2rem 1.35rem",
     borderBottom: BORDER,
     background: "rgba(4,6,14,0.6)",
     display: "flex",
     flexDirection: "column",
+    justifyContent: "center",
   },
   q3Mobile: {
-    padding: "1.35rem 1.25rem",
+    order: 1,
+    padding: "1.1rem 1.1rem 0.95rem",
   },
 
   // Q4 — login (pure black)
@@ -496,11 +502,14 @@ const S = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
+    minHeight: "390px",
     position: "relative",
   },
   q4Mobile: {
-    padding: "1.5rem 1.25rem 1.7rem",
-    justifyContent: "flex-start",
+    order: 2,
+    padding: "1.35rem 1.2rem 1.55rem",
+    justifyContent: "center",
+    minHeight: "calc(100dvh - 170px)",
   },
 
   // Logo
@@ -543,7 +552,7 @@ const S = {
 
   // CTA
   cta: {
-    display: "inline-flex",
+    display: "none",
     alignItems: "center",
     gap: "0.45rem",
     alignSelf: "flex-start",
@@ -558,7 +567,7 @@ const S = {
     cursor: "pointer",
     boxShadow: "0 0 22px rgba(139,92,255,0.4)",
   },
-  ctaSub:  { margin: "0.8rem 0 0", fontSize: "0.74rem", color: "rgba(234,251,255,0.42)" },
+  ctaSub:  { display: "none", margin: "0.8rem 0 0", fontSize: "0.74rem", color: "rgba(234,251,255,0.42)" },
   ctaLink: { background: "none", border: "none", color: "#1de8ff", fontSize: "0.74rem", cursor: "pointer", padding: 0, textDecoration: "underline", textUnderlineOffset: "2px" },
 
   // Enter the Map
@@ -583,7 +592,7 @@ const S = {
   stepLabel: { fontSize: "0.53rem", letterSpacing: "0.12em", color: "rgba(234,251,255,0.52)", fontWeight: 600 },
 
   // Badges
-  badges: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.55rem", marginTop: "auto" },
+  badges: { display: "none", gridTemplateColumns: "1fr 1fr", gap: "0.55rem", marginTop: "auto" },
   badge:  {
     padding: "0.75rem",
     background: "rgba(255,255,255,0.02)",
