@@ -5,35 +5,29 @@ import { supabase } from "../../lib/supabase.js";
 
 function LogoSVG({ size = 22 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 72 72" fill="none" style={{ flexShrink: 0, display: "block" }}>
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ flexShrink: 0, display: "block" }}>
       <defs>
-        <linearGradient id="brandWing" x1="12" y1="24" x2="60" y2="58" gradientUnits="userSpaceOnUse">
+        <linearGradient id="brandWing" x1="12" y1="18" x2="52" y2="56" gradientUnits="userSpaceOnUse">
           <stop stopColor="#00e7ff"/>
-          <stop offset="0.48" stopColor="#4f72ff"/>
+          <stop offset="0.5" stopColor="#4b6cff"/>
           <stop offset="1" stopColor="#ff35d4"/>
         </linearGradient>
-        <linearGradient id="brandDiamond" x1="26" y1="6" x2="47" y2="28" gradientUnits="userSpaceOnUse">
+        <linearGradient id="brandDiamond" x1="23" y1="6" x2="42" y2="25" gradientUnits="userSpaceOnUse">
           <stop stopColor="#18f6ff"/>
-          <stop offset="0.55" stopColor="#7c5cff"/>
+          <stop offset="0.55" stopColor="#865cff"/>
           <stop offset="1" stopColor="#ff4be1"/>
         </linearGradient>
-        <filter id="brandGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="1.8" result="blur"/>
+        <filter id="brandGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.1" result="blur"/>
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
-      <path d="M12 48C9 33 18 17 34 13" stroke="#00e7ff" strokeWidth="1.7" strokeLinecap="round" opacity="0.78"/>
-      <path d="M58 20c8 15 2 33-14 41" stroke="#ff35d4" strokeWidth="1.7" strokeLinecap="round" strokeDasharray="4 4" opacity="0.78"/>
-      <circle cx="12" cy="48" r="3.3" stroke="#27dfff" strokeWidth="1.7"/>
-      <circle cx="58" cy="20" r="3.3" stroke="#b36cff" strokeWidth="1.7"/>
       <g filter="url(#brandGlow)">
-        <path d="M36 9 48 21 36 31 24 21 36 9Z" fill="rgba(24,246,255,0.08)" stroke="url(#brandDiamond)" strokeWidth="2" strokeLinejoin="round"/>
-        <path d="M24 21h24M30 12l6 19 6-19M30 12h12" stroke="#dffbff" strokeWidth="1.1" opacity="0.85"/>
-        <path d="M36 31c-4 2-7 5-8 9 3-2 5-2 8-1 3-1 5-1 8 1-1-4-4-7-8-9Z" fill="#eafcff" opacity="0.92"/>
-        <path d="M35 38c-7 0-14-4-22-15 2 12 10 19 20 22-8 2-15 0-21-4 4 8 12 12 22 11-5 4-9 6-14 7 8 3 15 1 20-5l-4 12c10-8 14-19 10-31-2 3-5 4-11 3Z" fill="url(#brandWing)"/>
-        <path d="M37 38c7 0 14-4 22-15-2 12-10 19-20 22 8 2 15 0 21-4-4 8-12 12-22 11 5 4 9 6 14 7-8 3-15 1-20-5l4 12c-10-8-14-19-10-31 2 3 5 4 11 3Z" fill="url(#brandWing)" opacity="0.92"/>
-        <path d="M36 36c-3 5-4 14-1 26 5-8 9-15 7-24-2 1-4 0-6-2Z" fill="url(#brandWing)"/>
-        <path d="M39 35c3 0 5-1 7-3-4-1-8-1-12 1 1 2 3 3 5 2Z" fill="#eefcff"/>
+        <path d="M32 6 43 17 32 27 21 17 32 6Z" fill="rgba(24,246,255,0.08)" stroke="url(#brandDiamond)" strokeWidth="2.4" strokeLinejoin="round"/>
+        <path d="M21 17h22M26 10l6 17 6-17" stroke="#effcff" strokeWidth="1.15" opacity="0.8"/>
+        <path d="M30 28c-5 1-10 4-15 10-3 4-5 8-7 13 10-2 18-7 24-16 6 9 14 14 24 16-2-5-4-9-7-13-5-6-10-9-15-10l-2 5-2-5Z" fill="url(#brandWing)"/>
+        <path d="M32 34c-4 6-4 14 0 24 4-10 4-18 0-24Z" fill="url(#brandWing)"/>
+        <path d="M32 29c-4 2-6 4-7 7 5-2 9-2 14 0-1-3-3-5-7-7Z" fill="#effcff"/>
       </g>
     </svg>
   );
@@ -264,7 +258,7 @@ export default function AuthGate({ children }) {
         {/* Q1 — Hero text */}
         <div style={{ ...S.q1, ...(isNarrow ? S.q1Mobile : null) }}>
           <div style={S.logo}>
-            <LogoSVG size={34} />
+            <LogoSVG size={30} />
             <div>
               <div style={S.logoLine1}>MILESTONE</div>
               <div style={S.logoLine2}>MAPPING</div>
@@ -355,7 +349,7 @@ export default function AuthGate({ children }) {
           <div style={S.glowBar} />
 
           <div style={S.loginLogo}>
-            <LogoSVG size={24} />
+            <LogoSVG size={20} />
             <span style={S.loginLogoText}>MILESTONE MAPPING</span>
           </div>
 
