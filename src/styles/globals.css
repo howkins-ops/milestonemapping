@@ -3360,6 +3360,12 @@ button {
 .trail-world__manager-ctrls button:hover { color: var(--brand-cyan); border-color: rgba(0, 240, 255, 0.4); }
 .trail-world__manager-ctrls button:disabled { opacity: 0.3; cursor: default; }
 .trail-world__manager-ctrls button.is-danger:hover { color: var(--brand-red); border-color: rgba(255, 59, 92, 0.5); }
+.trail-world__manager-ctrls button.is-save {
+  color: var(--brand-green);
+  border-color: rgba(0, 255, 191, 0.5);
+  background: rgba(0, 255, 191, 0.1);
+}
+.trail-world__manager-ctrls button.is-save:hover { color: var(--brand-green); border-color: rgba(0, 255, 191, 0.8); }
 
 /* Drag handle — pointer-based reordering (works on touch + desktop). */
 .trail-world__manager-grip {

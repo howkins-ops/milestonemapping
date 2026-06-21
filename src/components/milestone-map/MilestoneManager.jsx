@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
 import { CATEGORIES } from "../../lib/constants.js";
-import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
 import ConfirmModal from "../ui/ConfirmModal.jsx";
 
 const STATUS_DOT = {
@@ -27,8 +26,11 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
   const [draft, setDraft] = useState("");
   const [draftCategory, setDraftCategory] = useState(project.category || "Business");
 
+  // inline rename (✎) — edit the name in place and save immediately
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
   // modals
-  const [wizardInitial, setWizardInitial] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
 
   // ── drag-to-reorder (pointer-based, so it works on touch + desktop) ─────────
@@ -120,6 +122,21 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
     setDraft("");
   };
 
+  const startRename = (m) => {
+    setEditingId(m.id);
+    setEditingTitle(m.title || "");
+  };
+
+  const commitRename = (id) => {
+    const title = editingTitle.trim();
+    const current = list.find((m) => m.id === id);
+    if (title && title !== (current?.title || "")) {
+      updateMilestone(id, { title }); // updates state + syncs to backend
+    }
+    setEditingId(null);
+    setEditingTitle("");
+  };
+
   return createPortal(
     <div
       className="ms-manager-overlay"
@@ -171,19 +188,49 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
             <span className="trail-world__manager-pos">{String(i + 1).padStart(2, "0")}</span>
             <i className={`trail-world__manager-dot ${dotClass(m.status)}`} aria-hidden="true" />
 
-            <button
-              type="button"
-              className="trail-world__manager-title"
-              title={m.title}
-              onClick={() => onOpenMilestone(m.id)}
-            >
-              {m.title || "Untitled"}
-            </button>
+            {editingId === m.id ? (
+              <input
+                className="trail-world__manager-rename"
+                value={editingTitle}
+                autoFocus
+                onChange={(e) => setEditingTitle(e.target.value)}
+                onBlur={() => commitRename(m.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitRename(m.id);
+                  if (e.key === "Escape") {
+                    setEditingId(null);
+                    setEditingTitle("");
+                  }
+                }}
+                aria-label="Edit milestone name"
+              />
+            ) : (
+              <button
+                type="button"
+                className="trail-world__manager-title"
+                title={m.title}
+                onClick={() => onOpenMilestone(m.id)}
+              >
+                {m.title || "Untitled"}
+              </button>
+            )}
 
             <div className="trail-world__manager-ctrls">
-              <button type="button" onClick={() => setWizardInitial(m)} aria-label="Edit milestone" title="Edit">
-                ✎
-              </button>
+              {editingId === m.id ? (
+                <button
+                  type="button"
+                  className="is-save"
+                  onClick={() => commitRename(m.id)}
+                  aria-label="Save name"
+                  title="Save"
+                >
+                  ✓
+                </button>
+              ) : (
+                <button type="button" onClick={() => startRename(m)} aria-label="Edit name" title="Edit name">
+                  ✎
+                </button>
+              )}
               <button
                 type="button"
                 className="is-danger"
@@ -230,16 +277,6 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
           + Add
         </button>
       </div>
-
-        {wizardInitial && (
-          <MilestoneWizard
-            open
-            initial={wizardInitial}
-            onClose={() => setWizardInitial(null)}
-            onCreate={() => {}}
-            onUpdate={updateMilestone}
-          />
-        )}
 
         <ConfirmModal
           open={Boolean(confirmTarget)}
