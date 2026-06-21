@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { playSound } from "../../lib/sounds.js";
+import { GRATITUDE_TYPES, getGratitudeType, GRATITUDE_ATTRIBUTION } from "../../data/gratitudeTypes.js";
+import { useSpeechToText } from "../../hooks/useSpeechToText.js";
 
-// ─── Cinematic Gratitude wizard ────────────────────────────────────────────────
-// Teaches DEPTH over breadth: one vivid, specific moment beats a list of three.
-// Steps: teach → the moment → mental subtraction → alchemize the hard thing → reveal.
-// Research: elaborating on ONE specific thing (esp. a person) carries far more
-// benefit than a shallow list; mental subtraction amplifies the effect.
-
-const ACCENT = "#00FFBF";
-const ORB = "✦";
+// ─── Cinematic branching Gratitude wizard ──────────────────────────────────────
+// Step model:  -2 selector · -1 "go deeper" reminder · 0..n-1 layers · n reveal.
+// The user picks one of four gratitude flavors (The Person, The Comeback, The
+// Overlooked, The Future Self), gets a quick depth reminder, then drops into a
+// uniquely-themed 3-layer flow. Each answer box supports voice dictation.
+// Teaches DEPTH over breadth: one vivid, specific moment beats a list of three —
+// that depth is where the drop in anxiety and depression actually comes from.
 
 const IMPACT_STATS = [
   { label: "Anxiety Levels",  value: "↓ 23%",  color: "#00FFBF", delay: 0,   icon: "/assets/daily/stat-calm-icon.png" },
   { label: "Depression Risk", value: "↓ 25%",  color: "#00FFBF", delay: 120, icon: "/assets/daily/stat-heart-icon.png" },
   { label: "XP Earned",       value: "+50 XP", color: "#FACC15", delay: 240, icon: "/assets/daily/stat-xp-icon.png" },
+];
+
+// Shown on the "go deeper" reminder — what depth actually buys you.
+const INTRO_STATS = [
+  { label: "Less anxiety",    value: "↓ 23%", color: "#00FFBF" },
+  { label: "Less depression", value: "↓ 25%", color: "#00FFBF" },
+  { label: "Calmer body",     value: "✓",     color: "#FACC15" },
 ];
 
 // Live "depth meter" — rewards specificity. Pure word-count heuristic, no blocking.
@@ -26,7 +34,7 @@ function depthScore(text) {
 }
 const DEPTH_LABEL = [
   "",
-  "Add a detail — when? where? what exactly did they do?",
+  "Add a detail — when? where? what exactly?",
   "Good. Can you make it even more specific?",
   "Vivid. That's the dose. ✦",
 ];
@@ -45,19 +53,51 @@ function DepthMeter({ score }) {
 }
 
 export default function GratitudeWizard({ onClose, onComplete, initial, soundEnabled = true }) {
-  const [step, setStep] = useState(0); // 0 teach · 1 moment · 2 subtraction · 3 hardship · 4 reveal
-  const [dir, setDir] = useState(1);
-  const [moment, setMoment] = useState(initial?.moment || "");
-  const [subtraction, setSubtraction] = useState(initial?.subtraction || "");
-  const [hardship, setHardship] = useState(initial?.hardship || "");
+  // Resolve any in-progress / editing state passed in.
+  const initialType = initial?.typeId ? getGratitudeType(initial.typeId) : null;
 
-  const TOTAL = 4; // input stages (reveal is the payoff)
+  // step: -2 selector · -1 reminder · 0..n-1 layers · n reveal
+  const [type, setType] = useState(initialType);
+  const [step, setStep] = useState(initialType ? 0 : -2);
+  const [dir, setDir] = useState(1);
+  const [values, setValues] = useState(initial?.values || ["", "", ""]);
+
+  const layers = type?.layers || [];
+  const TOTAL = layers.length;
+  const accent = type?.accent || "#00FFBF";
+  const revealStep = TOTAL;
+  const onReveal = step === revealStep;
 
   const go = (next, d = 1) => {
     setDir(d);
     setStep(next);
-    playSound(next === 4 ? "levelup" : "click", { soundEnabled });
+    playSound(next === revealStep ? "levelup" : "click", { soundEnabled });
   };
+
+  const pickType = (t) => {
+    setType(t);
+    setValues(initial?.typeId === t.id ? (initial.values || ["", "", ""]) : ["", "", ""]);
+    go(-1); // land on the "go deeper" reminder before the questions
+  };
+
+  const setValue = (i, v) =>
+    setValues((prev) => prev.map((x, idx) => (idx === i ? v : x)));
+
+  // ── Voice dictation ── speech→text into the active field; never stored as audio.
+  const dictation = useSpeechToText({
+    onFinalText: (chunk) =>
+      setValues((prev) =>
+        prev.map((x, idx) =>
+          idx === step ? (x.trim() ? `${x.trim()} ${chunk}` : chunk) : x
+        )
+      ),
+  });
+
+  // Stop dictation whenever the step changes so it never bleeds across questions.
+  useEffect(() => {
+    dictation.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // Escape exits the wizard; lock body scroll while open.
   useEffect(() => {
@@ -72,22 +112,35 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
 
   // Reveal sting on the payoff.
   useEffect(() => {
-    if (step === 4) {
+    if (onReveal) {
       const t = setTimeout(() => playSound("reward", { soundEnabled }), 260);
       return () => clearTimeout(t);
     }
-  }, [step, soundEnabled]);
+  }, [onReveal, soundEnabled]);
 
   const complete = () => {
     playSound("chime", { soundEnabled });
     onComplete?.({
-      moment: moment.trim(),
-      subtraction: subtraction.trim(),
-      hardship: hardship.trim(),
+      typeId: type.id,
+      typeLabel: type.label,
+      labels: type.labels,
+      values: values.map((v) => v.trim()),
     });
   };
 
-  const momentScore = depthScore(moment);
+  // Selector exits · reminder returns to selector · first layer returns to reminder.
+  const goBack = () => {
+    if (step === -2) return onClose?.();
+    if (step === -1) { setDir(-1); setStep(-2); setType(null); playSound("click", { soundEnabled }); return; }
+    go(step - 1, -1);
+  };
+
+  const layer = step >= 0 && step < TOTAL ? layers[step] : null;
+  const current = layer ? values[step] || "" : "";
+  const score = layer?.depth ? depthScore(current) : 0;
+  // Never trap the user: any non-empty answer advances. The depth meter is pure
+  // encouragement, not a wall.
+  const canAdvance = layer ? !!current.trim() : false;
 
   return (
     <div className="dsw-overlay" role="dialog" aria-modal="true" aria-label="Gratitude">
@@ -103,22 +156,20 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
         ))}
       </div>
 
-      <div className="dsw-stage" style={{ "--accent": ACCENT }}>
+      <div className="dsw-stage" style={{ "--accent": accent }}>
         {/* Top bar */}
         <div className="dsw-topbar">
-          <button
-            type="button"
-            className="dsw-back"
-            onClick={() => (step === 0 ? onClose?.() : go(step - 1, -1))}
-          >
-            ← {step === 0 ? "Exit" : "Back"}
+          <button type="button" className="dsw-back" onClick={goBack}>
+            ← {step === -2 ? "Exit" : step === -1 ? "Pick another" : step === 0 ? "Back" : "Back"}
           </button>
-          <span className="dsw-eyebrow">Gratitude</span>
-          <span className="dsw-count">{step < 4 ? `${step + 1} / ${TOTAL}` : "✦"}</span>
+          <span className="dsw-eyebrow">{type ? type.label : "Gratitude"}</span>
+          <span className="dsw-count">
+            {step >= 0 && step < TOTAL ? `${step + 1} / ${TOTAL}` : type?.glyph || "✦"}
+          </span>
         </div>
 
-        {/* Progress rail */}
-        {step < 4 && (
+        {/* Progress rail (only inside a chosen flow) */}
+        {step >= 0 && step < TOTAL && (
           <div className="dsw-rail">
             {Array.from({ length: TOTAL }).map((_, k) => (
               <span key={k} className={`dsw-rail-seg ${k <= step ? "is-on" : ""}`} />
@@ -127,107 +178,127 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
         )}
 
         {/* Screens */}
-        <div className={`dsw-screen ${dir > 0 ? "from-right" : "from-left"}`} key={step}>
-          {step === 0 && (
-            <Screen
-              kicker="HOW TO MAKE THIS HIT"
-              title="Gratitude is a skill. Here's the dose."
-              sub="The benefit doesn't come from listing things — it comes from going deep on one. Detail is what your brain actually responds to."
-            >
-              <div className="gw-examples">
-                <div className="gw-example gw-example--bad">
-                  <span className="gw-example-tag">❌ SHALLOW</span>
-                  <p className="gw-example-text">"Grateful for my brother."</p>
-                </div>
-                <div className="gw-example gw-example--good">
-                  <span className="gw-example-tag">✓ VIVID</span>
-                  <p className="gw-example-text">
-                    "Grateful my brother texted me at 11pm Tuesday just to check in — I didn't even
-                    know he'd noticed I'd been off."
-                  </p>
-                </div>
+        <div className={`dsw-screen ${dir > 0 ? "from-right" : "from-left"}`} key={`${type?.id || "sel"}-${step}`}>
+          {/* ── Selector ── */}
+          {step === -2 && (
+            <div className="dsw-screen-inner">
+              <span className="dsw-kicker" style={{ color: "var(--brand-gold)" }}>CHOOSE YOUR GRATITUDE</span>
+              <h2 className="dsw-title">What do you want to feel today?</h2>
+              <p className="dsw-sub">
+                Four different doors. Pick one — each one takes you somewhere the others don't.
+                Depth is the medicine: we'll go deep on one real thing, not wide on a list.
+              </p>
+              <div className="gw-type-grid">
+                {GRATITUDE_TYPES.map((t, i) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className="gw-type"
+                    style={{ "--theme-accent": t.accent, "--d": `${i * 70}ms` }}
+                    onClick={() => pickType(t)}
+                  >
+                    <span className="gw-type-glyph" aria-hidden="true">{t.glyph}</span>
+                    <span className="gw-type-body">
+                      <span className="gw-type-label">{t.label}</span>
+                      <span className="gw-type-tagline">{t.tagline}</span>
+                      <span className="gw-type-blurb">{t.blurb}</span>
+                    </span>
+                    <span className="gw-type-go" aria-hidden="true">→</span>
+                  </button>
+                ))}
               </div>
-              <p className="gw-teach-line">
-                One specific moment beats a list of ten. We'll do three quick layers — start to finish in about two minutes.
+            </div>
+          )}
+
+          {/* ── "Go deeper" reminder ── */}
+          {step === -1 && type && (
+            <div className="dsw-screen-inner gw-intro">
+              <span className="dsw-kicker">{type.label.toUpperCase()}</span>
+              <h2 className="dsw-title">One thing before you start.</h2>
+              <p className="dsw-sub">
+                This works best when you slow down and really dig in. People who go deep —
+                not fast — feel a lot less stressed, anxious, and down. One real answer beats
+                ten quick ones.
               </p>
-              <Footer accent={ACCENT} disabled={false} label="Begin →" onNext={() => go(1)} />
-            </Screen>
+
+              <div className="gratitude-impact-stats gw-intro-stats">
+                {INTRO_STATS.map((s) => (
+                  <div key={s.label} className="gratitude-impact-stat" style={{ "--stat-color": s.color }}>
+                    <span className="gratitude-impact-stat-value" style={{ color: s.color }}>{s.value}</span>
+                    <span className="gratitude-impact-stat-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {dictation.supported && (
+                <p className="gw-intro-tip">
+                  <span className="gw-intro-tip-mic" aria-hidden="true">🎤</span>
+                  Tip: tap the mic and just talk it out loud — saying it beats typing it.
+                </p>
+              )}
+
+              <div className="dsw-footer">
+                <button className="dsw-next gw-next" style={{ "--accent": accent }} onClick={() => go(0)}>
+                  I'm ready →
+                </button>
+              </div>
+            </div>
           )}
 
-          {step === 1 && (
-            <Screen
-              kicker="LAYER ONE · THE MOMENT"
-              title="One person. One real moment."
-              sub="Not 'my friends.' A specific thing someone did — and when it happened. Write it like you're back in it."
-            >
-              <textarea
-                className="dsw-textarea dsw-textarea--big"
-                placeholder="Who, what they did, and when…"
-                rows={4}
-                autoFocus
-                value={moment}
-                onChange={(e) => setMoment(e.target.value)}
-              />
-              <DepthMeter score={momentScore} />
-              <Footer
-                accent={ACCENT}
-                disabled={momentScore < 2}
-                label={momentScore < 2 ? "Go a little deeper…" : "That's the one →"}
-                onNext={() => go(2)}
-              />
-            </Screen>
+          {/* ── A layer ── */}
+          {layer && (
+            <div className="dsw-screen-inner">
+              <span className="dsw-kicker">{layer.kicker}</span>
+              <h2 className="dsw-title">{layer.title}</h2>
+              {layer.sub && <p className="dsw-sub">{layer.sub}</p>}
+              <div className="gw-field">
+                <textarea
+                  className="dsw-textarea dsw-textarea--big gw-field-input"
+                  placeholder={layer.placeholder}
+                  rows={4}
+                  autoFocus
+                  value={current}
+                  onChange={(e) => setValue(step, e.target.value)}
+                />
+                {dictation.supported && (
+                  <button
+                    type="button"
+                    className={`gw-mic ${dictation.listening ? "is-live" : ""}`}
+                    onClick={dictation.toggle}
+                    aria-label={dictation.listening ? "Stop dictation" : "Speak your answer"}
+                    title={dictation.listening ? "Listening… tap to stop" : "Tap to speak"}
+                  >
+                    <span className="gw-mic-icon" aria-hidden="true">🎤</span>
+                    <span className="gw-mic-label">
+                      {dictation.listening ? "Listening…" : "Speak"}
+                    </span>
+                  </button>
+                )}
+              </div>
+              {dictation.listening && dictation.interim && (
+                <p className="gw-interim">{dictation.interim}…</p>
+              )}
+              {layer.depth && <DepthMeter score={score} />}
+              {layer.hint && <p className="dsw-hint">{layer.hint}</p>}
+              <div className="dsw-footer">
+                <button
+                  className="dsw-next gw-next"
+                  style={{ "--accent": accent }}
+                  disabled={!canAdvance}
+                  onClick={() => go(step + 1)}
+                >
+                  {!canAdvance
+                    ? "Fill this in…"
+                    : step === TOTAL - 1
+                      ? `Lock in gratitude ${type.glyph}`
+                      : "Next →"}
+                </button>
+              </div>
+            </div>
           )}
 
-          {step === 2 && (
-            <Screen
-              kicker="LAYER TWO · THE SUBTRACTION"
-              title="Now picture it gone."
-              sub="Imagine this morning if that person or moment had never been in your life. What would be missing? This is where gratitude actually lands."
-            >
-              <textarea
-                className="dsw-textarea dsw-textarea--big"
-                placeholder="Without them, my life would be…"
-                rows={4}
-                autoFocus
-                value={subtraction}
-                onChange={(e) => setSubtraction(e.target.value)}
-              />
-              <p className="dsw-hint">
-                Subtraction beats addition — feeling the absence makes the presence real.
-              </p>
-              <Footer
-                accent={ACCENT}
-                disabled={!subtraction.trim()}
-                label="Felt it →"
-                onNext={() => go(3)}
-              />
-            </Screen>
-          )}
-
-          {step === 3 && (
-            <Screen
-              kicker="LAYER THREE · THE ALCHEMY"
-              title="Find the gift in the hard thing."
-              sub="One struggle — recent or old — that shaped you. What did it give you that you'd actually keep?"
-            >
-              <textarea
-                className="dsw-textarea dsw-textarea--big"
-                placeholder="The hard thing was… and what it gave me was…"
-                rows={4}
-                autoFocus
-                value={hardship}
-                onChange={(e) => setHardship(e.target.value)}
-              />
-              <Footer
-                accent={ACCENT}
-                disabled={!hardship.trim()}
-                label="Lock in gratitude ✦"
-                onNext={() => go(4)}
-              />
-            </Screen>
-          )}
-
-          {step === 4 && (
+          {/* ── Reveal ── */}
+          {onReveal && (
             <div className="dsw-reveal">
               <div className="dsw-reveal-rays" aria-hidden="true" />
               <div className="dsw-burst" aria-hidden="true">
@@ -236,13 +307,15 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
                 ))}
               </div>
 
-              <div className="dsw-reveal-orb">{ORB}</div>
-              <p className="dsw-reveal-kicker">GRATITUDE LOCKED IN</p>
+              <div className="dsw-reveal-orb">{type.glyph}</div>
+              <p className="dsw-reveal-kicker">{type.label.toUpperCase()} · LOCKED IN</p>
 
               <div className="gw-reveal-entries">
-                <Entry label="THE MOMENT" text={moment} delay={400} />
-                <Entry label="WITHOUT IT" text={subtraction} delay={560} />
-                <Entry label="THE GIFT" text={hardship} delay={720} />
+                {layers.map((l, i) =>
+                  values[i]?.trim() ? (
+                    <Entry key={i} label={type.labels[i]} text={values[i]} delay={400 + i * 160} />
+                  ) : null
+                )}
               </div>
 
               <div className="gratitude-impact-stats gw-reveal-stats">
@@ -270,10 +343,10 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
                 You didn't list — you felt it. That depth is the whole point: morning gratitude
                 done this way drops anxiety 23% and depression risk 25%. You're already ahead of the day.
               </p>
-              <p className="dsw-reveal-source">Gratitude Intervention Meta-Analysis, 2023 (64 RCTs)</p>
+              <p className="dsw-reveal-source">{GRATITUDE_ATTRIBUTION}</p>
 
               <button className="dsw-pop-btn" onClick={complete}>
-                Save &amp; close ✦
+                Save &amp; close {type.glyph}
               </button>
             </div>
           )}
@@ -289,32 +362,6 @@ function Entry({ label, text, delay }) {
     <div className="gw-reveal-entry anim-slide-up" style={{ animationDelay: `${delay}ms` }}>
       <span className="gw-reveal-entry-label">{label}</span>
       <p className="gw-reveal-entry-text">"{text.trim()}"</p>
-    </div>
-  );
-}
-
-function Screen({ kicker, title, sub, children }) {
-  return (
-    <div className="dsw-screen-inner">
-      <span className="dsw-kicker">{kicker}</span>
-      <h2 className="dsw-title">{title}</h2>
-      {sub && <p className="dsw-sub">{sub}</p>}
-      {children}
-    </div>
-  );
-}
-
-function Footer({ accent, disabled, label, onNext }) {
-  return (
-    <div className="dsw-footer">
-      <button
-        className="dsw-next"
-        style={{ "--accent": accent }}
-        disabled={disabled}
-        onClick={onNext}
-      >
-        {label}
-      </button>
     </div>
   );
 }

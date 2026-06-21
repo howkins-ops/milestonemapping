@@ -3,12 +3,58 @@
    ═══════════════════════════════════════════════════════════ */
 
 .wiz {
-  padding: 0 1rem 2rem;
+  padding: 0 1rem;
   position: relative;
   overflow-x: hidden;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .wiz > * { position: relative; z-index: 1; }
+
+/* ─── Fit-to-viewport: no page scroll, NEXT button always shown ─ */
+/* Turn the page into a flex column so the wizard gets a real,
+   bounded height (no fragile % heights) and collapse the page's
+   tall bottom padding so it fits between the two nav bars. */
+.page:has(.wiz) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+}
+
+/* Pinned (never shrink, always visible) */
+.wiz-header,
+.wiz-browse__hint,
+.wiz-cats,
+.wiz-footer,
+.wiz-cta--lock,
+.wiz-review-note,
+.wiz--intro > .wiz-cta {
+  flex-shrink: 0;
+}
+
+/* Scrolling region: takes its natural height, shrinks + scrolls
+   only when the content is too tall. The button sits right under it. */
+.wiz-habits,
+.wiz-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.wiz-habits::-webkit-scrollbar,
+.wiz-body::-webkit-scrollbar { display: none; }
+
+.wiz--intro > .wiz-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
 
 /* ─── Shared header ──────────────────────────────────────── */
 
@@ -87,7 +133,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 1.25rem 1.25rem 2rem;
+  padding: 1.25rem 1.25rem 1rem;
 }
 
 .wiz-intro__glyph {
@@ -244,7 +290,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  padding: 0.15rem 0 0.5rem;
 }
 
 .wiz-habit {
@@ -670,7 +716,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-top: 0.75rem;
+  padding: 0.85rem 0 0.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wiz-skip {

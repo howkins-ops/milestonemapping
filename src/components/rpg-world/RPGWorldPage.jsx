@@ -7,7 +7,9 @@ import WorldComplete from "./WorldComplete.jsx";
 import MapQuestMap from "../map-quest/MapQuestMap.jsx";
 import ChapterAnchor from "../map-quest/chapters/ChapterAnchor.jsx";
 import ChapterShadow from "../map-quest/chapters/ChapterShadow.jsx";
+import ChapterAlchemy from "../map-quest/chapters/ChapterAlchemy.jsx";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
+import { getChapterByKey } from "../map-quest/questChapters.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
 
@@ -50,6 +52,14 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
   };
 
   const handleEnterChapter = (chapterKey) => {
+    // "Replay" on a finished chapter: clear its save so it starts fresh instead
+    // of reloading the terminal "handoff" state (which would instantly re-complete).
+    if (isChapterComplete(chapterKey)) {
+      const ch = getChapterByKey(chapterKey);
+      if (ch?.saveKey) {
+        try { localStorage.removeItem(ch.saveKey); } catch {}
+      }
+    }
     setActiveChapterKey(chapterKey);
     setScreen(chapterKey);
   };
@@ -83,6 +93,10 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
 
   if (screen === "chapter-shadow") {
     return <ChapterShadow onComplete={handleChapterComplete} />;
+  }
+
+  if (screen === "chapter-alchemy") {
+    return <ChapterAlchemy onComplete={handleChapterComplete} />;
   }
 
   if (screen === "milestone-world" && activeMilestoneId) {

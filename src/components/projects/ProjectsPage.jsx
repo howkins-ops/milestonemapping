@@ -44,22 +44,6 @@ export default function ProjectsPage({ onOpenProject, onNavigate, onOpenMapQuest
         Every project is a map. Every milestone is a diamond on the trail.
       </p>
 
-      {onOpenMapQuest && <MapQuestHero onLaunch={onOpenMapQuest} />}
-
-      {/* filter chips */}
-      <div className="map-filters">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            type="button"
-            className={`map-chip ${filter === f ? "is-on" : ""}`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
       <Button variant="primary" size="lg" onClick={() => setWizardOpen(true)} style={{ width: "100%", marginBottom: 18 }}>
         + Chart New Map
       </Button>
@@ -97,6 +81,12 @@ export default function ProjectsPage({ onOpenProject, onNavigate, onOpenMapQuest
               onOpen={() => onOpenProject(p.id)}
             />
           ))}
+        </div>
+      )}
+
+      {onOpenMapQuest && (
+        <div style={{ marginTop: 18 }}>
+          <MapQuestHero onLaunch={onOpenMapQuest} />
         </div>
       )}
 

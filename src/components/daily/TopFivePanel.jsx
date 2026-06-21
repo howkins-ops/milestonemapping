@@ -3,6 +3,7 @@ import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import ProgressBar from "../ui/ProgressBar.jsx";
 import ScienceInfo from "../ui/ScienceInfo.jsx";
+import TopFiveWizard from "./TopFiveWizard.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { uid } from "../../lib/id.js";
 
@@ -33,6 +34,16 @@ export default function TopFivePanel({ mode = "execute" }) {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [floats, setFloats] = useState([]);
+  const [building, setBuilding] = useState(false);
+
+  // Morning, nothing planned → offer the wizard to build the 5 from your maps
+  if (!isPlan && building) {
+    return (
+      <section>
+        <TopFiveWizard mode="execute" onDone={() => setBuilding(false)} />
+      </section>
+    );
+  }
 
   const submitDraft = () => {
     const text = draft.trim();
@@ -97,7 +108,9 @@ export default function TopFivePanel({ mode = "execute" }) {
                       +10 XP
                     </span>
                   ))}
-                <span className={`morning-t5-num ${task.done ? "is-done" : ""}`}>#{i + 1}</span>
+                <span className={`morning-t5-num ${task.done ? "is-done" : ""} ${i === 0 ? "is-battle" : ""}`}>
+                  {i === 0 ? "★" : `#${i + 1}`}
+                </span>
                 {!isPlan && (
                   <button
                     type="button"
@@ -152,14 +165,27 @@ export default function TopFivePanel({ mode = "execute" }) {
           </ul>
         )}
 
+        {!isPlan && tasks.length === 0 && (
+          <button type="button" className="t5-build-cta" onClick={() => setBuilding(true)}>
+            <span className="t5-build-cta-star">★</span>
+            <span className="t5-build-cta-text">
+              <strong>Build My Top 5</strong>
+              <span>Pull today's priorities straight from your maps</span>
+            </span>
+            <span className="t5-build-cta-arrow">→</span>
+          </button>
+        )}
+
         {tasks.length < 5 ? (
           <div className="row" style={{ marginTop: tasks.length > 0 ? 18 : 0 }}>
             <input
               className="input"
               placeholder={
                 tasks.length === 0
-                  ? "What's the #1 priority tomorrow to move your goal forward?"
-                  : `Priority ${tasks.length + 1} of 5 — what gets you closer tomorrow?`
+                  ? (isPlan
+                      ? "Pick the battle — the ONE move that makes tomorrow a win"
+                      : "Pick the battle — the ONE move that makes today a win")
+                  : `Priority ${tasks.length + 1} of 5 — ${isPlan ? "what else gets you closer tomorrow?" : "what else gets you closer today?"}`
               }
               value={draft}
               onChange={(e) => setDraft(e.target.value)}

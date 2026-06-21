@@ -2,8 +2,8 @@ import React, { useState, useCallback } from "react";
 import MorningStandPanel from "./MorningStandPanel.jsx";
 import MorningPlanRecap from "./MorningPlanRecap.jsx";
 import GratitudePanel from "./GratitudePanel.jsx";
-import BattlePlanPanel from "./BattlePlanPanel.jsx";
 import TopFivePanel from "./TopFivePanel.jsx";
+import TopFiveWizard from "./TopFiveWizard.jsx";
 import EndOfDayReflection from "./EndOfDayReflection.jsx";
 import BedtimeChecklist from "./BedtimeChecklist.jsx";
 import ModeTransitionOverlay from "./ModeTransitionOverlay.jsx";
@@ -111,7 +111,6 @@ export default function DailyPage() {
             <MorningPlanRecap />
             <GratitudePanel />
             <TopFivePanel />
-            <BattlePlanPanel />
           </div>
         ) : (
           /* ── NIGHT: Close today, load tomorrow ── */
@@ -132,7 +131,7 @@ export default function DailyPage() {
                 <span>LOAD TOMORROW</span>
                 <span className="night-section-label-line" />
               </div>
-              <TopFivePanel mode="plan" />
+              <TopFiveWizard mode="plan" />
             </div>
 
             <div className="night-section-group">

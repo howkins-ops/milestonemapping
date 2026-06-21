@@ -48,7 +48,8 @@
   /* Type */
   --font-display: "Sora", sans-serif;
   --font-body: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  /* Banned the ugly utility mono — keep this pointed at a rounded, friendly face */
+  --font-mono: "Manrope", "Sora", sans-serif;
 
   /* Scale */
   --radius: 14px;
@@ -833,7 +834,18 @@ button {
 
 @media (max-width: 560px) {
   .mission-hero__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .mission-hero__stat {
+    padding: 8px 4px 7px;
+  }
+  .mission-hero__stat-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .mission-hero__stat-icon img {
+    width: 36px;
+    height: 36px;
   }
 }
 

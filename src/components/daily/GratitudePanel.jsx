@@ -10,8 +10,10 @@ import { incrementStat, updateStreak } from "../../lib/statsService.js";
 import { setMemory } from "../../lib/memoryService.js";
 import { getTodayKey } from "../../lib/dates.js";
 
-// Storage schema stays { entry1, entry2, entry3 } for back-compat:
-// entry1 = the moment · entry2 = mental subtraction · entry3 = the hard thing.
+// Storage schema stays { entry1, entry2, entry3 } for back-compat. The wizard
+// now branches into one of four gratitude flavors, so we also persist `typeId`,
+// `typeLabel`, and per-entry `labels` to drive the locked-in display.
+// Fallback labels cover any pre-branching saves.
 const REVEAL_LABELS = ["The moment", "Without it", "The gift"];
 
 export default function GratitudePanel() {
@@ -36,9 +38,14 @@ export default function GratitudePanel() {
     });
   };
 
-  const handleComplete = async ({ moment, subtraction, hardship }) => {
+  const handleComplete = async ({ typeId, typeLabel, labels, values }) => {
+    const [v1 = "", v2 = "", v3 = ""] = values || [];
     // Preserve any extra moments captured earlier in the day.
-    const form = { entry1: moment, entry2: subtraction, entry3: hardship, extras };
+    const form = {
+      entry1: v1, entry2: v2, entry3: v3,
+      typeId, typeLabel, labels,
+      extras,
+    };
 
     // Write to local state (blob syncs via useAppData debounce)
     updateTodayLog({ gratitude: form });
@@ -55,7 +62,7 @@ export default function GratitudePanel() {
     setOpen(false);
     pushToast({
       type: "success",
-      title: "Morning primed.",
+      title: typeLabel ? `${typeLabel} — locked in.` : "Morning primed.",
       message: "You went deep, not wide. Anxiety drops 23% — you're already ahead of the day."
     });
   };
@@ -82,6 +89,7 @@ export default function GratitudePanel() {
   };
 
   const entries = [saved?.entry1, saved?.entry2, saved?.entry3];
+  const labels = saved?.labels || REVEAL_LABELS;
 
   return (
     <section className="gratitude-ritual">
@@ -102,13 +110,15 @@ export default function GratitudePanel() {
           <div className="gratitude-locked anim-fade-in">
             <div className="gratitude-locked-head">
               <span className="gratitude-impact-check">✓</span>
-              <span className="gratitude-impact-title">GRATITUDE LOCKED IN</span>
+              <span className="gratitude-impact-title">
+                {saved?.typeLabel ? `${saved.typeLabel.toUpperCase()} · LOCKED IN` : "GRATITUDE LOCKED IN"}
+              </span>
             </div>
             <ul className="gratitude-locked-entries">
               {entries.map((text, i) =>
                 text ? (
                   <li key={i} className="gratitude-locked-entry">
-                    <span className="gratitude-locked-entry-label">{REVEAL_LABELS[i]}</span>
+                    <span className="gratitude-locked-entry-label">{labels[i]}</span>
                     <p className="gratitude-locked-entry-text">"{text}"</p>
                   </li>
                 ) : null
@@ -182,11 +192,11 @@ export default function GratitudePanel() {
         ) : (
           <div className="gratitude-cta">
             <p className="gratitude-cta-teaser">
-              Three quick layers — the moment, what life would be without it, and the gift inside a
-              hard thing. Guided, about two minutes.
+              Pick one of four doors — a person, a comeback, the overlooked, or your future self.
+              Each one runs a different guided ritual. About two minutes.
             </p>
             <button className="gratitude-lock-btn" onClick={() => setOpen(true)}>
-              Begin gratitude ritual →
+              Choose your gratitude →
             </button>
           </div>
         )}
@@ -198,7 +208,7 @@ export default function GratitudePanel() {
           onComplete={handleComplete}
           initial={
             isLocked
-              ? { moment: saved.entry1, subtraction: saved.entry2, hardship: saved.entry3 }
+              ? { typeId: saved.typeId, values: [saved.entry1, saved.entry2, saved.entry3] }
               : undefined
           }
         />

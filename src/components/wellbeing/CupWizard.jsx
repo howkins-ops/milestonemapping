@@ -16,6 +16,7 @@ function StepIntro({ onNext }) {
     <div className="wiz wiz--intro">
       <div className="wiz-intro__glyph" aria-hidden="true">◆</div>
       <h1 className="wiz-title">BUILD YOUR CUP</h1>
+      <div className="wiz-body">
       <div className="wiz-intro__rules">
         <div className="wiz-rule">
           <span className="wiz-rule__icon">⚠️</span>
@@ -39,6 +40,7 @@ function StepIntro({ onNext }) {
             <span className="wiz-diff-pill__pts">+{d.pts}</span>
           </div>
         ))}
+      </div>
       </div>
 
       <button type="button" className="wiz-cta" onClick={onNext}>
@@ -166,6 +168,7 @@ function StepCustom({ presetCount, customList, onAdd, onRemove, onNext, onBack }
           <span className="wiz-counter__label"> total</span>
         </div>
       </div>
+      <div className="wiz-body">
       <p className="wiz-browse__hint">
         Add habits that aren't in the list — anything that would fill YOUR cup.
       </p>
@@ -255,6 +258,8 @@ function StepCustom({ presetCount, customList, onAdd, onRemove, onNext, onBack }
         </div>
       )}
 
+      </div>
+
       <div className="wiz-footer">
         <button type="button" className="wiz-skip" onClick={onNext}>
           {customList.length === 0 ? "Skip →" : "Done Adding →"}
@@ -287,6 +292,7 @@ function StepReview({ preset, custom, onRemovePreset, onRemoveCustom, onComplete
         <h2 className="wiz-title wiz-title--sm">YOUR CUP</h2>
       </div>
 
+      <div className="wiz-body">
       <div className="wiz-review-meta">
         <div className="wiz-review-stat">
           <span className="wiz-review-stat__num">{all.length}</span>
@@ -335,6 +341,7 @@ function StepReview({ preset, custom, onRemovePreset, onRemoveCustom, onComplete
             })}
           </div>
         ))}
+      </div>
       </div>
 
       <button
