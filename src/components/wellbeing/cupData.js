@@ -80,7 +80,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: "professional", icon: "🎯", label: "Pro", color: "#00F0FF",
+    id: "professional", icon: "🎯", label: "Sales", color: "#00F0FF",
     habits: [
       { label: "Review your pitch", diff: "medium", pts: 10 },
       { label: "Practice objections", diff: "medium", pts: 10 },

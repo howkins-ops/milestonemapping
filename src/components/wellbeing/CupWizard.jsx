@@ -361,10 +361,12 @@ function StepReview({ preset, custom, onRemovePreset, onRemoveCustom, onComplete
 
 // ─── Root wizard ──────────────────────────────────────────────────────────────
 
-export default function CupWizard({ onComplete }) {
-  const [step, setStep] = useState("intro");
-  const [preset, setPreset] = useState([]);   // selected from existing categories
-  const [custom, setCustom] = useState([]);   // user-typed habits
+export default function CupWizard({ onComplete, initialHabits }) {
+  const seed = initialHabits || [];
+  // When rebuilding/adding to an existing cup, skip the intro and preload habits.
+  const [step, setStep] = useState(seed.length ? "browse" : "intro");
+  const [preset, setPreset] = useState(() => seed.filter(h => h.source !== "custom"));   // from existing categories
+  const [custom, setCustom] = useState(() => seed.filter(h => h.source === "custom"));    // user-typed / added habits
 
   function togglePreset(catId, hIdx, habit) {
     const id = `${catId}_${hIdx}`;

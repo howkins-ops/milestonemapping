@@ -51,9 +51,14 @@ function getInitialState() {
     shownMilestones: [],
     weeklyReview: saved?.weeklyReview || {},
     weeklyScores: saved?.weeklyScores || {},
+    // Per-habit mastery counts carry across days: { [label]: { c: count, d: lastDate } }
+    mastery: saved?.mastery || {},
     pendingKillStreak,
   };
 }
+
+// Number of repeat completions that "masters" a habit and triggers the challenge.
+const MASTERY_TARGET = 3;
 
 function buildHabitsMap(customHabits) {
   const map = {};
@@ -247,6 +252,37 @@ function KillStreakBanner({ ks, onDone }) {
   );
 }
 
+// ─── Mastery Celebration ──────────────────────────────────────────────────────
+
+function MasteryBanner({ label, onAddMore, onClose }) {
+  return (
+    <div className="fyc-ks-overlay" onClick={onClose}>
+      <div className="fyc-ks-banner" style={{ "--ksc": "#00FFBF" }} onClick={e => e.stopPropagation()}>
+        <div className="fyc-ks-scan" aria-hidden="true" />
+        <div className="fyc-ks-icon">🏆</div>
+        <div className="fyc-ks-name" style={{ fontSize: "clamp(1.3rem, 6vw, 1.9rem)" }}>
+          HABIT MASTERED
+        </div>
+        <div className="fyc-ks-streak">✅ “{label}” × 3</div>
+        <div className="fyc-ks-tagline">
+          You've done this 3 times. It's not a task anymore — it's becoming who you are.
+        </div>
+        <div className="fyc-ks-sub">
+          Time to raise the bar. Add a tougher habit and keep your cup growing.
+        </div>
+        <div className="fyc-full-actions">
+          <button type="button" className="fyc-full-action fyc-full-action--drink" onClick={onAddMore}>
+            Add a habit
+          </button>
+          <button type="button" className="fyc-full-action fyc-full-action--pour" onClick={onClose}>
+            Keep going
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Level Badge ──────────────────────────────────────────────────────────────
 
 function LevelBadge({ streak, bestStreak }) {
@@ -348,7 +384,7 @@ const WK_QUESTIONS = [
   "What do you need more of next week?",
   "3 habits you commit to next week:",
 ];
-const WK_CATS = ["Physical", "Mental", "Faith", "Money", "Connect", "Pro", "Emotional", "Discipline"];
+const WK_CATS = ["Physical", "Mental", "Faith", "Money", "Connect", "Sales", "Emotional", "Discipline"];
 
 function WeeklyReview({ review, scores, onChangeReview, onChangeScore, streak, onBack }) {
   return (
@@ -460,6 +496,7 @@ export default function FillYourCup() {
   const [activeCat, setActiveCat] = useState(0);
   const [floatMsg, setFloatMsg] = useState(null);
   const [showFull, setShowFull] = useState(false);
+  const [masteredHabit, setMasteredHabit] = useState(null);
   const [activeKS, setActiveKS] = useState(() => {
     // Show pending kill streak on first render
     const s = getInitialState();
@@ -468,9 +505,17 @@ export default function FillYourCup() {
   const [view, setView] = useState("main");
   const floatKey = useRef(null);
 
-  // Derive level and threshold from current streak
+  // Derive level from current streak (drives badges / kill streaks).
   const level = getLevel(state.streak);
-  const threshold = level.threshold;
+
+  // The personal cup defines its own 100%: completing every habit you chose
+  // fills the cup. Start with 3 habits → those 3 = 100%. As you master habits
+  // and add tougher ones, the target grows and the challenge scales with you.
+  const personalTotal = React.useMemo(() => {
+    if (!myCup?.built || !myCup.habits?.length) return null;
+    return myCup.habits.reduce((sum, h) => sum + (h.pts || 0), 0);
+  }, [myCup]);
+  const threshold = personalTotal ?? level.threshold;
 
   const allCategories = React.useMemo(() => {
     if (!myCup?.built || !myCup.habits?.length) return CATEGORIES;
@@ -499,13 +544,12 @@ export default function FillYourCup() {
     setActiveCat(0);
   }, []);
 
-  const handleHabit = useCallback((catId, hIdx) => {
+  const handleHabit = useCallback((catId, hIdx, label) => {
     const key = `${catId}_${hIdx}`;
     setState(prev => {
       const done = prev.completed.includes(key);
       const next = done ? prev.completed.filter(k => k !== key) : [...prev.completed, key];
-      const lvl = getLevel(prev.streak);
-      const newPct = computePct(next, habitsMap, lvl.threshold);
+      const newPct = computePct(next, habitsMap, threshold);
 
       let newShown = [...prev.shownMilestones];
       let milestone = null;
@@ -515,21 +559,89 @@ export default function FillYourCup() {
         }
       }
 
+      // Mastery: count repeat completions of a personal-cup habit, once per day.
+      let mastery = prev.mastery || {};
+      let masteredNow = null;
+      if (catId === "mycup" && label) {
+        const entry = mastery[label] || { c: 0, d: null };
+        if (!done) {
+          if (entry.d !== TODAY) {
+            const c = entry.c + 1;
+            mastery = { ...mastery, [label]: { c, d: TODAY } };
+            if (c === MASTERY_TARGET) masteredNow = label;
+          }
+        } else if (entry.d === TODAY) {
+          mastery = { ...mastery, [label]: { c: Math.max(0, entry.c - 1), d: null } };
+        }
+      }
+
       if (!done) {
         const txt = milestone ? milestone.msg : ENERGY_MSGS[(floatKey.current || 0) % ENERGY_MSGS.length];
         floatKey.current = (floatKey.current || 0) + 1;
         setFloatMsg({ text: txt, id: floatKey.current });
       }
+      if (masteredNow) setTimeout(() => setMasteredHabit(masteredNow), 700);
 
       return {
         ...prev,
         completed: next,
         pct: newPct,
         shownMilestones: newShown,
+        mastery,
         filledToday: prev.filledToday || newPct >= 100,
       };
     });
-  }, [habitsMap]);
+  }, [habitsMap, threshold]);
+
+  // Add a suggested habit (from any category) straight into the personal cup.
+  const handleAddToCup = useCallback((habit, catId) => {
+    setMyCup(prev => {
+      const existing = prev?.habits || [];
+      // Avoid duplicates by label.
+      if (existing.some(h => h.label === habit.label)) return prev;
+      const newHabit = {
+        id: `add_${catId}_${habit.label.replace(/\s+/g, "_").slice(0, 24)}`,
+        label: habit.label,
+        diff: habit.diff,
+        pts: habit.pts,
+        catId,
+        source: "custom",
+      };
+      const cup = { built: true, habits: [...existing, newHabit] };
+      saveMyCup(cup);
+      return cup;
+    });
+    floatKey.current = (floatKey.current || 0) + 1;
+    setFloatMsg({ text: `Added to your cup ⚡`, id: floatKey.current });
+  }, []);
+
+  // Remove a habit from the personal cup, keeping today's checkmarks aligned.
+  const handleRemoveFromCup = useCallback((idx) => {
+    const existing = myCup?.habits || [];
+    const habits = existing.filter((_, i) => i !== idx);
+    const cup = { built: true, habits };
+    saveMyCup(cup);
+    setMyCup(cup);
+
+    const newMap = buildHabitsMap(habits);
+    const newThreshold = habits.length
+      ? habits.reduce((s, h) => s + (h.pts || 0), 0)
+      : level.threshold;
+
+    setState(prev => {
+      // Drop the removed habit's key and shift later mycup_* indexes down by one.
+      const remapped = prev.completed
+        .filter(k => k !== `mycup_${idx}`)
+        .map(k => {
+          if (k.startsWith("mycup_")) {
+            const j = parseInt(k.slice(6), 10);
+            if (j > idx) return `mycup_${j - 1}`;
+          }
+          return k;
+        });
+      return { ...prev, completed: remapped, pct: computePct(remapped, newMap, newThreshold) };
+    });
+  }, [myCup, level]);
 
   const handleResetCup = useCallback(() => {
     // Empty the cup but keep today's "filled" credit so the streak is preserved.
@@ -544,7 +656,12 @@ export default function FillYourCup() {
     setState(prev => ({ ...prev, weeklyScores: { ...prev.weeklyScores, [cat]: val } }));
   }, []);
 
-  if (showWizard) return <CupWizard onComplete={handleWizardComplete} />;
+  if (showWizard) return (
+    <CupWizard
+      onComplete={handleWizardComplete}
+      initialHabits={myCup?.built ? myCup.habits : undefined}
+    />
+  );
 
   if (view === "weekly") {
     return <WeeklyReview review={state.weeklyReview} scores={state.weeklyScores}
@@ -566,6 +683,15 @@ export default function FillYourCup() {
 
       {/* Kill streak cinematic */}
       {activeKS && <KillStreakBanner ks={activeKS} onDone={() => setActiveKS(null)} />}
+
+      {/* Habit mastery — congratulate + challenge to add more */}
+      {masteredHabit && (
+        <MasteryBanner
+          label={masteredHabit}
+          onAddMore={() => { setMasteredHabit(null); setShowWizard(true); }}
+          onClose={() => setMasteredHabit(null)}
+        />
+      )}
 
       {showFull && <FullCupScreen streak={state.streak} level={level} onReset={handleResetCup} onClose={() => setShowFull(false)} />}
 
@@ -642,20 +768,54 @@ export default function FillYourCup() {
         {cat.habits.map((h, i) => {
           const key = `${cat.id}_${i}`;
           const done = state.completed.includes(key);
+          const isMyCup = cat.id === "mycup";
+          const mastered = state.mastery?.[h.label]?.c || 0;
+          // Is this suggestion already in the personal cup?
+          const inCup = !isMyCup && (myCup?.habits || []).some(mh => mh.label === h.label);
           return (
-            <button key={key} type="button"
-              className={`fyc-habit ${done ? "fyc-habit--done" : ""}`}
-              style={{ "--cc": cat.color }}
-              onClick={() => handleHabit(cat.id, i)}
-              aria-pressed={done}>
-              <div className="fyc-habit__check" aria-hidden="true">{done ? "✓" : ""}</div>
-              <div className="fyc-habit__body">
-                <span className="fyc-habit__label">{h.label}</span>
-                <span className={`fyc-habit__badge fyc-habit__badge--${h.diff}`}>
-                  {h.diff === "identity" ? "IDENTITY SHIFT" : h.diff.toUpperCase()} +{h.pts}
-                </span>
-              </div>
-            </button>
+            <div key={key} className={`fyc-habit ${done ? "fyc-habit--done" : ""}`} style={{ "--cc": cat.color }}>
+              <button type="button" className="fyc-habit__main"
+                onClick={() => handleHabit(cat.id, i, h.label)}
+                aria-pressed={done}>
+                <div className="fyc-habit__check" aria-hidden="true">{done ? "✓" : ""}</div>
+                <div className="fyc-habit__body">
+                  <span className="fyc-habit__label">{h.label}</span>
+                  <span className="fyc-habit__meta">
+                    <span className={`fyc-habit__badge fyc-habit__badge--${h.diff}`}>
+                      {h.diff === "identity" ? "IDENTITY SHIFT" : h.diff.toUpperCase()} +{h.pts}
+                    </span>
+                    {isMyCup && mastered >= MASTERY_TARGET && (
+                      <span className="fyc-habit__mastery fyc-habit__mastery--max">🏆 MASTERED</span>
+                    )}
+                    {isMyCup && mastered > 0 && mastered < MASTERY_TARGET && (
+                      <span className="fyc-habit__mastery">{mastered}/{MASTERY_TARGET} to mastery</span>
+                    )}
+                  </span>
+                </div>
+              </button>
+
+              {/* Add-to-cup shortcut on suggestion categories */}
+              {!isMyCup && (
+                <button type="button"
+                  className={`fyc-habit__add ${inCup ? "fyc-habit__add--in" : ""}`}
+                  onClick={() => !inCup && handleAddToCup(h, cat.id)}
+                  disabled={inCup}
+                  title={inCup ? "Already in your cup" : "Add to My Cup"}
+                  aria-label={inCup ? "Already in your cup" : `Add ${h.label} to My Cup`}>
+                  {inCup ? "✓ In Cup" : "+ Add to Cup"}
+                </button>
+              )}
+
+              {/* Remove from personal cup */}
+              {isMyCup && (
+                <button type="button" className="fyc-habit__remove"
+                  onClick={() => handleRemoveFromCup(i)}
+                  title="Remove from cup"
+                  aria-label={`Remove ${h.label} from your cup`}>
+                  ×
+                </button>
+              )}
+            </div>
           );
         })}
       </div>
