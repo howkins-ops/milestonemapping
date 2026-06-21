@@ -11,7 +11,7 @@ import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
 import VisionBoardCard from "../vision/VisionBoardCard.jsx";
 import VisionBoardForm from "../vision/VisionBoardForm.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
-import { getProjectMilestones, getProjectProgress } from "../../lib/progress.js";
+import { getProjectMilestones, getProjectProgress, getMilestoneProgress } from "../../lib/progress.js";
 import { getProjectColorHex } from "../../lib/constants.js";
 import { formatShortDate } from "../../lib/dates.js";
 import { resolveImageSrc } from "../../lib/imageUploadService.js";
@@ -82,6 +82,12 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
   const list = getProjectMilestones(milestones, project.id);
   const progress = getProjectProgress(project, milestones);
   const completedCount = list.filter((m) => m.status === "completed").length;
+  // The milestone you're actively working on = first non-completed node on the
+  // trail (ordered by creation, same as the map). Drives the animated quest banner.
+  const orderedMs = [...list].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const currentIndex = orderedMs.findIndex((m) => m.status !== "completed");
+  const currentMilestone = currentIndex >= 0 ? orderedMs[currentIndex] : null;
+  const currentMsProgress = currentMilestone ? getMilestoneProgress(currentMilestone) : 100;
   const completed = project.status === "completed";
   const hex = getProjectColorHex(project.color);
   const linkedVisions = visionBoard.filter((v) => (v.projectIds || []).includes(project.id));
@@ -113,29 +119,55 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
           <div className="proj-hero__kicker">⚔ Active Campaign · 01</div>
           <h1 className="proj-hero__title">{project.title}</h1>
           {project.description && (
-            <p className="muted" style={{ marginTop: 8 }}>{project.description}</p>
+            <p className="muted" style={{ marginTop: 6, fontSize: 12.5 }}>{project.description}</p>
           )}
           {project.targetDate && (
-            <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
+            <p className="mono soft" style={{ fontSize: 10.5, marginTop: 8 }}>
               TREASURE DATE: {formatShortDate(project.targetDate)}
             </p>
           )}
-          <p style={{ fontSize: 13, marginTop: 8, color: hex }}>
-            ⛳ {completedCount}/{list.length} milestones conquered
-          </p>
+          {currentMilestone ? (
+            <button
+              type="button"
+              className="proj-hero__quest"
+              style={{ "--quest-accent": hex, "--quest-p": `${currentMsProgress}%` }}
+              onClick={() => onOpenMilestone && onOpenMilestone(currentMilestone.id)}
+              aria-label={`Continue milestone ${currentIndex + 1}: ${currentMilestone.title}`}
+            >
+              <span className="proj-hero__quest-pulse" aria-hidden="true" />
+              <span className="proj-hero__quest-info">
+                <span className="proj-hero__quest-label">
+                  <em>▸ Now questing</em>
+                  <em>Milestone {currentIndex + 1} / {orderedMs.length} · {completedCount} conquered</em>
+                </span>
+                <span className="proj-hero__quest-title">{currentMilestone.title || "Untitled milestone"}</span>
+                <span className="proj-hero__quest-bar" aria-hidden="true">
+                  <i />
+                </span>
+              </span>
+              <span className="proj-hero__quest-go" aria-hidden="true">➔</span>
+            </button>
+          ) : (
+            <p className="proj-hero__quest-done" style={{ color: hex }}>
+              ✦ All {orderedMs.length} milestones conquered
+            </p>
+          )}
 
-          <div className="row row--wrap" style={{ marginTop: 16 }}>
+        </div>
+
+        {/* Top-right cluster: progress ring + compact edit/delete, tucked in the corner. */}
+        <div className="proj-hero__corner">
+          <div className="proj-hero__ring">
+            <ProgressRing value={progress} size={44} stroke={4} label="Expedition" />
+          </div>
+          <div className="proj-hero__actions">
             <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-              ✎ Edit Project
+              ✎ Edit
             </Button>
             <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
               Delete
             </Button>
           </div>
-        </div>
-
-        <div className="proj-hero__ring">
-          <ProgressRing value={progress} size={68} stroke={6} label="Expedition" />
         </div>
       </Card>
 

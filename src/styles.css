@@ -1754,11 +1754,37 @@ h2 {
   }
 
   .shadow-tool-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .shadow-tool-card {
-    min-height: 154px;
+    min-height: 132px;
+    padding: 12px;
+    border-radius: 7px;
+  }
+
+  .shadow-tool-card__body {
+    padding-top: 12px;
+  }
+
+  .shadow-tool-card__body h2 {
+    font-size: 15px;
+  }
+
+  .shadow-tool-card__relic-name {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+
+  .shadow-tool-card__body p {
+    font-size: 11px;
+  }
+
+  .shadow-tool-card__launch {
+    min-width: 60px;
+    height: 24px;
+    margin-top: 10px;
   }
 }
 
