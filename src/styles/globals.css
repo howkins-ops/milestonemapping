@@ -2520,6 +2520,157 @@ button {
   box-shadow: 0 0 16px rgba(0, 255, 191, 0.55);
 }
 
+/* ============ PROJECT HERO CARD (phoenix) ============ */
+
+.proj-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 190px;
+  isolation: isolate;
+}
+
+.proj-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 78% 38%, rgba(0, 240, 255, 0.12), transparent 45%),
+    radial-gradient(ellipse at 92% 82%, rgba(209, 30, 255, 0.18), transparent 45%),
+    linear-gradient(120deg, transparent, rgba(5, 0, 16, 0.35));
+}
+
+.proj-hero__aura {
+  position: absolute;
+  right: 2%;
+  top: 52%;
+  transform: translateY(-50%);
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.26), rgba(209, 30, 255, 0.18) 45%, transparent 70%);
+  filter: blur(18px);
+  animation: ph-aura 4s ease-in-out infinite;
+}
+
+.proj-hero__phoenix {
+  position: absolute;
+  right: -1%;
+  bottom: -14px;
+  height: 210px;
+  width: auto;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 22px rgba(0, 240, 255, 0.5))
+    drop-shadow(0 0 46px rgba(209, 30, 255, 0.4));
+  animation:
+    ph-rise 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both,
+    ph-float 5s ease-in-out 1.5s infinite;
+}
+
+.proj-hero__fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+.proj-hero__streak {
+  position: absolute;
+  top: 48%;
+  left: 82%;
+  width: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--brand-cyan, #00F0FF), transparent);
+  transform-origin: 0 0;
+  opacity: 0;
+  animation: ph-warp 1s ease-in both;
+}
+
+.proj-hero__ember {
+  position: absolute;
+  bottom: -8px;
+  border-radius: 50%;
+  background: var(--brand-cyan, #00F0FF);
+  box-shadow: 0 0 8px var(--brand-cyan, #00F0FF);
+  opacity: 0;
+  animation: ph-ember var(--d, 3s) linear var(--delay, 0s) infinite;
+}
+
+.proj-hero__content { position: relative; z-index: 2; max-width: 62%; }
+
+.proj-hero__kicker {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--brand-cyan, #00F0FF);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.proj-hero__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+  margin: 0;
+  font-size: clamp(20px, 3vw, 30px);
+  text-shadow:
+    0 0 22px rgba(209, 30, 255, 0.45),
+    0 0 44px rgba(0, 240, 255, 0.22);
+}
+
+.proj-hero__ring { position: absolute; top: 16px; right: 18px; z-index: 3; }
+
+@keyframes ph-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.7) rotate(-6deg);
+    filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.2)) blur(8px);
+  }
+  60% { opacity: 1; }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+    filter: drop-shadow(0 0 22px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 46px rgba(209, 30, 255, 0.4)) blur(0);
+  }
+}
+@keyframes ph-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-8px) scale(1.02); }
+}
+@keyframes ph-aura {
+  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+  50%      { opacity: 0.85; transform: translateY(-50%) scale(1.12); }
+}
+@keyframes ph-warp {
+  0%   { opacity: 0; transform: rotate(var(--a)) scaleY(0); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(300px) scaleY(50); }
+}
+@keyframes ph-ember {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.9; }
+  100% { transform: translateY(-180px) translateX(14px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proj-hero__phoenix { animation: none; opacity: 1; transform: none; }
+  .proj-hero__streak,
+  .proj-hero__ember,
+  .proj-hero__aura { animation: none; opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .proj-hero__content { max-width: 100%; }
+  .proj-hero__phoenix { opacity: 0.25 !important; right: -8%; height: 180px; }
+  .proj-hero__ring { position: static; margin-top: 14px; }
+}
+
 /* ============ TREASURE TRAIL PROJECT WORLD ============ */
 
 .trail-world {
@@ -2591,10 +2742,11 @@ button {
   left: 20px;
   z-index: 18;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 14px;
   pointer-events: none;
+  text-align: center;
 }
 
 .trail-world__header span,
@@ -2612,27 +2764,29 @@ button {
 
 .trail-world__header span {
   display: block;
-  color: var(--brand-cyan);
-  font-size: 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4vw, 1.7rem);
   font-weight: 800;
-  text-shadow: 0 0 12px rgba(0, 240, 255, 0.65);
+  letter-spacing: 0.22em;
+  background: linear-gradient(100deg, #00F0FF, #D11EFF 60%, #FF3EDB);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 26px rgba(209, 30, 255, 0.4));
 }
 
 .trail-world__header h2 {
-  max-width: 19rem;
-  margin-top: 4px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: none;
-  letter-spacing: -0.01em;
-  font-size: clamp(1.15rem, 3vw, 1.65rem);
-  line-height: 1.02;
-  text-shadow:
-    0 0 22px rgba(209, 30, 255, 0.45),
-    0 0 44px rgba(0, 240, 255, 0.25);
+  max-width: 21rem;
+  margin-top: 2px;
+  font-size: clamp(0.92rem, 2.4vw, 1.4rem);
+  line-height: 1;
+  text-shadow: 0 0 22px rgba(209, 30, 255, 0.42);
 }
 
 .trail-world__xp {
+  position: absolute;
+  right: 0;
+  top: 0;
   min-width: 7rem;
   border: 1px solid rgba(0, 240, 255, 0.28);
   border-radius: 999px;
@@ -2647,135 +2801,6 @@ button {
   color: var(--text-main);
   font-size: 0.95rem;
   line-height: 1.1;
-}
-
-/* ── Cinematic phoenix hero band ─────────────────────────── */
-.trail-world__hero {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  z-index: 3;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: 22px 22px 0 0;
-}
-
-.trail-world__phoenix {
-  position: absolute;
-  top: 50%;
-  right: 3%;
-  height: clamp(130px, 30vw, 188px);
-  width: auto;
-  transform: translateY(-50%);
-  opacity: 0;
-  filter:
-    drop-shadow(0 0 26px rgba(0, 240, 255, 0.5))
-    drop-shadow(0 0 50px rgba(209, 30, 255, 0.4));
-  animation:
-    tw-phoenix-rise 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both,
-    tw-phoenix-float 5s ease-in-out 1.6s infinite;
-}
-
-.trail-world__phoenix-aura {
-  position: absolute;
-  top: 50%;
-  right: 6%;
-  width: 210px;
-  height: 210px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.26), rgba(209, 30, 255, 0.18) 45%, transparent 70%);
-  filter: blur(16px);
-  animation: tw-aura-breathe 4s ease-in-out infinite;
-}
-
-.trail-world__warp { position: absolute; inset: 0; }
-
-.trail-world__streak {
-  position: absolute;
-  top: 100px;
-  left: 80%;
-  width: 2px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(var(--brand-cyan), transparent);
-  transform-origin: 0 0;
-  opacity: 0;
-  animation: tw-warp 1s ease-in both;
-}
-
-.trail-world__embers { position: absolute; inset: 0; }
-
-.trail-world__ember {
-  position: absolute;
-  bottom: -10px;
-  border-radius: 50%;
-  background: var(--brand-cyan);
-  box-shadow: 0 0 8px var(--brand-cyan);
-  opacity: 0;
-  animation: tw-ember-rise var(--d, 3s) linear var(--delay, 0s) infinite;
-}
-
-@keyframes tw-phoenix-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(28%) scale(0.6) rotate(-7deg);
-    filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.2)) blur(8px);
-  }
-  60% { opacity: 1; }
-  100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1) rotate(0);
-    filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 50px rgba(209, 30, 255, 0.4)) blur(0);
-  }
-}
-@keyframes tw-phoenix-float {
-  0%, 100% { transform: translateY(-50%) scale(1); }
-  50%      { transform: translateY(-55%) scale(1.03); }
-}
-@keyframes tw-aura-breathe {
-  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
-  50%      { opacity: 0.85; transform: translateY(-50%) scale(1.12); }
-}
-@keyframes tw-warp {
-  0%   { opacity: 0; transform: rotate(var(--a)) scaleY(0); }
-  20%  { opacity: 1; }
-  100% { opacity: 0; transform: rotate(var(--a)) translateX(360px) scaleY(55); }
-}
-@keyframes tw-ember-rise {
-  0%   { transform: translateY(0) translateX(0); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 0.9; }
-  100% { transform: translateY(-210px) translateX(16px); opacity: 0; }
-}
-
-/* Honour reduced-motion: show the phoenix settled, kill the animation */
-.trail-world.is-reduced .trail-world__phoenix {
-  animation: none;
-  opacity: 1;
-  transform: translateY(-50%);
-  filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 50px rgba(209, 30, 255, 0.4));
-}
-.trail-world.is-reduced .trail-world__streak,
-.trail-world.is-reduced .trail-world__ember,
-.trail-world.is-reduced .trail-world__phoenix-aura { animation: none; opacity: 0; }
-
-@media (prefers-reduced-motion: reduce) {
-  .trail-world__phoenix {
-    animation: none;
-    opacity: 1;
-    transform: translateY(-50%);
-  }
-  .trail-world__streak,
-  .trail-world__ember,
-  .trail-world__phoenix-aura { animation: none; opacity: 0; }
-}
-
-@media (max-width: 560px) {
-  .trail-world__phoenix { right: -4%; height: clamp(120px, 34vw, 150px); }
-  .trail-world__header h2 { max-width: 13rem; }
 }
 
 .trail-world__map {

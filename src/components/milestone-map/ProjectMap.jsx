@@ -8,20 +8,6 @@ import MapNode from "./MapNode.jsx";
 import CharacterMarker from "./CharacterMarker.jsx";
 import JourneyStatusPanel from "./JourneyStatusPanel.jsx";
 import MilestoneManager from "./MilestoneManager.jsx";
-import phoenixImg from "../../pheonix.png";
-
-// Hyperspace streaks fired from the phoenix on mount (deterministic, no random)
-const WARP_STREAKS = Array.from({ length: 22 }, (_, i) => ({
-  a: (360 / 22) * i + (i % 3) * 5,
-  delay: (i % 6) * 0.05,
-}));
-// Neon embers drifting up through the hero band
-const WARP_EMBERS = Array.from({ length: 16 }, (_, i) => ({
-  left: 5 + ((i * 61) % 90),
-  d: 2.4 + (i % 5) * 0.5,
-  delay: (i % 7) * 0.4,
-  size: 2 + (i % 3),
-}));
 
 const NODE_X_SEQ   = [50, 61, 42, 58, 44, 55, 39, 63];
 const MAP_MIN_HEIGHT = 560;
@@ -182,34 +168,14 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
 
   return (
     <section
-      className={`trail-world ${allDone ? "is-goal-complete" : ""} ${settings.reducedMotion ? "is-reduced" : ""}`}
+      className={`trail-world ${allDone ? "is-goal-complete" : ""}`}
       style={{ "--trail-height": `${totalHeight}px` }}
     >
       <MapBackground />
 
-      {/* Cinematic hero — phoenix warp-in + embers */}
-      <div className="trail-world__hero" aria-hidden="true">
-        <span className="trail-world__phoenix-aura" />
-        <img className="trail-world__phoenix" src={phoenixImg} alt="" />
-        <div className="trail-world__warp">
-          {WARP_STREAKS.map((s, i) => (
-            <span key={i} className="trail-world__streak"
-              style={{ "--a": `${s.a}deg`, animationDelay: `${s.delay}s` }} />
-          ))}
-        </div>
-        <div className="trail-world__embers">
-          {WARP_EMBERS.map((e, i) => (
-            <span key={i} className="trail-world__ember"
-              style={{ left: `${e.left}%`, "--d": `${e.d}s`, "--delay": `${e.delay}s`,
-                width: e.size, height: e.size }} />
-          ))}
-        </div>
-      </div>
-
       <div className="trail-world__header">
         <div>
-          <span>⚔ Active Campaign · 01</span>
-          <h2>{project.title}</h2>
+          <span>PROJECT WORLD</span>
         </div>
         <div className="trail-world__xp">
           <span>XP</span>

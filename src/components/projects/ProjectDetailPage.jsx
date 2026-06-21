@@ -15,6 +15,19 @@ import { getProjectMilestones, getProjectProgress } from "../../lib/progress.js"
 import { getProjectColorHex } from "../../lib/constants.js";
 import { formatShortDate } from "../../lib/dates.js";
 import { resolveImageSrc } from "../../lib/imageUploadService.js";
+import phoenixImg from "../../pheonix.png";
+
+// Cinematic hero FX — deterministic so they don't reshuffle on every render
+const HERO_STREAKS = Array.from({ length: 18 }, (_, i) => ({
+  a: (360 / 18) * i + (i % 3) * 6,
+  delay: (i % 6) * 0.05,
+}));
+const HERO_EMBERS = Array.from({ length: 14 }, (_, i) => ({
+  left: 50 + ((i * 53) % 48), // biased to the right half, around the phoenix
+  d: 2.4 + (i % 5) * 0.5,
+  delay: (i % 7) * 0.4,
+  size: 2 + (i % 3),
+}));
 
 export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, onOpenRPGWorld }) {
   const { projects, milestones, visionBoard, userId, createMilestone, updateMilestone, updateProject, deleteProject, addVisionBoardItem, detachVisionFromProject } =
@@ -78,32 +91,50 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
         ← Back to Map Room
       </Button>
 
-      {/* Project header */}
-      <Card variant={completed ? "completed" : "neon"} style={{ borderColor: completed ? undefined : `${hex}44`, marginBottom: 16 }}>
-        <div className="row row--between row--wrap" style={{ gap: 20, alignItems: "flex-start" }}>
-          <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-            <h1 style={{ fontSize: "clamp(18px, 2.6vw, 24px)" }}>{project.title}</h1>
-            {project.description && (
-              <p className="muted" style={{ marginTop: 8 }}>{project.description}</p>
-            )}
-            {project.targetDate && (
-              <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
-                TREASURE DATE: {formatShortDate(project.targetDate)}
-              </p>
-            )}
-            <p style={{ fontSize: 13, marginTop: 8, color: hex }}>
-              ⛳ {completedCount}/{list.length} milestones conquered
-            </p>
+      {/* Project header — cinematic phoenix hero */}
+      <Card variant={completed ? "completed" : "neon"} className="proj-hero"
+        style={{ borderColor: completed ? undefined : `${hex}44`, marginBottom: 16 }}>
+        <div className="proj-hero__bg" aria-hidden="true" />
+        <span className="proj-hero__aura" aria-hidden="true" />
+        <img className="proj-hero__phoenix" src={phoenixImg} alt="" aria-hidden="true" />
+        <div className="proj-hero__fx" aria-hidden="true">
+          {HERO_STREAKS.map((s, i) => (
+            <span key={`s${i}`} className="proj-hero__streak"
+              style={{ "--a": `${s.a}deg`, animationDelay: `${s.delay}s` }} />
+          ))}
+          {HERO_EMBERS.map((e, i) => (
+            <span key={`e${i}`} className="proj-hero__ember"
+              style={{ left: `${e.left}%`, "--d": `${e.d}s`, "--delay": `${e.delay}s`,
+                width: e.size, height: e.size }} />
+          ))}
+        </div>
 
-            <div className="row row--wrap" style={{ marginTop: 16 }}>
-              <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-                ✎ Edit Project
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
-                Delete
-              </Button>
-            </div>
+        <div className="proj-hero__content">
+          <div className="proj-hero__kicker">⚔ Active Campaign · 01</div>
+          <h1 className="proj-hero__title">{project.title}</h1>
+          {project.description && (
+            <p className="muted" style={{ marginTop: 8 }}>{project.description}</p>
+          )}
+          {project.targetDate && (
+            <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
+              TREASURE DATE: {formatShortDate(project.targetDate)}
+            </p>
+          )}
+          <p style={{ fontSize: 13, marginTop: 8, color: hex }}>
+            ⛳ {completedCount}/{list.length} milestones conquered
+          </p>
+
+          <div className="row row--wrap" style={{ marginTop: 16 }}>
+            <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+              ✎ Edit Project
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
+              Delete
+            </Button>
           </div>
+        </div>
+
+        <div className="proj-hero__ring">
           <ProgressRing value={progress} size={68} stroke={6} label="Expedition" />
         </div>
       </Card>
