@@ -4,11 +4,11 @@ import Button from "../ui/Button.jsx";
 import ScienceInfo from "../ui/ScienceInfo.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useAppData } from "../../hooks/useAppData.js";
-import { getNextMilestone, getProjectProgress } from "../../lib/progress.js";
 import { uid } from "../../lib/id.js";
 
-// The Top 5 builder. Priorities are pulled from the user's MAP PROJECTS so the
-// list is what actually moves them toward a goal — not busywork that looks busy.
+// The Top 5 builder. The user WRITES their priorities (ranked) and can OPTIONALLY
+// tag each one to a map project so the priority is associated with a goal — the point
+// is deciding what actually matters, not picking from a busy-looking project list.
 // #1 = "the battle": the single move that gets them closest to a goal.
 //
 // mode="plan"    → builds tomorrow's five (night ritual)
@@ -22,7 +22,7 @@ const STEPS = [
 export default function TopFiveWizard({ mode = "plan", onDone }) {
   const isPlan = mode === "plan";
   const { todayLog, tomorrowLog, updateTodayLog, updateTomorrowLog } = useDailyLog();
-  const { projects, milestones } = useAppData();
+  const { projects } = useAppData();
 
   const log = isPlan ? tomorrowLog : todayLog;
   const writeLog = isPlan ? updateTomorrowLog : updateTodayLog;
@@ -34,6 +34,7 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
   );
   const [done, setDone] = useState(initial.length >= 5);
   const [custom, setCustom] = useState("");
+  const [draftProjectId, setDraftProjectId] = useState(null);
 
   // single source of truth — persist on every change so nothing is lost mid-wizard
   const commit = (next) => {
@@ -42,56 +43,47 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
     writeLog({ topFive: trimmed });
   };
 
-  const activeProjects = (projects || [])
-    .filter((p) => p.status !== "completed")
-    .map((p) => ({
-      project: p,
-      next: getNextMilestone(p, milestones),
-      progress: getProjectProgress(p, milestones)
-    }));
+  // active maps the user can OPTIONALLY tag a priority to (no longer a pick-from list)
+  const activeProjects = (projects || []).filter((p) => p.status !== "completed");
+  const draftProject = activeProjects.find((p) => p.id === draftProjectId) || null;
+  const toggleDraftProject = (id) =>
+    setDraftProjectId((cur) => (cur === id ? null : id));
 
-  const usedMilestoneIds = new Set(picks.map((t) => t.milestoneId).filter(Boolean));
-
-  const makeTask = ({ text, project, milestone }) => ({
+  // priorities are WRITTEN; a project is an optional tag, not the source of the text
+  const makeTask = ({ text, project }) => ({
     id: uid("t5"),
     text,
     done: false,
     projectId: project ? project.id : null,
     projectTitle: project ? project.title : null,
-    milestoneId: milestone ? milestone.id : null
+    milestoneId: null
   });
 
-  const projectTaskText = (project, milestone) =>
-    milestone ? milestone.title : `Move "${project.title}" forward`;
+  const resetDraft = () => {
+    setCustom("");
+    setDraftProjectId(null);
+  };
 
   /* ---------- step 0: pick the battle ---------- */
-  const setBattle = (task) => {
-    commit([task, ...picks.slice(1)]);
-    setStep(1);
-  };
-  const battleFromProject = ({ project, next }) =>
-    setBattle(makeTask({ text: projectTaskText(project, next), project, milestone: next }));
   const battleFromCustom = () => {
     const text = custom.trim();
     if (!text) return;
-    setBattle(makeTask({ text }));
-    setCustom("");
+    commit([makeTask({ text, project: draftProject }), ...picks.slice(1)]);
+    resetDraft();
+    setStep(1);
   };
 
   /* ---------- step 1: build the squad ---------- */
-  const addPick = (task) => {
-    if (picks.length >= 5) return;
-    commit([...picks, task]);
-  };
-  const addFromProject = ({ project, next }) =>
-    addPick(makeTask({ text: projectTaskText(project, next), project, milestone: next }));
   const addFromCustom = () => {
     const text = custom.trim();
     if (!text || picks.length >= 5) return;
-    addPick(makeTask({ text }));
-    setCustom("");
+    commit([...picks, makeTask({ text, project: draftProject })]);
+    resetDraft();
   };
   const removePick = (id) => commit(picks.filter((t) => t.id !== id));
+  // tap an item's project tag to clear the association
+  const clearItemProject = (id) =>
+    commit(picks.map((t) => (t.id === id ? { ...t, projectId: null, projectTitle: null } : t)));
 
   const lockIn = () => {
     setDone(true);
@@ -131,8 +123,27 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
 
   const activeStep = STEPS[step];
   const battle = picks[0];
-  const squad = picks.slice(1);
-  const noMaps = activeProjects.length === 0;
+  const hasMaps = activeProjects.length > 0;
+
+  // optional project-tag chip row — shown under the write input in steps 0 & 1
+  const tagRow = hasMaps && (
+    <div className="t5wz-tagrow">
+      <span className="t5wz-taglabel">Tag a project (optional)</span>
+      <div className="t5wz-tagchips">
+        {activeProjects.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`t5wz-tag-chip ${draftProjectId === p.id ? "is-selected" : ""}`}
+            onClick={() => toggleDraftProject(p.id)}
+            aria-pressed={draftProjectId === p.id}
+          >
+            {p.title}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="t5wz night-wizard anim-fade-in">
@@ -166,49 +177,25 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
             <span className="t5wz-eyebrow">★ DECISIVE WIN</span>
             <h3 className="t5wz-title">Pick the Battle</h3>
             <p className="t5wz-sub">
-              Most people stay busy on the wrong things. Choose the ONE move from your maps
-              that gets you closest to a goal.
+              Most people stay busy on the wrong things. Write the ONE move that gets you
+              closest to a goal — then tag the project it moves forward.
             </p>
-
-            {!noMaps && (
-              <div className="t5wz-pick-grid">
-                {activeProjects.map(({ project, next, progress }) => {
-                  const selected = battle && battle.projectId === project.id;
-                  return (
-                    <button
-                      key={project.id}
-                      type="button"
-                      className={`t5wz-map-card ${selected ? "is-selected" : ""}`}
-                      onClick={() => battleFromProject({ project, next })}
-                    >
-                      <span className="t5wz-map-name">{project.title}</span>
-                      <span className="t5wz-map-next">
-                        {next ? `Next: ${next.title}` : "No open milestone — move it forward"}
-                      </span>
-                      <span className="t5wz-map-prog">{progress}% mapped</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {noMaps && (
-              <p className="t5wz-empty">No active maps yet — write your battle below.</p>
-            )}
 
             <div className="t5wz-custom">
               <input
                 className="input"
-                placeholder="Or write your own #1 priority…"
+                placeholder="Write your #1 priority…"
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") battleFromCustom(); }}
-                aria-label="Custom battle"
+                aria-label="Your #1 priority"
               />
               <Button variant="secondary" onClick={battleFromCustom} disabled={!custom.trim()}>
                 Set #1
               </Button>
             </div>
+
+            {tagRow}
 
             {battle && (
               <div className="t5wz-battle-current">
@@ -234,7 +221,17 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
                   <span className="t5wz-rank">{i === 0 ? "★" : `#${i + 1}`}</span>
                   <span className="t5wz-list-text">
                     {t.text}
-                    {t.projectTitle && <span className="t5wz-list-map">{t.projectTitle}</span>}
+                    {t.projectTitle && (
+                      <button
+                        type="button"
+                        className="t5wz-list-map is-clearable"
+                        onClick={() => clearItemProject(t.id)}
+                        aria-label={`Remove project tag ${t.projectTitle}`}
+                        title="Tap to clear project"
+                      >
+                        {t.projectTitle} ✕
+                      </button>
+                    )}
                   </span>
                   <button
                     className="t5wz-remove"
@@ -247,28 +244,10 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
 
             {picks.length < 5 && (
               <>
-                {activeProjects.length > 0 && (
-                  <div className="t5wz-chiprow">
-                    {activeProjects
-                      .filter(({ next }) => !next || !usedMilestoneIds.has(next.id))
-                      .map(({ project, next }) => (
-                        <button
-                          key={project.id}
-                          type="button"
-                          className="t5wz-chip"
-                          onClick={() => addFromProject({ project, next })}
-                        >
-                          + {next ? next.title : project.title}
-                          <span className="t5wz-chip-map">{project.title}</span>
-                        </button>
-                      ))}
-                  </div>
-                )}
-
                 <div className="t5wz-custom">
                   <input
                     className="input"
-                    placeholder={`Priority ${picks.length + 1} — what moves a map forward?`}
+                    placeholder={`Priority ${picks.length + 1} — what moves you forward?`}
                     value={custom}
                     onChange={(e) => setCustom(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") addFromCustom(); }}
@@ -276,6 +255,8 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
                   />
                   <Button variant="primary" onClick={addFromCustom} disabled={!custom.trim()}>Add</Button>
                 </div>
+
+                {tagRow}
               </>
             )}
 

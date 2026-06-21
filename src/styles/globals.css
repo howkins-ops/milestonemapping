@@ -3791,7 +3791,7 @@ button {
   right: 0.5rem;
   display: flex;
   gap: 0.35rem;
-  opacity: 0;
+  opacity: 0.92;
   transition: opacity 200ms var(--ease-out);
   z-index: 2;
 }

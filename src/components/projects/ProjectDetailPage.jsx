@@ -14,7 +14,7 @@ import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones, getProjectProgress } from "../../lib/progress.js";
 import { getProjectColorHex } from "../../lib/constants.js";
 import { formatShortDate } from "../../lib/dates.js";
-import { uploadImage } from "../../lib/imageUploadService.js";
+import { resolveImageSrc } from "../../lib/imageUploadService.js";
 
 export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, onOpenRPGWorld }) {
   const { projects, milestones, visionBoard, userId, createMilestone, updateMilestone, updateProject, deleteProject, addVisionBoardItem, detachVisionFromProject } =
@@ -35,7 +35,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
     if (!file) return;
     setGoalUploading(true);
     try {
-      const url = await uploadImage(file, userId);
+      const url = await resolveImageSrc(file, userId);
       updateProject(project.id, { goalImageUrl: url });
     } catch (err) {
       console.error("Goal image upload failed:", err);
@@ -199,11 +199,11 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
         </div>
 
         {project.goalImageUrl ? (
-          <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(250,204,21,0.3)", boxShadow: "0 0 24px rgba(250,204,21,0.08)" }}>
+          <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(250,204,21,0.3)", boxShadow: "0 0 24px rgba(250,204,21,0.08)", background: "rgba(0,0,0,0.35)" }}>
             <img
               src={project.goalImageUrl}
               alt="Goal vision"
-              style={{ width: "100%", maxHeight: 140, objectFit: "cover", display: "block" }}
+              style={{ width: "100%", height: 175, objectFit: "contain", display: "block" }}
             />
             <div style={{
               position: "absolute", inset: 0,

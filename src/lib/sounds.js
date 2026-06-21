@@ -59,6 +59,19 @@ const SOUND_RECIPES = {
   insight: [
     { freq: 528, duration: 0.14, type: "sine", gain: 0.06 },
     { freq: 660, start: 0.12, duration: 0.22, type: "sine", gain: 0.07 }
+  ],
+  // Soft, low breath cues for the wind-down breathwork — barely-there sine
+  // swells so they guide the rhythm without ever being jarring enough to wake you.
+  breatheIn: [
+    { freq: 330, duration: 0.5, type: "sine", gain: 0.035 },
+    { freq: 495, start: 0.04, duration: 0.5, type: "sine", gain: 0.02 }
+  ],
+  breatheOut: [
+    { freq: 247, duration: 0.7, type: "sine", gain: 0.035 },
+    { freq: 165, start: 0.05, duration: 0.7, type: "sine", gain: 0.025 }
+  ],
+  breatheHold: [
+    { freq: 392, duration: 0.16, type: "sine", gain: 0.018 }
   ]
 };
 

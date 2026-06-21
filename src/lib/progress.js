@@ -3,10 +3,23 @@ import { getRewardTier } from "./rewards.js";
 export function getMilestoneProgress(milestone) {
   if (!milestone) return 0;
   if (milestone.status === "completed") return 100;
+  // Counter mode: a numeric target drives progress (overrides action-based %).
+  if (milestone.targetValue > 0) {
+    const cur = Number(milestone.currentValue) || 0;
+    return Math.max(0, Math.min(100, Math.round((cur / milestone.targetValue) * 100)));
+  }
   const actions = milestone.actions || [];
   if (actions.length === 0) return 0;
   const done = actions.filter((a) => a.done).length;
   return Math.round((done / actions.length) * 100);
+}
+
+// True when a counter-mode milestone has hit (or passed) its numeric target.
+export function isGoalReached(milestone) {
+  return Boolean(
+    milestone?.targetValue > 0 &&
+      (Number(milestone.currentValue) || 0) >= milestone.targetValue
+  );
 }
 
 export function getOverallProgress(milestones) {

@@ -22,3 +22,28 @@ export async function uploadImage(file, userId) {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
+
+// Reads a File as a base64 data URL — the offline / signed-out fallback.
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Turns a chosen image File into a src string we can store.
+ * Tries Supabase Storage first (returns a public URL); if that isn't available
+ * (not signed in / not configured / upload denied), falls back to a local data
+ * URL so the image still applies. Always resolves to a usable src.
+ */
+export async function resolveImageSrc(file, userId) {
+  try {
+    if (userId) return await uploadImage(file, userId);
+  } catch (err) {
+    console.warn("[imageUpload] upload failed, storing locally:", err?.message || err);
+  }
+  return readAsDataUrl(file);
+}

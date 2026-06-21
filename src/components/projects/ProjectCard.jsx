@@ -11,7 +11,7 @@ import {
 import { formatShortDate, daysUntil } from "../../lib/dates.js";
 import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
 import { useAppData } from "../../hooks/useAppData.js";
-import { uploadImage } from "../../lib/imageUploadService.js";
+import { resolveImageSrc } from "../../lib/imageUploadService.js";
 
 export default function ProjectCard({ project, milestones, onOpen }) {
   const { userId, updateProject } = useAppData();
@@ -37,7 +37,7 @@ export default function ProjectCard({ project, milestones, onOpen }) {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadImage(file, userId);
+      const url = await resolveImageSrc(file, userId);
       updateProject(project.id, { cardImageUrl: url });
     } catch (err) {
       console.error("Card background upload failed:", err);
@@ -97,7 +97,7 @@ export default function ProjectCard({ project, milestones, onOpen }) {
           </>
         )}
 
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleBgFile} style={{ display: "none" }} />
+        <input ref={fileRef} type="file" accept="image/*" onClick={(e) => e.stopPropagation()} onChange={handleBgFile} style={{ display: "none" }} />
         <div className="project-map-card__bg-tools">
           <button
             type="button"

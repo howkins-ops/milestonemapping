@@ -5,6 +5,7 @@ import GratitudePanel from "./GratitudePanel.jsx";
 import TopFivePanel from "./TopFivePanel.jsx";
 import TopFiveWizard from "./TopFiveWizard.jsx";
 import EndOfDayReflection from "./EndOfDayReflection.jsx";
+import SleepBreathwork from "./SleepBreathwork.jsx";
 import BedtimeChecklist from "./BedtimeChecklist.jsx";
 import ModeTransitionOverlay from "./ModeTransitionOverlay.jsx";
 
@@ -140,6 +141,7 @@ export default function DailyPage() {
                 <span>WIND DOWN</span>
                 <span className="night-section-label-line" />
               </div>
+              <SleepBreathwork />
               <BedtimeChecklist />
             </div>
 

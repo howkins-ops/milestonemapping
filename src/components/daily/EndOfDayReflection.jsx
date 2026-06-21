@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
-import Button from "../ui/Button.jsx";
-import TextArea from "../ui/TextArea.jsx";
 import ScienceInfo from "../ui/ScienceInfo.jsx";
+import EveningWizard from "./EveningWizard.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
+import { useAppData } from "../../hooks/useAppData.js";
 import { useToasts } from "../../hooks/useToasts.js";
 
 function getCoachMessage(done, total) {
@@ -17,27 +17,44 @@ function getCoachMessage(done, total) {
 
 export default function EndOfDayReflection() {
   const { todayLog, updateTodayLog, doneCount } = useDailyLog();
+  const { settings } = useAppData();
   const { pushToast } = useToasts();
-  const [form, setForm] = useState({
-    biggestWin: todayLog.biggestWin || "",
-    lesson: todayLog.lesson || "",
-    tomorrowUpgrade: todayLog.tomorrowUpgrade || ""
-  });
+  const [open, setOpen] = useState(false);
 
   const tasks = todayLog.topFive || [];
   const total = tasks.length;
   const completionPct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
-  const save = () => {
-    updateTodayLog(form);
-    pushToast({ type: "success", title: "Day logged.", message: "Evidence saved. Tomorrow is loading." });
+  // "Closed" once any reflection beat has been captured tonight.
+  const nightGratitude = todayLog.nightGratitude || [];
+  const isClosed = !!(
+    todayLog.biggestWin ||
+    todayLog.lesson ||
+    todayLog.tomorrowUpgrade ||
+    nightGratitude.length
+  );
+
+  const handleComplete = ({ biggestWin, lesson, tomorrowUpgrade, nightGratitude }) => {
+    updateTodayLog({ biggestWin, lesson, tomorrowUpgrade, nightGratitude });
+    setOpen(false);
+    pushToast({
+      type: "success",
+      title: "Day logged.",
+      message: "Evidence saved, mind quieted. You'll fall asleep faster ending on the good.",
+    });
   };
+
+  const reflections = [
+    { label: "Biggest win", text: todayLog.biggestWin },
+    { label: "What it taught me", text: todayLog.lesson },
+    { label: "Tomorrow's upgrade", text: todayLog.tomorrowUpgrade },
+  ].filter((r) => r.text && r.text.trim());
 
   return (
     <div className="night-debrief-section">
       {/* Execution report */}
       <div className="night-execution-report">
-        <ScienceInfo ids={["reflection"]} />
+        <ScienceInfo ids={["reflection", "night_gratitude"]} />
         <div className="night-exec-header">
           <span className="night-exec-label">TODAY'S EXECUTION</span>
           <span className="night-exec-score" style={{
@@ -80,32 +97,73 @@ export default function EndOfDayReflection() {
         </div>
       </div>
 
-      {/* Reflection */}
+      {/* Reflection wizard launcher / locked recap */}
       <Card variant="glass">
-        <div className="stack">
-          <TextArea
-            label="Biggest win today"
-            rows={2}
-            value={form.biggestWin}
-            onChange={(e) => setForm({ ...form, biggestWin: e.target.value })}
-          />
-          <TextArea
-            label="Biggest lesson today"
-            rows={2}
-            value={form.lesson}
-            onChange={(e) => setForm({ ...form, lesson: e.target.value })}
-          />
-          <TextArea
-            label="What I'll upgrade tomorrow"
-            rows={2}
-            value={form.tomorrowUpgrade}
-            onChange={(e) => setForm({ ...form, tomorrowUpgrade: e.target.value })}
-          />
-          <Button variant="secondary" onClick={save} style={{ alignSelf: "flex-start" }}>
-            Log the Day
-          </Button>
-        </div>
+        {isClosed ? (
+          <div className="ev-locked anim-fade-in">
+            <div className="ev-locked-head">
+              <span className="ev-locked-check">✓</span>
+              <span className="ev-locked-title">DAY CLOSED OUT</span>
+            </div>
+
+            {reflections.length > 0 && (
+              <ul className="ev-locked-entries">
+                {reflections.map((r, i) => (
+                  <li key={i} className="ev-locked-entry">
+                    <span className="ev-locked-entry-label">{r.label}</span>
+                    <p className="ev-locked-entry-text">"{r.text.trim()}"</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {nightGratitude.length > 0 && (
+              <div className="ev-locked-gratitude">
+                <span className="ev-locked-gratitude-label">GRATEFUL FOR</span>
+                <ul className="ev-locked-gratitude-list">
+                  {nightGratitude.map((g, i) => (
+                    <li key={i}><span className="ev-locked-gratitude-dot">✦</span> {g}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <button className="daily-commit-edit-btn" onClick={() => setOpen(true)}>
+              Edit reflection
+            </button>
+          </div>
+        ) : (
+          <div className="ev-cta">
+            <span className="ev-cta-eyebrow">CLOSE THE DAY</span>
+            <h3 className="ev-cta-title">Run the evening reflection</h3>
+            <p className="ev-cta-sub">
+              A guided 4-step wind-down: your win, your lesson, tomorrow's upgrade, and a few small
+              things to be grateful for. Ending on the good helps you fall asleep faster. About two minutes.
+            </p>
+            <button className="ev-cta-btn" onClick={() => setOpen(true)}>
+              Begin reflection →
+            </button>
+          </div>
+        )}
       </Card>
+
+      {open && (
+        <EveningWizard
+          onClose={() => setOpen(false)}
+          onComplete={handleComplete}
+          soundEnabled={settings?.soundEnabled !== false}
+          initial={{
+            biggestWin: todayLog.biggestWin || "",
+            lesson: todayLog.lesson || "",
+            tomorrowUpgrade: todayLog.tomorrowUpgrade || "",
+            nightGratitude: [
+              nightGratitude[0] || "",
+              nightGratitude[1] || "",
+              nightGratitude[2] || "",
+            ],
+          }}
+        />
+      )}
     </div>
   );
 }

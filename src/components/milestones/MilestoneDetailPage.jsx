@@ -7,11 +7,12 @@ import ConfirmModal from "../ui/ConfirmModal.jsx";
 import MilestoneVisionCard from "./MilestoneVisionCard.jsx";
 import MilestoneIdentityCard from "./MilestoneIdentityCard.jsx";
 import MilestoneActions from "./MilestoneActions.jsx";
+import MilestoneProgressTracker from "./MilestoneProgressTracker.jsx";
 import SmartActionGenerator from "./SmartActionGenerator.jsx";
 import MilestoneWizard from "./MilestoneWizard.jsx";
 import MilestoneRewards from "./MilestoneRewards.jsx";
 import { useMilestones } from "../../hooks/useMilestones.js";
-import { getMilestoneProgress } from "../../lib/progress.js";
+import { getMilestoneProgress, isGoalReached } from "../../lib/progress.js";
 import { formatShortDate } from "../../lib/dates.js";
 
 export default function MilestoneDetailPage({ milestoneId, onBack }) {
@@ -34,6 +35,17 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
   const progress = getMilestoneProgress(milestone);
   const actions = milestone.actions || [];
   const allDone = actions.length > 0 && actions.every((a) => a.done);
+  const goalReached = isGoalReached(milestone);
+
+  // Cumulative threshold carry-over: milestones in a project are sequential
+  // thresholds on the same metric (25 → 50 → 100 sales), so this milestone's
+  // counter should pick up where the previous one's target left off.
+  const siblings = milestones
+    .filter((m) => m.projectId === milestone.projectId)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const prevMilestone = siblings[siblings.findIndex((m) => m.id === milestone.id) - 1] || null;
+  const carryFrom = prevMilestone && prevMilestone.targetValue > 0 ? prevMilestone.targetValue : 0;
+  const carryUnit = prevMilestone ? prevMilestone.unit || "" : "";
   const completed = milestone.status === "completed";
 
   return (
@@ -78,10 +90,18 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
           </div>
           <ProgressRing value={progress} size={136} label="Mission Progress" />
         </div>
+
+        {/* Numeric progress tracker — lives inside the header so the count + ring read as one unit */}
+        <MilestoneProgressTracker
+          milestone={milestone}
+          onUpdate={updateMilestone}
+          carryFrom={carryFrom}
+          carryUnit={carryUnit}
+        />
       </Card>
 
       {/* Unlock */}
-      {allDone && !completed && (
+      {(allDone || goalReached) && !completed && (
         <Card variant="gold" className="anim-glow-pulse" style={{ marginTop: 16, textAlign: "center" }}>
           <p style={{ fontWeight: 700, marginBottom: 14, color: "var(--brand-gold)" }}>
             Every action is complete. The coordinates are reached.

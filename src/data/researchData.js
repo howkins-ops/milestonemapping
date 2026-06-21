@@ -169,6 +169,32 @@ export const RESEARCH_BANK = [
     placement: ["EndOfDayReflection"]
   },
   {
+    id: "night_gratitude",
+    category: "Night Gratitude",
+    categoryColor: "green",
+    headline: "Grateful minds fall asleep faster. The last thoughts before sleep set the tone.",
+    appLine: "A few small thank-yous at night replace the racing, worried thoughts that keep you lying awake.",
+    stat: "Gratitude predicts better sleep quality, longer sleep, and less time to fall asleep — entirely through more positive and fewer negative pre-sleep thoughts. In one survey of 400 poor sleepers, 40% fell asleep faster on nights they practiced gratitude.",
+    source: "Wood et al., Journal of Psychosomatic Research (2009)",
+    sourceUrl: "https://pubmed.ncbi.nlm.nih.gov/19073292/",
+    icon: "🌌",
+    countTarget: 40,
+    placement: ["EndOfDayReflection"]
+  },
+  {
+    id: "breathwork",
+    category: "Wind-Down Breathing",
+    categoryColor: "cyan",
+    headline: "A long, slow exhale is your nervous system's off-switch.",
+    appLine: "Each technique here lengthens the exhale or relaxes the body — both flip you from 'fight-or-flight' into 'rest-and-digest' so sleep can arrive.",
+    stat: "A 2017 review found slow, controlled breathing raises vagal tone, which slows heart rate, lowers blood pressure and cortisol, and shifts the body toward sleep. Progressive muscle relaxation has been repeatedly shown to shorten the time it takes to fall asleep.",
+    source: "Zaccaro et al., Frontiers in Human Neuroscience (2018)",
+    sourceUrl: "https://www.frontiersin.org/articles/10.3389/fnhum.2018.00353/full",
+    icon: "🫁",
+    countTarget: 6,
+    placement: ["SleepBreathwork"]
+  },
+  {
     id: "sleep",
     category: "Sleep & Recovery",
     categoryColor: "cyan",
