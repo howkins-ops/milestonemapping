@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
+import useAutoPlayVideo from "../../hooks/useAutoPlayVideo";
 
 // The premium value reveal — what "What's inside" actually opens
 const VALUE = [
@@ -42,23 +43,7 @@ const STEPS = [
 
 export default function MapQuestHero({ onLaunch }) {
   const [showHow, setShowHow] = useState(false);
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    // Force the muted property (JSX `muted` alone is unreliable in React) so
-    // browsers allow autoplay instead of showing the play-button overlay.
-    v.muted = true;
-    v.defaultMuted = true;
-    const tryPlay = () => {
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    };
-    tryPlay();
-    v.addEventListener("canplay", tryPlay);
-    return () => v.removeEventListener("canplay", tryPlay);
-  }, []);
+  const videoRef = useAutoPlayVideo();
 
   return (
     <section className="anim-fade-in" style={{ marginBottom: 22 }}>

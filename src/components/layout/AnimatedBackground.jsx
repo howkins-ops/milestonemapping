@@ -1,24 +1,8 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import useAutoPlayVideo from "../../hooks/useAutoPlayVideo";
 
 export default function AnimatedBackground() {
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    // React doesn't reliably set the `muted` DOM property from the JSX
-    // attribute, and browsers only autoplay muted video — so force it here,
-    // then kick off playback explicitly (covers Safari/iOS autoplay quirks).
-    v.muted = true;
-    v.defaultMuted = true;
-    const tryPlay = () => {
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    };
-    tryPlay();
-    v.addEventListener("canplay", tryPlay);
-    return () => v.removeEventListener("canplay", tryPlay);
-  }, []);
+  const videoRef = useAutoPlayVideo();
 
   return (
     <div
