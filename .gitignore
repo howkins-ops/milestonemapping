@@ -29,3 +29,7 @@ Thumbs.db
 # Local tool output
 tmp/
 .claude/
+.playwright-mcp/
+
+# Stray root media (duplicate of public/alchemist-card.mp4)
+/alchmeist card.mp4

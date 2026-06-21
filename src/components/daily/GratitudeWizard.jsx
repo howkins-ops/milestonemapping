@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { playSound } from "../../lib/sounds.js";
 import { GRATITUDE_TYPES, getGratitudeType, GRATITUDE_ATTRIBUTION } from "../../data/gratitudeTypes.js";
 import { useSpeechToText } from "../../hooks/useSpeechToText.js";
@@ -142,7 +143,10 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
   // encouragement, not a wall.
   const canAdvance = layer ? !!current.trim() : false;
 
-  return (
+  // Portal to <body> so the fixed overlay escapes any transformed/filtered
+  // ancestor and covers the full viewport — otherwise the top/bottom nav paint
+  // over it and the content can't be scrolled clear of them.
+  return createPortal(
     <div className="dsw-overlay" role="dialog" aria-modal="true" aria-label="Gratitude">
       {/* Cinematic backdrop */}
       <div className="dsw-aurora" aria-hidden="true">
@@ -352,7 +356,8 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -58,9 +58,8 @@
 
   --sidebar-w: 232px;
 
-  /* Fixed bottom nav height — content must reserve this much clearance.
-     Bumped to ~96px on small screens (taller nav items) below. */
-  --bottom-nav-h: 84px;
+  /* Fixed bottom nav height — content must reserve this much clearance. */
+  --bottom-nav-h: 58px;
 }
 
 * {
@@ -352,7 +351,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 16px;
+  padding: 6px 16px;
   max-width: 680px;
   margin: 0 auto;
   width: 100%;
@@ -375,7 +374,7 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 3px;
   padding: 2px 6px;
   border: 0;
   background: transparent;
@@ -385,14 +384,14 @@ button {
 }
 .app-topbar__icon-box {
   display: grid;
-  width: 67px;
-  height: 67px;
+  width: 38px;
+  height: 38px;
   place-items: center;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
   overflow: hidden;
   border: 1px solid rgba(0, 240, 255, 0.28);
-  border-radius: 14px;
+  border-radius: 11px;
   background:
     radial-gradient(circle at 28% 20%, rgba(0, 240, 255, 0.16), transparent 58%),
     rgba(8, 4, 18, 0.94);
@@ -702,93 +701,122 @@ button {
 
 /* ============ MISSION HERO ============ */
 
+/* ===== Aurora Glow hero (seam-free: no blur on moving/clipped layers) ===== */
 .mission-hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   border: 1.5px solid transparent;
   border-radius: 22px;
-  background: linear-gradient(#04020a, #04020a) padding-box,
-              linear-gradient(135deg, #7B2CFF 0%, #D11EFF 40%, #FF3EDB 70%, #00F0FF 100%) border-box;
-  padding: 16px 15px;
+  /* aurora baked straight into the card background — static, no blur, no seam */
+  background:
+    radial-gradient(46% 52% at 24% 26%, rgba(0, 240, 255, 0.22), transparent 60%) padding-box,
+    radial-gradient(50% 56% at 78% 34%, rgba(209, 30, 255, 0.24), transparent 62%) padding-box,
+    radial-gradient(60% 60% at 50% 92%, rgba(123, 44, 255, 0.26), transparent 66%) padding-box,
+    linear-gradient(#05000c, #08001a) padding-box,
+    linear-gradient(135deg, #7B2CFF 0%, #D11EFF 38%, #FF3EDB 66%, #00F0FF 100%) border-box;
+  padding: 20px 16px;
   margin-bottom: 12px;
+  min-height: 320px;
   overflow: hidden;
   box-shadow:
-    0 0 80px rgba(123, 44, 255, 0.18),
-    0 0 45px rgba(209, 30, 255, 0.12),
-    0 0 25px rgba(0, 240, 255, 0.07),
+    0 0 70px rgba(123, 44, 255, 0.20),
+    0 0 40px rgba(0, 240, 255, 0.08),
     inset 0 1px 0 rgba(123, 44, 255, 0.12);
 }
 
-.mission-hero > :not(.mission-hero__art):not(.mission-hero__wash) {
+/* date pill above logo */
+.mission-hero__date {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 244, 0.85);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.4);
+}
+.mission-hero__date::before,
+.mission-hero__date::after {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.7), transparent);
+}
+
+/* crest stack — sizes to the logo, never wider than the card */
+.mission-hero__crest {
   position: relative;
   z-index: 2;
-}
-
-.mission-hero__art {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 62% 50%;
-  opacity: 0.62;
-  filter: saturate(1.1) contrast(1.06);
-  pointer-events: none;
-  user-select: none;
+  display: grid;
+  place-items: center;
+  margin-top: 2px;
 }
 
-.mission-hero__wash {
+/* breathing glow behind the phoenix — soft radial gradient, NO blur filter.
+   Animates opacity + scale only; never produces a seam line. */
+.mission-hero__aura {
   position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-  pointer-events: none;
+  top: 4%;
+  left: 50%;
+  width: 70%;
+  aspect-ratio: 1;
+  margin-left: -35%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123, 44, 255, 0.45) 0%, rgba(209, 30, 255, 0.14) 42%, transparent 68%);
+  animation: mh-breathe 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+@keyframes mh-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.94); }
+  50%      { opacity: 1;    transform: scale(1.06); }
 }
 
-.mission-hero::after {
+/* the logo — full lockup, always fits the card width */
+.mission-hero__logo {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: min(300px, 80%);
+  height: auto;
+  filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.30)) drop-shadow(0 6px 30px rgba(0, 0, 0, 0.5));
+  animation: mh-float 6s ease-in-out infinite;
+}
+@keyframes mh-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* rising embers (no blur — solid dots, seam-free) */
+.mission-hero__ember {
   position: absolute;
-  inset: 0;
-  z-index: 1;
-  content: "";
+  z-index: 2;
+  bottom: 60px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(4, 2, 10, 0.94) 0%, rgba(4, 2, 10, 0.78) 38%, rgba(4, 2, 10, 0.46) 72%, rgba(4, 2, 10, 0.7) 100%),
-    linear-gradient(180deg, rgba(4, 2, 10, 0.12), rgba(4, 2, 10, 0.82));
+  animation: mh-rise 6s linear infinite;
+}
+@keyframes mh-rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.9; }
+  100% { transform: translateY(-220px) scale(0.3); opacity: 0; }
 }
 
-.mission-hero__title {
-  font-size: clamp(28px, 6.4vw, 42px);
-  font-weight: 900;
-  margin: 2px 0 2px;
-  line-height: 0.92;
-  letter-spacing: 0;
-  background: linear-gradient(90deg, #00F0FF 0%, #7B2CFF 45%, #FF3EDB 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.mission-hero__welcome {
-  margin: 0 0 3px;
-  color: rgba(242, 240, 244, 0.68);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.mission-hero__slogan {
-  margin: 0 0 8px;
-  font-family: var(--font-display);
-  font-size: clamp(18px, 4.8vw, 28px);
-  font-weight: 900;
-  line-height: 0.98;
-  color: var(--text-main);
-}
-
-.mission-hero__grad {
-  background: linear-gradient(90deg, #00F0FF 0%, #7B2CFF 45%, #FF3EDB 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@media (prefers-reduced-motion: reduce) {
+  .mission-hero__aura,
+  .mission-hero__logo,
+  .mission-hero__ember { animation: none; }
+  .mission-hero__ember { display: none; }
 }
 
 .mission-hero__charted {
@@ -824,138 +852,6 @@ button {
   z-index: 1;
 }
 
-.mission-hero__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  align-items: stretch;
-  margin-top: 10px;
-}
-
-@media (max-width: 560px) {
-  .mission-hero__stats {
-    gap: 6px;
-  }
-  .mission-hero__stat {
-    padding: 8px 4px 7px;
-  }
-  .mission-hero__stat-icon {
-    width: 42px;
-    height: 42px;
-  }
-  .mission-hero__stat-icon img {
-    width: 36px;
-    height: 36px;
-  }
-}
-
-.mission-hero__stat {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 9px 7px 8px;
-  min-height: 90px;
-  background:
-    radial-gradient(circle at 50% 20%, rgba(255, 62, 219, 0.14), transparent 60%),
-    linear-gradient(160deg, rgba(18, 0, 36, 0.97), rgba(5, 0, 12, 0.97));
-  border: 1px solid rgba(255, 62, 219, 0.18);
-  border-radius: 12px;
-  box-shadow:
-    inset 0 0 30px rgba(209, 30, 255, 0.07),
-    0 0 0 1px rgba(0, 0, 0, 0.4);
-}
-
-/* top accent line per card */
-.mission-hero__stat::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 10%; right: 10%;
-  height: 2px;
-  border-radius: 0 0 4px 4px;
-  background: linear-gradient(90deg, transparent, rgba(255, 62, 219, 0.7), transparent);
-}
-
-.mission-hero__stat-icon {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.48);
-  border: 1px solid rgba(255, 62, 219, 0.22);
-  box-shadow:
-    0 0 20px rgba(255, 62, 219, 0.1),
-    inset 0 0 14px rgba(0, 240, 255, 0.05);
-}
-
-.mission-hero__stat-icon img {
-  display: block;
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 8px;
-  opacity: 1;
-  filter: drop-shadow(0 0 10px rgba(255, 62, 219, 0.55));
-}
-
-.mission-hero__stat-n {
-  position: relative;
-  z-index: 1;
-  display: block;
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: #FF3EDB;
-}
-
-.mission-hero__stat-l {
-  position: relative;
-  z-index: 1;
-  display: block;
-  font-family: var(--font-body);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(242, 240, 244, 0.55);
-}
-
-/* per-card colour variants */
-.mission-hero__stat--streak::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 62, 219, 0.42), transparent);
-}
-.mission-hero__stat--streak {
-  border-color: rgba(255, 62, 219, 0.12);
-  background: radial-gradient(circle at 50% 20%, rgba(255, 62, 219, 0.08), transparent 60%), linear-gradient(160deg, rgba(13, 0, 27, 0.94), rgba(5, 0, 12, 0.96));
-}
-.mission-hero__stat--streak .mission-hero__stat-n { color: rgba(255, 62, 219, 0.86); font-size: 22px; }
-.mission-hero__stat--streak .mission-hero__stat-icon { border-color: rgba(255, 62, 219, 0.18); box-shadow: 0 0 14px rgba(255, 62, 219, 0.12), inset 0 0 10px rgba(255, 62, 219, 0.04); }
-.mission-hero__stat--streak .mission-hero__stat-icon img { filter: drop-shadow(0 0 8px rgba(255, 62, 219, 0.55)); }
-
-.mission-hero__stat--maps::before {
-  background: linear-gradient(90deg, transparent, rgba(209, 30, 255, 0.8), transparent);
-}
-.mission-hero__stat--maps { border-color: rgba(209, 30, 255, 0.22); background: radial-gradient(circle at 50% 20%, rgba(209, 30, 255, 0.13), transparent 60%), linear-gradient(160deg, rgba(18, 0, 36, 0.97), rgba(5, 0, 12, 0.97)); }
-.mission-hero__stat--maps .mission-hero__stat-n { color: #D11EFF; }
-.mission-hero__stat--maps .mission-hero__stat-icon { border-color: rgba(209, 30, 255, 0.28); box-shadow: 0 0 24px rgba(209, 30, 255, 0.14), inset 0 0 14px rgba(209, 30, 255, 0.06); }
-.mission-hero__stat--maps .mission-hero__stat-icon img { filter: drop-shadow(0 0 12px rgba(209, 30, 255, 0.7)); }
-
-.mission-hero__stat--diamonds::before {
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.7), transparent);
-}
-.mission-hero__stat--diamonds { border-color: rgba(0, 240, 255, 0.2); background: radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.1), transparent 60%), linear-gradient(160deg, rgba(0, 18, 36, 0.97), rgba(0, 5, 12, 0.97)); }
-.mission-hero__stat--diamonds .mission-hero__stat-n { color: #00F0FF; }
-.mission-hero__stat--diamonds .mission-hero__stat-icon { border-color: rgba(0, 240, 255, 0.28); box-shadow: 0 0 24px rgba(0, 240, 255, 0.12), inset 0 0 14px rgba(0, 240, 255, 0.06); }
-.mission-hero__stat--diamonds .mission-hero__stat-icon img { filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.65)); }
-
 /* ============ COMMAND CENTER ============ */
 
 .command-center-page {
@@ -974,11 +870,11 @@ button {
   --action-accent: var(--brand-cyan);
   position: relative;
   display: flex;
-  min-height: 184px;
+  min-height: 156px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--action-accent) 26%, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
-  padding: 14px;
+  padding: 12px;
   background:
     radial-gradient(circle at 74% 18%, color-mix(in srgb, var(--action-accent) 20%, transparent), transparent 44%),
     linear-gradient(160deg, rgba(18, 0, 36, 0.94), rgba(5, 0, 12, 0.98));
@@ -1065,8 +961,8 @@ button {
 
 .dashboard-action-card__icon {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--action-accent) 48%, transparent);
   border-radius: 9px;
@@ -1078,7 +974,7 @@ button {
   display: block;
   color: var(--text-main);
   font-family: var(--font-display);
-  font-size: clamp(17px, 3.4vw, 23px);
+  font-size: clamp(14px, 2.9vw, 20px);
   font-weight: 900;
   line-height: 1;
 }
@@ -4574,10 +4470,10 @@ button {
   .sidebar { display: none; }
   .app-main { margin-left: 0; }
   .bottom-nav { display: block; }
-  .page { padding: 18px 16px 110px; }
+  .page { padding: 16px 16px calc(var(--bottom-nav-h) + 20px + env(safe-area-inset-bottom)); }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .dashboard-action-grid { grid-template-columns: 1fr; }
-  .dashboard-action-card { min-height: 142px; }
+  .dashboard-action-card { min-height: 121px; }
   .dashboard-action-card__description { max-width: 10.75rem; }
   .dashboard-command-row { flex-direction: column; }
   .topbar { padding: 12px 16px; }
@@ -4676,7 +4572,7 @@ h4,
 }
 
 .app-topbar {
-  min-height: 98px;
+  min-height: 52px;
 }
 
 .bottom-nav {
@@ -4689,19 +4585,19 @@ h4,
 
 .bottom-nav__inner {
   gap: 6px;
-  padding: 12px 9px calc(13px + env(safe-area-inset-bottom));
+  padding: 6px 9px calc(6px + env(safe-area-inset-bottom));
 }
 
 .bottom-nav__item {
   position: relative;
   min-width: 0;
-  min-height: 84px;
-  gap: 6px;
+  min-height: 48px;
+  gap: 3px;
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 5px 2px 6px;
+  padding: 3px 2px 4px;
   color: rgba(209, 247, 255, 0.58);
-  font-size: 10.5px;
+  font-size: 9.5px;
   line-height: 1.05;
   overflow: hidden;
   transition:
@@ -4749,8 +4645,8 @@ h4,
 }
 
 .bottom-nav__icon {
-  width: 43px;
-  height: 43px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -4765,8 +4661,8 @@ h4,
 
 .bottom-nav__art {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 27px;
+  height: 27px;
   object-fit: contain;
   opacity: 0.68;
   filter: saturate(0.86) brightness(0.76) drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4));
@@ -4789,14 +4685,14 @@ h4,
 }
 
 .bottom-nav__item:nth-child(3) {
-  margin-top: -7px;
-  min-height: 91px;
+  margin-top: -5px;
+  min-height: 53px;
 }
 
 .bottom-nav__item:nth-child(3)::after {
   position: absolute;
-  inset: 5px 7px auto;
-  height: 54px;
+  inset: 4px 7px auto;
+  height: 38px;
   border-radius: 16px;
   content: "";
   background:
@@ -4807,14 +4703,14 @@ h4,
 }
 
 .bottom-nav__item:nth-child(3) .bottom-nav__icon {
-  width: 54px;
-  height: 54px;
+  width: 38px;
+  height: 38px;
   z-index: 1;
 }
 
 .bottom-nav__item:nth-child(3) .bottom-nav__art {
-  width: 53px;
-  height: 53px;
+  width: 37px;
+  height: 37px;
   opacity: 0.92;
   filter:
     saturate(1.08)
@@ -4978,13 +4874,12 @@ h4,
 }
 
 .page {
-  padding-bottom: calc(var(--bottom-nav-h) + 84px + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--bottom-nav-h) + 20px + env(safe-area-inset-bottom));
 }
 
 @media (max-width: 420px) {
-  /* Taller nav items on small screens — reserve more clearance. */
   :root {
-    --bottom-nav-h: 100px;
+    --bottom-nav-h: 56px;
   }
 
   .app-topbar__rank {
@@ -4992,28 +4887,28 @@ h4,
   }
 
   .bottom-nav__item {
-    min-height: 77px;
-    font-size: 9.5px;
+    min-height: 46px;
+    font-size: 9px;
   }
 
   .bottom-nav__icon,
   .bottom-nav__art {
-    width: 38px;
-    height: 38px;
+    width: 26px;
+    height: 26px;
   }
 
   .bottom-nav__item:nth-child(3) {
-    margin-top: -6px;
-    min-height: 84px;
+    margin-top: -5px;
+    min-height: 50px;
   }
 
   .bottom-nav__item:nth-child(3) .bottom-nav__icon {
-    width: 48px;
-    height: 48px;
+    width: 34px;
+    height: 34px;
   }
 
   .bottom-nav__item:nth-child(3) .bottom-nav__art {
-    width: 47px;
-    height: 47px;
+    width: 33px;
+    height: 33px;
   }
 }

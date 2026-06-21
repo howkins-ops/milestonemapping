@@ -32,7 +32,7 @@ function getInitialState() {
     if (diff === 0) return saved;
     if (diff === 1) {
       const prev = saved.streak || 0;
-      streak = saved.pct >= 100 ? prev + 1 : prev;
+      streak = (saved.filledToday || saved.pct >= 100) ? prev + 1 : prev;
       bestStreak = Math.max(saved.bestStreak || 0, streak);
       // Check if we just crossed a kill streak threshold
       const hit = KILL_STREAKS.find(k => k.streak === streak);
@@ -45,6 +45,7 @@ function getInitialState() {
     date: TODAY,
     completed: [],
     pct: 0,
+    filledToday: false,
     streak,
     bestStreak,
     shownMilestones: [],
@@ -72,13 +73,13 @@ function computePct(completed, habitsMap, threshold) {
 
 // ─── Animated Cup SVG ─────────────────────────────────────────────────────────
 
-function AnimatedCup({ pct }) {
+function AnimatedCup({ pct, pour = false }) {
   const isFull = pct >= 100;
   const isEmpty = pct === 0;
   const fillY = 215 - (195 * Math.min(pct, 100) / 100);
 
   return (
-    <div className={`fyc-cup ${isFull ? "fyc-cup--full" : ""} ${isEmpty ? "fyc-cup--empty" : ""}`}>
+    <div className={`fyc-cup ${isFull ? "fyc-cup--full" : ""} ${isEmpty ? "fyc-cup--empty" : ""} ${pour ? "fyc-cup--pour" : ""}`}>
       <svg viewBox="0 0 200 240" className="fyc-cup__svg" aria-hidden="true">
         <defs>
           <clipPath id="fyc-clip">
@@ -253,6 +254,9 @@ function LevelBadge({ streak, bestStreak }) {
   const next = getNextLevel(streak);
   const daysToNext = next ? next.streakMin - streak : null;
 
+  // Hide the starting "Empty Cup" badge — no demotivating placeholder text.
+  if (level.streakMin === 0 && bestStreak === 0) return null;
+
   return (
     <div className="fyc-level">
       <div className="fyc-level__badge" style={{ "--lc": level.color }}>
@@ -273,28 +277,62 @@ function LevelBadge({ streak, bestStreak }) {
 
 // ─── Full cup screen ──────────────────────────────────────────────────────────
 
-function FullCupScreen({ streak, level, onClose }) {
+const DRAIN_MS = 1300;
+
+function FullCupScreen({ streak, level, onReset, onClose }) {
+  const [mode, setMode] = useState(null); // null | "drink" | "pour"
+  const [drainPct, setDrainPct] = useState(100);
+
+  const start = (which) => {
+    if (mode) return;
+    setMode(which);
+    // Next frame: flip pct to 0 so the liquid transition animates the drain.
+    requestAnimationFrame(() => setDrainPct(0));
+    setTimeout(() => onReset(), DRAIN_MS);
+  };
+
+  const drinking = mode === "drink";
+  const pouring = mode === "pour";
+
   return (
     <div className="fyc-full-screen">
       <div className="fyc-full-screen__inner">
-        <div className="fyc-full-glyph">☕</div>
-        <h2 className="fyc-full-title">CUP FILLED</h2>
+        <div className="fyc-full-cup">
+          <AnimatedCup pct={drainPct} pour={pouring} />
+        </div>
+        <h2 className="fyc-full-title">
+          {drinking ? "DRINK UP" : pouring ? "POURED OUT" : "CUP FILLED"}
+        </h2>
         <p className="fyc-full-body">
-          You took care of yourself today.<br />That matters.<br /><br />
-          Because when your cup is empty, everything feels heavier —
-          the doors, the customers, the objections, the pressure.<br /><br />
-          But today, you poured back into yourself.<br />Now you have something to give.
-        </p>
-        <p className="fyc-full-callout">
-          Go pour into your team.<br />
-          Go pour into your customers.<br />
-          Go pour into your future.
-        </p>
-        <p className="fyc-full-sign">
-          Energy restored.<br />Identity upgraded.<br />Cup filled.
+          {mode ? (
+            drinking ? (
+              <>You took care of yourself.<br />Now you have something to give.</>
+            ) : (
+              <>Let it go.<br />A fresh cup, a fresh start.</>
+            )
+          ) : (
+            <>You poured back into yourself today.<br />The cup is full — now use it.</>
+          )}
         </p>
         {streak > 0 && <div className="fyc-streak fyc-streak--xl">🔥 {streak} Day Streak</div>}
-        <button type="button" className="fyc-full-close" onClick={onClose}>Back to Cup</button>
+
+        {!mode && (
+          <>
+            <div className="fyc-full-actions">
+              <button type="button" className="fyc-full-action fyc-full-action--drink"
+                onClick={() => start("drink")}>
+                Drink it
+              </button>
+              <button type="button" className="fyc-full-action fyc-full-action--pour"
+                onClick={() => start("pour")}>
+                Pour it out
+              </button>
+            </div>
+            <button type="button" className="fyc-full-close" onClick={onClose}>
+              Keep it full for now
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -483,9 +521,21 @@ export default function FillYourCup() {
         setFloatMsg({ text: txt, id: floatKey.current });
       }
 
-      return { ...prev, completed: next, pct: newPct, shownMilestones: newShown };
+      return {
+        ...prev,
+        completed: next,
+        pct: newPct,
+        shownMilestones: newShown,
+        filledToday: prev.filledToday || newPct >= 100,
+      };
     });
   }, [habitsMap]);
+
+  const handleResetCup = useCallback(() => {
+    // Empty the cup but keep today's "filled" credit so the streak is preserved.
+    setState(prev => ({ ...prev, completed: [], pct: 0, shownMilestones: [] }));
+    setShowFull(false);
+  }, []);
 
   const handleChangeReview = useCallback((idx, val) => {
     setState(prev => ({ ...prev, weeklyReview: { ...prev.weeklyReview, [idx]: val } }));
@@ -517,7 +567,7 @@ export default function FillYourCup() {
       {/* Kill streak cinematic */}
       {activeKS && <KillStreakBanner ks={activeKS} onDone={() => setActiveKS(null)} />}
 
-      {showFull && <FullCupScreen streak={state.streak} level={level} onClose={() => setShowFull(false)} />}
+      {showFull && <FullCupScreen streak={state.streak} level={level} onReset={handleResetCup} onClose={() => setShowFull(false)} />}
 
       {/* Header */}
       <div className="fyc-hero">

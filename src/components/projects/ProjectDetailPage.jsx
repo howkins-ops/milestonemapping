@@ -203,7 +203,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
             <img
               src={project.goalImageUrl}
               alt="Goal vision"
-              style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }}
+              style={{ width: "100%", maxHeight: 140, objectFit: "cover", display: "block" }}
             />
             <div style={{
               position: "absolute", inset: 0,

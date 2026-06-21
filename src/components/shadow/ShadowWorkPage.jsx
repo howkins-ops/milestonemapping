@@ -304,7 +304,7 @@ function Payoff({ color, title, body, stamp, onDone, imgSrc }) {
           src={imgSrc}
           alt=""
           onError={(e) => { e.target.style.display = "none"; }}
-          style={{ width: 90, height: 126, objectFit: "contain", borderRadius: 10, margin: "0 auto 16px", display: "block" }}
+          style={{ width: 205, height: 286, objectFit: "contain", borderRadius: 10, margin: "0 auto 16px", display: "block" }}
         />
       ) : (
         <div style={{ fontSize: 52, marginBottom: 14 }}>✦</div>
@@ -375,31 +375,34 @@ function SpotMask({ onClose, onFinish }) {
         <>
           <Q>Which mask is showing up?</Q>
           <Sub>When you got knocked off-centre, who took over? Pick the one that fits.</Sub>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {MASKS.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMask(m)}
-                style={{
-                  display: "flex", gap: 14, alignItems: "center", textAlign: "left",
-                  background: mask?.id === m.id ? "var(--card-hover)" : "var(--card)",
-                  border: `1px solid ${mask?.id === m.id ? "var(--brand-cyan)" : "var(--border)"}`,
-                  borderRadius: 12, padding: "13px 16px", color: "var(--text-main)", cursor: "pointer",
-                }}
-              >
-                <img
-                  src={maskCardSrc(m.id)}
-                  alt=""
-                  onError={(e) => { e.target.style.display = "none"; }}
-                  style={{ width: 48, height: 67, objectFit: "contain", borderRadius: 5, flexShrink: 0 }}
-                />
-                <span>
-                  <b style={{ fontSize: 15 }}>{m.name}</b>
-                  <br />
-                  <span style={{ color: "var(--text-muted)", fontSize: 12.5 }}>{m.tell}</span>
-                </span>
-              </button>
-            ))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
+            {MASKS.map((m) => {
+              const selected = mask?.id === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMask(m)}
+                  style={{
+                    display: "flex", flexDirection: "column", textAlign: "center",
+                    background: selected ? "var(--card-hover)" : "var(--card)",
+                    border: `1px solid ${selected ? "var(--brand-cyan)" : "var(--border)"}`,
+                    borderRadius: 16, padding: 12, color: "var(--text-main)", cursor: "pointer",
+                    boxShadow: selected ? "0 0 24px rgba(0,240,255,0.25)" : "none",
+                    transition: "border-color .2s, box-shadow .2s, background .2s",
+                  }}
+                >
+                  <img
+                    src={maskCardSrc(m.id)}
+                    alt={m.name}
+                    onError={(e) => { e.target.style.display = "none"; }}
+                    style={{ width: "100%", height: "auto", objectFit: "contain", borderRadius: 10, display: "block" }}
+                  />
+                  <span style={{ color: "var(--text-muted)", fontSize: 13.5, lineHeight: 1.45, marginTop: 12 }}>
+                    {m.tell}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           <Bar color="var(--brand-cyan)" disabled={!mask} onNext={() => setStep(2)} />
         </>
@@ -445,7 +448,7 @@ function SpotMask({ onClose, onFinish }) {
             src={maskCardSrc(mask.id, "shift-card")}
             alt=""
             onError={(e) => { e.target.style.display = "none"; }}
-            style={{ width: 80, height: 112, objectFit: "contain", borderRadius: 8, margin: "0 auto 16px", display: "block" }}
+            style={{ width: 193, height: 270, objectFit: "contain", borderRadius: 8, margin: "0 auto 16px", display: "block" }}
           />
           <Quote color="var(--brand-cyan)">
             "My {mask.name} showed up because part of me felt unsafe. I see it now. And underneath it is my {mask.essence}."

@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-import PhoenixSVG from "../ui/PhoenixSVG.jsx";
+import React, { useEffect, useMemo, useState } from "react";
 import { formatDisplayDate } from "../../lib/dates.js";
-import { useGamification } from "../../hooks/useGamification.js";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { playSound } from "../../lib/sounds.js";
@@ -31,16 +29,25 @@ const STREAK_MILESTONES = [
   }
 ];
 
+const EMBER_COLORS = ["#00F0FF", "#D11EFF", "#FF3EDB", "#7B2CFF"];
+
 export default function MissionHero() {
-  const { rank, xp, progress } = useGamification();
   const { streaks } = useDailyLog();
-  const { projects, celebrate, settings, profile, userId } = useAppData();
-  const activeCount = projects.filter((p) => p.status !== "completed").length;
-  const conqueredCount = projects.filter((p) => p.status === "completed").length;
+  const { celebrate, settings, userId } = useAppData();
   const [dbStats, setDbStats] = useState(null);
 
-  const displayName = profile?.display_name || profile?.full_name || null;
   const streakCount = dbStats?.streak_days ?? streaks.current;
+
+  const embers = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        left: 12 + Math.random() * 76,
+        color: EMBER_COLORS[i % EMBER_COLORS.length],
+        delay: Math.random() * 6,
+        duration: 5 + Math.random() * 4,
+      })),
+    []
+  );
 
   useEffect(() => {
     if (userId) getStats(userId).then(({ data }) => { if (data) setDbStats(data); });
@@ -60,57 +67,31 @@ export default function MissionHero() {
 
   return (
     <div className="mission-hero anim-slide-up">
-      <img
-        className="mission-hero__art"
-        src="/assets/dashboard/command-center-hero.png"
-        alt=""
-        aria-hidden="true"
-      />
-      {/* Subtle radial glow background — no PNG needed */}
-      <div
-        aria-hidden="true"
-        className="mission-hero__wash"
-        style={{
-          background: "radial-gradient(ellipse at 70% 40%, rgba(209,30,255,0.18), transparent 60%), radial-gradient(ellipse at 20% 60%, rgba(0,240,255,0.12), transparent 50%)",
-        }}
-      />
+      <p className="mission-hero__date">{formatDisplayDate()}</p>
 
-      {/* Phoenix watermark (SVG component — no PNG) */}
-      <PhoenixSVG
-        width={195}
-        style={{ position: "absolute", right: -40, bottom: -24, opacity: 0.14, pointerEvents: "none" }}
-      />
-
-      <p className="kicker" style={{ marginBottom: 6 }}>{formatDisplayDate()}</p>
-      {displayName && <p className="mission-hero__welcome">Welcome back, {displayName}.</p>}
-      <h1 className="mission-hero__title">Milestone Mapping</h1>
-      <p className="mission-hero__slogan">
-        Our map. Your transformation.
-      </p>
-
-      <div className="mission-hero__stats">
-        <div className="mission-hero__stat mission-hero__stat--streak">
-          <div className="mission-hero__stat-icon">
-            <img src="/assets/milestone-world/main-card-streak-neon-icon.png" alt="" aria-hidden="true" />
-          </div>
-          <span className="mission-hero__stat-n">{streakCount}</span>
-          <span className="mission-hero__stat-l">Streak</span>
-        </div>
-        <div className="mission-hero__stat mission-hero__stat--maps">
-          <div className="mission-hero__stat-icon">
-            <img src="/assets/milestone-world/main-card-maps-neon-v2-icon.png" alt="" aria-hidden="true" />
-          </div>
-          <span className="mission-hero__stat-n">{activeCount}</span>
-          <span className="mission-hero__stat-l">Maps</span>
-        </div>
-        <div className="mission-hero__stat mission-hero__stat--diamonds">
-          <div className="mission-hero__stat-icon">
-            <img src="/assets/milestone-world/main-card-diamonds-neon-v2-icon.png" alt="" aria-hidden="true" />
-          </div>
-          <span className="mission-hero__stat-n">{conqueredCount}</span>
-          <span className="mission-hero__stat-l">Diamonds</span>
-        </div>
+      <div className="mission-hero__crest">
+        <div className="mission-hero__aura" aria-hidden="true" />
+        <img
+          className="mission-hero__logo"
+          src="/assets/brand/milestone-mapping-logo-v2.png"
+          alt="Milestone Mapping — Our map. Your transformation."
+        />
       </div>
+
+      {embers.map((e, i) => (
+        <span
+          key={i}
+          className="mission-hero__ember"
+          aria-hidden="true"
+          style={{
+            left: `${e.left}%`,
+            background: e.color,
+            boxShadow: `0 0 8px ${e.color}`,
+            animationDelay: `${e.delay}s`,
+            animationDuration: `${e.duration}s`,
+          }}
+        />
+      ))}
     </div>
   );
 }
