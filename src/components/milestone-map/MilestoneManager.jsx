@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
@@ -27,13 +27,77 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
   const [draft, setDraft] = useState("");
   const [draftCategory, setDraftCategory] = useState(project.category || "Business");
 
-  // inline rename
-  const [editingId, setEditingId] = useState(null);
-  const [editingTitle, setEditingTitle] = useState("");
-
   // modals
   const [wizardInitial, setWizardInitial] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
+
+  // ── drag-to-reorder (pointer-based, so it works on touch + desktop) ─────────
+  const [orderIds, setOrderIds] = useState(() => list.map((m) => m.id));
+  const [dragId, setDragId] = useState(null);
+  const draggingRef = useRef(null);
+  const orderIdsRef = useRef(orderIds);
+  orderIdsRef.current = orderIds;
+  const rowRefs = useRef(new Map());
+
+  // Keep local order in sync with the store whenever the set of milestones
+  // changes (add / delete / committed reorder) — but never mid-drag.
+  const listIdsKey = list.map((m) => m.id).join(",");
+  useEffect(() => {
+    if (dragId) return;
+    setOrderIds(list.map((m) => m.id));
+  }, [listIdsKey, dragId]);
+
+  // Display list in the current (possibly mid-drag) order; append any milestone
+  // not yet tracked so nothing ever disappears.
+  const orderedList = useMemo(() => {
+    const byId = new Map(list.map((m) => [m.id, m]));
+    const out = [];
+    const seen = new Set();
+    for (const id of orderIds) {
+      const m = byId.get(id);
+      if (m) { out.push(m); seen.add(id); }
+    }
+    for (const m of list) if (!seen.has(m.id)) out.push(m);
+    return out;
+  }, [orderIds, list]);
+
+  const beginDrag = (e, id) => {
+    if (e.button != null && e.button !== 0) return;
+    e.preventDefault();
+    draggingRef.current = { id };
+    setDragId(id);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+  };
+
+  const onDragMove = (e) => {
+    const d = draggingRef.current;
+    if (!d) return;
+    const ids = orderIdsRef.current;
+    const from = ids.indexOf(d.id);
+    if (from < 0) return;
+    const y = e.clientY;
+    let to = ids.length - 1;
+    for (let idx = 0; idx < ids.length; idx++) {
+      const node = rowRefs.current.get(ids[idx]);
+      if (!node) continue;
+      const r = node.getBoundingClientRect();
+      if (y < r.top + r.height / 2) { to = idx; break; }
+    }
+    if (to !== from) {
+      const next = [...ids];
+      next.splice(from, 1);
+      next.splice(to, 0, d.id);
+      setOrderIds(next);
+    }
+  };
+
+  const endDrag = (e) => {
+    if (!draggingRef.current) return;
+    draggingRef.current = null;
+    setDragId(null);
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+    reorderProjectMilestones(project.id, orderIdsRef.current);
+  };
 
   // Escape to close + lock body scroll while the editor is open. The component
   // only mounts when open, so no `open` guard is needed.
@@ -49,44 +113,11 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
     };
   }, [onClose]);
 
-  const move = (index, dir) => {
-    const target = index + dir;
-    if (target < 0 || target >= list.length) return;
-    const ids = list.map((m) => m.id);
-    [ids[index], ids[target]] = [ids[target], ids[index]];
-    reorderProjectMilestones(project.id, ids);
-  };
-
-  const makeFirst = (id) => {
-    const rest = list.map((m) => m.id).filter((x) => x !== id);
-    reorderProjectMilestones(project.id, [id, ...rest]);
-  };
-
-  const makeLast = (id) => {
-    const rest = list.map((m) => m.id).filter((x) => x !== id);
-    reorderProjectMilestones(project.id, [...rest, id]);
-  };
-
   const quickAdd = () => {
     const title = draft.trim();
     if (!title) return;
     createMilestone({ title, category: draftCategory, projectId: project.id });
     setDraft("");
-  };
-
-  const startRename = (m) => {
-    setEditingId(m.id);
-    setEditingTitle(m.title || "");
-  };
-
-  const commitRename = (id) => {
-    const title = editingTitle.trim();
-    const current = list.find((m) => m.id === id);
-    if (title && title !== (current?.title || "")) {
-      updateMilestone(id, { title });
-    }
-    setEditingId(null);
-    setEditingTitle("");
   };
 
   return createPortal(
@@ -112,90 +143,55 @@ export default function MilestoneManager({ project, onOpenMilestone, onClose }) 
           </button>
         </div>
 
+          <p className="trail-world__manager-hint">Drag <span aria-hidden="true">⠿</span> to reorder · tap a name to open it</p>
           <div className="trail-world__manager-list">
-        {list.length === 0 && (
+        {orderedList.length === 0 && (
           <p className="trail-world__manager-empty">No milestones yet. Add one below.</p>
         )}
 
-        {list.map((m, i) => (
-          <div key={m.id} className="trail-world__manager-row">
+        {orderedList.map((m, i) => (
+          <div
+            key={m.id}
+            ref={(el) => { if (el) rowRefs.current.set(m.id, el); else rowRefs.current.delete(m.id); }}
+            className={`trail-world__manager-row ${dragId === m.id ? "is-dragging" : ""}`}
+          >
+            <button
+              type="button"
+              className="trail-world__manager-grip"
+              aria-label="Drag to reorder"
+              title="Drag to reorder"
+              onPointerDown={(e) => beginDrag(e, m.id)}
+              onPointerMove={onDragMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+            >
+              ⠿
+            </button>
+
             <span className="trail-world__manager-pos">{String(i + 1).padStart(2, "0")}</span>
-            {i === 0 && <span className="trail-world__manager-badge is-first">FIRST</span>}
-            {i === list.length - 1 && list.length > 1 && (
-              <span className="trail-world__manager-badge is-last">LAST</span>
-            )}
             <i className={`trail-world__manager-dot ${dotClass(m.status)}`} aria-hidden="true" />
 
-            {editingId === m.id ? (
-              <input
-                className="trail-world__manager-rename"
-                value={editingTitle}
-                autoFocus
-                onChange={(e) => setEditingTitle(e.target.value)}
-                onBlur={() => commitRename(m.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") commitRename(m.id);
-                  if (e.key === "Escape") {
-                    setEditingId(null);
-                    setEditingTitle("");
-                  }
-                }}
-                aria-label="Rename milestone"
-              />
-            ) : (
-              <button
-                type="button"
-                className="trail-world__manager-title"
-                title={m.title}
-                onClick={() => onOpenMilestone(m.id)}
-              >
-                {m.title || "Untitled"}
-              </button>
-            )}
+            <button
+              type="button"
+              className="trail-world__manager-title"
+              title={m.title}
+              onClick={() => onOpenMilestone(m.id)}
+            >
+              {m.title || "Untitled"}
+            </button>
 
             <div className="trail-world__manager-ctrls">
-              <button
-                type="button"
-                disabled={i === 0}
-                onClick={() => makeFirst(m.id)}
-                aria-label="Set as first milestone"
-                title="Make first"
-              >
-                ⤒
-              </button>
-              <button type="button" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up">
-                ↑
-              </button>
-              <button
-                type="button"
-                disabled={i === list.length - 1}
-                onClick={() => move(i, 1)}
-                aria-label="Move down"
-              >
-                ↓
-              </button>
-              <button
-                type="button"
-                disabled={i === list.length - 1}
-                onClick={() => makeLast(m.id)}
-                aria-label="Set as last milestone"
-                title="Make last"
-              >
-                ⤓
-              </button>
-              <button type="button" onClick={() => startRename(m)} aria-label="Rename">
+              <button type="button" onClick={() => setWizardInitial(m)} aria-label="Edit milestone" title="Edit">
                 ✎
-              </button>
-              <button type="button" onClick={() => setWizardInitial(m)} aria-label="Edit details">
-                ⚙
               </button>
               <button
                 type="button"
                 className="is-danger"
                 onClick={() => setConfirmTarget(m)}
-                aria-label="Delete"
+                aria-label="Delete milestone"
+                title="Delete"
               >
-                ✕
+                🗑
               </button>
             </div>
           </div>

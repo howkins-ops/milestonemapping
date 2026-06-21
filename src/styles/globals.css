@@ -3361,6 +3361,37 @@ button {
 .trail-world__manager-ctrls button:disabled { opacity: 0.3; cursor: default; }
 .trail-world__manager-ctrls button.is-danger:hover { color: var(--brand-red); border-color: rgba(255, 59, 92, 0.5); }
 
+/* Drag handle — pointer-based reordering (works on touch + desktop). */
+.trail-world__manager-grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  background: none;
+  border: none;
+  color: rgba(242, 240, 244, 0.45);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none; /* allow dragging on touch without the list scrolling */
+}
+.trail-world__manager-grip:hover { color: var(--brand-cyan); }
+.trail-world__manager-grip:active { cursor: grabbing; }
+
+.trail-world__manager-row.is-dragging {
+  background: rgba(0, 240, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.35), 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.trail-world__manager-hint {
+  margin: 0 0 0.4rem;
+  color: rgba(242, 240, 244, 0.5);
+  font-size: 0.7rem;
+}
+.trail-world__manager-hint span { color: var(--brand-cyan); font-size: 0.9rem; }
+
 .trail-world__manager-add {
   flex: none;
   display: flex;
@@ -3509,8 +3540,14 @@ button {
   border-radius: 7px;
 }
 
+.ms-manager-modal .trail-world__manager-grip {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;
+}
+
 .ms-manager-modal .trail-world__manager-ctrls {
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 .ms-manager-modal .trail-world__manager-ctrls button {
   width: 2rem;
