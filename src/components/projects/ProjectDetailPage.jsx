@@ -15,7 +15,7 @@ import { getProjectMilestones, getProjectProgress } from "../../lib/progress.js"
 import { getProjectColorHex } from "../../lib/constants.js";
 import { formatShortDate } from "../../lib/dates.js";
 import { resolveImageSrc } from "../../lib/imageUploadService.js";
-import phoenixImg from "../../pheonix.png";
+import phoenixImg from "../../pheonix.webp";
 
 // Cinematic hero FX — deterministic so they don't reshuffle on every render
 const HERO_STREAKS = Array.from({ length: 18 }, (_, i) => ({
