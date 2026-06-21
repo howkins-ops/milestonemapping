@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import TextArea from "../ui/TextArea.jsx";
+import ScienceInfo from "../ui/ScienceInfo.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useToasts } from "../../hooks/useToasts.js";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -34,6 +35,7 @@ export default function BattlePlanPanel() {
     <section>
       <Card variant="pink" className="daily-action-card daily-action-card--battle ritual-image-card ritual-image-card--battle">
         <div className="daily-action-card__art" aria-hidden="true" />
+        <ScienceInfo ids={["planning", "visualization"]} />
         <div className="daily-action-card__header">
           <div>
             <span className="daily-action-card__eyebrow">DECISIVE WIN</span>

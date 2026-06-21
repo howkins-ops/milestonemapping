@@ -1,37 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase.js";
 
-// ─── SVG icons ────────────────────────────────────────────────────────────────
+const BRAND_LOGO_SRC = "/assets/brand/milestone-mapping-logo.png";
 
-function LogoSVG({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ flexShrink: 0, display: "block" }}>
-      <defs>
-        <linearGradient id="brandWing" x1="12" y1="18" x2="52" y2="56" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00e7ff"/>
-          <stop offset="0.5" stopColor="#4b6cff"/>
-          <stop offset="1" stopColor="#ff35d4"/>
-        </linearGradient>
-        <linearGradient id="brandDiamond" x1="23" y1="6" x2="42" y2="25" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#18f6ff"/>
-          <stop offset="0.55" stopColor="#865cff"/>
-          <stop offset="1" stopColor="#ff4be1"/>
-        </linearGradient>
-        <filter id="brandGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="1.1" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <g filter="url(#brandGlow)">
-        <path d="M32 6 43 17 32 27 21 17 32 6Z" fill="rgba(24,246,255,0.08)" stroke="url(#brandDiamond)" strokeWidth="2.4" strokeLinejoin="round"/>
-        <path d="M21 17h22M26 10l6 17 6-17" stroke="#effcff" strokeWidth="1.15" opacity="0.8"/>
-        <path d="M30 28c-5 1-10 4-15 10-3 4-5 8-7 13 10-2 18-7 24-16 6 9 14 14 24 16-2-5-4-9-7-13-5-6-10-9-15-10l-2 5-2-5Z" fill="url(#brandWing)"/>
-        <path d="M32 34c-4 6-4 14 0 24 4-10 4-18 0-24Z" fill="url(#brandWing)"/>
-        <path d="M32 29c-4 2-6 4-7 7 5-2 9-2 14 0-1-3-3-5-7-7Z" fill="#effcff"/>
-      </g>
-    </svg>
-  );
-}
+// ─── SVG icons ────────────────────────────────────────────────────────────────
 
 function MapIcon() {
   return (
@@ -257,12 +229,8 @@ export default function AuthGate({ children }) {
 
         {/* Q1 — Hero text */}
         <div style={{ ...S.q1, ...(isNarrow ? S.q1Mobile : null) }}>
-          <div style={S.logo}>
-            <LogoSVG size={30} />
-            <div>
-              <div style={S.logoLine1}>MILESTONE</div>
-              <div style={S.logoLine2}>MAPPING</div>
-            </div>
+          <div style={{ ...S.logo, ...(isNarrow ? S.logoMobile : null) }}>
+            <img src={BRAND_LOGO_SRC} alt="Milestone Mapping" style={{ ...S.logoImage, ...(isNarrow ? S.logoImageMobile : null) }} />
           </div>
 
           <h1 style={S.headline}>
@@ -347,11 +315,6 @@ export default function AuthGate({ children }) {
         {/* Q4 — Login (pure black) */}
         <div style={{ ...S.q4, ...(isNarrow ? S.q4Mobile : null) }}>
           <div style={S.glowBar} />
-
-          <div style={S.loginLogo}>
-            <LogoSVG size={20} />
-            <span style={S.loginLogoText}>MILESTONE MAPPING</span>
-          </div>
 
           <h3 style={S.loginTitle}>{loginTitle}</h3>
           <p style={S.loginSub}>{loginSub}</p>
@@ -485,9 +448,7 @@ const S = {
     borderLeft: BORDER,
     gridColumn: 2,
     gridRow: "1 / span 2",
-    background:
-      "radial-gradient(ellipse at 0% 0%, rgba(255,63,180,0.07) 0%, transparent 60%)," +
-      "rgba(4,6,14,0.7)",
+    background: "#000000",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
@@ -510,7 +471,7 @@ const S = {
     borderBottom: BORDER,
     gridColumn: 1,
     gridRow: 1,
-    background: "rgba(4,6,14,0.6)",
+    background: "#000000",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
@@ -545,9 +506,18 @@ const S = {
   },
 
   // Logo
-  logo: { display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.6rem" },
-  logoLine1: { fontSize: "0.65rem", fontWeight: 700, color: "#eafbff", letterSpacing: "0.15em", lineHeight: 1 },
-  logoLine2: { fontSize: "0.65rem", fontWeight: 700, color: "#1de8ff", letterSpacing: "0.15em", lineHeight: 1, marginTop: "2px" },
+  logo: { display: "flex", alignItems: "center", marginBottom: "1.9rem" },
+  logoMobile: { marginBottom: "1.35rem" },
+  logoImage: {
+    display: "block",
+    width: "min(286px, 75%)",
+    maxHeight: "195px",
+    objectFit: "contain",
+  },
+  logoImageMobile: {
+    width: "min(180px, 68%)",
+    maxHeight: "125px",
+  },
 
   // Headline
   headline: {
@@ -642,8 +612,13 @@ const S = {
     height: "2px",
     background: "linear-gradient(90deg, transparent, #1de8ff, #8b5cff, transparent)",
   },
-  loginLogo: { display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "1rem", width: "100%", maxWidth: "340px" },
-  loginLogoText: { fontSize: "0.52rem", fontWeight: 700, color: "#1de8ff", letterSpacing: "0.16em", fontFamily: "monospace" },
+  loginLogo: { display: "flex", alignItems: "center", marginBottom: "1rem", width: "100%", maxWidth: "340px" },
+  loginLogoImage: {
+    display: "block",
+    width: "86px",
+    maxHeight: "68px",
+    objectFit: "contain",
+  },
   loginTitle: { width: "100%", maxWidth: "340px", margin: "0 0 0.25rem", fontSize: "1.12rem", fontWeight: 800, color: "#eafbff", letterSpacing: "0.05em", fontFamily: "'Sora','Manrope',sans-serif" },
   loginSub:   { width: "100%", maxWidth: "340px", margin: "0 0 0.95rem", fontSize: "0.7rem", color: "rgba(234,251,255,0.45)", lineHeight: 1.45 },
 

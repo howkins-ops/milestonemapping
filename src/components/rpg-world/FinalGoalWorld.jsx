@@ -21,7 +21,7 @@ export default function FinalGoalWorld({ project, milestones, onBackToMap, onFin
       detail: `${completedMilestones.length} milestones conquered`,
     });
     setTimeout(() => {
-      updateProject({ ...project, status: "completed", completedAt: new Date().toISOString() });
+      updateProject(project.id, { status: "completed", completedAt: new Date().toISOString() });
       addXP(1000, "World completed — final stone claimed");
       setClaiming(false);
       setAchieved(true);

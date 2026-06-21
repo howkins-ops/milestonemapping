@@ -154,6 +154,32 @@ export const RESEARCH_BANK = [
     icon: "🔭",
     countTarget: 336,
     placement: []
+  },
+  {
+    id: "reflection",
+    category: "Evening Reflection",
+    categoryColor: "purple",
+    headline: "Experience isn't the teacher. Reflected-on experience is.",
+    appLine: "Writing down what worked and what you'll upgrade turns a random day into a lesson you keep.",
+    stat: "In a controlled study, workers who spent 15 minutes reflecting on their day performed 22.8% better than those who didn't — reflection beat additional practice.",
+    source: "Learning by Thinking — Harvard Business School, 2014",
+    sourceUrl: "https://www.hbs.edu/faculty/Pages/item.aspx?num=46603",
+    icon: "🪞",
+    countTarget: 22,
+    placement: ["EndOfDayReflection"]
+  },
+  {
+    id: "sleep",
+    category: "Sleep & Recovery",
+    categoryColor: "cyan",
+    headline: "Sleep isn't lost time. It's when the brain consolidates everything you did today.",
+    appLine: "Each booster you stack — cool room, no late caffeine, screens off — directly protects the recovery that drives tomorrow's focus.",
+    stat: "After even one night of poor sleep, the brain's emotional center (the amygdala) reacts up to 60% more strongly to negative triggers, eroding focus and self-control.",
+    source: "Walker & Harvard / UC Berkeley Sleep Research",
+    sourceUrl: "https://www.nature.com/articles/nrn2762",
+    icon: "🌙",
+    countTarget: 60,
+    placement: ["BedtimeChecklist"]
   }
 ];
 

@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from "react";
+import MorningStandPanel from "./MorningStandPanel.jsx";
 import MorningPlanRecap from "./MorningPlanRecap.jsx";
 import GratitudePanel from "./GratitudePanel.jsx";
 import BattlePlanPanel from "./BattlePlanPanel.jsx";
 import TopFivePanel from "./TopFivePanel.jsx";
 import EndOfDayReflection from "./EndOfDayReflection.jsx";
-import NightWizard from "./NightWizard.jsx";
 import BedtimeChecklist from "./BedtimeChecklist.jsx";
 import ModeTransitionOverlay from "./ModeTransitionOverlay.jsx";
 
@@ -107,6 +107,7 @@ export default function DailyPage() {
         {ritual === "am" ? (
           /* ── MORNING: Execute the plan you loaded last night ── */
           <div className="daily-am-flow">
+            <MorningStandPanel />
             <MorningPlanRecap />
             <GratitudePanel />
             <TopFivePanel />
@@ -128,10 +129,10 @@ export default function DailyPage() {
             <div className="night-section-group">
               <div className="night-section-label">
                 <span className="night-section-label-line" />
-                <span>GOOD EVENING</span>
+                <span>LOAD TOMORROW</span>
                 <span className="night-section-label-line" />
               </div>
-              <NightWizard />
+              <TopFivePanel mode="plan" />
             </div>
 
             <div className="night-section-group">

@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
-import Badge from "../ui/Badge.jsx";
 import ProgressRing from "../ui/ProgressRing.jsx";
 import ConfirmModal from "../ui/ConfirmModal.jsx";
 import SectionHeader from "../ui/SectionHeader.jsx";
@@ -22,9 +21,9 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
     useAppData();
   const project = projects.find((p) => p.id === projectId);
   const [editOpen, setEditOpen] = useState(false);
+  const [addVisionOpen, setAddVisionOpen] = useState(false);
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [addVisionOpen, setAddVisionOpen] = useState(false);
   const [trailView, setTrailView] = useState(true);
   const [goalUrlMode, setGoalUrlMode] = useState(false);
   const [goalUrlInput, setGoalUrlInput] = useState("");
@@ -37,7 +36,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
     setGoalUploading(true);
     try {
       const url = await uploadImage(file, userId);
-      updateProject({ ...project, goalImageUrl: url });
+      updateProject(project.id, { goalImageUrl: url });
     } catch (err) {
       console.error("Goal image upload failed:", err);
     } finally {
@@ -49,12 +48,12 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
   const handleGoalUrl = () => {
     const url = goalUrlInput.trim();
     if (!url) return;
-    updateProject({ ...project, goalImageUrl: url });
+    updateProject(project.id, { goalImageUrl: url });
     setGoalUrlMode(false);
     setGoalUrlInput("");
   };
 
-  const clearGoalImage = () => updateProject({ ...project, goalImageUrl: "" });
+  const clearGoalImage = () => updateProject(project.id, { goalImageUrl: "" });
 
   if (!project) {
     return (
@@ -78,6 +77,36 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
       <Button variant="ghost" size="sm" onClick={onBack} style={{ marginBottom: 16 }}>
         ← Back to Map Room
       </Button>
+
+      {/* Project header */}
+      <Card variant={completed ? "completed" : "neon"} style={{ borderColor: completed ? undefined : `${hex}44`, marginBottom: 16 }}>
+        <div className="row row--between row--wrap" style={{ gap: 20, alignItems: "flex-start" }}>
+          <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+            <h1 style={{ fontSize: "clamp(18px, 2.6vw, 24px)" }}>{project.title}</h1>
+            {project.description && (
+              <p className="muted" style={{ marginTop: 8 }}>{project.description}</p>
+            )}
+            {project.targetDate && (
+              <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
+                TREASURE DATE: {formatShortDate(project.targetDate)}
+              </p>
+            )}
+            <p style={{ fontSize: 13, marginTop: 8, color: hex }}>
+              ⛳ {completedCount}/{list.length} milestones conquered
+            </p>
+
+            <div className="row row--wrap" style={{ marginTop: 16 }}>
+              <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+                ✎ Edit Project
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
+                Delete
+              </Button>
+            </div>
+          </div>
+          <ProgressRing value={progress} size={136} label="Expedition" />
+        </div>
+      </Card>
 
       {/* Trail Map — view toggle header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -259,46 +288,6 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
         )}
       </div>
 
-      {/* Project header */}
-      <div style={{ marginBottom: 0 }} />
-      <Card variant={completed ? "completed" : "neon"} style={{ borderColor: completed ? undefined : `${hex}44` }}>
-        <div className="row row--between row--wrap" style={{ gap: 20, alignItems: "flex-start" }}>
-          <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-            <div className="row row--wrap" style={{ gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 34 }} aria-hidden="true">{completed ? "🏆" : project.icon}</span>
-              <Badge tone="cyan">{project.category}</Badge>
-              {completed ? (
-                <Badge tone="gold">Conquered</Badge>
-              ) : (
-                <Badge tone="green">Active Expedition</Badge>
-              )}
-            </div>
-            <h1 style={{ fontSize: "clamp(22px, 3.4vw, 32px)" }}>{project.title}</h1>
-            {project.description && (
-              <p className="muted" style={{ marginTop: 8 }}>{project.description}</p>
-            )}
-            {project.targetDate && (
-              <p className="mono soft" style={{ fontSize: 12.5, marginTop: 10 }}>
-                TREASURE DATE: {formatShortDate(project.targetDate)}
-              </p>
-            )}
-            <p style={{ fontSize: 13, marginTop: 8, color: hex }}>
-              ⛳ {completedCount}/{list.length} milestones conquered
-            </p>
-
-            <div className="row row--wrap" style={{ marginTop: 16 }}>
-              <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-                ✎ Edit Project
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
-                Delete
-              </Button>
-            </div>
-          </div>
-          <ProgressRing value={progress} size={136} label="Expedition" />
-        </div>
-      </Card>
-
       {/* Why / Vision */}
       {(project.whyItMatters || project.futureVision) && (
         <div className="grid-2" style={{ marginTop: 16 }}>
@@ -322,18 +311,8 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
       )}
 
       {/* Vision Wall */}
-      <SectionHeader
-        title="Vision Wall"
-        icon="🔭"
-        sub="The future this project is building toward."
-        action={
-          <Button variant="secondary" size="sm" onClick={() => setAddVisionOpen(true)}>
-            + Add Vision
-          </Button>
-        }
-      />
       {linkedVisions.length === 0 ? (
-        <Card variant="glass" style={{ padding: "28px 24px", marginBottom: 16 }}>
+        <Card variant="glass" style={{ padding: "28px 24px", margin: "30px 0 16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: 32, opacity: 0.5 }}>🔭</span>
             <div>
@@ -348,17 +327,28 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
           </div>
         </Card>
       ) : (
-        <div style={{ columns: "3 200px", columnGap: 14, marginBottom: 16 }}>
-          {linkedVisions.map((v, i) => (
-            <VisionBoardCard
-              key={v.id}
-              item={v}
-              index={i}
-              compact
-              onDelete={() => detachVisionFromProject(v.id, project.id)}
-            />
-          ))}
-        </div>
+        <>
+          <SectionHeader
+            title="Vision Wall"
+            icon="🔭"
+            action={
+              <Button variant="secondary" size="sm" onClick={() => setAddVisionOpen(true)}>
+                + Add Vision
+              </Button>
+            }
+          />
+          <div style={{ columns: "3 200px", columnGap: 14, marginBottom: 16 }}>
+            {linkedVisions.map((v, i) => (
+              <VisionBoardCard
+                key={v.id}
+                item={v}
+                index={i}
+                compact
+                onDelete={() => detachVisionFromProject(v.id, project.id)}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Milestone dossiers */}

@@ -7,14 +7,14 @@ import MapPath from "./MapPath.jsx";
 import MapNode from "./MapNode.jsx";
 import CharacterMarker from "./CharacterMarker.jsx";
 import JourneyStatusPanel from "./JourneyStatusPanel.jsx";
-import MapLegend from "./MapLegend.jsx";
+import MilestoneManager from "./MilestoneManager.jsx";
 
 const NODE_X_SEQ   = [50, 61, 42, 58, 44, 55, 39, 63];
-const MAP_MIN_HEIGHT = 900;
+const MAP_MIN_HEIGHT = 560;
 const MAP_STEP     = 126;
 const TOP_PAD      = 116;
-const BOT_PAD      = 144;
-const POS_STORAGE_KEY = "treasure_map_positions_v1";
+const BOT_PAD      = 150;
+const POS_STORAGE_KEY = "treasure_map_positions_v2";
 
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
@@ -23,23 +23,26 @@ function normalizeStatus(milestone) {
   return (s === "completed" || s === "locked" || s === "active" || s === "in_progress") ? s : "locked";
 }
 
+// Milestone 1 (index 0) is the START — it sits at the bottom and the trail
+// climbs from it to the final milestone at the top. No stub points beyond the
+// milestones at either end: the path begins and ends ON a milestone.
 function buildLayout(count, height) {
   if (!count) return [];
-  const usable = height - TOP_PAD - BOT_PAD - 170;
-  const startY = height - BOT_PAD - 70;
-  const gap = count === 1 ? 0 : Math.min(MAP_STEP, usable / Math.max(1, count - 1));
+  const bottomY = height - BOT_PAD;          // first node (the start)
+  const topY = TOP_PAD;                       // last node (the destination)
+  const gap = count === 1 ? 0 : (bottomY - topY) / (count - 1);
   return Array.from({ length: count }, (_, i) => ({
     x: NODE_X_SEQ[i % NODE_X_SEQ.length],
-    y: startY - i * gap,
+    y: bottomY - i * gap,
     side: i % 2 === 0 ? "right" : "left",
   }));
 }
 
-function buildPath(positions, height) {
-  const points = [{ x: 50, y: height - 92 }, ...positions, { x: 50, y: 96 }];
-  return points.reduce((path, pt, i) => {
+function buildPath(positions) {
+  if (!positions.length) return "";
+  return positions.reduce((path, pt, i) => {
     if (i === 0) return `M ${pt.x} ${pt.y}`;
-    const prev = points[i - 1];
+    const prev = positions[i - 1];
     const mid = (prev.y + pt.y) / 2;
     return `${path} C ${prev.x} ${mid}, ${pt.x} ${mid}, ${pt.x} ${pt.y}`;
   }, "");
@@ -67,58 +70,10 @@ function persistPositions(projectId, milestones, positions) {
   } catch {}
 }
 
-function FinalDiamond({ complete, label }) {
-  const color = complete ? "#FACC15" : "#D11EFF";
-  const inner = complete ? "#FFD166" : "#FF3EDB";
-
-  return (
-    <div className={`trail-world__final ${complete ? "is-complete" : ""}`}>
-      <span className="trail-world__final-kicker">FINAL GOAL</span>
-      <div className="trail-world__diamond" aria-hidden="true">
-        <svg viewBox="0 0 100 100" className="trail-world__diamond-svg">
-          {complete && Array.from({ length: 8 }, (_, i) => {
-            const angle = (i * 45 - 22.5) * Math.PI / 180;
-            return (
-              <line
-                key={i}
-                x1={50 + Math.cos(angle) * 46}
-                y1={50 + Math.sin(angle) * 46}
-                x2={50 + Math.cos(angle) * 56}
-                y2={50 + Math.sin(angle) * 56}
-                stroke={color}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                opacity="0.85"
-              />
-            );
-          })}
-          <polygon
-            points="50,6 94,50 50,94 6,50"
-            fill={`${color}1a`}
-            stroke={color}
-            strokeWidth="2"
-            style={{ filter: `drop-shadow(0 0 14px ${color})` }}
-          />
-          <polygon
-            points="50,22 78,50 50,78 22,50"
-            fill={`${inner}2a`}
-            stroke={inner}
-            strokeWidth="1.5"
-            opacity="0.7"
-          />
-          <circle cx="50" cy="50" r="10" fill={color} fillOpacity="0.55" />
-          <circle cx="50" cy="50" r="4" fill={color} />
-        </svg>
-      </div>
-      <strong>{complete ? "GOAL ACHIEVED" : label}</strong>
-    </div>
-  );
-}
-
 export default function ProjectMap({ project, milestones, onOpenMilestone, onAddMilestone, justUnlocked }) {
   const { settings } = useSettings();
   const { doneCount, allDone, averageProgress, fillPct, xp } = useProjectProgress(milestones);
-  const totalHeight = Math.max(MAP_MIN_HEIGHT, TOP_PAD + BOT_PAD + 270 + milestones.length * MAP_STEP);
+  const totalHeight = Math.max(MAP_MIN_HEIGHT, TOP_PAD + BOT_PAD + Math.max(0, milestones.length - 1) * MAP_STEP);
 
   const milestoneIdsKey = milestones.map((m) => m.id).join(",");
 
@@ -136,10 +91,12 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
   const positionsRef = useRef(positions);
   useEffect(() => { positionsRef.current = positions; }, [positions]);
 
-  const pathD = useMemo(() => buildPath(positions, totalHeight), [positions, totalHeight]);
+  const pathD = useMemo(() => buildPath(positions), [positions]);
 
   const { currentIndex, newlyUnlockedIndex } = useCharacterMovement(milestones, justUnlocked);
   const currentPoint = positions[currentIndex] || { x: 50, y: totalHeight - 130 };
+
+  const [managerOpen, setManagerOpen] = useState(false);
 
   const mapRef = useRef(null);
   const dragRef = useRef(null);
@@ -232,14 +189,15 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
         total={milestones.length}
         currentProgress={averageProgress}
       />
-      <MapLegend />
+      {managerOpen && (
+        <MilestoneManager
+          project={project}
+          onOpenMilestone={onOpenMilestone}
+          onClose={() => setManagerOpen(false)}
+        />
+      )}
 
       <div className="trail-world__map" ref={mapRef} style={{ height: totalHeight }}>
-        <FinalDiamond
-          complete={allDone}
-          label={project.futureVision || project.rewardLarge || "The Destination"}
-        />
-
         <MapPath pathD={pathD} totalHeight={totalHeight} fillPct={fillPct} positions={positions} />
 
         {milestones.map((milestone, index) => {
@@ -253,6 +211,7 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
               point={point}
               status={status}
               index={index}
+              isFirst={index === 0}
               isOpening={openingIndex === index}
               isNewlyUnlocked={newlyUnlockedIndex === index}
               isShaking={shakingId === milestone.id}
@@ -261,6 +220,7 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
               onPointerDown={(e) => handlePointerDown(e, index)}
               onPointerMove={(e) => handlePointerMove(e, index)}
               onPointerUp={(e) => handlePointerUp(e, index, milestone, status)}
+              onOpenMilestone={onOpenMilestone}
             />
           );
         })}
@@ -274,11 +234,12 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
         <button
           type="button"
           className="trail-world__add"
-          onClick={onAddMilestone}
-          aria-label="Add milestone"
+          onClick={() => setManagerOpen((v) => !v)}
+          aria-expanded={managerOpen}
+          aria-label="Edit or add milestones"
         >
           <span>+</span>
-          Add Milestone
+          Edit / Add Milestones
         </button>
       </div>
     </section>

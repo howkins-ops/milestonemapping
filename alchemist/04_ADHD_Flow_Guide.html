@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Diamond Path — Story × Coaching Flow Guide</title>
+<style>
+  :root{
+    --bg-deep:#070b14; --bg-surface:#0c1422; --bg-raised:#101b2e;
+    --border:rgba(120,160,210,.16); --border-bright:rgba(120,160,210,.32);
+    --ink:#eaf2fb; --muted:#9fb1cc; --dim:#64768f;
+    --teal:#06b6d4; --amber:#ffa94d; --diamond:#9fe3ff; --green:#4ade80; --gold:#ffd166;
+    --e-radiance:#ffd166; --e-love:#f06a8a; --e-joy:#7ad97a; --e-power:#5b8def; --e-majesty:#b67af0;
+    --st-built:#4ade80; --st-partial:#ffa94d; --st-wired:#5b8def; --st-doc:#64768f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:
+      radial-gradient(1100px 620px at 78% -8%, rgba(6,182,212,.12), transparent 60%),
+      radial-gradient(1000px 560px at 12% 8%, rgba(182,122,240,.10), transparent 62%),
+      var(--bg-deep);
+    color:var(--ink); line-height:1.5; padding-bottom:80px;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+
+  .topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(7,11,20,.82);border-bottom:1px solid var(--border)}
+  .topbar__inner{max-width:1080px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .topbar__title{font-weight:700;font-size:14px;letter-spacing:.2px;white-space:nowrap}
+  .topbar__title span{color:var(--teal)}
+  .progress{flex:1;min-width:160px;height:9px;border-radius:999px;background:rgba(120,160,210,.14);overflow:hidden}
+  .progress__fill{height:100%;width:30%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--teal));box-shadow:0 0 12px rgba(6,182,212,.5)}
+  .progress__label{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .legend{display:flex;gap:12px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+
+  header.hero{padding:46px 0 26px;text-align:center}
+  .kicker{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+  h1{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:clamp(34px,6vw,58px);line-height:1.04;
+     background:linear-gradient(120deg,var(--diamond),var(--e-majesty) 60%,var(--e-love));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--muted);max-width:660px;margin:16px auto 0;font-size:16px}
+  .hero__stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+  .stat{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:12px 18px;min-width:120px}
+  .stat b{display:block;font-family:'Fraunces',serif;font-size:26px;color:var(--ink)}
+  .stat small{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+
+  section{margin-top:40px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .sec-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(22px,3.6vw,30px)}
+  .sec-head .hint{font-size:13px;color:var(--dim)}
+
+  .loop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+  .loop .chip{background:var(--bg-raised);border:1px solid var(--border-bright);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:500;white-space:nowrap}
+  .loop .arrow{color:var(--teal);font-weight:700}
+  .loop .chip.boss{border-color:rgba(240,106,138,.5);color:#ffd5df}
+  .loop .chip.win{border-color:rgba(74,222,128,.5);color:#caffd9}
+
+  .arc{margin-bottom:14px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(16,27,46,.55),rgba(12,20,34,.4))}
+  .arc__head{width:100%;text-align:left;cursor:pointer;background:transparent;border:0;color:var(--ink);padding:16px 18px;display:flex;align-items:center;gap:14px}
+  .arc__head:hover{background:rgba(120,160,210,.05)}
+  .arc__no{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border-bright);border-radius:8px;padding:4px 8px;white-space:nowrap}
+  .arc__title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;flex:1}
+  .arc__meta{font-size:12px;color:var(--dim);white-space:nowrap}
+  .arc__chev{transition:transform .25s;color:var(--muted)}
+  .arc.collapsed .arc__chev{transform:rotate(-90deg)}
+  .arc__body{padding:4px 14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .arc.collapsed .arc__body{display:none}
+  @media(max-width:720px){.arc__body{grid-template-columns:1fr}}
+
+  .card{position:relative;background:var(--bg-surface);border:1px solid var(--border);border-left-width:4px;border-radius:14px;padding:14px 15px 13px;transition:transform .15s,border-color .15s}
+  .card:hover{transform:translateY(-2px);border-color:var(--border-bright)}
+  .card__top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;padding-right:74px}
+  .card__no{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--bg-raised);border-radius:7px;padding:3px 7px;white-space:nowrap}
+  .card__title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;line-height:1.18;flex:1}
+  .book{font-size:12.5px;color:var(--muted);margin-bottom:11px;line-height:1.4}
+  .book b{color:var(--diamond);font-weight:500}
+  .ex{background:var(--bg-raised);border:1px solid var(--border-bright);border-radius:11px;padding:9px 11px;margin-bottom:10px}
+  .ex__lbl{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:3px}
+  .ex__name{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--ink)}
+  .tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:2px 7px;border-radius:999px;margin-left:7px;vertical-align:middle}
+  .tag.seed{background:rgba(255,209,102,.16);color:var(--gold);border:1px solid rgba(255,209,102,.4)}
+  .tag.climax{background:rgba(240,106,138,.16);color:var(--e-love);border:1px solid rgba(240,106,138,.45)}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .badge{font-size:11px;font-weight:600;border-radius:999px;padding:3px 9px;display:inline-flex;align-items:center;gap:5px;border:1px solid}
+  .badge .gl{width:8px;height:8px;border-radius:50%}
+  .badge.shadow{background:rgba(0,0,0,.25)}
+  .badge.essence{background:rgba(255,255,255,.03)}
+  .badge.mentor{border-color:var(--border-bright);color:var(--muted);background:var(--bg-raised)}
+  .src{border-top:1px dashed var(--border);padding-top:9px}
+  .src__lbl{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-weight:600}
+  .src a{display:inline-block;font-size:11.5px;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:7px;padding:2px 7px;margin:0 5px 5px 0;background:var(--bg-raised);transition:border-color .15s,color .15s}
+  .src a:hover{border-color:var(--teal);color:var(--diamond)}
+  .src .none{font-size:11.5px;color:var(--dim);font-style:italic}
+  .status{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+
+  .grid{display:grid;gap:12px}
+  .grid.g5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .grid.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .cast{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:14px;border-top-width:3px}
+  .cast h4{font-family:'Fraunces',serif;font-size:16px;margin-bottom:3px}
+  .cast .loc{font-size:11px;color:var(--dim);margin-bottom:8px}
+  .cast .voice{font-size:13px;font-style:italic;color:var(--muted);margin-bottom:9px;line-height:1.35}
+  .cast .cure{font-size:12px;display:flex;align-items:center;gap:6px}
+  .cast .cure b{font-weight:600}
+  .ess-chip{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:14px;border-left-width:3px}
+  .ess-chip h4{font-family:'Fraunces',serif;font-size:17px;margin-bottom:2px}
+  .ess-chip .ph{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .ess-chip .vs{font-size:11px;color:var(--dim)}
+
+  .callout{background:linear-gradient(180deg,rgba(255,169,77,.10),rgba(255,169,77,.03));border:1px solid rgba(255,169,77,.32);border-radius:16px;padding:18px 20px}
+  .callout h3{font-family:'Fraunces',serif;font-size:18px;margin-bottom:8px;color:var(--amber)}
+  .callout p{font-size:14px;color:var(--muted);margin-bottom:8px}
+  .callout p:last-child{margin-bottom:0}
+  .callout code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-raised);padding:2px 6px;border-radius:6px;color:var(--diamond)}
+
+  footer{margin-top:48px;text-align:center;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <div class="topbar__title">The Diamond Path · <span>Flow Guide</span></div>
+    <div class="progress"><div class="progress__fill" id="pfill"></div></div>
+    <div class="progress__label" id="plabel"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--st-built)"></i>Built</span>
+      <span><i class="dot" style="background:var(--st-partial)"></i>Partial</span>
+      <span><i class="dot" style="background:var(--st-wired)"></i>Wired</span>
+      <span><i class="dot" style="background:var(--st-doc)"></i>Documented</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="kicker">The Alchemist × Milestone Mapping</div>
+    <h1>One Book. One Exercise Per Chapter.</h1>
+    <p>The quest follows Coelho's <em>The Alchemist</em> beat by beat — and each chapter teaches <b>exactly one</b> coaching exercise (never stacked). The treasure he's chasing turns out to be the Life Purpose he always had — revealed only at the very end.</p>
+    <div class="hero__stats">
+      <div class="stat"><b>20</b><small>Chapters</small></div>
+      <div class="stat"><b>1</b><small>Exercise each</small></div>
+      <div class="stat"><b>2</b><small>Built so far</small></div>
+      <div class="stat"><b>5</b><small>Shadows · 5 Essences</small></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>The Motor</h2><span class="hint">the loop that repeats at every gate</span></div>
+    <div class="loop">
+      <span class="chip">Dream</span><span class="arrow">→</span>
+      <span class="chip">Map from the future</span><span class="arrow">→</span>
+      <span class="chip">Declare</span><span class="arrow">→</span>
+      <span class="chip boss">Shadow appears</span><span class="arrow">→</span>
+      <span class="chip boss">It controls you</span><span class="arrow">→</span>
+      <span class="chip">Name it</span><span class="arrow">→</span>
+      <span class="chip">Return to Essence</span><span class="arrow">→</span>
+      <span class="chip win">Proof action</span><span class="arrow">→</span>
+      <span class="chip win">Milestone moves</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>The Journey</h2><span class="hint">20 chapters · one exercise each · tap an arc to collapse</span></div>
+    <div id="arcs"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>The 5 Shadows</h2><span class="hint">each is a survival mechanism, not a villain</span></div>
+    <div class="grid g5" id="shadows"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>The 5 Essences</h2><span class="hint">the power that breaks each shadow's grip</span></div>
+    <div class="grid g5" id="essences"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>The Guides</h2><span class="hint">they ask questions — they never hand you the answer</span></div>
+    <div class="grid g3" id="mentors"></div>
+  </section>
+
+  <section>
+    <div class="callout">
+      <h3>★ The whole point of the ending</h3>
+      <p><b>Chapter 1</b> you "Create Your Why" — but it's only the <b>seed</b>. The lesson is deliberately hidden. You think you're chasing a goal.</p>
+      <p><b>Chapter 19 — The Treasure Mirror</b> is the climax: you open the treasure, see a mirror, and realize the Life Purpose <b>was what you were looking for the whole time — you always had it.</b> It only works because Chapter 1's answer was saved and held back until now.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="callout" style="background:linear-gradient(180deg,rgba(91,141,239,.10),rgba(91,141,239,.03));border-color:rgba(91,141,239,.32)">
+      <h3 style="color:var(--st-wired)">⚙ Build note</h3>
+      <p>Only <b>2 components are built</b> (<code>ChapterAnchor.jsx</code> ≈ Ch 1–5, <code>ChapterShadow.jsx</code> ≈ Ch 6 / Broke King). They use a "Choose Your World" layer + condensed numbering that diverges from this clean 20-chapter spine. This guide is the proposed source of truth — the build should be re-aligned to it.</p>
+    </div>
+  </section>
+
+  <footer>
+    Story canon: <code>mapquest-data-model.ts</code> · lessons: <code>COACHING_DOCS_INDEX.md</code> · book: Coelho, <em>The Alchemist</em><br>
+    Numbering reconciled to flow with the book — 20 chapters, Father's Warning = Ch 1.
+  </footer>
+</div>
+
+<script>
+const DRIVE = id => `https://drive.google.com/file/d/${id}/view`;
+const L = {
+  lifePurpose:["Life Purpose","1aR0IJtGYIAuvNi1T0INeaFsXT5w4TKt-"],
+  futurability:["Futurability for Objectives","1H9V5S5U_aKCoXK4pxqhwhGUakHmyf5X0"],
+  projectFuture:["Project Design From The Future","1YL-5iK-X2JkmjTFHFTR7V6iHqgqSQR6i"],
+  merlin:["Merlin Exercise","17Yp1xdeQpEZqo_ZWVWI9Ryeaf_d7_yma"],
+  declaration:["Declaration as a Tool","1p5ZNfaWFIxsM1_XsGLghPh0zNXnK0Qvn"],
+  consequences:["Consequences of Choice","1_5h41TrxSN-hFiBOYJ37dO_wAHO7qQwo"],
+  promise:["Power of Promise","1zgCRaBn0Mzq17VmgL__GhUthSpSI-2uL"],
+  selfSabotage:["Self-Sabotage and Integrity","12uH14XZhVSTmnlpd2GpcrVW8Esdi7fkd"],
+  sources:["Sources & Patterns for Self-Sabotage","1Vk2kyoLXRyfm7_FhhgjpP6ppIV7eeEwJ"],
+  presentContext:["Present Context","189gzQPifGgp_koFIcW3LcrZI6XDsJ2h9"],
+  victim:["Victim — At Effect","18_E_WXUBW8XZrLn2jD9G-TkSUriQRkyf"],
+  responsibility:["Responsibility — At Cause","1RZOkuA9bN61UxYYPp2LsPOdmWyuK9GHc"],
+  reinvention:["Re-Invention — Why/How/When","1h54mJHuVuKl1fETkpHgZG9Scc520Sc1K"],
+  fcl:["Fear, Cynicism, Laziness","1vEWB_fw-iiIE5Nc8lWXK_grjP_3ftB21"],
+  time:["Coaching and Time","1H-csln4z6O2iT6BIp8kaHfPmVoqpRLzd"],
+  overwhelm:["Overwhelm Cycle","1n59l3ZTJ8jgf-nZZ0gmjUXvej-gJPqlL"],
+  complexChange:["Managing Complex Change","16taGKNHZPQMXf_QtLhcJBFCyJQjoETfp"],
+  priorities:["Healthy Priorities","1Xgd7VrImv-3UrCOcXqz0lTupMIGCRlZV"],
+  thermometer:["Income-Savings Thermometer","1tQCsAE_LytnsADUdD5WQsN3k16XrDm5h"],
+  being:["Coaching From Being","1AeU99xSCvRhBoES4SFB726C_1D6vJdX9"],
+  judgment:["Coaching From Judgment vs Being","1_qpggT8Rf3XiSrIjKospFg37vKwLa5Zw"],
+  listening:["Listening Beyond Reaction","1oUASWecT_UixMSqd-ESoNerrxDtdF4Vk"],
+  stands:["Powerful Stands","13zQYLTxzpIwf1m85HR0N8yIjIyPvij0K"],
+};
+
+const ESS = {Power:{c:"var(--e-power)"},Love:{c:"var(--e-love)"},Radiance:{c:"var(--e-radiance)"},Majesty:{c:"var(--e-majesty)"},Joy:{c:"var(--e-joy)"}};
+const SH = {
+  brokeKing:{name:"Broke King",c:"#caa23a"}, addictSaint:{name:"Addict Saint",c:"#ff6eb4"},
+  silentProphet:{name:"Silent Prophet",c:"#9d86e6"}, ragingVictim:{name:"Raging Victim",c:"#e06457"},
+  naiveWarrior:{name:"Naive Warrior",c:"#ffd700"}
+};
+const STCOL = {built:"#4ade80",partial:"#ffa94d",wired:"#5b8def",doc:"#64768f"};
+const STTXT = {built:"Built",partial:"Partial",wired:"Wired",doc:"Documented"};
+
+// 20 chapters — numbered to flow with The Alchemist. Father's Warning = Ch 1.
+// ex = the ONE exercise the user does. src = source coaching docs behind it. tag = seed|climax.
+const CH = [
+ {n:1, t:"The Father's Warning", book:"The father blesses and warns the boy before he leaves — beware the shadows you'll mistake for yourself.", ex:"Create Your Why", tag:"seed", mentor:"The Father", src:[L.lifePurpose], st:"built"},
+ {n:2, t:"The Dream That Would Not Leave", book:"Santiago's recurring dream of treasure at the pyramids.", ex:"Name Your Treasure", mentor:"Anchor", src:[L.futurability], st:"partial"},
+ {n:3, t:"The Mentor Names the Path", book:"Melchizedek reveals the Personal Legend and the omens to follow.", ex:"Futurability Check", mentor:"Anchor", src:[L.futurability,L.projectFuture], st:"partial"},
+ {n:4, t:"The Future Map", book:"Learning to read omens — the Soul of the World, the Language of the World.", ex:"Future Vision Journal", mentor:"Anchor", src:[L.merlin,L.projectFuture], st:"partial"},
+ {n:5, t:"The Declaration Gate", book:"He sells his sheep and crosses to Africa — the point of no return.", ex:"Essence Declaration", src:[L.declaration], st:"built"},
+ {n:6, t:"The Forest of Lack", book:"Robbed in Tangier the moment he arrives — loses everything, despairs.", shadow:"brokeKing", essence:"Power", ex:"Money Mirror", src:[L.thermometer,L.fcl,L.consequences], st:"built"},
+ {n:7, t:"The Challenger", book:"He chooses to work rather than beg or crawl home — taking responsibility.", mentor:"Challenger", ex:"At Cause Reset", src:[L.responsibility,L.victim], st:"doc"},
+ {n:8, t:"The Proof Forge", book:"The Crystal Merchant's shop — he rebuilds through honest, kept work.", ex:"Promise Forge", src:[L.promise,L.selfSabotage], st:"doc"},
+ {n:9, t:"The Neon Chapel", book:"The comfort trap — the merchant's unlived pilgrimage; the pull to settle.", shadow:"addictSaint", essence:"Love", ex:"Compassionate Interruption", src:[L.overwhelm,L.being], st:"doc"},
+ {n:10, t:"The Clock Desert", book:"The caravan's long, patient crossing of the Sahara.", ex:"Time Integrity Reset", src:[L.time,L.priorities], st:"doc"},
+ {n:11, t:"The Tower of Unspoken Words", book:"The Englishman studies in silence; the boy must speak and act amid the war.", shadow:"silentProphet", essence:"Radiance", ex:"Voice Gate", src:[L.declaration,L.stands], st:"doc", ordeal:true},
+ {n:12, t:"The Loop Chamber", book:"The waiting and repeating cycles at the oasis.", mentor:"Alchemist", ex:"Loop Breaker", src:[L.overwhelm], st:"doc"},
+ {n:13, t:"The Change Compass", book:"Studying alchemy — diagnosing what's still missing to transform.", ex:"Missing-Piece Diagnostic", src:[L.complexChange], st:"doc"},
+ {n:14, t:"The Ruins of What Happened", book:"The temptation to dwell on setbacks and blame the past.", shadow:"ragingVictim", essence:"Majesty", ex:"Throne of Responsibility", src:[L.victim,L.responsibility,L.reinvention], st:"doc", ordeal:true},
+ {n:15, t:"The Oasis of Being", book:"Al-Fayoum — Fatima, love, and learning to simply be present.", mentor:"Heartkeeper", ex:"Being Mirror", src:[L.being,L.judgment,L.listening], st:"doc"},
+ {n:16, t:"The False Gold Market", book:"Shortcuts and false treasure — the urge to rush and overtrust.", shadow:"naiveWarrior", essence:"Joy", ex:"Clean Movement Check", src:[L.consequences,L.futurability], st:"doc"},
+ {n:17, t:"The Shadow Citadel", book:"Captured by warring tribes — every fear converges at once.", ex:"Shadow Naming Ceremony", src:[L.selfSabotage,L.presentContext,L.sources], st:"wired", ordeal:true},
+ {n:18, t:"The Final Stand", book:"He turns himself into the wind — surrender becomes power.", mentor:"Alchemist", ex:"Essence Stand", src:[L.stands], st:"doc", ordeal:true},
+ {n:19, t:"The Treasure Mirror", book:"At the pyramids he learns the treasure was home all along — the reveal.", ex:"Life Purpose Reveal", tag:"climax", src:[L.lifePurpose], st:"wired"},
+ {n:20, t:"The Return Home", book:"He digs up the treasure under the sycamore where he first dreamed.", mentor:"The Father", ex:"Return & Next Quest", src:[L.reinvention], st:"doc"},
+];
+
+const ARCS = [
+ {no:"Arc 1", title:"The Call — Dream to Declaration", meta:"Ch 1 – 5", range:[1,5]},
+ {no:"Arc 2", title:"The First Shadows", meta:"Ch 6 – 11", range:[6,11]},
+ {no:"Arc 3", title:"Deeper Shadows + Being", meta:"Ch 12 – 16", range:[12,16]},
+ {no:"Arc 4", title:"The Climax & Return Home", meta:"Ch 17 – 20", range:[17,20]},
+];
+
+function srcLinks(src){
+  if(!src || !src.length) return `<span class="none">Cinematic — no exercise</span>`;
+  return src.map(([name,id])=>`<a href="${DRIVE(id)}" target="_blank" rel="noopener">${name}</a>`).join("");
+}
+function tagHtml(tag){
+  if(tag==="seed") return `<span class="tag seed">Seed · hidden</span>`;
+  if(tag==="climax") return `<span class="tag climax">Climax · reveal</span>`;
+  return "";
+}
+function chapterCard(c){
+  const stc = STCOL[c.st];
+  const badges = [];
+  if(c.shadow){const s=SH[c.shadow];badges.push(`<span class="badge shadow" style="border-color:${s.c};color:${s.c}"><i class="gl" style="background:${s.c}"></i>${s.name}</span>`);}
+  if(c.essence){const e=ESS[c.essence];badges.push(`<span class="badge essence" style="border-color:${e.c};color:${e.c}"><i class="gl" style="background:${e.c}"></i>${c.essence}</span>`);}
+  if(c.mentor){badges.push(`<span class="badge mentor">${c.mentor}</span>`);}
+  if(c.ordeal){badges.push(`<span class="badge" style="border-color:rgba(224,100,87,.5);color:#ffb3a8">Ordeal</span>`);}
+  return `<div class="card" style="border-left-color:${stc}">
+    <div class="status" style="background:${stc}22;color:${stc}">${STTXT[c.st]}</div>
+    <div class="card__top">
+      <span class="card__no">Ch ${c.n}</span>
+      <span class="card__title">${c.t}</span>
+    </div>
+    <div class="book"><b>📖 In the book:</b> ${c.book}</div>
+    <div class="ex">
+      <div class="ex__lbl">The one exercise</div>
+      <div class="ex__name">${c.ex}${tagHtml(c.tag)}</div>
+    </div>
+    ${badges.length?`<div class="badges">${badges.join("")}</div>`:""}
+    <div class="src">
+      <div class="src__lbl">Source material</div>
+      ${srcLinks(c.src)}
+    </div>
+  </div>`;
+}
+
+document.getElementById("arcs").innerHTML = ARCS.map(a=>{
+  const cards = CH.filter(c=>c.n>=a.range[0]&&c.n<=a.range[1]).map(chapterCard).join("");
+  return `<div class="arc">
+    <button class="arc__head" onclick="this.parentNode.classList.toggle('collapsed')">
+      <span class="arc__no">${a.no}</span>
+      <span class="arc__title">${a.title}</span>
+      <span class="arc__meta">${a.meta}</span>
+      <span class="arc__chev">▾</span>
+    </button>
+    <div class="arc__body">${cards}</div>
+  </div>`;
+}).join("");
+
+const SHADOW_DATA = [
+ {k:"brokeKing", loc:"The Forest of Lack · Ch 6", voice:"You are behind. You cannot afford to fail.", ess:"Power"},
+ {k:"addictSaint", loc:"The Neon Chapel · Ch 9", voice:"You deserve relief. You can face it tomorrow.", ess:"Love"},
+ {k:"silentProphet", loc:"The Tower · Ch 11", voice:"Not yet. It is not ready. Silence is safer.", ess:"Radiance"},
+ {k:"ragingVictim", loc:"The Ruins · Ch 14", voice:"Look what happened to you. They took from you.", ess:"Majesty"},
+ {k:"naiveWarrior", loc:"The False Gold Market · Ch 16", voice:"Move now. This is the one. Go faster.", ess:"Joy"},
+];
+document.getElementById("shadows").innerHTML = SHADOW_DATA.map(s=>{
+  const col=SH[s.k].c, e=ESS[s.ess].c;
+  return `<div class="cast" style="border-top-color:${col}">
+    <h4 style="color:${col}">The ${SH[s.k].name}</h4>
+    <div class="loc">${s.loc}</div>
+    <div class="voice">“${s.voice}”</div>
+    <div class="cure">Broken by <i class="gl" style="background:${e};width:9px;height:9px;border-radius:50%;display:inline-block"></i><b style="color:${e}">${s.ess}</b></div>
+  </div>`;
+}).join("");
+
+const ESS_DATA = [
+ {n:"Power", ph:"The power of ownership", vs:"vs. Broke King"},
+ {n:"Love", ph:"The power to reconnect", vs:"vs. Addict Saint"},
+ {n:"Radiance", ph:"The power to be seen", vs:"vs. Silent Prophet"},
+ {n:"Majesty", ph:"The power of identity", vs:"vs. Raging Victim"},
+ {n:"Joy", ph:"The power of clean movement", vs:"vs. Naive Warrior"},
+];
+document.getElementById("essences").innerHTML = ESS_DATA.map(e=>{
+  const c=ESS[e.n].c;
+  return `<div class="ess-chip" style="border-left-color:${c}">
+    <h4 style="color:${c}">${e.n}</h4><div class="ph">${e.ph}</div><div class="vs">${e.vs}</div>
+  </div>`;
+}).join("");
+
+const MENTOR_DATA = [
+ {n:"The Anchor Mentor", role:"Ch 2–4 · finds your why", line:"“If this goal were already complete — who would you become?”", c:"var(--teal)"},
+ {n:"The Challenger Mentor", role:"Ch 7, 14 · responsibility / At Cause", line:"“You can have your reasons, or you can have your quest.”", c:"var(--e-love)"},
+ {n:"The Alchemist Mentor", role:"Ch 12, 18 · your higher self", line:"“You cannot destroy what once protected you. Stop letting it lead.”", c:"var(--e-majesty)"},
+];
+document.getElementById("mentors").innerHTML = MENTOR_DATA.map(m=>`
+  <div class="cast" style="border-top-color:${m.c}">
+    <h4 style="color:${m.c}">${m.n}</h4><div class="loc">${m.role}</div><div class="voice">${m.line}</div>
+  </div>`).join("");
+
+const covered = CH.filter(c=>c.st==="built"||c.st==="partial").length;
+document.getElementById("pfill").style.width = Math.round(covered/CH.length*100)+"%";
+document.getElementById("plabel").textContent = `${covered}/20 covered · 2 built`;
+</script>
+</body>
+</html>

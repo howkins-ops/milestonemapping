@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ProjectCard from "./ProjectCard.jsx";
 import ProjectWizard from "./ProjectWizard.jsx";
+import MapQuestHero from "./MapQuestHero.jsx";
 import Button from "../ui/Button.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import { CATEGORIES } from "../../lib/constants.js";
@@ -18,7 +19,7 @@ function prioBadgeClass(p) {
   return "";
 }
 
-export default function ProjectsPage({ onOpenProject, onNavigate }) {
+export default function ProjectsPage({ onOpenProject, onNavigate, onOpenMapQuest }) {
   const { projects, milestones, createProject, updateProject, loadSampleData } = useAppData();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [filter, setFilter] = useState("All");
@@ -35,38 +36,15 @@ export default function ProjectsPage({ onOpenProject, onNavigate }) {
 
   return (
     <div className="anim-fade-in">
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
-        <div>
-          <p className="kicker" style={{ marginBottom: 6 }}>Milestone Mapping</p>
-          <h1 className="page-header__title" style={{ marginBottom: 4 }}>The Map Room.</h1>
-        </div>
-        {onNavigate && (
-          <button
-            onClick={() => onNavigate("openworld")}
-            style={{
-              marginTop: 4,
-              flexShrink: 0,
-              background: "linear-gradient(135deg, rgba(255,62,219,0.18), rgba(0,240,255,0.08))",
-              border: "1px solid rgba(255,62,219,0.5)",
-              borderRadius: 10,
-              padding: "7px 14px",
-              color: "#FF3EDB",
-              fontSize: 10,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              boxShadow: "0 0 12px rgba(255,62,219,0.25)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Your Empire
-          </button>
-        )}
+      <div style={{ marginBottom: 4 }}>
+        <p className="kicker" style={{ marginBottom: 6 }}>Milestone Mapping</p>
+        <h1 className="page-header__title" style={{ marginBottom: 4 }}>The Map Room.</h1>
       </div>
       <p className="muted" style={{ fontSize: 14, marginBottom: 18, lineHeight: 1.5 }}>
         Every project is a map. Every milestone is a diamond on the trail.
       </p>
+
+      {onOpenMapQuest && <MapQuestHero onLaunch={onOpenMapQuest} />}
 
       {/* filter chips */}
       <div className="map-filters">

@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import ProgressRing from "../ui/ProgressRing.jsx";
 import PhoenixSVG from "../ui/PhoenixSVG.jsx";
 import { formatDisplayDate } from "../../lib/dates.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
-import { useMilestones } from "../../hooks/useMilestones.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { playSound } from "../../lib/sounds.js";
 import { getStats } from "../../lib/statsService.js";
@@ -33,21 +31,9 @@ const STREAK_MILESTONES = [
   }
 ];
 
-function IconCrystal() {
-  return (
-    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"
-      style={{ filter: "drop-shadow(0 0 8px rgba(0,240,255,0.7)) drop-shadow(0 0 16px rgba(0,240,255,0.35))" }}>
-      <polygon points="16,2 28,11 28,21 16,30 4,21 4,11" fill="rgba(0,240,255,0.12)" stroke="#00F0FF" strokeWidth="1.5" />
-      <polygon points="16,8 24,14 24,18 16,24 8,18 8,14" fill="rgba(0,240,255,0.22)" stroke="#00F0FF" strokeWidth="1" />
-      <circle cx="16" cy="16" r="3" fill="#00F0FF" fillOpacity="0.6" />
-    </svg>
-  );
-}
-
 export default function MissionHero() {
   const { rank, xp, progress } = useGamification();
   const { streaks } = useDailyLog();
-  const { overallProgress } = useMilestones();
   const { projects, celebrate, settings, profile, userId } = useAppData();
   const activeCount = projects.filter((p) => p.status !== "completed").length;
   const conqueredCount = projects.filter((p) => p.status === "completed").length;
@@ -95,30 +81,13 @@ export default function MissionHero() {
         style={{ position: "absolute", right: -40, bottom: -24, opacity: 0.14, pointerEvents: "none" }}
       />
 
-      {/* Brand mark — inline SVG crystal */}
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-        <IconCrystal />
-      </div>
-
       <p className="kicker" style={{ marginBottom: 6 }}>{formatDisplayDate()}</p>
       {displayName && <p className="mission-hero__welcome">Welcome back, {displayName}.</p>}
       <h1 className="mission-hero__title">Milestone Mapping</h1>
       <p className="mission-hero__slogan">
-        Our map. <span className="mission-hero__grad">your transformation.</span>
-      </p>
-      <p className="muted" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 12 }}>
-        Every milestone is a diamond. Collect them all.
+        Our map. Your transformation.
       </p>
 
-      <div className="mission-hero__body">
-        <div className="mission-hero__charted">
-          <ProgressRing value={overallProgress} size={72} label="Charted" />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 170 }} />
-      </div>
-
-      {/* Stat cards — full-width row below the hero body */}
       <div className="mission-hero__stats">
         <div className="mission-hero__stat mission-hero__stat--streak">
           <div className="mission-hero__stat-icon">

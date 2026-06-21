@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { getMilestoneProgress } from "../../lib/progress.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { REWARD_TIERS as TIERS, chestAssets } from "../../data/assetRegistry.js";
+import RewardRevealModal from "./RewardRevealModal.jsx";
 
 function chestSrc(tier, state) {
   return chestAssets.src(tier, state);
@@ -10,6 +11,7 @@ function chestSrc(tier, state) {
 export default function RewardChest({ milestone }) {
   const { updateMilestone, addXP } = useAppData();
   const [justClaimed, setJustClaimed] = useState(null);
+  const [openTier, setOpenTier] = useState(null);
   const progress = getMilestoneProgress(milestone);
   const claimed = milestone.rewardsClaimed || {};
 
@@ -42,8 +44,14 @@ export default function RewardChest({ milestone }) {
               key={tier.key}
               className={`reward-chest__tier${unlocked && !isClaimed ? " is-unlocked" : ""}${isClaimed ? " is-claimed" : ""}`}
             >
-              {/* Chest image */}
-              <div style={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
+              {/* Chest image — tap to reveal the reward */}
+              <button
+                type="button"
+                className="reward-chest__chest-btn"
+                onClick={() => setOpenTier(tier)}
+                aria-label={`View ${tier.label}`}
+                style={{ position: "relative", width: 48, height: 48, flexShrink: 0, padding: 0, border: 0, background: "none", cursor: "pointer" }}
+              >
                 <img
                   src={chestSrc(tier.chestTier, state)}
                   alt=""
@@ -72,7 +80,7 @@ export default function RewardChest({ milestone }) {
                     }}
                   />
                 )}
-              </div>
+              </button>
 
               {/* Tier info */}
               <div className="reward-chest__tier-body">
@@ -103,6 +111,17 @@ export default function RewardChest({ milestone }) {
           );
         })}
       </div>
+
+      {openTier && (
+        <RewardRevealModal
+          tier={openTier}
+          milestone={milestone}
+          unlocked={progress >= openTier.threshold}
+          isClaimed={!!claimed[openTier.claimKey]}
+          onClaim={() => { handleClaim(openTier); setOpenTier(null); }}
+          onClose={() => setOpenTier(null)}
+        />
+      )}
     </div>
   );
 }

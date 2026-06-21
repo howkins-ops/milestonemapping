@@ -56,6 +56,10 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   --sidebar-w: 232px;
+
+  /* Fixed bottom nav height — content must reserve this much clearance.
+     Bumped to ~96px on small screens (taller nav items) below. */
+  --bottom-nav-h: 84px;
 }
 
 * {
@@ -166,7 +170,7 @@ button {
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
-  padding: 18px 16px calc(96px + env(safe-area-inset-bottom));
+  padding: 18px 16px calc(var(--bottom-nav-h) + 24px + env(safe-area-inset-bottom));
 }
 
 .page-header {
@@ -364,43 +368,60 @@ button {
   flex: none;
 }
 
-.app-topbar__diamond {
-  width: 50px;
-  height: 40px;
-  padding: 4px 5px;
+.app-topbar__diamond,
+.app-topbar__profile-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  border: 1px solid rgba(0, 240, 255, 0.28);
-  border-radius: 10px;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
   color: var(--brand-cyan);
-  font-size: 13px;
-  background: var(--panel);
-  box-shadow: 0 0 18px rgba(0, 240, 255, 0.15);
   cursor: pointer;
-  transition: border-color 160ms, background 160ms, box-shadow 160ms;
+  flex: none;
 }
-.app-topbar__diamond-icon {
+.app-topbar__icon-box {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 67px;
+  height: 67px;
   place-items: center;
   font-size: 15px;
   line-height: 1;
   overflow: hidden;
-  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(0, 240, 255, 0.16), transparent 58%),
+    rgba(8, 4, 18, 0.94);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.025) inset,
+    0 10px 22px rgba(0, 0, 0, 0.22),
+    0 0 18px rgba(0, 240, 255, 0.1);
+  transition: border-color 160ms, background 160ms, box-shadow 160ms;
+}
+.app-topbar__btn-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(209, 247, 255, 0.82);
+  white-space: nowrap;
 }
 .app-topbar__chevron {
   width: 6px;
   height: 6px;
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
-  transform: translateY(-1px) rotate(45deg);
+  transform: translateY(-2px) rotate(45deg);
   transition: transform 160ms var(--ease-out);
 }
 .app-topbar__chevron.is-open {
-  transform: translateY(1px) rotate(225deg);
+  transform: translateY(0) rotate(225deg);
 }
 .app-topbar__icon-art {
   display: block;
@@ -413,8 +434,9 @@ button {
     brightness(1.02)
     drop-shadow(0 0 8px rgba(0, 240, 255, 0.24));
 }
-.app-topbar__diamond:hover,
-.app-topbar__diamond.is-open {
+.app-topbar__diamond:hover .app-topbar__icon-box,
+.app-topbar__diamond.is-open .app-topbar__icon-box,
+.app-topbar__profile-btn:hover .app-topbar__icon-box {
   background: rgba(0, 240, 255, 0.1);
   border-color: rgba(0, 240, 255, 0.45);
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
@@ -581,27 +603,6 @@ button {
   flex-shrink: 0;
 }
 
-.app-topbar__profile-btn {
-  width: 40px;
-  height: 40px;
-  padding: 4px;
-  border-radius: 50%;
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.22);
-  display: grid;
-  place-items: center;
-  color: var(--brand-cyan);
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 160ms, border-color 160ms, box-shadow 160ms;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.app-topbar__profile-btn:hover {
-  background: rgba(0, 240, 255, 0.16);
-  border-color: rgba(0, 240, 255, 0.4);
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.2);
-}
 
 /* legacy topbar (keep for backwards compat) */
 .topbar {
@@ -760,6 +761,10 @@ button {
   margin: 2px 0 2px;
   line-height: 0.92;
   letter-spacing: 0;
+  background: linear-gradient(90deg, #00F0FF 0%, #7B2CFF 45%, #FF3EDB 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .mission-hero__welcome {
@@ -779,26 +784,27 @@ button {
 }
 
 .mission-hero__grad {
-  background: linear-gradient(90deg, #7B2CFF 0%, #D11EFF 40%, #FF3EDB 100%);
+  background: linear-gradient(90deg, #00F0FF 0%, #7B2CFF 45%, #FF3EDB 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.mission-hero__body {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .mission-hero__charted {
   position: relative;
   display: grid;
-  width: 82px;
-  height: 82px;
-  flex: 0 0 82px;
+  min-width: 82px;
+  min-height: 90px;
   place-items: center;
+  padding: 9px 6px;
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.08), transparent 58%),
+    linear-gradient(160deg, rgba(0, 16, 30, 0.72), rgba(5, 0, 12, 0.88));
+  box-shadow:
+    inset 0 0 22px rgba(0, 240, 255, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.28);
 }
 
 .mission-hero__charted > img {
@@ -821,7 +827,14 @@ button {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 12px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+@media (max-width: 560px) {
+  .mission-hero__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .mission-hero__stat {
@@ -859,9 +872,9 @@ button {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
   background: rgba(0, 0, 0, 0.48);
   border: 1px solid rgba(255, 62, 219, 0.22);
   box-shadow:
@@ -871,8 +884,8 @@ button {
 
 .mission-hero__stat-icon img {
   display: block;
-  width: 34px;
-  height: 34px;
+  width: 46px;
+  height: 46px;
   object-fit: contain;
   border-radius: 8px;
   opacity: 1;
@@ -2195,6 +2208,134 @@ button {
   box-shadow: 0 0 14px rgba(255, 59, 92, 0.2);
 }
 
+/* ============ SCIENCE INFO ("?") ============ */
+
+/* The "?" button — drop it inside any position:relative card.
+   Doubled class beats container `.x > *` rules that force position:relative. */
+.science-info-btn.science-info-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 6;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--brand-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.32);
+  cursor: pointer;
+  transition: color 160ms, background 160ms, border-color 160ms, box-shadow 160ms, transform 160ms;
+}
+.science-info-btn:hover {
+  color: #05070a;
+  background: var(--brand-cyan);
+  border-color: var(--brand-cyan);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+  transform: scale(1.08);
+}
+.science-info-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.5);
+}
+
+.science-info-intro {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin: -4px 0 18px;
+}
+
+.science-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.science-info-card {
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.science-info-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 99px;
+  padding: 3px 11px;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+.science-info-headline {
+  font-family: var(--font-display);
+  font-size: clamp(15px, 2.2vw, 17px);
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin: 0 0 10px;
+}
+
+.science-info-why {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin: 0 0 14px;
+}
+
+.science-info-stat {
+  border-left: 3px solid rgba(0, 240, 255, 0.28);
+  padding: 2px 0 2px 12px;
+  margin-bottom: 14px;
+}
+.science-info-stat-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.science-info-stat-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.science-info-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-soft);
+}
+.science-info-source a {
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  white-space: nowrap;
+}
+
+.science-info-foot {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  opacity: 0.7;
+  margin: 18px 0 0;
+  text-align: center;
+}
+
 /* ============ TOASTS ============ */
 
 .toast-stack {
@@ -2692,6 +2833,40 @@ button {
   font-weight: 800;
 }
 
+.trail-world__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.trail-world__panel-head .trail-world__panel-title {
+  margin-bottom: 0;
+}
+
+.trail-world__panel-toggle {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 5px;
+  color: var(--brand-cyan);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.trail-world__panel-toggle:hover {
+  background: rgba(0, 240, 255, 0.14);
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+/* Collapsed panels shrink to just their header. */
+.trail-world__panel.is-collapsed {
+  max-height: none;
+}
+
 .trail-world__level,
 .trail-world__stat,
 .trail-world__legend-row {
@@ -2782,6 +2957,307 @@ button {
   background: var(--brand-pink);
   clip-path: polygon(50% 0, 64% 35%, 100% 35%, 70% 58%, 82% 100%, 50% 72%, 18% 100%, 30% 58%, 0 35%, 36% 35%);
   box-shadow: 0 0 12px rgba(255, 62, 219, 0.76);
+}
+
+/* ---- Milestone Manager panel (replaces legend) ---- */
+.trail-world__manager {
+  width: min(15rem, 30%);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 9rem);
+  padding-bottom: 0.5rem;
+}
+
+.trail-world__manager-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0.2rem 0;
+  scrollbar-width: thin;
+}
+
+.trail-world__manager-empty {
+  color: rgba(242, 240, 244, 0.55);
+  font-size: 0.6rem;
+  padding: 0.3rem 0;
+}
+
+.trail-world__manager-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-top: 1px solid rgba(242, 240, 244, 0.09);
+  padding: 0.28rem 0;
+}
+
+.trail-world__manager-pos {
+  flex: none;
+  width: 1.1rem;
+  color: rgba(242, 240, 244, 0.5);
+  font-size: 0.55rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.trail-world__manager-badge {
+  flex: none;
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+}
+.trail-world__manager-badge.is-first {
+  color: var(--brand-cyan);
+  background: rgba(0, 240, 255, 0.14);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+.trail-world__manager-badge.is-last {
+  color: var(--brand-green);
+  background: rgba(0, 255, 191, 0.12);
+  border: 1px solid rgba(0, 255, 191, 0.4);
+}
+.ms-manager-modal .trail-world__manager-badge {
+  font-size: 0.65rem;
+  padding: 0.12rem 0.45rem;
+}
+
+.trail-world__manager-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(123, 44, 255, 0.45);
+}
+.trail-world__manager-dot.is-completed { background: var(--brand-green); box-shadow: 0 0 8px rgba(0, 255, 191, 0.8); }
+.trail-world__manager-dot.is-in_progress { background: #FFA500; box-shadow: 0 0 8px #FFA500; }
+.trail-world__manager-dot.is-active { background: var(--brand-cyan); box-shadow: 0 0 8px rgba(0, 240, 255, 0.8); }
+.trail-world__manager-dot.is-locked { background: rgba(123, 44, 255, 0.45); box-shadow: 0 0 8px rgba(123, 44, 255, 0.65); }
+
+.trail-world__manager-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  background: none;
+  border: none;
+  color: rgba(242, 240, 244, 0.82);
+  font-size: 0.62rem;
+  cursor: pointer;
+  padding: 0;
+}
+.trail-world__manager-title:hover { color: var(--brand-cyan); }
+
+.trail-world__manager-rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 5px;
+  color: var(--text-main);
+  font-size: 0.62rem;
+  padding: 0.1rem 0.3rem;
+}
+
+.trail-world__manager-ctrls {
+  flex: none;
+  display: flex;
+  gap: 0.1rem;
+}
+.trail-world__manager-ctrls button {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(242, 240, 244, 0.12);
+  border-radius: 4px;
+  color: rgba(242, 240, 244, 0.7);
+  font-size: 0.6rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.trail-world__manager-ctrls button:hover { color: var(--brand-cyan); border-color: rgba(0, 240, 255, 0.4); }
+.trail-world__manager-ctrls button:disabled { opacity: 0.3; cursor: default; }
+.trail-world__manager-ctrls button.is-danger:hover { color: var(--brand-red); border-color: rgba(255, 59, 92, 0.5); }
+
+.trail-world__manager-add {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-top: 1px solid rgba(242, 240, 244, 0.12);
+  padding-top: 0.4rem;
+}
+.trail-world__manager-input,
+.trail-world__manager-select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.26);
+  border-radius: 5px;
+  color: var(--text-main);
+  font-size: 0.62rem;
+  padding: 0.22rem 0.35rem;
+}
+.trail-world__manager-addbtn {
+  width: 100%;
+  background: rgba(0, 240, 255, 0.14);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 5px;
+  color: var(--brand-cyan);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.28rem;
+  cursor: pointer;
+}
+.trail-world__manager-addbtn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Milestone editor modal (portaled centered card) ──────────── */
+.ms-manager-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+  background: rgba(2, 0, 6, 0.74);
+  backdrop-filter: blur(8px);
+  animation: ms-manager-fade 0.18s ease;
+}
+
+@keyframes ms-manager-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ms-manager-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  max-height: min(calc(100dvh - 2rem), 640px);
+  padding: 1.1rem;
+  background: linear-gradient(180deg, rgba(8, 2, 20, 0.98), rgba(3, 0, 10, 0.98));
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  border-radius: 18px;
+  box-shadow: 0 0 60px rgba(123, 44, 255, 0.25), inset 0 0 60px rgba(0, 240, 255, 0.05);
+  animation: ms-manager-slide 0.22s ease;
+}
+
+@keyframes ms-manager-slide {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ms-manager-modal__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.16);
+}
+
+.ms-manager-modal__title {
+  color: var(--brand-cyan);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.ms-manager-modal__close {
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 9px;
+  color: var(--brand-cyan);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ms-manager-modal__close:hover {
+  background: rgba(0, 240, 255, 0.14);
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+/* Scale up the shared manager elements inside the modal */
+.ms-manager-modal .trail-world__manager-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.ms-manager-modal .trail-world__manager-empty {
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+.ms-manager-modal .trail-world__manager-row {
+  gap: 0.6rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(242, 240, 244, 0.1);
+}
+
+.ms-manager-modal .trail-world__manager-pos {
+  width: 1.7rem;
+  font-size: 0.85rem;
+}
+
+.ms-manager-modal .trail-world__manager-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.ms-manager-modal .trail-world__manager-title {
+  font-size: 0.95rem;
+}
+
+.ms-manager-modal .trail-world__manager-rename {
+  font-size: 0.95rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 7px;
+}
+
+.ms-manager-modal .trail-world__manager-ctrls {
+  gap: 0.3rem;
+}
+.ms-manager-modal .trail-world__manager-ctrls button {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.95rem;
+  border-radius: 7px;
+}
+
+.ms-manager-modal .trail-world__manager-add {
+  flex: none;
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(242, 240, 244, 0.14);
+}
+.ms-manager-modal .trail-world__manager-input,
+.ms-manager-modal .trail-world__manager-select {
+  font-size: 0.95rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+}
+.ms-manager-modal .trail-world__manager-addbtn {
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 0.7rem;
+  border-radius: 8px;
 }
 
 .trail-world__final {
@@ -2963,13 +3439,31 @@ button {
   opacity: 0.72;
 }
 
+/* Bare-node number badge for locked milestones — sits beside the lock orb so
+   you can still tell which milestone it is without a full card. */
+.trail-node__num {
+  position: absolute;
+  left: calc(100% + 0.55rem);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(123, 44, 255, 0.6);
+  text-shadow: 0 0 10px rgba(123, 44, 255, 0.35);
+  pointer-events: none;
+  user-select: none;
+}
+
 .trail-node__card {
   position: absolute;
   top: 50%;
-  width: clamp(10rem, 31vw, 14rem);
+  width: clamp(14rem, 36vw, 18rem);
   border: 1px solid rgba(0, 240, 255, 0.25);
   border-radius: 14px;
-  padding: 0.75rem 0.8rem;
+  /* Extra right padding gives the chest breathing room from the border. */
+  padding: 0.7rem 0.95rem 0.7rem 0.85rem;
   transform: translateY(-50%);
   background: rgba(3, 0, 8, 0.78);
   box-shadow: 0 0 26px rgba(0, 240, 255, 0.12), inset 0 0 20px rgba(123, 44, 255, 0.1);
@@ -2986,9 +3480,155 @@ button {
   right: calc(100% + 0.9rem);
 }
 
+/* Card becomes a row: text block + treasure chest on the right. */
+.trail-node__card {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+.trail-node__card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Treasure chest sits inside the card on the right (no clipping). */
+.trail-node__chest {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  width: 3.2rem;
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.5));
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+.trail-node__chest img {
+  width: 2.9rem;
+  height: 2.9rem;
+  object-fit: contain;
+  display: block;
+}
+.trail-node__chest em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #facc15;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+}
+
+.trail-node__chest:hover {
+  transform: scale(1.12);
+  filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.9));
+}
+.trail-node.is-locked .trail-node__chest {
+  filter: drop-shadow(0 0 4px rgba(123, 44, 255, 0.4));
+  opacity: 0.72;
+}
+.trail-node.is-locked .trail-node__chest:hover {
+  opacity: 1;
+}
+
 .trail-node.is-locked .trail-node__card {
   border-color: rgba(123, 44, 255, 0.26);
   opacity: 0.76;
+}
+
+/* ── START portal: the origin of the trail (Milestone 1) ──────────────────
+   A glowing circular portal ring around the first node (concept B) on a launch
+   pad of pulsing rings + ground glow (concept A); the trail beams up out of it. */
+.trail-node__origin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Circular portal ring, concentric with the orb. */
+.trail-node__origin-gate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6rem;
+  height: 6rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(0, 240, 255, 0.6);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 16px rgba(0, 240, 255, 0.42),
+    inset 0 0 14px rgba(0, 240, 255, 0.3);
+  animation: trail-origin-breathe 3.4s ease-in-out infinite;
+}
+
+/* Launch-pad glow disc beneath the node. */
+.trail-node__origin-glow {
+  position: absolute;
+  left: 50%;
+  top: 64%;
+  width: 4.8rem;
+  height: 1.9rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse,
+    rgba(0, 240, 255, 0.42),
+    rgba(123, 44, 255, 0.2) 55%,
+    transparent 76%);
+  filter: blur(2px);
+}
+
+/* Pulsing rings rippling outward from the launch pad. */
+.trail-node__origin-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3.6rem;
+  height: 3.6rem;
+  margin: -1.8rem 0 0 -1.8rem;
+  border: 1.5px solid rgba(0, 240, 255, 0.55);
+  border-radius: 50%;
+  opacity: 0;
+  animation: trail-origin-pulse 2.8s ease-out infinite;
+}
+.trail-node__origin-ring--delay {
+  animation-delay: 1.4s;
+}
+
+/* START tag below the orb. */
+.trail-node__origin-tag {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 9.2rem);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.85);
+  white-space: nowrap;
+}
+
+@keyframes trail-origin-pulse {
+  0%   { transform: scale(0.55); opacity: 0.7; }
+  80%  { opacity: 0.1; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+
+@keyframes trail-origin-breathe {
+  0%, 100% { box-shadow: 0 0 13px rgba(0, 240, 255, 0.36), inset 0 0 12px rgba(0, 240, 255, 0.26); }
+  50%      { box-shadow: 0 0 22px rgba(0, 240, 255, 0.6), inset 0 0 18px rgba(0, 240, 255, 0.42); }
 }
 
 .trail-node__title,
@@ -3041,35 +3681,15 @@ button {
   color: #ffd166;
 }
 
-.trail-node__chest,
+/* NOTE: The old "floating chest" decoration that used to be absolutely
+   positioned at the node's bottom-right (.trail-node__chest with negative
+   right/bottom offsets, a fake gradient box, and ::before lid) has been removed.
+   The chest is now an in-flow flex item inside the card — see the
+   .trail-node__chest rules above. Only the phoenix keeps absolute positioning. */
 .trail-node__phoenix {
   position: absolute;
   z-index: 2;
   pointer-events: none;
-}
-
-.trail-node__chest {
-  right: -0.45rem;
-  bottom: -0.22rem;
-  width: 1.55rem;
-  height: 1.1rem;
-  border: 1px solid rgba(255, 209, 102, 0.72);
-  border-radius: 4px 4px 6px 6px;
-  background:
-    linear-gradient(90deg, transparent 45%, rgba(255, 209, 102, 0.65) 45% 55%, transparent 55%),
-    linear-gradient(180deg, #ffd166, #5d3511);
-  box-shadow: 0 0 14px rgba(255, 209, 102, 0.68);
-}
-
-.trail-node__chest::before {
-  position: absolute;
-  inset: -0.42rem 0.18rem auto;
-  height: 0.52rem;
-  content: "";
-  border: 1px solid rgba(255, 209, 102, 0.72);
-  border-bottom: 0;
-  border-radius: 999px 999px 0 0;
-  background: linear-gradient(180deg, #ffd166, #6f4218);
 }
 
 .trail-node__phoenix {
@@ -3255,6 +3875,46 @@ button {
 
 .project-map-card.is-completed .project-map-card__portal {
   filter: drop-shadow(0 0 22px rgba(255, 209, 102, 0.78));
+}
+
+.project-map-card__bg-tools {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+  z-index: 2;
+}
+
+.project-map-card:hover .project-map-card__bg-tools,
+.project-map-card:focus-within .project-map-card__bg-tools {
+  opacity: 1;
+}
+
+.project-map-card__bg-btn {
+  padding: 0.28rem 0.6rem;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  color: #eafbff;
+  background: rgba(3, 0, 6, 0.78);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 7px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.project-map-card__bg-btn:hover {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: rgba(0, 240, 255, 0.8);
+}
+
+.project-map-card__bg-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .trail-world::before {
@@ -3493,8 +4153,11 @@ button {
   animation-delay: calc(var(--spark) * 34ms);
 }
 
+/* The card must NOT clip its chest. (Its text block clips itself via
+   .trail-node__card-body; the unused card-glow shimmer is what once needed
+   this.) Keep overflow visible so the reward chest is never cut off. */
 .trail-node__card {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .trail-node__card-glow {
@@ -3511,9 +4174,9 @@ button {
   transform: translateX(110%);
 }
 
+/* Reset only — sizing is owned by the in-card chest rules above. (Do not set
+   width/height/img-width here or the chest shrinks and the label is squished.) */
 .trail-node__chest {
-  width: 2.25rem;
-  height: 2.25rem;
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -3525,8 +4188,6 @@ button {
 }
 
 .trail-node__chest img {
-  display: block;
-  width: 100%;
   filter: drop-shadow(0 0 14px rgba(255, 209, 102, 0.76));
 }
 
@@ -4003,29 +4664,7 @@ h4,
 }
 
 .app-topbar {
-  min-height: 58px;
-}
-
-.app-topbar__diamond,
-.app-topbar__profile-btn {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.025) inset,
-    0 10px 22px rgba(0, 0, 0, 0.22),
-    0 0 18px rgba(0, 240, 255, 0.1);
-}
-
-.app-topbar__diamond {
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 28% 20%, rgba(0, 240, 255, 0.16), transparent 58%),
-    rgba(8, 4, 18, 0.94);
-}
-
-.app-topbar__profile-btn {
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(0, 240, 255, 0.14), transparent 62%),
-    rgba(8, 4, 18, 0.94);
+  min-height: 98px;
 }
 
 .bottom-nav {
@@ -4327,10 +4966,15 @@ h4,
 }
 
 .page {
-  padding-bottom: calc(144px + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--bottom-nav-h) + 84px + env(safe-area-inset-bottom));
 }
 
 @media (max-width: 420px) {
+  /* Taller nav items on small screens — reserve more clearance. */
+  :root {
+    --bottom-nav-h: 100px;
+  }
+
   .app-topbar__rank {
     display: none;
   }

@@ -5,7 +5,10 @@ import TextInput from "../ui/TextInput.jsx";
 import TextArea from "../ui/TextArea.jsx";
 import Select from "../ui/Select.jsx";
 import ProgressBar from "../ui/ProgressBar.jsx";
+import RewardTierEditor from "./RewardTierEditor.jsx";
 import { CATEGORIES, PRIORITIES } from "../../lib/constants.js";
+import { REWARD_TIERS } from "../../data/assetRegistry.js";
+import { useAppData } from "../../hooks/useAppData.js";
 import { uid } from "../../lib/id.js";
 
 const STEPS = [
@@ -30,7 +33,10 @@ const EMPTY_FORM = {
   priority: "medium",
   rewardSmall: "",
   rewardMedium: "",
-  rewardLarge: ""
+  rewardLarge: "",
+  rewardSmallImage: "",
+  rewardMediumImage: "",
+  rewardLargeImage: ""
 };
 
 export default function MilestoneWizard({ open, onClose, onCreate, onUpdate, initial = null }) {
@@ -40,7 +46,9 @@ export default function MilestoneWizard({ open, onClose, onCreate, onUpdate, ini
   const [starterActions, setStarterActions] = useState(initial ? null : []);
   const [actionDraft, setActionDraft] = useState("");
 
+  const { userId } = useAppData();
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setField = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const reset = () => {
     setStep(0);
@@ -215,24 +223,21 @@ export default function MilestoneWizard({ open, onClose, onCreate, onUpdate, ini
         {step === 6 && (
           <div className="stack">
             <h3 style={{ fontSize: 22 }}>What reward makes the chase exciting?</h3>
-            <TextInput
-              label="Small reward — unlocked at 33%"
-              value={form.rewardSmall}
-              onChange={set("rewardSmall")}
-              placeholder="A small win for early momentum..."
-            />
-            <TextInput
-              label="Medium reward — unlocked at 66%"
-              value={form.rewardMedium}
-              onChange={set("rewardMedium")}
-              placeholder="Something worth pushing through the middle for..."
-            />
-            <TextInput
-              label="Large reward — unlocked at 100%"
-              value={form.rewardLarge}
-              onChange={set("rewardLarge")}
-              placeholder="The trophy at the summit..."
-            />
+            <p className="muted">
+              Fill the small, medium, and final treasure chests. Add a photo of each reward —
+              tap a chest later to see exactly what you're chasing.
+            </p>
+            {REWARD_TIERS.map((tier) => (
+              <RewardTierEditor
+                key={tier.key}
+                tier={tier}
+                userId={userId}
+                text={form[tier.field]}
+                image={form[tier.imageField]}
+                onChangeText={(v) => setField(tier.field, v)}
+                onChangeImage={(v) => setField(tier.imageField, v)}
+              />
+            ))}
           </div>
         )}
       </div>

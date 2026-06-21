@@ -34,11 +34,12 @@ import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
 const BOOT_SESSION_FLAG = "milestone_mapping_boot_shown";
 
 function AppContent({ signOut }) {
-  const { settings, milestones } = useAppData();
+  const { settings, milestones, projects } = useAppData();
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
   const [rpgWorldProjectId, setRpgWorldProjectId] = useState(null);
+  const [rpgWorldInitialMode, setRpgWorldInitialMode] = useState(null);
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
     try {
@@ -66,6 +67,7 @@ function AppContent({ signOut }) {
     setSelectedProjectId(null);
     setSelectedMilestoneId(null);
     setRpgWorldProjectId(null);
+    setRpgWorldInitialMode(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0 });
   };
@@ -78,13 +80,26 @@ function AppContent({ signOut }) {
     window.scrollTo({ top: 0 });
   };
 
-  const openRPGWorld = (projectId) => {
+  const openRPGWorld = (projectId, mode = null) => {
     setRpgWorldProjectId(projectId);
+    setRpgWorldInitialMode(mode);
     window.scrollTo({ top: 0 });
+  };
+
+  // Launch the Map Quest game directly. The quest story is shared across
+  // projects, so we anchor it to the first available project (active first).
+  const openMapQuest = () => {
+    const target = projects.find((p) => p.status !== "completed") || projects[0];
+    if (!target) {
+      navigate("milestones");
+      return;
+    }
+    openRPGWorld(target.id, "quest");
   };
 
   const closeRPGWorld = () => {
     setRpgWorldProjectId(null);
+    setRpgWorldInitialMode(null);
     window.scrollTo({ top: 0 });
   };
 
@@ -101,6 +116,7 @@ function AppContent({ signOut }) {
       return (
         <RPGWorldPage
           projectId={rpgWorldProjectId}
+          initialMode={rpgWorldInitialMode}
           onExitWorld={closeRPGWorld}
         />
       );
@@ -131,11 +147,11 @@ function AppContent({ signOut }) {
     }
     switch (currentPage) {
       case "dashboard":
-        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} />;
+        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />;
       case "daily":
         return <DailyPage />;
       case "milestones":
-        return <ProjectsPage onOpenProject={openProject} onNavigate={navigate} />;
+        return <ProjectsPage onOpenProject={openProject} onNavigate={navigate} onOpenMapQuest={openMapQuest} />;
       case "weekly":
         return <WeeklyReviewPage />;
       case "rewards":
@@ -175,7 +191,7 @@ function AppContent({ signOut }) {
       case "assets":
         return <AssetLibraryPage />;
       default:
-        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} />;
+        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />;
     }
   }
 

@@ -2,20 +2,33 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import ProgressBar from "../ui/ProgressBar.jsx";
+import ScienceInfo from "../ui/ScienceInfo.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { uid } from "../../lib/id.js";
 
-export default function TopFivePanel() {
+// mode="execute" → morning: tick off today's five (checkboxes, XP, progress)
+// mode="plan"    → evening: load tomorrow's five (no checkboxes, planning copy)
+export default function TopFivePanel({ mode = "execute" }) {
+  const isPlan = mode === "plan";
+
   const {
     todayLog,
+    tomorrowLog,
     doneCount,
     addTopFiveTask,
     updateTopFiveTask,
     deleteTopFiveTask,
-    toggleTopFiveTask
+    toggleTopFiveTask,
+    addTomorrowTopFiveTask,
+    updateTomorrowTopFiveTask,
+    deleteTomorrowTopFiveTask
   } = useDailyLog();
 
-  const tasks = todayLog.topFive || [];
+  const tasks = (isPlan ? tomorrowLog.topFive : todayLog.topFive) || [];
+  const addTask = isPlan ? addTomorrowTopFiveTask : addTopFiveTask;
+  const updateTask = isPlan ? updateTomorrowTopFiveTask : updateTopFiveTask;
+  const deleteTask = isPlan ? deleteTomorrowTopFiveTask : deleteTopFiveTask;
+
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
@@ -24,7 +37,7 @@ export default function TopFivePanel() {
   const submitDraft = () => {
     const text = draft.trim();
     if (!text || tasks.length >= 5) return;
-    addTopFiveTask(text);
+    addTask(text);
     setDraft("");
   };
 
@@ -49,7 +62,7 @@ export default function TopFivePanel() {
 
   const commitEdit = () => {
     const text = editText.trim();
-    if (text) updateTopFiveTask(editingId, { text });
+    if (text) updateTask(editingId, { text });
     setEditingId(null);
   };
 
@@ -57,13 +70,19 @@ export default function TopFivePanel() {
     <section>
       <Card variant="neon" className="daily-action-card daily-action-card--top-five ritual-image-card ritual-image-card--top-five">
         <div className="daily-action-card__art" aria-hidden="true" />
+        <ScienceInfo ids={["daily_tracking"]} />
         <div className="daily-action-card__header">
           <div>
-            <span className="daily-action-card__eyebrow">EXECUTION PATH</span>
-            <h3 className="daily-action-card__title">Five Moves Forward</h3>
+            <span className="daily-action-card__eyebrow">
+              {isPlan ? "PLAN TONIGHT · EXECUTE AT DAWN" : "EXECUTE TODAY · ONE BY ONE"}
+            </span>
+            <h3 className="daily-action-card__title">
+              {isPlan ? "Tomorrow's Top 5" : "Today's Top 5"}
+            </h3>
           </div>
         </div>
-        {tasks.length > 0 && (
+
+        {!isPlan && tasks.length > 0 && (
           <ProgressBar value={doneCount} max={5} label="Daily execution" />
         )}
 
@@ -79,14 +98,16 @@ export default function TopFivePanel() {
                     </span>
                   ))}
                 <span className={`morning-t5-num ${task.done ? "is-done" : ""}`}>#{i + 1}</span>
-                <button
-                  type="button"
-                  className={`checkbox-glow ${task.done ? "is-checked" : ""}`}
-                  onClick={(e) => handleToggle(task, e)}
-                  aria-label={`${task.done ? "Uncheck" : "Complete"}: ${task.text}`}
-                >
-                  {task.done ? "✓" : ""}
-                </button>
+                {!isPlan && (
+                  <button
+                    type="button"
+                    className={`checkbox-glow ${task.done ? "is-checked" : ""}`}
+                    onClick={(e) => handleToggle(task, e)}
+                    aria-label={`${task.done ? "Uncheck" : "Complete"}: ${task.text}`}
+                  >
+                    {task.done ? "✓" : ""}
+                  </button>
+                )}
 
                 {editingId === task.id ? (
                   <input
@@ -120,7 +141,7 @@ export default function TopFivePanel() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => deleteTopFiveTask(task.id)}
+                  onClick={() => deleteTask(task.id)}
                   aria-label={`Delete: ${task.text}`}
                   style={{ color: "var(--brand-red)" }}
                 >
@@ -137,8 +158,8 @@ export default function TopFivePanel() {
               className="input"
               placeholder={
                 tasks.length === 0
-                  ? "What's the #1 move that changes everything today?"
-                  : `Priority ${tasks.length + 1} of 5 — what moves the mission forward?`
+                  ? "What's the #1 priority tomorrow to move your goal forward?"
+                  : `Priority ${tasks.length + 1} of 5 — what gets you closer tomorrow?`
               }
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -151,7 +172,7 @@ export default function TopFivePanel() {
           </div>
         ) : (
           <p className="soft" style={{ marginTop: 16, fontSize: 13 }}>
-            Five priorities locked. Now execute.
+            {isPlan ? "Five priorities locked. Wake up ready." : "Five priorities locked. Now execute."}
           </p>
         )}
       </Card>

@@ -16,9 +16,6 @@ function StepIntro({ onNext }) {
     <div className="wiz wiz--intro">
       <div className="wiz-intro__glyph" aria-hidden="true">◆</div>
       <h1 className="wiz-title">BUILD YOUR CUP</h1>
-      <p className="wiz-intro__sub">
-        This is your cup. Not ours.
-      </p>
       <div className="wiz-intro__rules">
         <div className="wiz-rule">
           <span className="wiz-rule__icon">⚠️</span>
@@ -43,10 +40,6 @@ function StepIntro({ onNext }) {
           </div>
         ))}
       </div>
-
-      <p className="wiz-intro__goal">
-        Select <strong>3–10 habits</strong> that will become your daily cup.
-      </p>
 
       <button type="button" className="wiz-cta" onClick={onNext}>
         Build My Cup →

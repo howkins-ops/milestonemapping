@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProjectMap from "../milestone-map/ProjectMap.jsx";
 import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
 import MilestoneWorld from "../milestone-world/MilestoneWorld.jsx";
@@ -11,10 +11,15 @@ import { useMapQuestState } from "../map-quest/useMapQuestState.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
 
-export default function RPGWorldPage({ projectId, onExitWorld }) {
+export default function RPGWorldPage({ projectId, initialMode = null, onExitWorld }) {
   const { projects, milestones, createMilestone, updateMilestone } = useAppData();
   const project = projects.find((p) => p.id === projectId);
   const { mode, setMode, completeChapter, isChapterComplete } = useMapQuestState();
+
+  // When launched straight into a mode (e.g. the Map Quest button), honor it once.
+  useEffect(() => {
+    if (initialMode) setMode(initialMode);
+  }, [initialMode, setMode]);
 
   const [screen, setScreen] = useState("map");
   const [activeMilestoneId, setActiveMilestoneId] = useState(null);

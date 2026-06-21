@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ALCHEMIST 2.0 — Ch 6: The Undercity of Lack</title>
+<style>
+  :root{
+    --bg:#05060d; --bg2:#0a0e1c; --panel:#0d1326; --panel2:#121a33;
+    --border:rgba(120,160,210,.18); --ink:#eef3fb; --muted:#9fb1cc; --dim:#647691;
+    --gold:#caa23a; --gold-bright:#ffd166; --power:#5b8def; --cyan:#22d3ee;
+    --love:#f06a8a; --phoenix:#ff7a45; --glow:rgba(91,141,239,.5);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:radial-gradient(1200px 700px at 50% -10%, rgba(202,162,58,.10), transparent 60%), var(--bg);
+    color:var(--ink); min-height:100vh; line-height:1.55; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* scanline + rain texture */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px);}
+  .stage{max-width:680px;margin:0 auto;padding:28px 20px 80px;position:relative;z-index:2}
+
+  /* HUD */
+  .hud{display:flex;align-items:center;gap:12px;margin-bottom:22px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+  .hud .chap{color:var(--gold-bright)}
+  .hud .bar{flex:1;height:3px;background:rgba(120,160,210,.14);border-radius:999px;overflow:hidden}
+  .hud .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--phoenix));transition:width .6s cubic-bezier(.16,1,.3,1)}
+
+  .scene{animation:rise .5s cubic-bezier(.16,1,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .loc{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  h1{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:clamp(28px,6vw,42px);line-height:1.05;margin-bottom:16px}
+  .glitch{background:linear-gradient(120deg,var(--gold-bright),var(--phoenix));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  p.nar{font-size:16px;color:#d7e2f1;margin-bottom:14px}
+  p.nar.dim{color:var(--muted)}
+  .who{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:22px 0 6px}
+  .who.mentor{color:var(--cyan)} .who.shadow{color:var(--gold-bright)} .who.essence{color:var(--power)}
+
+  /* speech panels */
+  .say{border-left:3px solid;padding:12px 16px;border-radius:0 12px 12px 0;margin-bottom:14px;background:linear-gradient(90deg,rgba(255,255,255,.03),transparent)}
+  .say.mentor{border-color:var(--cyan)}
+  .say.shadow{border-color:var(--gold-bright);background:linear-gradient(90deg,rgba(202,162,58,.10),transparent);font-style:italic;color:#f2e2bd}
+  .say.essence{border-color:var(--power);background:linear-gradient(90deg,rgba(91,141,239,.12),transparent)}
+  .say p{margin-bottom:8px}.say p:last-child{margin-bottom:0}
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:999px;margin-left:8px;vertical-align:middle;background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.35)}
+
+  /* exercise */
+  .ex{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;margin:18px 0}
+  .ex h3{font-family:'Fraunces',serif;font-size:20px;margin-bottom:4px}
+  .ex .sub{font-size:13px;color:var(--dim);margin-bottom:14px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .field textarea,.field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--ink);font:inherit;font-size:15px;padding:10px 12px;resize:vertical}
+  .field textarea:focus,.field input:focus{outline:none;border-color:var(--power);box-shadow:0 0 0 3px rgba(91,141,239,.15)}
+  .field textarea{min-height:54px}
+
+  /* mirror */
+  .mirror{border:1px solid rgba(91,141,239,.4);border-radius:16px;padding:20px;margin:18px 0;background:radial-gradient(600px 200px at 50% 0%, rgba(91,141,239,.12), transparent 70%), var(--panel2);text-align:center}
+  .mirror .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--power);margin-bottom:12px}
+  .mirror .echo{font-family:'Fraunces',serif;font-size:19px;line-height:1.5;color:#eaf2fb}
+  .mirror .echo b{color:var(--gold-bright);font-style:italic;font-weight:600}
+
+  .essence-burst{text-align:center;padding:10px 0}
+  .essence-burst .orb{font-size:46px;filter:drop-shadow(0 0 16px var(--glow));animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .essence-burst .name{font-family:'Fraunces',serif;font-size:26px;color:var(--power);margin-top:6px}
+  .essence-burst .act{font-size:15px;color:var(--muted);font-style:italic;margin-top:6px}
+
+  button.go{margin-top:8px;width:100%;background:linear-gradient(120deg,var(--gold),var(--phoenix));color:#1a0f02;font-weight:700;font-size:15px;border:0;border-radius:12px;padding:14px;cursor:pointer;letter-spacing:.3px;transition:transform .12s,filter .12s}
+  button.go:hover{filter:brightness(1.08)}
+  button.go:active{transform:scale(.99)}
+  button.go:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.5)}
+  button.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);margin-top:10px}
+  .hint{font-size:12px;color:var(--dim);text-align:center;margin-top:8px}
+
+  .seal{text-align:center;padding:14px 0}
+  .seal .ph{font-size:40px}
+  .footer-note{margin-top:30px;font-size:11px;color:var(--dim);text-align:center;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="hud">
+    <span class="chap">CH 06</span>
+    <span>The Undercity of Lack</span>
+    <span class="bar"><i id="bar"></i></span>
+    <span id="step">1 / 6</span>
+  </div>
+  <div id="scene"></div>
+  <div class="footer-note">ALCHEMIST 2.0 · engine proof · your words drive the story — nothing is pre-written about you</div>
+</div>
+
+<script>
+const S = { money:"", fear:"", power:"", proof:"" };
+let step = 0;
+const TOTAL = 6;
+const el = document.getElementById("scene");
+const bar = document.getElementById("bar");
+const stepLbl = document.getElementById("step");
+
+// helper: echo the client's own words, with a fallback if empty
+const q = (v, fb) => v && v.trim() ? v.trim() : fb;
+
+const STEPS = [
+  // 0 — arrival (cyberpunk scene)
+  () => `
+    <div class="scene">
+      <div class="loc">District 06 · Sublevel</div>
+      <h1>The <span class="glitch">Undercity of Lack</span></h1>
+      <p class="nar">Rain hammers the dead neon. You drop through a broken service hatch into the Undercity — a sprawl of foreclosed arcades, dark ATMs, and credit-chips ground to dust underfoot.</p>
+      <p class="nar dim">On a throne welded from unpaid invoices sits a figure in a cracked gold crown. He does not look dangerous. He looks like someone who lost everything and never got up.</p>
+      <p class="nar"><b>The Broke King.</b></p>
+      <button class="go" onclick="next()">Approach →</button>
+    </div>`,
+
+  // 1 — Mentor testimony (Jon's real story)
+  () => `
+    <div class="scene">
+      <div class="who mentor">The Anchor · transmission<span class="tag">Jon's true story</span></div>
+      <div class="say mentor">
+        <p>"I've sat on that throne. My parents went bankrupt when I was a kid. I got caught stealing food from a grocery store because our fridge was empty."</p>
+        <p>"My first year in sales I worked all three hundred sixty-five days and made twelve grand. Four dollars an hour — half of minimum wage."</p>
+        <p>"And at the top, ranked #2 in the country, I lost a million-dollar team in a single night. I told myself it wasn't my fault."</p>
+        <p>"The King will tell you money is the treasure. It isn't. <b>Money doesn't make you powerful. Power lets you hold money.</b> Watch what he says to you — you'll recognize the voice."</p>
+      </div>
+      <button class="go" onclick="next()">Face the King →</button>
+    </div>`,
+
+  // 2 — Shadow speaks (voice lines)
+  () => `
+    <div class="scene">
+      <div class="who shadow">The Broke King speaks</div>
+      <div class="say shadow">
+        <p>"You're behind. You should already be further than this."</p>
+        <p>"You can't afford to fail. You're not safe yet."</p>
+        <p>"You need the money <em>first</em> — then you can become someone."</p>
+      </div>
+      <p class="nar dim">The words land somewhere familiar. That's the tell: this isn't a stranger. It's a voice you've been carrying.</p>
+      <p class="nar">The Anchor's signal flickers: <span style="color:var(--cyan)">"Open the Money Mirror. Name what's really running you."</span></p>
+      <button class="go" onclick="next()">Open the Money Mirror →</button>
+    </div>`,
+
+  // 3 — Exercise: Money Mirror (client answers)
+  () => `
+    <div class="scene">
+      <div class="ex">
+        <h3>The Money Mirror</h3>
+        <div class="sub">Coaching exercise · Income–Savings Thermometer + Consequences of Choice. Answer honestly — the mirror remembers.</div>
+        <div class="field">
+          <label>1 · What are you making money <em>mean</em> about you?</label>
+          <textarea id="i_money" placeholder="e.g. that if I don't have it, I'm failing / not enough...">${S.money}</textarea>
+        </div>
+        <div class="field">
+          <label>2 · What fear is actually driving your money choices right now?</label>
+          <textarea id="i_fear" placeholder="e.g. ending up broke like before / being judged...">${S.fear}</textarea>
+        </div>
+        <div class="field">
+          <label>3 · If you operated from <b style="color:var(--power)">Power</b> instead of fear — what would Power choose here?</label>
+          <textarea id="i_power" placeholder="e.g. invest in myself anyway / make the call I've avoided...">${S.power}</textarea>
+        </div>
+        <div class="field">
+          <label>4 · One real proof action you'll take in the next 24h to restore power over money:</label>
+          <input id="i_proof" placeholder="e.g. track every dollar today / send the invoice / make one offer" value="${S.proof}" />
+        </div>
+        <button class="go" id="submit" onclick="saveExercise()" disabled>Reflect it back →</button>
+        <div class="hint">Fill all four to continue — this is what writes <em>your</em> chapter.</div>
+      </div>
+    </div>`,
+
+  // 4 — Answer-fill: their words woven back + mini mirror
+  () => `
+    <div class="scene">
+      <div class="who shadow">The Broke King · weakening</div>
+      <div class="say shadow">
+        <p>"So that's it. You made money mean <b style="color:#fff;font-style:normal">${q(S.money,"that you're not enough")}</b>."</p>
+        <p>"And the fear steering you was <b style="color:#fff;font-style:normal">${q(S.fear,"being left with nothing")}</b>."</p>
+      </div>
+      <div class="mirror">
+        <div class="lbl">◇ The Mirror reflects your words ◇</div>
+        <div class="echo">You named the voice. It was never a king — it was <b>your own fear of ${q(S.fear,"lack")}</b>.<br><br>And you already know what Power would do:<br>"<b>${q(S.power,"choose ownership over panic")}</b>."</div>
+      </div>
+      <p class="nar dim">Naming it broke the spell. The crown dims. The King is still here — but he's no longer on the throne. You are.</p>
+      <button class="go" onclick="next()">Return to Essence →</button>
+    </div>`,
+
+  // 5 — Essence return + proof + seal
+  () => `
+    <div class="scene">
+      <div class="who essence">Essence restored</div>
+      <div class="essence-burst">
+        <div class="orb">⬢</div>
+        <div class="name">POWER</div>
+        <div class="act">"Money doesn't make me powerful. Power lets me hold money."</div>
+      </div>
+      <div class="say essence">
+        <p style="font-style:normal">Your proof action — your real-world move out of the Undercity:</p>
+        <p style="color:#fff;font-weight:600;font-style:normal">▶ ${q(S.proof,"one decision made from ownership, not fear")}</p>
+      </div>
+      <p class="nar">The Phoenix sigil flares on your wrist — burn, ash, rise. Chapter 6 sealed. The Broke King now walks <em>behind</em> you, not in front.</p>
+      <div class="seal"><div class="ph">🔥</div></div>
+      <p class="nar dim" style="text-align:center">This was one chapter. Every answer you typed is saved — the Citadel (Ch 17) will quote your own words back, and the Vault (Ch 19) will show this version of you against who you become.</p>
+      <button class="go" onclick="restart()">Replay the chapter</button>
+      <button class="go ghost" onclick="showData()">Show the data this saved</button>
+      <div id="data"></div>
+    </div>`,
+];
+
+function render(){
+  el.innerHTML = STEPS[step]();
+  bar.style.width = (step/(TOTAL-1)*100) + "%";
+  stepLbl.textContent = (step+1) + " / " + TOTAL;
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(step===3) wireExercise();
+}
+function next(){ if(step<STEPS.length-1){ step++; render(); } }
+function restart(){ step=0; render(); }
+
+function wireExercise(){
+  const ids=["i_money","i_fear","i_power","i_proof"];
+  const check=()=>{
+    const ok = ids.every(id=>document.getElementById(id).value.trim().length>0);
+    document.getElementById("submit").disabled=!ok;
+  };
+  ids.forEach(id=>document.getElementById(id).addEventListener("input",check));
+  check();
+}
+function saveExercise(){
+  S.money=document.getElementById("i_money").value;
+  S.fear =document.getElementById("i_fear").value;
+  S.power=document.getElementById("i_power").value;
+  S.proof=document.getElementById("i_proof").value;
+  next();
+}
+function showData(){
+  document.getElementById("data").innerHTML =
+    `<div class="say essence" style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-style:normal;white-space:pre-wrap;color:var(--muted)">outputs["ch6_broke_king"] = ${JSON.stringify({shadow:"broke_king",essence:"power",...S},null,2)}</div>`;
+}
+render();
+</script>
+</body>
+</html>

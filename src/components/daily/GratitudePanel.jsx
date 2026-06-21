@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
-import Button from "../ui/Button.jsx";
-import TextArea from "../ui/TextArea.jsx";
+import ScienceInfo from "../ui/ScienceInfo.jsx";
+import GratitudeWizard from "./GratitudeWizard.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useToasts } from "../../hooks/useToasts.js";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -10,30 +10,35 @@ import { incrementStat, updateStreak } from "../../lib/statsService.js";
 import { setMemory } from "../../lib/memoryService.js";
 import { getTodayKey } from "../../lib/dates.js";
 
-const IMPACT_STATS = [
-  { label: "Depression Risk", value: "↓ 25%", color: "#00FFBF", delay: 0,   icon: "/assets/daily/stat-heart-icon.png" },
-  { label: "Anxiety Levels", value: "↓ 23%", color: "#00FFBF", delay: 120,  icon: "/assets/daily/stat-calm-icon.png" },
-  { label: "XP Earned",       value: "+50 XP", color: "#FACC15", delay: 240, icon: "/assets/daily/stat-xp-icon.png" },
-];
+// Storage schema stays { entry1, entry2, entry3 } for back-compat:
+// entry1 = the moment · entry2 = mental subtraction · entry3 = the hard thing.
+const REVEAL_LABELS = ["The moment", "Without it", "The gift"];
 
 export default function GratitudePanel() {
   const { todayLog, updateTodayLog } = useDailyLog();
   const { pushToast } = useToasts();
   const { userId } = useAppData();
 
-  const [form, setForm] = useState(
-    todayLog.gratitude || { entry1: "", entry2: "", entry3: "" }
-  );
-  const [impactVisible, setImpactVisible] = useState(
-    !!(todayLog.gratitude?.entry1 && todayLog.gratitude?.entry2 && todayLog.gratitude?.entry3)
-  );
-  const [saving, setSaving] = useState(false);
+  const saved = todayLog.gratitude;
+  const isLocked = !!(saved?.entry1 && saved?.entry2 && saved?.entry3);
+  const extras = saved?.extras || [];
 
-  const allFilled = form.entry1.trim() && form.entry2.trim() && form.entry3.trim();
+  const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState("");
 
-  const save = async () => {
-    if (!allFilled) return;
-    setSaving(true);
+  // Re-write the normalized row with the full current entry set.
+  const syncRow = (g) => {
+    if (!userId) return;
+    upsertGratitudeEntry(userId, getTodayKey(), {
+      items: [g.entry1, g.entry2, g.entry3, ...(g.extras || [])],
+      reflection: g.entry3,
+    });
+  };
+
+  const handleComplete = async ({ moment, subtraction, hardship }) => {
+    // Preserve any extra moments captured earlier in the day.
+    const form = { entry1: moment, entry2: subtraction, entry3: hardship, extras };
 
     // Write to local state (blob syncs via useAppData debounce)
     updateTodayLog({ gratitude: form });
@@ -41,123 +46,163 @@ export default function GratitudePanel() {
     // Dual-write to normalized gratitude_entries table
     if (userId) {
       const date = getTodayKey();
-      await upsertGratitudeEntry(userId, date, {
-        items: [form.entry1, form.entry2, form.entry3],
-        reflection: form.entry3,
-      });
+      syncRow(form);
       incrementStat(userId, "gratitude_count");
       updateStreak(userId);
       setMemory(userId, "preference", "last_gratitude_date", date, "gratitude_save");
     }
 
-    setSaving(false);
-    setImpactVisible(true);
+    setOpen(false);
     pushToast({
       type: "success",
       title: "Morning primed.",
-      message: "Anxiety drops 23%. You're already ahead of most people today."
+      message: "You went deep, not wide. Anxiety drops 23% — you're already ahead of the day."
     });
   };
+
+  const addExtra = () => {
+    const text = draft.trim();
+    if (!text) return;
+    const next = { ...saved, extras: [...extras, text] };
+    setDraft("");
+    setAdding(false);
+    updateTodayLog({ gratitude: next });
+    syncRow(next);
+    pushToast({
+      type: "success",
+      title: "Noted.",
+      message: "Gratitude compounds — keep catching the good ones.",
+    });
+  };
+
+  const removeExtra = (idx) => {
+    const next = { ...saved, extras: extras.filter((_, i) => i !== idx) };
+    updateTodayLog({ gratitude: next });
+    syncRow(next);
+  };
+
+  const entries = [saved?.entry1, saved?.entry2, saved?.entry3];
 
   return (
     <section className="gratitude-ritual">
       <Card className="gratitude-card ritual-image-card ritual-image-card--gratitude">
         <div className="gratitude-card__art" aria-hidden="true" />
+        <ScienceInfo ids={["gratitude"]} />
         <div className="gratitude-card__header">
           <div>
             <span className="gratitude-card__eyebrow">PRIME YOUR STATE</span>
             <h2 className="gratitude-card__title">Gratitude Lock-In</h2>
-            <p className="gratitude-card__sub">Find the win, honor the person, alchemize the hard thing.</p>
+            <p className="gratitude-card__sub">
+              Not a list — a journal. Go deep on one real moment. Depth is where the science lives.
+            </p>
           </div>
         </div>
 
-        <div className="gratitude-prompt-grid">
-          <TextArea
-            className="gratitude-prompt gratitude-prompt--win"
-            label="What are you grateful for this morning?"
-            rows={2}
-            placeholder="A win, a feeling, a moment..."
-            value={form.entry1}
-            onChange={(e) => setForm({ ...form, entry1: e.target.value })}
-          />
-          <TextArea
-            className="gratitude-prompt gratitude-prompt--person"
-            label="Who are you grateful for?"
-            rows={2}
-            placeholder="Someone who showed up for you..."
-            value={form.entry2}
-            onChange={(e) => setForm({ ...form, entry2: e.target.value })}
-          />
-          <TextArea
-            className="gratitude-prompt gratitude-prompt--hardship"
-            label="What hardship are you grateful for?"
-            rows={2}
-            placeholder="A struggle that made you stronger..."
-            value={form.entry3}
-            onChange={(e) => setForm({ ...form, entry3: e.target.value })}
-          />
-        </div>
-
-          {!impactVisible && (
-            <Button
-              variant="secondary"
-              className="gratitude-lock-btn"
-              onClick={save}
-              disabled={!allFilled || saving}
-            >
-              {saving ? "Saving..." : "Lock In Gratitude"}
-            </Button>
-          )}
-
-          {impactVisible && (
-            <div className="gratitude-impact anim-scale-pop">
-              <div className="gratitude-impact-header">
-                <img
-                  src="/assets/daily/gratitude-locked-seal.png"
-                  alt=""
-                  onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }}
-                />
-                <span className="gratitude-impact-check">✓</span>
-                <span className="gratitude-impact-title">GRATITUDE LOCKED IN</span>
-              </div>
-              <p className="gratitude-impact-science">
-                Morning gratitude is Tony Robbins' #1 priming tool — and science backs it:
-                23% drop in anxiety, 25% reduction in depression risk. You just did the work.
-              </p>
-              <div className="gratitude-impact-stats">
-                {IMPACT_STATS.map((s) => (
-                  <div
-                    key={s.label}
-                    className="gratitude-impact-stat anim-slide-up"
-                    style={{ animationDelay: `${s.delay}ms`, "--stat-color": s.color }}
-                  >
-                    <img
-                      src={s.icon}
-                      alt=""
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
-                      style={{ width: 28, height: 28, objectFit: "contain" }}
-                    />
-                    <span className="gratitude-impact-stat-value" style={{ color: s.color }}>
-                      {s.value}
-                    </span>
-                    <span className="gratitude-impact-stat-label">{s.label}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="gratitude-impact-source">
-                Source: Gratitude Intervention Meta-Analysis, 2023 (n = 64 RCTs)
-              </p>
-              <button
-                className="daily-commit-edit-btn"
-                onClick={() => setImpactVisible(false)}
-                style={{ marginTop: 8 }}
-              >
-                Edit entries
-              </button>
+        {isLocked ? (
+          <div className="gratitude-locked anim-fade-in">
+            <div className="gratitude-locked-head">
+              <span className="gratitude-impact-check">✓</span>
+              <span className="gratitude-impact-title">GRATITUDE LOCKED IN</span>
             </div>
-          )}
+            <ul className="gratitude-locked-entries">
+              {entries.map((text, i) =>
+                text ? (
+                  <li key={i} className="gratitude-locked-entry">
+                    <span className="gratitude-locked-entry-label">{REVEAL_LABELS[i]}</span>
+                    <p className="gratitude-locked-entry-text">"{text}"</p>
+                  </li>
+                ) : null
+              )}
+            </ul>
+
+            {extras.length > 0 && (
+              <div className="gratitude-extras">
+                <span className="gratitude-extras-label">ALSO GRATEFUL FOR</span>
+                <ul className="gratitude-locked-entries">
+                  {extras.map((text, i) => (
+                    <li key={i} className="gratitude-locked-entry gratitude-extra-entry">
+                      <p className="gratitude-locked-entry-text">"{text}"</p>
+                      <button
+                        className="gratitude-extra-remove"
+                        aria-label="Remove"
+                        onClick={() => removeExtra(i)}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {adding ? (
+              <div className="gratitude-add">
+                <textarea
+                  className="gratitude-add-input"
+                  rows={3}
+                  autoFocus
+                  placeholder="What else? Be specific — what exactly, and when?"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addExtra();
+                  }}
+                />
+                <div className="gratitude-add-actions">
+                  <button
+                    className="gratitude-lock-btn gratitude-add-save"
+                    disabled={!draft.trim()}
+                    onClick={addExtra}
+                  >
+                    Add it
+                  </button>
+                  <button
+                    className="daily-commit-edit-btn"
+                    onClick={() => { setAdding(false); setDraft(""); }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="gratitude-locked-actions">
+                <button className="gratitude-add-more" onClick={() => setAdding(true)}>
+                  ＋ Add another moment
+                </button>
+                <button className="daily-commit-edit-btn" onClick={() => setOpen(true)}>
+                  Edit entries
+                </button>
+              </div>
+            )}
+
+            <p className="gratitude-add-note">
+              One quality moment is the dose. Add more anytime gratitude strikes today.
+            </p>
+          </div>
+        ) : (
+          <div className="gratitude-cta">
+            <p className="gratitude-cta-teaser">
+              Three quick layers — the moment, what life would be without it, and the gift inside a
+              hard thing. Guided, about two minutes.
+            </p>
+            <button className="gratitude-lock-btn" onClick={() => setOpen(true)}>
+              Begin gratitude ritual →
+            </button>
+          </div>
+        )}
       </Card>
+
+      {open && (
+        <GratitudeWizard
+          onClose={() => setOpen(false)}
+          onComplete={handleComplete}
+          initial={
+            isLocked
+              ? { moment: saved.entry1, subtraction: saved.entry2, hardship: saved.entry3 }
+              : undefined
+          }
+        />
+      )}
     </section>
   );
 }

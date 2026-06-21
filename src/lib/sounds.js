@@ -74,3 +74,30 @@ export function playSound(name, settings) {
     // fail silently — sound is never worth a crash
   }
 }
+
+// Counter-Strike-style escalating "kill streak" announcer sting.
+// Higher `level` = higher pitch, more layers, and a deeper sub-bass boom.
+export function playStreak(level = 1, settings) {
+  try {
+    if (settings && settings.soundEnabled === false) return;
+    const ctx = getCtx();
+    if (!ctx) return;
+    const n = Math.max(1, Math.min(7, Math.round(level)));
+    const base = 392 * Math.pow(1.0905, n - 1); // climbs ~a semitone per streak step
+    const steps = [
+      { freq: base,       duration: 0.07, type: "square",   gain: 0.05 },
+      { freq: base * 1.5, start: 0.05, duration: 0.1,  type: "triangle", gain: 0.08 },
+    ];
+    if (n >= 3) steps.push({ freq: base * 2,   start: 0.11, duration: 0.13, type: "triangle", gain: 0.09 });
+    if (n >= 4) steps.push({ freq: base * 2.5, start: 0.18, duration: 0.14, type: "sine",     gain: 0.09 });
+    if (n >= 5) steps.push({ freq: base * 3,   start: 0.24, duration: 0.18, type: "sine",     gain: 0.10 });
+    if (n >= 6) steps.push({ freq: 65,         start: 0.0,  duration: 0.45, type: "sawtooth", gain: 0.10 });
+    if (n >= 7) {
+      steps.push({ freq: base * 4, start: 0.30, duration: 0.32, type: "sine",     gain: 0.11 });
+      steps.push({ freq: 49,       start: 0.0,  duration: 0.60, type: "sawtooth", gain: 0.12 });
+    }
+    steps.forEach((s) => tone(ctx, s));
+  } catch {
+    // fail silently
+  }
+}

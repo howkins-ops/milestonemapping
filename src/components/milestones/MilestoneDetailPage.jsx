@@ -9,8 +9,9 @@ import MilestoneIdentityCard from "./MilestoneIdentityCard.jsx";
 import MilestoneActions from "./MilestoneActions.jsx";
 import SmartActionGenerator from "./SmartActionGenerator.jsx";
 import MilestoneWizard from "./MilestoneWizard.jsx";
+import MilestoneRewards from "./MilestoneRewards.jsx";
 import { useMilestones } from "../../hooks/useMilestones.js";
-import { getMilestoneProgress, getRewardStatus } from "../../lib/progress.js";
+import { getMilestoneProgress } from "../../lib/progress.js";
 import { formatShortDate } from "../../lib/dates.js";
 
 export default function MilestoneDetailPage({ milestoneId, onBack }) {
@@ -31,7 +32,6 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
   }
 
   const progress = getMilestoneProgress(milestone);
-  const reward = getRewardStatus(milestone);
   const actions = milestone.actions || [];
   const allDone = actions.length > 0 && actions.every((a) => a.done);
   const completed = milestone.status === "completed";
@@ -46,11 +46,6 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
       <Card variant={completed ? "completed" : milestone.priority === "mission_critical" ? "pink" : "neon"}>
         <div className="row row--between row--wrap" style={{ gap: 20, alignItems: "flex-start" }}>
           <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-            <div className="row row--wrap" style={{ gap: 6, marginBottom: 12 }}>
-              <Badge tone="cyan">{milestone.category}</Badge>
-              <Badge tone={PRIORITY_TONES[milestone.priority]}>{PRIORITY_LABELS[milestone.priority]}</Badge>
-              <Badge tone={STATUS_TONES[milestone.status]}>{STATUS_LABELS[milestone.status]}</Badge>
-            </div>
             <h1 style={{ fontSize: "clamp(22px, 3.4vw, 32px)" }}>{milestone.title}</h1>
             {milestone.description && (
               <p className="muted" style={{ marginTop: 8 }}>{milestone.description}</p>
@@ -60,7 +55,7 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
                 TARGET: {formatShortDate(milestone.targetDate)}
               </p>
             )}
-            <p style={{ fontSize: 13, marginTop: 8, color: "var(--brand-gold)" }}>🎁 {reward.label}</p>
+            <p style={{ fontSize: 13, marginTop: 8, color: "var(--brand-gold)" }}>🎁 Rewards — view & edit below</p>
 
             <div className="row row--wrap" style={{ marginTop: 16 }}>
               <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
@@ -117,35 +112,8 @@ export default function MilestoneDetailPage({ milestoneId, onBack }) {
       <MilestoneActions milestone={milestone} />
       <SmartActionGenerator milestone={milestone} />
 
-      {/* Rewards summary */}
-      {(milestone.rewardSmall || milestone.rewardMedium || milestone.rewardLarge) && (
-        <Card variant="gold" style={{ marginTop: 16 }}>
-          <div className="kicker" style={{ color: "var(--brand-gold)", marginBottom: 12 }}>
-            REWARD LADDER
-          </div>
-          <div className="stack" style={{ gap: 10 }}>
-            {[
-              ["33%", milestone.rewardSmall],
-              ["66%", milestone.rewardMedium],
-              ["100%", milestone.rewardLarge]
-            ]
-              .filter(([, text]) => text)
-              .map(([pct, text]) => (
-                <div key={pct} className="row">
-                  <span className="badge badge--gold">{pct}</span>
-                  <span
-                    style={{
-                      color:
-                        progress >= parseInt(pct, 10) ? "var(--brand-gold)" : "var(--text-soft)"
-                    }}
-                  >
-                    {text}
-                  </span>
-                </div>
-              ))}
-          </div>
-        </Card>
-      )}
+      {/* Rewards — ungated: view, edit, and add photos any time */}
+      <MilestoneRewards milestone={milestone} />
 
       {editOpen && (
         <MilestoneWizard

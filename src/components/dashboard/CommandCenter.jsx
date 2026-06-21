@@ -1,8 +1,7 @@
 import React from "react";
 import MissionHero from "./MissionHero.jsx";
-import TopFivePanel from "../daily/TopFivePanel.jsx";
-import ActiveProjectsPreview from "./ActiveProjectsPreview.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
+import MapQuestHero from "../projects/MapQuestHero.jsx";
 import Button from "../ui/Button.jsx";
 
 function IconLightning() {
@@ -84,7 +83,7 @@ const QUICK_ACTIONS = [
   },
 ];
 
-export default function CommandCenter({ onNavigate, onOpenProject }) {
+export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest }) {
   return (
     <div className="command-center-page">
       <MissionHero />
@@ -116,10 +115,6 @@ export default function CommandCenter({ onNavigate, onOpenProject }) {
         ))}
       </div>
 
-      <TopFivePanel />
-
-      <ActiveProjectsPreview onNavigate={onNavigate} onOpenProject={onOpenProject} />
-
       <div className="dashboard-command-row">
         <Button variant="primary" onClick={() => onNavigate("milestones")} className="dashboard-command-row__primary">
           + Chart New Map
@@ -128,6 +123,8 @@ export default function CommandCenter({ onNavigate, onOpenProject }) {
           The Formula
         </Button>
       </div>
+
+      {onOpenMapQuest && <MapQuestHero onLaunch={onOpenMapQuest} />}
     </div>
   );
 }

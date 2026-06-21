@@ -41,9 +41,9 @@ export const chestAssets = {
 };
 
 export const REWARD_TIERS = [
-  { key: "small",  threshold: 33,  label: "Small Reward",  field: "rewardSmall",  claimKey: "small",  chestTier: "small"     },
-  { key: "medium", threshold: 66,  label: "Medium Reward", field: "rewardMedium", claimKey: "medium", chestTier: "medium"    },
-  { key: "large",  threshold: 100, label: "Final Reward",  field: "rewardLarge",  claimKey: "large",  chestTier: "legendary" },
+  { key: "small",  threshold: 33,  label: "Small Reward",  field: "rewardSmall",  imageField: "rewardSmallImage",  claimKey: "small",  chestTier: "small"     },
+  { key: "medium", threshold: 66,  label: "Medium Reward", field: "rewardMedium", imageField: "rewardMediumImage", claimKey: "medium", chestTier: "medium"    },
+  { key: "large",  threshold: 100, label: "Final Reward",  field: "rewardLarge",  imageField: "rewardLargeImage",  claimKey: "large",  chestTier: "legendary" },
 ];
 
 // ── Phoenix shrine ────────────────────────────────────────────────────────────

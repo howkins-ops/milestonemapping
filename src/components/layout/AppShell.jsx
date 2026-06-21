@@ -63,10 +63,13 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                     aria-expanded={menuOpen}
                     aria-haspopup="menu"
                   >
-                    <span className="app-topbar__diamond-icon" aria-hidden="true">
+                    <span className="app-topbar__icon-box" aria-hidden="true">
                       <img className="app-topbar__icon-art" src={TOPBAR_ICONS.paths} alt="" />
                     </span>
-                    <span className={`app-topbar__chevron ${menuOpen ? "is-open" : ""}`} aria-hidden="true" />
+                    <span className="app-topbar__btn-label">
+                      Paths
+                      <span className={`app-topbar__chevron ${menuOpen ? "is-open" : ""}`} aria-hidden="true" />
+                    </span>
                   </button>
 
                   {menuOpen && (
@@ -125,7 +128,10 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                   aria-label="More options"
                   aria-haspopup="dialog"
                 >
-                  <img className="app-topbar__icon-art" src={TOPBAR_ICONS.more} alt="" />
+                  <span className="app-topbar__icon-box" aria-hidden="true">
+                    <img className="app-topbar__icon-art" src={TOPBAR_ICONS.more} alt="" />
+                  </span>
+                  <span className="app-topbar__btn-label">More</span>
                 </button>
                 <button
                   type="button"
@@ -133,7 +139,10 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
                   onClick={() => onNavigate("profile")}
                   aria-label="View profile"
                 >
-                  <img className="app-topbar__icon-art" src={TOPBAR_ICONS.profile} alt="" />
+                  <span className="app-topbar__icon-box" aria-hidden="true">
+                    <img className="app-topbar__icon-art" src={TOPBAR_ICONS.profile} alt="" />
+                  </span>
+                  <span className="app-topbar__btn-label">Profile</span>
                 </button>
               </div>
             </header>

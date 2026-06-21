@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import TextArea from "../ui/TextArea.jsx";
+import ScienceInfo from "../ui/ScienceInfo.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { useToasts } from "../../hooks/useToasts.js";
 
@@ -36,6 +37,7 @@ export default function EndOfDayReflection() {
     <div className="night-debrief-section">
       {/* Execution report */}
       <div className="night-execution-report">
+        <ScienceInfo ids={["reflection"]} />
         <div className="night-exec-header">
           <span className="night-exec-label">TODAY'S EXECUTION</span>
           <span className="night-exec-score" style={{

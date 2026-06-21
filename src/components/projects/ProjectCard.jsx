@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import Card from "../ui/Card.jsx";
 import Badge from "../ui/Badge.jsx";
 import ProgressBar from "../ui/ProgressBar.jsx";
@@ -10,8 +10,11 @@ import {
 } from "../../lib/progress.js";
 import { formatShortDate, daysUntil } from "../../lib/dates.js";
 import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
+import { useAppData } from "../../hooks/useAppData.js";
+import { uploadImage } from "../../lib/imageUploadService.js";
 
 export default function ProjectCard({ project, milestones, onOpen }) {
+  const { userId, updateProject } = useAppData();
   const hex = getProjectColorHex(project.color);
   const list = getProjectMilestones(milestones, project.id);
   const completedCount = list.filter((m) => m.status === "completed").length;
@@ -19,6 +22,40 @@ export default function ProjectCard({ project, milestones, onOpen }) {
   const next = getNextMilestone(project, milestones);
   const days = daysUntil(project.targetDate);
   const completed = project.status === "completed";
+
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  const defaultBg = completed
+    ? "/assets/projects/project-card-complete-bg.png"
+    : (days !== null && days < 0)
+      ? "/assets/projects/project-card-overdue-bg.png"
+      : "/assets/projects/project-card-active-bg.png";
+
+  const handleBgFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file, userId);
+      updateProject(project.id, { cardImageUrl: url });
+    } catch (err) {
+      console.error("Card background upload failed:", err);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const clearBg = (e) => {
+    e.stopPropagation();
+    updateProject(project.id, { cardImageUrl: "" });
+  };
+
+  const openPicker = (e) => {
+    e.stopPropagation();
+    fileRef.current?.click();
+  };
 
   return (
     <Card
@@ -33,59 +70,58 @@ export default function ProjectCard({ project, milestones, onOpen }) {
         if (e.key === "Enter") onOpen();
       }}
     >
-      <div className="project-map-card__art" aria-hidden="true">
+      <div className="project-map-card__art">
         <img
           className="project-map-card__bg"
-          src={
-            completed
-              ? "/assets/projects/project-card-complete-bg.png"
-              : (days !== null && days < 0)
-                ? "/assets/projects/project-card-overdue-bg.png"
-                : "/assets/projects/project-card-active-bg.png"
-          }
-          onError={(e) => { e.currentTarget.src = completed ? MWA.backgrounds.goalAchieved : MWA.backgrounds.treasureZone; }}
+          src={project.cardImageUrl || defaultBg}
+          onError={(e) => {
+            if (project.cardImageUrl) { e.currentTarget.src = defaultBg; return; }
+            e.currentTarget.src = completed ? MWA.backgrounds.goalAchieved : MWA.backgrounds.treasureZone;
+          }}
           alt=""
         />
-        <img
-          className="project-map-card__portal"
-          src={completed ? MWA.portals.completed : MWA.portals.active}
-          alt=""
-        />
-        <img
-          className="project-map-card__avatar"
-          src={completed ? MWA.avatars.victory : MWA.avatars.mapMarker}
-          alt=""
-        />
+        {!project.cardImageUrl && (
+          <>
+            <img
+              className="project-map-card__portal"
+              src={completed ? MWA.portals.completed : MWA.portals.active}
+              alt=""
+              aria-hidden="true"
+            />
+            <img
+              className="project-map-card__avatar"
+              src={completed ? MWA.avatars.victory : MWA.avatars.mapMarker}
+              alt=""
+              aria-hidden="true"
+            />
+          </>
+        )}
+
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleBgFile} style={{ display: "none" }} />
+        <div className="project-map-card__bg-tools">
+          <button
+            type="button"
+            className="project-map-card__bg-btn"
+            onClick={openPicker}
+            disabled={uploading}
+            aria-label={project.cardImageUrl ? "Replace card background" : "Upload card background"}
+          >
+            {uploading ? "Uploading…" : project.cardImageUrl ? "↻ Replace" : "⤓ Background"}
+          </button>
+          {project.cardImageUrl && (
+            <button
+              type="button"
+              className="project-map-card__bg-btn"
+              onClick={clearBg}
+              aria-label="Remove custom card background"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="row row--between" style={{ marginBottom: 10 }}>
-        <div className="row" style={{ gap: 8, alignItems: "center" }}>
-          <span style={{ fontSize: 28 }} aria-hidden="true">{completed ? "🏆" : project.icon}</span>
-          {completed && (
-            <img
-              src="/assets/projects/badge-conquered.png"
-              alt=""
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-              style={{ width: 32, height: 32, objectFit: "contain" }}
-            />
-          )}
-          {!completed && days !== null && days < 0 && (
-            <img
-              src="/assets/projects/badge-overdue.png"
-              alt=""
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-              style={{ width: 32, height: 32, objectFit: "contain" }}
-            />
-          )}
-          {!completed && (days === null || days >= 0) && (
-            <img
-              src="/assets/projects/badge-on-track.png"
-              alt=""
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-              style={{ width: 32, height: 32, objectFit: "contain" }}
-            />
-          )}
-        </div>
         <div className="row" style={{ gap: 6 }}>
           <Badge tone="cyan">{project.category}</Badge>
           {completed && <Badge tone="gold">Conquered</Badge>}

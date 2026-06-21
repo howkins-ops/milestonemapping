@@ -57,7 +57,6 @@ export default function CharacterMarker({ point, allDone }) {
       <span className="trail-world__avatar-figure">
         <AlchemistSVG allDone={allDone} />
       </span>
-      <strong>Current Reality</strong>
     </div>
   );
 }

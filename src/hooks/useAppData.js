@@ -451,6 +451,62 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
     [setMilestones, userId]
   );
 
+  // Reorder a project's milestones. Trail display order = array order, but unlock
+  // logic (normalizeMilestoneStatuses / completeMilestone) sorts by createdAt — so
+  // a reorder must rewrite BOTH the array order and createdAt to stay consistent.
+  const reorderProjectMilestones = useCallback(
+    (projectId, orderedIds) => {
+      if (!projectId || !Array.isArray(orderedIds) || orderedIds.length === 0) return;
+
+      // Strictly-increasing timestamps spaced 1s apart, anchored in the recent
+      // past so they read as sensible dates. createdAt drives unlock order.
+      const base = Date.now() - orderedIds.length * 1000;
+      const stamp = (i) => new Date(base + i * 1000).toISOString();
+      const orderMap = new Map(orderedIds.map((id, i) => [id, i]));
+
+      setMilestones((prev) => {
+        // Patch this project's milestones with new createdAt / order_index.
+        const patched = prev.map((m) => {
+          if (m.projectId !== projectId || !orderMap.has(m.id)) return m;
+          const i = orderMap.get(m.id);
+          return { ...m, createdAt: stamp(i), order_index: i };
+        });
+
+        // Physically reorder so trail array order matches orderedIds: emit the
+        // whole reordered project block at the first slot it occupied.
+        const reordered = patched
+          .filter((m) => m.projectId === projectId && orderMap.has(m.id))
+          .sort((a, b) => orderMap.get(a.id) - orderMap.get(b.id));
+
+        let emitted = false;
+        const out = [];
+        for (const m of patched) {
+          if (m.projectId === projectId && orderMap.has(m.id)) {
+            if (!emitted) {
+              out.push(...reordered);
+              emitted = true;
+            }
+          } else {
+            out.push(m);
+          }
+        }
+        // Re-derive active/locked from the new order so status dots update live.
+        return normalizeMilestoneStatuses(out);
+      });
+
+      // Dual-write reordered milestones to Supabase.
+      if (userId) {
+        milestones
+          .filter((m) => m.projectId === projectId && orderMap.has(m.id))
+          .forEach((m) => {
+            const i = orderMap.get(m.id);
+            upsertMilestone(userId, { ...m, createdAt: stamp(i), order_index: i });
+          });
+      }
+    },
+    [setMilestones, milestones, userId]
+  );
+
   const completeMilestone = useCallback(
     (id) => {
       const target = milestones.find((m) => m.id === id);
@@ -1045,7 +1101,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       createProject, updateProject, deleteProject,
 
       // milestone CRUD
-      createMilestone, updateMilestone, deleteMilestone, completeMilestone,
+      createMilestone, updateMilestone, deleteMilestone, completeMilestone, reorderProjectMilestones,
 
       // milestone actions
       addMilestoneAction, updateMilestoneAction, deleteMilestoneAction, toggleMilestoneAction,
@@ -1088,7 +1144,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       projects, milestones, dailyLogs, weeklyReviews, visionBoard,
       identity, settings, achievements, xp, toasts, celebrations,
       createProject, updateProject, deleteProject,
-      createMilestone, updateMilestone, deleteMilestone, completeMilestone,
+      createMilestone, updateMilestone, deleteMilestone, completeMilestone, reorderProjectMilestones,
       addMilestoneAction, updateMilestoneAction, deleteMilestoneAction, toggleMilestoneAction,
       getTodayLog, updateTodayLog,
       addTopFiveTask, updateTopFiveTask, deleteTopFiveTask, toggleTopFiveTask,

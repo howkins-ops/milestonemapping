@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
+import DailyStandWizard from "../daily/DailyStandWizard.jsx";
 
 // ─── John's personal masks & essences (from Survival Mechanism Manual) ───────
 const MASKS = [
@@ -390,9 +391,8 @@ function SpotMask({ onClose, onFinish }) {
                   src={maskCardSrc(m.id)}
                   alt=""
                   onError={(e) => { e.target.style.display = "none"; }}
-                  style={{ width: 40, height: 56, objectFit: "contain", borderRadius: 5, flexShrink: 0 }}
+                  style={{ width: 48, height: 67, objectFit: "contain", borderRadius: 5, flexShrink: 0 }}
                 />
-                <span style={{ fontSize: 24, flexShrink: 0 }}>{m.emoji}</span>
                 <span>
                   <b style={{ fontSize: 15 }}>{m.name}</b>
                   <br />
@@ -717,92 +717,19 @@ function HoldLine({ onClose, onFinish }) {
 }
 
 // ─── 5. Daily Stand ───────────────────────────────────────────────────────────
+// Cinematic 5-stage wizard, shared with the Daily page. See DailyStandWizard.
 function DailyStand({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [picks, setPicks] = useState([]);
-  const [wins, setWins] = useState(["", "", ""]);
-  const [improve, setImprove] = useState("");
-  const [intention, setIntention] = useState("");
-  const total = 4;
-  const toggle = (s) => setPicks((p) => p.includes(s) ? p.filter((x) => x !== s) : [...p, s]);
-
-  if (step > total) {
-    return (
-      <Station color="var(--brand-gold)" title="Daily Stand" onClose={onClose}>
-        <Payoff
-          color="var(--brand-gold)"
-          title="You've taken your stand."
-          body="Identity creates the outcome — not the other way around. You spoke into who you are. Now the day follows the story you set."
-          stamp={intention.trim() || (picks[0] || "Today, I lead.")}
-          onDone={() => onFinish("Daily Stand", `Stood as: ${picks.join(" · ") || "–"}${intention ? ` · intention: ${intention.slice(0, 40)}` : ""}`)}
-        />
-      </Station>
-    );
-  }
-
   return (
-    <Station color="var(--brand-gold)" title="Daily Stand" step={step} total={total} onClose={onClose}>
-      {step === 1 && (
-        <>
-          <Q>Who are you today?</Q>
-          <Sub>Tap every "I AM" you're choosing to stand in. Pick what's true today — or what you're deciding to become.</Sub>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {IDENTITY_CLAIMS.map((s) => (
-              <button
-                key={s}
-                onClick={() => toggle(s)}
-                style={{
-                  textAlign: "left", cursor: "pointer",
-                  background: picks.includes(s) ? "var(--brand-gold)" : "var(--card)",
-                  color: picks.includes(s) ? "#000" : "var(--text-main)",
-                  border: `1px solid ${picks.includes(s) ? "var(--brand-gold)" : "var(--border)"}`,
-                  borderRadius: 12, padding: "14px 16px", fontSize: 15.5, fontWeight: 600,
-                }}
-              >
-                {picks.includes(s) ? "✓ " : ""}{s}
-              </button>
-            ))}
-          </div>
-          <Bar color="var(--brand-gold)" disabled={!picks.length} onNext={() => setStep(2)} />
-        </>
-      )}
-      {step === 2 && (
-        <>
-          <Q>Three wins.</Q>
-          <Sub>Three things going right — however small. Train the eye to see evidence for the new story.</Sub>
-          {wins.map((w, i) => (
-            <input
-              key={i}
-              value={w}
-              onChange={(e) => { const n = [...wins]; n[i] = e.target.value; setWins(n); }}
-              placeholder={`Win ${i + 1}`}
-              style={{
-                width: "100%", background: "var(--panel-deep)", color: "var(--text-main)",
-                border: "1px solid var(--border)", borderRadius: 11, padding: "13px 15px",
-                fontSize: 15.5, marginBottom: 8, fontFamily: "inherit", outline: "none",
-              }}
-            />
-          ))}
-          <Bar color="var(--brand-gold)" onBack={() => setStep(1)} onNext={() => setStep(3)} />
-        </>
-      )}
-      {step === 3 && (
-        <>
-          <Q>One thing to improve.</Q>
-          <Sub>Just one. Not a beat-down — a single point of growth for today.</Sub>
-          <Field value={improve} onChange={setImprove} placeholder="Respond slower when I feel challenged." rows={2} />
-          <Bar color="var(--brand-gold)" onBack={() => setStep(2)} onNext={() => setStep(4)} />
-        </>
-      )}
-      {step === 4 && (
-        <>
-          <Q>Set your intention.</Q>
-          <Sub>One line for the day, said as if it's already happening.</Sub>
-          <Field value={intention} onChange={setIntention} placeholder="Today I lead with calm and close with confidence." rows={2} />
-          <Bar color="var(--brand-gold)" onBack={() => setStep(3)} label="Take my stand ✦" onNext={() => setStep(5)} />
-        </>
-      )}
-    </Station>
+    <DailyStandWizard
+      onClose={onClose}
+      onComplete={({ stand, ways, intention, theme }) => {
+        const parts = [];
+        if (stand) parts.push(`Stood as: ${stand}`);
+        if (ways?.length) parts.push(`${ways.length} ways to back it`);
+        if (intention) parts.push(`intention: ${intention.slice(0, 40)}`);
+        onFinish("Daily Stand", parts.join(" · ") || theme || "Took a stand");
+      }}
+    />
   );
 }
 
