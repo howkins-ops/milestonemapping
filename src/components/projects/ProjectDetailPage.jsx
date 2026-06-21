@@ -104,18 +104,12 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
               </Button>
             </div>
           </div>
-          <ProgressRing value={progress} size={136} label="Expedition" />
+          <ProgressRing value={progress} size={68} stroke={6} label="Expedition" />
         </div>
       </Card>
 
       {/* Trail Map — view toggle header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <SectionHeader
-          title="Treasure Trail"
-          icon="🗺"
-          sub="Your path from idea to achievement."
-          style={{ margin: 0 }}
-        />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0, flexWrap: "wrap" }}>
           <button
             onClick={() => setTrailView(true)}
@@ -151,9 +145,6 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
               ⚔️ Enter World
             </button>
           )}
-          <Button variant="primary" size="sm" onClick={() => setAddMilestoneOpen(true)}>
-            + Add
-          </Button>
         </div>
       </div>
 
@@ -203,7 +194,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
             <img
               src={project.goalImageUrl}
               alt="Goal vision"
-              style={{ width: "100%", height: 175, objectFit: "contain", display: "block" }}
+              style={{ width: "100%", height: 219, objectFit: "contain", display: "block" }}
             />
             <div style={{
               position: "absolute", inset: 0,
@@ -311,22 +302,7 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
       )}
 
       {/* Vision Wall */}
-      {linkedVisions.length === 0 ? (
-        <Card variant="glass" style={{ padding: "28px 24px", margin: "30px 0 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span style={{ fontSize: 32, opacity: 0.5 }}>🔭</span>
-            <div>
-              <p style={{ fontWeight: 600, marginBottom: 4 }}>No vision pinned yet</p>
-              <p className="muted" style={{ fontSize: 13 }}>
-                Add images that represent the future this project is building toward.
-              </p>
-            </div>
-            <Button variant="neon" size="sm" onClick={() => setAddVisionOpen(true)} style={{ marginLeft: "auto", flexShrink: 0 }}>
-              + Add Vision
-            </Button>
-          </div>
-        </Card>
-      ) : (
+      {linkedVisions.length > 0 && (
         <>
           <SectionHeader
             title="Vision Wall"

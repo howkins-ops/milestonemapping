@@ -2619,11 +2619,17 @@ button {
 }
 
 .trail-world__header h2 {
-  max-width: 21rem;
-  margin-top: 2px;
-  font-size: clamp(0.92rem, 2.4vw, 1.4rem);
-  line-height: 1;
-  text-shadow: 0 0 22px rgba(209, 30, 255, 0.42);
+  max-width: 19rem;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.15rem, 3vw, 1.65rem);
+  line-height: 1.02;
+  text-shadow:
+    0 0 22px rgba(209, 30, 255, 0.45),
+    0 0 44px rgba(0, 240, 255, 0.25);
 }
 
 .trail-world__xp {
@@ -2641,6 +2647,135 @@ button {
   color: var(--text-main);
   font-size: 0.95rem;
   line-height: 1.1;
+}
+
+/* ── Cinematic phoenix hero band ─────────────────────────── */
+.trail-world__hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 22px 22px 0 0;
+}
+
+.trail-world__phoenix {
+  position: absolute;
+  top: 50%;
+  right: 3%;
+  height: clamp(130px, 30vw, 188px);
+  width: auto;
+  transform: translateY(-50%);
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 26px rgba(0, 240, 255, 0.5))
+    drop-shadow(0 0 50px rgba(209, 30, 255, 0.4));
+  animation:
+    tw-phoenix-rise 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both,
+    tw-phoenix-float 5s ease-in-out 1.6s infinite;
+}
+
+.trail-world__phoenix-aura {
+  position: absolute;
+  top: 50%;
+  right: 6%;
+  width: 210px;
+  height: 210px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.26), rgba(209, 30, 255, 0.18) 45%, transparent 70%);
+  filter: blur(16px);
+  animation: tw-aura-breathe 4s ease-in-out infinite;
+}
+
+.trail-world__warp { position: absolute; inset: 0; }
+
+.trail-world__streak {
+  position: absolute;
+  top: 100px;
+  left: 80%;
+  width: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--brand-cyan), transparent);
+  transform-origin: 0 0;
+  opacity: 0;
+  animation: tw-warp 1s ease-in both;
+}
+
+.trail-world__embers { position: absolute; inset: 0; }
+
+.trail-world__ember {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: var(--brand-cyan);
+  box-shadow: 0 0 8px var(--brand-cyan);
+  opacity: 0;
+  animation: tw-ember-rise var(--d, 3s) linear var(--delay, 0s) infinite;
+}
+
+@keyframes tw-phoenix-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(28%) scale(0.6) rotate(-7deg);
+    filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.2)) blur(8px);
+  }
+  60% { opacity: 1; }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1) rotate(0);
+    filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 50px rgba(209, 30, 255, 0.4)) blur(0);
+  }
+}
+@keyframes tw-phoenix-float {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50%      { transform: translateY(-55%) scale(1.03); }
+}
+@keyframes tw-aura-breathe {
+  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+  50%      { opacity: 0.85; transform: translateY(-50%) scale(1.12); }
+}
+@keyframes tw-warp {
+  0%   { opacity: 0; transform: rotate(var(--a)) scaleY(0); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(360px) scaleY(55); }
+}
+@keyframes tw-ember-rise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.9; }
+  100% { transform: translateY(-210px) translateX(16px); opacity: 0; }
+}
+
+/* Honour reduced-motion: show the phoenix settled, kill the animation */
+.trail-world.is-reduced .trail-world__phoenix {
+  animation: none;
+  opacity: 1;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 0 26px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 50px rgba(209, 30, 255, 0.4));
+}
+.trail-world.is-reduced .trail-world__streak,
+.trail-world.is-reduced .trail-world__ember,
+.trail-world.is-reduced .trail-world__phoenix-aura { animation: none; opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .trail-world__phoenix {
+    animation: none;
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .trail-world__streak,
+  .trail-world__ember,
+  .trail-world__phoenix-aura { animation: none; opacity: 0; }
+}
+
+@media (max-width: 560px) {
+  .trail-world__phoenix { right: -4%; height: clamp(120px, 34vw, 150px); }
+  .trail-world__header h2 { max-width: 13rem; }
 }
 
 .trail-world__map {

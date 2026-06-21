@@ -7644,7 +7644,7 @@
   position: relative;
   display: block;
   flex: 0 0 auto;
-  width: 82px;
+  width: 132px;
   aspect-ratio: 4 / 5;
   overflow: hidden;
   border: 1px solid rgba(0, 240, 255, 0.34);
@@ -7703,7 +7703,7 @@
 }
 
 .mq-seal.is-active .mq-seal__card-art {
-  width: 102px;
+  width: 164px;
 }
 
 .mq-seal.is-complete .mq-seal__card-art {
@@ -7767,7 +7767,7 @@
   margin: 0;
   color: #fff;
   font-family: var(--font-display, "Sora", sans-serif);
-  font-size: 20px;
+  font-size: 12px;
   line-height: 1.08;
   letter-spacing: 0;
 }
@@ -7775,7 +7775,7 @@
 .mq-seal__label p {
   margin: 8px 0 0;
   color: rgba(234, 251, 255, 0.62);
-  font-size: 13px;
+  font-size: 8px;
   line-height: 1.45;
 }
 
@@ -7784,7 +7784,7 @@
   display: inline-flex;
   margin-top: 11px;
   font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-size: 6px;
   font-style: normal;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -7847,11 +7847,11 @@
   }
 
   .mq-seal__card-art {
-    width: 70px;
+    width: 113px;
   }
 
   .mq-seal.is-active .mq-seal__card-art {
-    width: 82px;
+    width: 132px;
   }
 
   .mq-seal__label {

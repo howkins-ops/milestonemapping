@@ -621,7 +621,6 @@ export default function FillYourCup() {
               className={`fyc-cat ${activeCat === i ? "fyc-cat--active" : ""} ${c.id === "mycup" ? "fyc-cat--mycup" : ""}`}
               style={{ "--cc": c.color }}
               onClick={() => setActiveCat(i)}>
-              <span className="fyc-cat__icon">{c.icon}</span>
               <span className="fyc-cat__label">{c.label}</span>
               {doneCount > 0 && <span className="fyc-cat__badge">{doneCount}</span>}
             </button>
