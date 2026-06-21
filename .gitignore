@@ -33,3 +33,6 @@ tmp/
 
 # Stray root media (duplicate of public/alchemist-card.mp4)
 /alchmeist card.mp4
+
+# Uncompressed video originals (backups, not deployed)
+_video_originals/
