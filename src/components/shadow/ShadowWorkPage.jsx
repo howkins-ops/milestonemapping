@@ -1,139 +1,167 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useAppData } from "../../hooks/useAppData.js";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
-import DailyStandWizard from "../daily/DailyStandWizard.jsx";
+import { useShadowWork } from "./useShadowWork.js";
+import { XP_VALUES } from "../../lib/gamification.js";
+import { Forge, maskCardSrc } from "./shell.jsx";
+import ShadowAlchemist from "./ShadowAlchemist.jsx";
+import HoldTheLine from "./HoldTheLine.jsx";
+import ReframeForge from "./ReframeForge.jsx";
+import InnerChild from "./InnerChild.jsx";
+import SelfCompassion from "./SelfCompassion.jsx";
+import Grounding from "./Grounding.jsx";
+import IntegrationTool from "./IntegrationTool.jsx";
+import EssenceGallery from "./EssenceGallery.jsx";
+import { maskCards } from "../../data/maskCards.js";
+import "../../styles/shadow.css";
 
-// ─── John's personal masks & essences (from Survival Mechanism Manual) ───────
-const MASKS = [
-  {
-    id: "broke_king",
-    name: "Broke King",
-    tell: "Money panic, shame spirals",
-    essence: "Majesty",
-    emoji: "👑",
-    trigger: "Financial pressure, loss of respect, lack of visibility",
-  },
-  {
-    id: "addict_saint",
-    name: "Addict Saint",
-    tell: "Numbing out, escaping through habits",
-    essence: "Love",
-    emoji: "🌊",
-    trigger: "Temptation, inconsistency, broken trust",
-  },
-  {
-    id: "wasted_genius",
-    name: "Wasted Genius",
-    tell: "Avoiding the real work, wasting talent on distractions",
-    essence: "Purpose",
-    emoji: "⚡",
-    trigger: "High-stakes opportunity, fear of failing at what matters most",
-  },
-  {
-    id: "raging_victim",
-    name: "Raging Victim",
-    tell: "Anger, blame loops, victim story",
-    essence: "Power",
-    emoji: "🔥",
-    trigger: "Loss of respect, injustice, broken trust",
-  },
-  {
-    id: "naive_warrior",
-    name: "Naive Warrior",
-    tell: "Drifting, self-sabotage, losing momentum",
-    essence: "Joy",
-    emoji: "⚔️",
-    trigger: "Inconsistency, procrastination, lack of direction",
-  },
-];
-
-const ESSENCE_WORDS = ["Majesty", "Love", "Radiance", "Power", "Joy"];
-
-const IDENTITY_CLAIMS = [
-  "I am Majesty — money moves through me",
-  "I am a present, reliable father",
-  "I build through follow-through, not bursts",
-  "I lead with calm and close with confidence",
-];
-
+// Seven moments that knock you off-centre. Shadow Alchemist is the featured
+// first responder (full-width hero); the other six fill a clean 2×3 grid.
 const TOOLS = [
-  { id: "stand",     name: "Daily Stand",         sub: "Claim who you are today",    mark: "WARD",   relic: "Oath Shield",      when: "Start of day",          color: "var(--brand-gold)",    accent: "#FACC15" },
-  { id: "spot",      name: "Spot the Mask",       sub: "Name what's showing up",     mark: "REVEAL", relic: "Truth Compass",    when: "Something feels off",   color: "var(--brand-cyan)",    accent: "#00F0FF" },
-  { id: "name",      name: "Name It to Tame It",  sub: "Find where it lives in you", mark: "TRACE",  relic: "Pattern Scroll",    when: "Caught in a pattern",   color: "var(--brand-green)",   accent: "#00FFBF" },
-  { id: "reframe",   name: "Reframe Forge",       sub: "Rewrite the old story",      mark: "FORGE",  relic: "Belief Flame",      when: "An old belief is loud", color: "var(--brand-purple)",  accent: "#7B2CFF" },
-  { id: "line",      name: "Hold the Line",       sub: "Breathe through the heat",   mark: "STEADY", relic: "Pressure Crystal",  when: "Anger is rising",       color: "var(--brand-red)",     accent: "#FF3B5C" },
-  { id: "integrate", name: "Integration",         sub: "Let it sit. Let it pass.",   mark: "SEAL",   relic: "Moon Gate",         when: "Closing the loop",      color: "var(--brand-magenta)", accent: "#D11EFF" },
+  { id: "alchemist",  name: "Shadow Alchemist", when: "A mask took the wheel",      relic: "Transmutation Forge", sub: "Name the Survival Mechanism running you — then transmute the mask into its essence.", accent: "#FACC15", featured: true },
+  { id: "line",       name: "Hold the Line",    when: "Anger is rising",            relic: "Pressure Crystal",    sub: "Cool the body, name the heat, choose your response.",                    accent: "#FF3B5C" },
+  { id: "reframe",    name: "Reframe Forge",    when: "An old belief is loud",      relic: "Belief Flame",        sub: "Melt the old story down and forge a truer one.",                          accent: "#7B2CFF" },
+  { id: "inner",      name: "Inner Child",      when: "Something old got triggered", relic: "Safe Harbor",        sub: "Turn toward the younger you — and give them what they needed.",           accent: "#D11EFF" },
+  { id: "compassion", name: "Self-Compassion",  when: "Being hard on yourself",     relic: "Warm Light",          sub: "Answer the inner critic with the kindness you'd give a friend.",          accent: "#FF3EDB" },
+  { id: "ground",     name: "Grounding",        when: "Overwhelmed / spiralling",   relic: "Anchor Stone",        sub: "5-4-3-2-1 your senses back to solid ground.",                             accent: "#00FFBF" },
+  { id: "integrate",  name: "Integration",      when: "Closing the loop",           relic: "Moon Gate",           sub: "Let it sit. Let it move through you. Let it pass.",                        accent: "#00F0FF" },
 ];
+const TOOL_LABEL = Object.fromEntries(TOOLS.map((t) => [t.name, t.accent]));
 
-const STORAGE_KEY = "shadow_work_takeaways_v1";
-
-function maskCardSrc(maskId, cardType = "front-card") {
-  return `/assets/identity-shift/identity/${maskId.replace(/_/g, "-")}/${cardType}.png`;
+function timeAgo(ts) {
+  const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "yesterday" : `${d}d ago`;
 }
 
-function loadTakeaways() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-  catch { return []; }
-}
-function saveTakeaways(list) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 12))); }
-  catch {}
-}
-
-// ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ShadowWorkPage() {
-  const [tool, setTool] = useState(null);
-  const [saved, setSaved] = useState(loadTakeaways);
+  const [view, setView] = useState(null); // null=hub | tool id | "gallery"
+  const { addXP, unlockAchievement, celebrate } = useAppData();
   const { getBrokeKingShadow } = useMapQuestState();
   const brokeKingShadow = getBrokeKingShadow();
+  const { takeaways, essences, streak, recordCompletion, clearTrail } = useShadowWork();
 
-  const finish = (toolName, takeaway) => {
-    const next = [{ tool: toolName, takeaway, at: Date.now() }, ...saved].slice(0, 12);
-    setSaved(next);
-    saveTakeaways(next);
-    setTool(null);
+  const finish = (tool, takeaway, opts = {}) => {
+    const res = recordCompletion({ tool, takeaway, essence: opts.essence });
+    const xp = opts.transmuted ? XP_VALUES.shadowTransmutation : XP_VALUES.shadowToolCompleted;
+    addXP(xp, `${tool} complete`);
+    if (opts.transmuted) unlockAchievement("shadow_alchemist");
+    if (res.newEssence) {
+      celebrate({
+        variant: "reward",
+        title: "ESSENCE RECLAIMED",
+        subtitle: opts.essence ? `${opts.essence.name} → ${opts.essence.essence}` : "A shadow turned to gold.",
+        detail: "Added to your Essence Gallery.",
+      });
+    }
+    setView(null);
   };
 
+  const close = () => setView(null);
+
+  if (view === "alchemist")  return <ShadowAlchemist onClose={close} onFinish={finish} />;
+  if (view === "line")       return <HoldTheLine     onClose={close} onFinish={finish} />;
+  if (view === "reframe")    return <ReframeForge    onClose={close} onFinish={finish} />;
+  if (view === "inner")      return <InnerChild      onClose={close} onFinish={finish} />;
+  if (view === "compassion") return <SelfCompassion  onClose={close} onFinish={finish} />;
+  if (view === "ground")     return <Grounding       onClose={close} onFinish={finish} />;
+  if (view === "integrate")  return <IntegrationTool onClose={close} onFinish={finish} />;
+  if (view === "gallery")    return <EssenceGallery  essences={essences} onClose={close} />;
+
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto" }}>
-      {!tool && <Hub open={setTool} brokeKingShadow={brokeKingShadow} />}
-      {tool === "stand"     && <DailyStand     onClose={() => setTool(null)} onFinish={finish} />}
-      {tool === "spot"      && <SpotMask        onClose={() => setTool(null)} onFinish={finish} />}
-      {tool === "name"      && <NameIt          onClose={() => setTool(null)} onFinish={finish} />}
-      {tool === "reframe"   && <Reframe         onClose={() => setTool(null)} onFinish={finish} />}
-      {tool === "line"      && <HoldLine        onClose={() => setTool(null)} onFinish={finish} />}
-      {tool === "integrate" && <Integration     onClose={() => setTool(null)} onFinish={finish} />}
-    </div>
+    <Hub
+      open={setView}
+      brokeKingShadow={brokeKingShadow}
+      takeaways={takeaways}
+      essences={essences}
+      streak={streak}
+      onClearTrail={clearTrail}
+    />
   );
 }
 
-// ─── Hub ──────────────────────────────────────────────────────────────────────
-function Hub({ open, brokeKingShadow }) {
+function Hub({ open, brokeKingShadow, takeaways = [], essences = [], streak, onClearTrail }) {
   const [hovered, setHovered] = useState(null);
+  const featured = TOOLS.find((t) => t.featured);
+  const rest = TOOLS.filter((t) => !t.featured);
+  const ownedIds = new Set(essences.map((e) => e.maskId));
+
+  const card = (t, i) => {
+    const isHovered = hovered === t.id;
+    return (
+      <button
+        key={t.id}
+        className={`shadow-tool-card ${t.featured ? "shadow-tool-card--featured" : ""} ${isHovered ? "is-hovered" : ""}`}
+        onClick={() => open(t.id)}
+        onMouseEnter={() => setHovered(t.id)}
+        onMouseLeave={() => setHovered(null)}
+        style={{ "--tool-accent": t.accent, "--tool-index": i }}
+        aria-label={`Open ${t.name}`}
+      >
+        <div className="shadow-tool-card__aura" />
+        <div className="shadow-tool-card__scan" />
+        <div className="shadow-tool-card__topline">
+          <span className="shadow-tool-card__moment">{t.when}</span>
+          <span className="shadow-tool-card__relic">{t.relic}</span>
+        </div>
+        <div className="shadow-tool-card__body">
+          <h2>{t.name}</h2>
+          <p>{t.sub}</p>
+        </div>
+        <span className="shadow-tool-card__launch">Enter →</span>
+      </button>
+    );
+  };
 
   return (
-    <div>
-      <div style={{ marginBottom: 40, paddingTop: 8 }}>
-        <p style={{
-          fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--brand-cyan)",
-          letterSpacing: "0.22em", textTransform: "uppercase", margin: "0 0 10px",
-        }}>
-          Inner Work
+    <div className="sx-hub" style={{ maxWidth: 760, margin: "0 auto" }}>
+      {/* ── Cinematic head ── */}
+      <div className="sx-hub__head">
+        <Forge />
+        <p className="sx-hub__kicker">Inner Work · The Forge</p>
+        <h1 className="sx-hero-title">Shadow Work</h1>
+        <p className="sx-hub__sub">
+          Seven tools for the moments that knock you off-centre. Meet what&rsquo;s running you, transmute it, and walk back as yourself.
         </p>
-        <h1 style={{
-          fontFamily: "var(--font-display)", fontSize: "clamp(32px,6vw,48px)",
-          fontWeight: 900, margin: 0, lineHeight: 1.05, letterSpacing: "-0.01em",
-        }}>
-          Shadow Work
-        </h1>
+        {streak?.current > 0 && (
+          <div className="sx-streak">
+            <span className="sx-streak__flame">🔥</span>
+            <span className="sx-streak__num">{streak.current}</span>
+            <span className="sx-streak__label">day inner-work streak</span>
+          </div>
+        )}
       </div>
 
-      {/* Map Quest: Broke King shadow attached */}
+      {/* ── Essence Gallery teaser ── */}
+      <button className="sx-gallerylink" onClick={() => open("gallery")}>
+        <div className="sx-gallerylink__orbs">
+          {maskCards.map((m) =>
+            ownedIds.has(m.id) ? (
+              <img key={m.id} className="sx-gallerylink__orb" src={maskCardSrc(m.id, "essence-card")} alt=""
+                onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} />
+            ) : (
+              <span key={m.id} className="sx-gallerylink__orb locked">◇</span>
+            )
+          )}
+        </div>
+        <div className="sx-gallerylink__txt">
+          <div className="sx-gallerylink__title">Essence Gallery</div>
+          <div className="sx-gallerylink__sub">{essences.length} of {maskCards.length} shadows turned to gold</div>
+        </div>
+        <span className="sx-gallerylink__go">OPEN →</span>
+      </button>
+
+      {/* ── Map Quest shadow attached ── */}
       {brokeKingShadow && (
         <div style={{
           marginBottom: 24, padding: "14px 18px", borderRadius: 14,
           background: "linear-gradient(135deg, rgba(255,201,77,0.1), rgba(123,44,255,0.1))",
-          border: "1px solid rgba(255,201,77,0.4)",
-          boxShadow: "0 0 20px rgba(255,201,77,0.1)",
+          border: "1px solid rgba(255,201,77,0.4)", boxShadow: "0 0 20px rgba(255,201,77,0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 28 }}>👑</span>
@@ -145,652 +173,44 @@ function Hub({ open, brokeKingShadow }) {
                 The Broke King walks with you
               </div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>
-                Use &ldquo;Spot the Mask&rdquo; or &ldquo;Name It to Tame It&rdquo; when you feel money panic, shame spirals, or the sense of being behind.
+                Open the <b>Shadow Alchemist</b> when you feel money panic, shame spirals, or the sense of being behind.
               </div>
             </div>
           </div>
         </div>
       )}
 
-
+      {/* ── Tool grid: featured + 2×3 ── */}
       <div className="shadow-tool-grid" aria-label="Shadow work tools">
-        {TOOLS.map((t, i) => {
-          const isHovered = hovered === t.id;
-          return (
-            <button
-              key={t.id}
-              className={`shadow-tool-card ${isHovered ? "is-hovered" : ""}`}
-              onClick={() => open(t.id)}
-              onMouseEnter={() => setHovered(t.id)}
-              onMouseLeave={() => setHovered(null)}
-              style={{ "--tool-accent": t.accent, "--tool-index": i }}
-              aria-label={`Open ${t.name}`}
-            >
-              <div className="shadow-tool-card__aura" />
-              <div className="shadow-tool-card__scan" />
-              <div className="shadow-tool-card__topline">
-                <span>{t.mark}</span>
-                <span>{t.when}</span>
-              </div>
-              <div className="shadow-tool-card__body">
-                <span className="shadow-tool-card__relic-name">{t.relic}</span>
-                <h2>{t.name}</h2>
-                <p>{t.sub}</p>
-              </div>
-              <span className="shadow-tool-card__launch">Enter</span>
-            </button>
-          );
-        })}
+        {featured && card(featured, 0)}
+        {rest.map((t, i) => card(t, i + 1))}
       </div>
-    </div>
-  );
-}
 
-// ─── Shared layout components ─────────────────────────────────────────────────
-function Station({ children, color, title, step, total, onClose }) {
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <button
-          onClick={onClose}
-          style={{
-            background: "var(--card)", border: "1px solid var(--border)", color: "var(--text-main)",
-            borderRadius: 9, padding: "8px 14px", fontSize: 13, cursor: "pointer",
-          }}
-        >
-          ← Back
-        </button>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color, textTransform: "uppercase", letterSpacing: "0.18em" }}>
-          {title}
-        </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-muted)" }}>
-          {step != null ? `${step} / ${total}` : ""}
-        </span>
-      </div>
-      {step != null && (
-        <div style={{ display: "flex", gap: 5, marginBottom: 24 }}>
-          {Array.from({ length: total }).map((_, k) => (
-            <div
-              key={k}
-              style={{
-                flex: 1, height: 4, borderRadius: 3,
-                background: k < step ? color : "var(--border)",
-                transition: "background .4s",
-              }}
-            />
-          ))}
+      {/* ── The trail ── */}
+      <div className="shadow-trail">
+        <div className="shadow-trail__head">
+          <span className="shadow-trail__title">Your trail</span>
+          {takeaways.length > 0 && <button className="shadow-trail__clear" onClick={onClearTrail}>Clear</button>}
         </div>
-      )}
-      {children}
-    </div>
-  );
-}
-
-function Q({ children }) {
-  return (
-    <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px,4vw,28px)", fontWeight: 700, lineHeight: 1.2, margin: "0 0 8px" }}>
-      {children}
-    </h2>
-  );
-}
-
-function Sub({ children }) {
-  return <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.6, margin: "0 0 18px" }}>{children}</p>;
-}
-
-function Field({ value, onChange, placeholder, rows = 3 }) {
-  return (
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      rows={rows}
-      style={{
-        width: "100%", background: "var(--panel-deep)", color: "var(--text-main)",
-        border: "1px solid var(--border)", borderRadius: 12, padding: "14px 15px",
-        fontSize: 15, lineHeight: 1.5, resize: "vertical", fontFamily: "inherit", outline: "none",
-      }}
-    />
-  );
-}
-
-function Bar({ onNext, onBack, label = "Continue", disabled, color }) {
-  return (
-    <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-      {onBack && (
-        <button
-          onClick={onBack}
-          style={{
-            background: "transparent", color: "var(--text-main)", border: "1px solid var(--border)",
-            borderRadius: 12, padding: "13px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer",
-          }}
-        >
-          Back
-        </button>
-      )}
-      <button
-        onClick={onNext}
-        disabled={disabled}
-        style={{
-          flex: 1, background: color, color: "#000", borderRadius: 12,
-          padding: "14px 0", fontSize: 16, fontWeight: 700, cursor: disabled ? "default" : "pointer",
-          opacity: disabled ? 0.4 : 1, border: "none",
-        }}
-      >
-        {label}
-      </button>
-    </div>
-  );
-}
-
-function Quote({ color, children }) {
-  return (
-    <div style={{
-      background: "var(--card)", border: `1px solid ${color}44`, borderRadius: 14,
-      padding: "20px 22px", margin: "8px 0",
-    }}>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(18px,3vw,22px)", lineHeight: 1.45, margin: 0 }}>
-        {children}
-      </p>
-    </div>
-  );
-}
-
-function Payoff({ color, title, body, stamp, onDone, imgSrc }) {
-  return (
-    <div style={{ textAlign: "center", padding: "32px 0" }}>
-      {imgSrc ? (
-        <img
-          src={imgSrc}
-          alt=""
-          onError={(e) => { e.target.style.display = "none"; }}
-          style={{ width: 205, height: 286, objectFit: "contain", borderRadius: 10, margin: "0 auto 16px", display: "block" }}
-        />
-      ) : (
-        <div style={{ fontSize: 52, marginBottom: 14 }}>✦</div>
-      )}
-      <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 30, color, margin: "0 0 10px" }}>
-        {title}
-      </h2>
-      <p style={{ color: "var(--text-muted)", fontSize: 15.5, lineHeight: 1.6, maxWidth: 400, margin: "0 auto" }}>
-        {body}
-      </p>
-      {stamp && (
-        <div style={{
-          margin: "24px auto 0", maxWidth: 400, background: "var(--card)",
-          border: `2px solid ${color}`, borderRadius: 16, padding: "18px 22px",
-        }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-            Your Stamp
-          </div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 19, fontWeight: 700, lineHeight: 1.35 }}>
-            {stamp}
-          </div>
-        </div>
-      )}
-      <button
-        onClick={onDone}
-        style={{
-          marginTop: 28, background: color, color: "#000", borderRadius: 13,
-          padding: "14px 36px", fontSize: 17, fontWeight: 700, border: "none", cursor: "pointer",
-        }}
-      >
-        Save & close ✦
-      </button>
-    </div>
-  );
-}
-
-// ─── 1. Spot the Mask ─────────────────────────────────────────────────────────
-function SpotMask({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [mask, setMask] = useState(null);
-  const [tell, setTell] = useState("");
-  const [level, setLevel] = useState(null);
-  const total = 4;
-  const LEVELS = [
-    { l: 2, label: "Before",  d: "I felt it coming and noticed in time",    color: "var(--brand-green)" },
-    { l: 1, label: "During",  d: "I caught it mid-moment",                  color: "var(--brand-gold)" },
-    { l: 0, label: "After",   d: "I only saw it once it had passed",         color: "var(--brand-red)" },
-  ];
-
-  if (step > total) {
-    return (
-      <Station color="var(--brand-cyan)" title="Spot the Mask" onClose={onClose}>
-        <Payoff
-          color="var(--brand-cyan)"
-          title="You saw it."
-          imgSrc={maskCardSrc(mask.id, "activated-card")}
-          body={`Naming the ${mask.name} is the whole move. A mask you can see can't drive in the dark.`}
-          stamp={`I noticed my ${mask.name} — and noticing means I'm at the wheel.`}
-          onDone={() => onFinish("Spot the Mask", `Spotted: ${mask.name}${tell ? ` (${tell})` : ""} · caught ${LEVELS.find(x => x.l === level)?.label}`)}
-        />
-      </Station>
-    );
-  }
-
-  return (
-    <Station color="var(--brand-cyan)" title="Spot the Mask" step={step} total={total} onClose={onClose}>
-      {step === 1 && (
-        <>
-          <Q>Which mask is showing up?</Q>
-          <Sub>When you got knocked off-centre, who took over? Pick the one that fits.</Sub>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
-            {MASKS.map((m) => {
-              const selected = mask?.id === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => setMask(m)}
-                  style={{
-                    display: "flex", flexDirection: "column", textAlign: "center",
-                    background: selected ? "var(--card-hover)" : "var(--card)",
-                    border: `1px solid ${selected ? "var(--brand-cyan)" : "var(--border)"}`,
-                    borderRadius: 16, padding: 12, color: "var(--text-main)", cursor: "pointer",
-                    boxShadow: selected ? "0 0 24px rgba(0,240,255,0.25)" : "none",
-                    transition: "border-color .2s, box-shadow .2s, background .2s",
-                  }}
-                >
-                  <img
-                    src={maskCardSrc(m.id)}
-                    alt={m.name}
-                    onError={(e) => { e.target.style.display = "none"; }}
-                    style={{ width: "100%", height: "auto", objectFit: "contain", borderRadius: 10, display: "block" }}
-                  />
-                  <span style={{ color: "var(--text-muted)", fontSize: 13.5, lineHeight: 1.45, marginTop: 12 }}>
-                    {m.tell}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <Bar color="var(--brand-cyan)" disabled={!mask} onNext={() => setStep(2)} />
-        </>
-      )}
-      {step === 2 && (
-        <>
-          <Q>What did it look like this time?</Q>
-          <Sub>Your {mask.name} usually shows as "{mask.tell}". What was the actual moment — what did you do, say, or feel?</Sub>
-          <Field value={tell} onChange={setTell} placeholder="Walk me through the moment…" rows={4} />
-          <Bar color="var(--brand-cyan)" onBack={() => setStep(1)} onNext={() => setStep(3)} />
-        </>
-      )}
-      {step === 3 && (
-        <>
-          <Q>When did you catch it?</Q>
-          <Sub>This isn't a grade. It tells you where your awareness is sharpening.</Sub>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {LEVELS.map((x) => (
-              <button
-                key={x.l}
-                onClick={() => setLevel(x.l)}
-                style={{
-                  textAlign: "left", cursor: "pointer",
-                  background: level === x.l ? "var(--card-hover)" : "var(--card)",
-                  border: `1px solid ${level === x.l ? x.color : "var(--border)"}`,
-                  borderRadius: 12, padding: "14px 16px", color: "var(--text-main)",
-                }}
-              >
-                <b style={{ color: x.color }}>{x.label}</b>
-                <br />
-                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{x.d}</span>
-              </button>
+        {takeaways.length === 0 ? (
+          <p className="shadow-trail__empty">Each tool leaves a stamp here — your reflections gather into a trail you can look back on.</p>
+        ) : (
+          <ul className="shadow-trail__list">
+            {takeaways.slice(0, 6).map((row, i) => (
+              <li key={row.at ?? i} className="shadow-trail__row" style={{ "--row-accent": TOOL_LABEL[row.tool] || "var(--brand-cyan)" }}>
+                <span className="shadow-trail__dot" />
+                <div className="shadow-trail__main">
+                  <div className="shadow-trail__meta">
+                    <span className="shadow-trail__tool">{row.tool}</span>
+                    <span className="shadow-trail__time">{row.at ? timeAgo(row.at) : ""}</span>
+                  </div>
+                  <p className="shadow-trail__text">{row.takeaway}</p>
+                </div>
+              </li>
             ))}
-          </div>
-          <Bar color="var(--brand-cyan)" onBack={() => setStep(2)} disabled={level == null} onNext={() => setStep(4)} />
-        </>
-      )}
-      {step === 4 && (
-        <>
-          <Q>Here's the reframe.</Q>
-          <Sub>The mask isn't the enemy — it was built to protect you once. Read this slowly:</Sub>
-          <img
-            src={maskCardSrc(mask.id, "shift-card")}
-            alt=""
-            onError={(e) => { e.target.style.display = "none"; }}
-            style={{ width: 193, height: 270, objectFit: "contain", borderRadius: 8, margin: "0 auto 16px", display: "block" }}
-          />
-          <Quote color="var(--brand-cyan)">
-            "My {mask.name} showed up because part of me felt unsafe. I see it now. And underneath it is my {mask.essence}."
-          </Quote>
-          <div style={{ marginTop: 16, padding: "14px 16px", background: "var(--card)", borderRadius: 12, border: "1px solid var(--border)" }}>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-gold)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>
-              Declaration
-            </p>
-            <p style={{ fontSize: 15.5, fontWeight: 600, margin: 0, lineHeight: 1.5 }}>
-              "I am {mask.essence}. I embody this truth through small reps of action."
-            </p>
-          </div>
-          <Bar color="var(--brand-cyan)" onBack={() => setStep(3)} label="That lands ✦" onNext={() => setStep(5)} />
-        </>
-      )}
-    </Station>
-  );
-}
-
-// ─── 2. Name It to Tame It ────────────────────────────────────────────────────
-function NameIt({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [ans, setAns] = useState({});
-  const total = 4;
-  const CHANNELS = [
-    { k: "Body",      q: "Where do you feel it physically?",                   ph: "Tight chest, shoulders up, jaw clenched…" },
-    { k: "Emotion",   q: "What's the emotion under it?",                       ph: "Anger on top — but really I felt dismissed." },
-    { k: "Thoughts",  q: "What was the loop in your head?",                    ph: '"They don\'t respect me. This always happens."' },
-    { k: "Behaviour", q: "What did you do, or want to do?",                    ph: "Wanted to shut down and go quiet." },
-  ];
-
-  if (step > total) {
-    return (
-      <Station color="var(--brand-green)" title="Name It to Tame It" onClose={onClose}>
-        <Payoff
-          color="var(--brand-green)"
-          title="Named, so tamed."
-          body="What you can name in your body and mind loses its grip on you. You don't need to fix it — you just named it."
-          stamp="I can feel it without becoming it."
-          onDone={() => onFinish("Name It to Tame It", "Traced the pattern across body, emotion, thought & behaviour")}
-        />
-      </Station>
-    );
-  }
-
-  const c = CHANNELS[step - 1];
-  return (
-    <Station color="var(--brand-green)" title="Name It to Tame It" step={step} total={total} onClose={onClose}>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-green)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-        {c.k}
-      </div>
-      <Q>{c.q}</Q>
-      <Sub>Just notice. Putting words to it is the work — you don't have to fix anything.</Sub>
-      <Field value={ans[c.k] || ""} onChange={(v) => setAns({ ...ans, [c.k]: v })} placeholder={c.ph} rows={4} />
-      <Bar
-        color="var(--brand-green)"
-        onBack={step > 1 ? () => setStep(step - 1) : null}
-        label={step === total ? "I've named it ✦" : "Next"}
-        onNext={() => setStep(step + 1)}
-      />
-    </Station>
-  );
-}
-
-// ─── 3. Reframe Forge ─────────────────────────────────────────────────────────
-function Reframe({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [oldStory, setOld] = useState("");
-  const [evidence, setEv] = useState("");
-  const [essence, setEssence] = useState(null);
-  const [meaning, setMeaning] = useState("");
-
-  if (step > total) {
-    const stamp = meaning.trim() || (essence ? `I am ${essence}.` : "This is my comeback.");
-    return (
-      <Station color="var(--brand-purple)" title="Reframe Forge" onClose={onClose}>
-        <Payoff
-          color="var(--brand-purple)"
-          title="New story forged."
-          body="Old story, met with evidence, becomes new meaning. Reinforce it and it turns into your new default."
-          stamp={stamp}
-          onDone={() => onFinish("Reframe Forge", `Old: "${oldStory.slice(0, 40)}…" → New: "${stamp}"`)}
-        />
-      </Station>
-    );
-  }
-
-  const total = 4;
-  return (
-    <Station color="var(--brand-purple)" title="Reframe Forge" step={step} total={total} onClose={onClose}>
-      {step === 1 && (
-        <>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-red)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-            Old Story
-          </div>
-          <Q>What's the old story you tell about yourself?</Q>
-          <Sub>The limiting one. The "I'm the kind of person who…" that keeps you small.</Sub>
-          <Field value={oldStory} onChange={setOld} placeholder="I always self-sabotage right before things work out." rows={3} />
-          <Bar color="var(--brand-purple)" disabled={!oldStory.trim()} onNext={() => setStep(2)} />
-        </>
-      )}
-      {step === 2 && (
-        <>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-cyan)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-            Evidence
-          </div>
-          <Q>What's the evidence against it?</Q>
-          <Sub>One real thing you've done that the old story can't explain. Small counts.</Sub>
-          <Field value={evidence} onChange={setEv} placeholder="I showed up today even when I didn't want to." rows={3} />
-          <Bar color="var(--brand-purple)" onBack={() => setStep(1)} disabled={!evidence.trim()} onNext={() => setStep(3)} />
-        </>
-      )}
-      {step === 3 && (
-        <>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-green)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-            Essence
-          </div>
-          <Q>Who are you underneath the old story?</Q>
-          <Sub>Pick the essence that's truer than the mask.</Sub>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {ESSENCE_WORDS.map((e) => (
-              <button
-                key={e}
-                onClick={() => setEssence(e)}
-                style={{
-                  background: essence === e ? "var(--brand-purple)" : "var(--card)",
-                  color: essence === e ? "#000" : "var(--text-main)",
-                  border: `1px solid ${essence === e ? "var(--brand-purple)" : "var(--border)"}`,
-                  borderRadius: 30, padding: "10px 18px", fontSize: 15, fontWeight: 700, cursor: "pointer",
-                }}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-          <Bar color="var(--brand-purple)" onBack={() => setStep(2)} disabled={!essence} onNext={() => setStep(4)} />
-        </>
-      )}
-      {step === 4 && (
-        <>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--brand-gold)", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>
-            New Meaning
-          </div>
-          <Q>Stamp the new story.</Q>
-          <Sub>Write it as "I am…" — present tense, like it's already true.</Sub>
-          <Field value={meaning} onChange={setMeaning} placeholder={`I am ${essence || "Majesty"}. My past is evidence I can change, not proof I can't.`} rows={3} />
-          <Bar color="var(--brand-purple)" onBack={() => setStep(3)} label="Forge it ✦" onNext={() => setStep(5)} />
-        </>
-      )}
-    </Station>
-  );
-}
-
-// ─── 4. Hold the Line ─────────────────────────────────────────────────────────
-const BREATH_STEPS = [
-  { k: "Breathe in",  s: 4, scale: 1.55, col: "var(--brand-green)" },
-  { k: "Hold",        s: 7, scale: 1.55, col: "var(--brand-gold)" },
-  { k: "Breathe out", s: 8, scale: 0.85, col: "var(--brand-cyan)" },
-];
-
-function Breather({ onDone }) {
-  const [si, setSi] = useState(0);
-  const [count, setCount] = useState(BREATH_STEPS[0].s);
-  const [round, setRound] = useState(0);
-  const TARGET = 4;
-
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setCount((c) => {
-        if (c > 1) return c - 1;
-        setSi((cur) => {
-          const nx = (cur + 1) % BREATH_STEPS.length;
-          if (nx === 0) setRound((r) => r + 1);
-          return nx;
-        });
-        return 0;
-      });
-    }, 1000);
-    return () => clearInterval(iv);
-  }, []);
-
-  useEffect(() => { setCount(BREATH_STEPS[si].s); }, [si]);
-
-  const step = BREATH_STEPS[si];
-  const done = round >= TARGET;
-
-  return (
-    <div style={{ textAlign: "center" }}>
-      <Q>Follow the orb</Q>
-      <Sub>{TARGET} slow rounds. In through the nose, out through the mouth.</Sub>
-      <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{
-          width: 130, height: 130, borderRadius: "50%",
-          border: `2px solid ${step.col}`,
-          background: `radial-gradient(circle at 50% 40%, ${step.col}33, transparent 70%)`,
-          transform: `scale(${step.scale})`,
-          transition: `transform ${step.s}s ease-in-out`,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 16, color: step.col, fontWeight: 700 }}>{step.k}</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 28, color: "var(--text-main)" }}>{count || step.s}</div>
-        </div>
-      </div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-muted)" }}>
-        round {Math.min(round + (done ? 0 : 1), TARGET)} / {TARGET}
-      </div>
-      <div style={{ marginTop: 20 }}>
-        <button
-          onClick={onDone}
-          style={{
-            background: done ? "var(--brand-green)" : "transparent",
-            color: done ? "#000" : "var(--text-main)",
-            border: `1px solid ${done ? "var(--brand-green)" : "var(--border)"}`,
-            borderRadius: 12, padding: "14px 28px", fontSize: 15.5, fontWeight: 700, cursor: "pointer",
-          }}
-        >
-          {done ? "I'm calmer →" : "I'm ready to move on"}
-        </button>
+          </ul>
+        )}
       </div>
     </div>
-  );
-}
-
-function HoldLine({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [note, setNote] = useState("");
-  const total = 3;
-
-  if (step === 4) {
-    return (
-      <Station color="var(--brand-red)" title="Hold the Line" onClose={onClose}>
-        <Payoff
-          color="var(--brand-green)"
-          title="You stayed under the line."
-          body="You caught it on the way up and brought it down. That pause is the whole skill — the gap where you get to choose."
-          stamp="I can feel the heat without letting it drive."
-          onDone={() => onFinish("Hold the Line", note.trim() ? `Cooled down · noted: "${note.slice(0, 50)}"` : "Used the breath to stay in control")}
-        />
-      </Station>
-    );
-  }
-
-  return (
-    <Station color="var(--brand-red)" title="Hold the Line" step={step} total={total} onClose={onClose}>
-      {step === 1 && (
-        <>
-          <Q>Anger rises — judgment drops.</Q>
-          <Sub>There's a line where you stop choosing and the reaction takes over. The way back is physical: slow the breath. Let's bring it down together.</Sub>
-          <Quote color="var(--brand-red)">
-            "The Raging Victim needs someone to blame. But underneath it, there's a man who just wants to feel respected and safe."
-          </Quote>
-          <Bar color="var(--brand-red)" label="Start breathing →" onNext={() => setStep(2)} />
-        </>
-      )}
-      {step === 2 && <Breather onDone={() => setStep(3)} />}
-      {step === 3 && (
-        <>
-          <Q>What's actually under the anger?</Q>
-          <Sub>Now that it's quieter — name the real thing. Hurt, fear, feeling disrespected? You don't have to act on it.</Sub>
-          <Field value={note} onChange={setNote} placeholder="Underneath it I think I was scared that…" rows={3} />
-          <Quote color="var(--brand-green)">
-            "This anger is real, but I don't need to push it away — and I don't need to act on it."
-          </Quote>
-          <Bar color="var(--brand-green)" label="I'm grounded ✦" onNext={() => setStep(4)} />
-        </>
-      )}
-    </Station>
-  );
-}
-
-// ─── 5. Daily Stand ───────────────────────────────────────────────────────────
-// Cinematic 5-stage wizard, shared with the Daily page. See DailyStandWizard.
-function DailyStand({ onClose, onFinish }) {
-  return (
-    <DailyStandWizard
-      onClose={onClose}
-      onComplete={({ stand, ways, intention, theme }) => {
-        const parts = [];
-        if (stand) parts.push(`Stood as: ${stand}`);
-        if (ways?.length) parts.push(`${ways.length} ways to back it`);
-        if (intention) parts.push(`intention: ${intention.slice(0, 40)}`);
-        onFinish("Daily Stand", parts.join(" · ") || theme || "Took a stand");
-      }}
-    />
-  );
-}
-
-// ─── 6. Integration ───────────────────────────────────────────────────────────
-function Integration({ onClose, onFinish }) {
-  const [step, setStep] = useState(1);
-  const [feeling, setFeeling] = useState("");
-  const [sat, setSat] = useState(false);
-  const total = 3;
-
-  if (step > total) {
-    return (
-      <Station color="var(--text-muted)" title="Integration" onClose={onClose}>
-        <Payoff
-          color="var(--brand-purple)"
-          title="It's integrated."
-          body="The goal was never to destroy the shadow — only to let it move through you so it stops running you. You sat with it. That's enough."
-          stamp="Yes, it's part of my past — and it doesn't define me."
-          onDone={() => onFinish("Integration", feeling.trim() ? `Sat with: "${feeling.slice(0, 50)}"` : "Let it sit, let it pass")}
-        />
-      </Station>
-    );
-  }
-
-  return (
-    <Station color="var(--text-muted)" title="Integration" step={step} total={total} onClose={onClose}>
-      {step === 1 && (
-        <>
-          <Q>Not solving. Just sitting.</Q>
-          <Sub>Some feelings don't need fixing — they need room. What's still sitting with you right now? Name it without judging it.</Sub>
-          <Field value={feeling} onChange={setFeeling} placeholder="There's still some leftover frustration humming under the surface…" rows={3} />
-          <Bar color="var(--brand-purple)" label="Now let it sit →" onNext={() => setStep(2)} />
-        </>
-      )}
-      {step === 2 && (
-        <>
-          <Q>Let it move through you.</Q>
-          <Sub>Read this slowly, then sit with it for a few breaths. Tap when it feels a little lighter — no rush.</Sub>
-          <Quote color="var(--brand-purple)">
-            "This is real, and it's allowed to be here. I don't need to push it away or act on it. I let it move through me, so it doesn't control me."
-          </Quote>
-          <label style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 18, color: "var(--text-muted)", fontSize: 14.5, cursor: "pointer" }}>
-            <input type="checkbox" checked={sat} onChange={(e) => setSat(e.target.checked)} style={{ width: 20, height: 20, accentColor: "var(--brand-purple)" }} />
-            I gave it some space.
-          </label>
-          <Bar color="var(--brand-purple)" onBack={() => setStep(1)} disabled={!sat} onNext={() => setStep(3)} />
-        </>
-      )}
-      {step === 3 && (
-        <>
-          <Q>One last truth.</Q>
-          <Sub>The shadow came from something real — pain, loss, betrayal. It's part of your story. It's not the author.</Sub>
-          <Quote color="var(--border)">
-            "I mistrust from my past — but it doesn't define me. I keep what protects me, and I let go of what limits me."
-          </Quote>
-          <Bar color="var(--brand-purple)" onBack={() => setStep(2)} label="Integrate it ✦" onNext={() => setStep(4)} />
-        </>
-      )}
-    </Station>
   );
 }

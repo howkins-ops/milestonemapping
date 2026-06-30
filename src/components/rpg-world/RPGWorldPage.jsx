@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import ProjectMap from "../milestone-map/ProjectMap.jsx";
 import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
 import MilestoneWorld from "../milestone-world/MilestoneWorld.jsx";
 import FinalGoalWorld from "./FinalGoalWorld.jsx";
 import WorldComplete from "./WorldComplete.jsx";
 import MapQuestMap from "../map-quest/MapQuestMap.jsx";
-import ChapterAnchor from "../map-quest/chapters/ChapterAnchor.jsx";
-import ChapterShadow from "../map-quest/chapters/ChapterShadow.jsx";
-import ChapterAlchemy from "../map-quest/chapters/ChapterAlchemy.jsx";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
 import { getChapterByKey } from "../map-quest/questChapters.js";
+import { CHAPTER_COMPONENTS } from "../map-quest/chapterRegistry.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
 
 export default function RPGWorldPage({ projectId, initialMode = null, onExitWorld }) {
   const { projects, milestones, createMilestone, updateMilestone } = useAppData();
   const project = projects.find((p) => p.id === projectId);
-  const { mode, setMode, completeChapter, isChapterComplete } = useMapQuestState();
+  const quest = useMapQuestState();
+  const { mode, setMode, completeChapter, isChapterComplete } = quest;
 
   // When launched straight into a mode (e.g. the Map Quest button), honor it once.
   useEffect(() => {
@@ -87,16 +86,20 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
     return () => clearTimeout(timer);
   };
 
-  if (screen === "chapter-anchor") {
-    return <ChapterAnchor onComplete={handleChapterComplete} />;
-  }
-
-  if (screen === "chapter-shadow") {
-    return <ChapterShadow onComplete={handleChapterComplete} />;
-  }
-
-  if (screen === "chapter-alchemy") {
-    return <ChapterAlchemy onComplete={handleChapterComplete} />;
+  const activeChapter = getChapterByKey(screen);
+  if (activeChapter && CHAPTER_COMPONENTS[activeChapter.component]) {
+    const ChapterComponent = CHAPTER_COMPONENTS[activeChapter.component];
+    return (
+      <Suspense
+        fallback={
+          <div className="rpg-world" style={{ alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+            <p style={{ color: "rgba(234,251,255,0.4)" }}>Loading chapter…</p>
+          </div>
+        }
+      >
+        <ChapterComponent onComplete={handleChapterComplete} quest={quest} />
+      </Suspense>
+    );
   }
 
   if (screen === "milestone-world" && activeMilestoneId) {

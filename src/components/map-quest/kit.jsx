@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import useAutoPlayVideo from "../../hooks/useAutoPlayVideo.js";
 
 /* =============================================================================
    MILESTONE QUEST — SHARED CINEMATIC KIT
@@ -239,5 +240,183 @@ export function CrownedSprite({ size=140, revealed=false, healed=false, baseColo
         {healed && <circle cx="0" cy="-4" r="1.5" fill={healedColor}><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" /></circle>}
       </g>
     </svg>
+  );
+}
+
+/* A calm standing mentor (distinct from the hooded Seeker) — color per mentor:
+   Anchor=cyan, Business=gold, Challenger=danger, Heartkeeper=mint. */
+export function MentorSprite({ size=130, color=C.cyan, staff=true }) {
+  return (
+    <svg width={size} height={size*1.4} viewBox="0 0 100 140" style={{ filter:`drop-shadow(0 0 12px ${hexA(color,.7)})`, animation:"sIdle 3.6s ease-in-out infinite" }}>
+      <ellipse cx="50" cy="134" rx="24" ry="5" fill={hexA(color,.22)} />
+      <path d="M50 30 C40 34 36 60 30 110 C28 124 38 130 50 130 C62 130 72 124 70 110 C64 60 60 34 50 30 Z" fill={hexA("#0c0b18",.96)} stroke={hexA(color,.6)} strokeWidth="1.5" />
+      <path d="M34 44 C42 38 58 38 66 44" fill="none" stroke={hexA(color,.5)} strokeWidth="1.5" />
+      <circle cx="50" cy="20" r="11" fill="#06060f" stroke={hexA(color,.7)} strokeWidth="1.5" />
+      <circle cx="46" cy="19" r="1.5" fill={color} /><circle cx="54" cy="19" r="1.5" fill={color} />
+      <circle cx="50" cy="70" r="7" fill={hexA(color,.5)} />
+      <circle cx="50" cy="70" r="3" fill={color}><animate attributeName="opacity" values="0.6;1;0.6" dur="2.4s" repeatCount="indefinite" /></circle>
+      {staff && <line x1="76" y1="40" x2="76" y2="128" stroke={hexA(color,.6)} strokeWidth="2" />}
+      {staff && <circle cx="76" cy="38" r="4" fill={hexA(color,.5)} stroke={color} strokeWidth="1" />}
+    </svg>
+  );
+}
+/* The Alchemist — the Seeker's own future self: hero silhouette, phoenix glow + halo. */
+export function AlchemistSprite({ size=140 }) {
+  return (
+    <div style={{ position:"relative", display:"inline-block" }}>
+      <div style={{ position:"absolute", left:"50%", top:size*0.04, transform:"translateX(-50%)", width:size*0.5, height:size*0.5, borderRadius:"50%", border:`1.5px solid ${hexA(C.mint,.5)}`, boxShadow:`0 0 22px ${hexA(C.phoenix,.5)}`, animation:"sPulse 3s ease-in-out infinite", pointerEvents:"none" }} />
+      <HeroSprite size={size} glow={C.phoenix} />
+    </div>
+  );
+}
+
+/* =============================================================================
+   CINEMATIC ENGINE — author a chapter as a SceneScript (data), play it the same
+   way every time. Premade for video: each shot's `media` swaps SVG → a Higgsfield
+   clip by dropping a file in public/assets/map-quest/cine/ (no chapter rewrite).
+
+   A SceneScript is an array of "shots". Each shot:
+   {
+     id:        string,
+     bg?:       css background (defaults to a mood radial over black),
+     mood?:     accent color for glow/kicker,
+     backdrop?: 'forest' | 'starfield' | 'embers' | null,
+     stageH?:   px height of the character stage (default 220),
+     cast?:     [{ id, node:<sprite/>, label?, labelColor? }],
+     kicker?:   short mono eyebrow,
+     lines?:    string[]  (typed narration/dialogue),
+     speaker?:  color for the lines,
+     cta?:      advance-button label (default "Continue →"),
+     media?:    { kind:'svg' } | { kind:'video', src, poster },
+   }
+   ============================================================================= */
+function SceneVideo({ media }) {
+  const ref = useAutoPlayVideo();
+  return (
+    <video
+      ref={ref} src={media.src} poster={media.poster}
+      muted loop playsInline preload="metadata"
+      style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
+    />
+  );
+}
+export function SceneMedia({ media, mood=C.magenta, backdrop, children }) {
+  if (media && media.kind === "video" && media.src) return <SceneVideo media={media} />;
+  return (
+    <>
+      {backdrop === "forest" && <ForestBackdrop mood={mood} />}
+      {backdrop === "starfield" && <Starfield mood={mood} />}
+      {backdrop === "embers" && <Embers color={mood} />}
+      {children}
+    </>
+  );
+}
+/* Renders ONE shot; calls onAdvance after the lines finish + the player taps. */
+export function CinematicScene({ shot, onAdvance, accent=C.magenta }) {
+  const [shown, done] = useTyped(shot.lines || [], true);
+  const mood = shot.mood || accent;
+  const speaker = shot.speaker || C.text;
+  const noLines = !shot.lines || shot.lines.length === 0;
+  return (
+    <div style={fsWrap(shot.bg || `radial-gradient(900px 700px at 50% 12%, ${hexA(mood,.16)}, transparent), ${C.black}`)}>
+      <SceneMedia media={shot.media} mood={mood} backdrop={shot.backdrop}>
+        {(shot.cast && shot.cast.length > 0) && (
+          <div style={{ position:"relative", zIndex:2, height:shot.stageH || 220, display:"flex", alignItems:"flex-end", justifyContent:"center", gap:18, padding:"28px 18px 0" }}>
+            {shot.cast.map((c) => (
+              <div key={c.id} style={{ textAlign:"center" }}>
+                {c.node}
+                {c.label && <div style={{ fontSize:9, ...mono, color:c.labelColor || C.textDim, marginTop:2 }}>{c.label}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </SceneMedia>
+      <div style={{ position:"relative", zIndex:3, maxWidth:480, margin:"0 auto", padding:"6px 22px 50px" }}>
+        {shot.kicker && <div style={{ textAlign:"center", fontSize:11, letterSpacing:3, color:mood, ...mono, marginBottom:8 }}>{shot.kicker}</div>}
+        <div style={{ minHeight:noLines ? 0 : 96 }}>
+          {shown.map((t, k) => (
+            <p key={k} style={{ ...serif, fontStyle:"italic", fontSize:16, lineHeight:1.55, margin:"0 0 9px", color:k===shown.length-1 ? speaker : C.textDim, animation:"sFade .5s" }}>{t}</p>
+          ))}
+        </div>
+        {(done || noLines) && (
+          <div style={{ marginTop:8, animation:"sRise .5s" }}>
+            <Btn full accent={accent} onClick={onAdvance}>{shot.cta || "Continue →"}</Btn>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+/* Steps through an array of shots, then calls onDone. */
+export function Cinematic({ shots, onDone, accent=C.magenta }) {
+  const [i, setI] = useState(0);
+  const shot = shots && shots[i];
+  if (!shot) return null;
+  const advance = () => { if (i < shots.length - 1) setI(i + 1); else onDone && onDone(); };
+  return <CinematicScene shot={shot} onAdvance={advance} accent={accent} />;
+}
+
+/* Reusable Identity Forge (extracted from The Alchemy): melt the old story →
+   choose the new identity → name the proof. onComplete({ melt, identity, proof }). */
+export function ForgeExercise({
+  accent = C.gold,
+  meltLabel = "MELT THE OLD STORY",
+  identityLabel = "CHOOSE THE NEW IDENTITY",
+  proofLabel = "NAME YOUR PROOF",
+  meltPrompt = "What's the old story you've been carrying?",
+  identityPrompt = "Who do you choose to become instead?",
+  proofPrompt = "What's one proof-action you'll take this week?",
+  onComplete,
+}) {
+  const [step, setStep] = useState(0);
+  const [melt, setMelt] = useState("");
+  const [identity, setIdentity] = useState("");
+  const [proof, setProof] = useState("");
+  const steps = [
+    { label: meltLabel, prompt: meltPrompt, val: melt, set: setMelt },
+    { label: identityLabel, prompt: identityPrompt, val: identity, set: setIdentity },
+    { label: proofLabel, prompt: proofPrompt, val: proof, set: setProof },
+  ];
+  const cur = steps[step];
+  const advance = () => {
+    if (step < 2) setStep(step + 1);
+    else onComplete && onComplete({ melt, identity, proof });
+  };
+  return (
+    <div style={{ animation:"sRise .5s" }}>
+      <div style={{ fontSize:10, ...mono, color:accent, marginBottom:8 }}>{cur.label} · {step + 1}/3</div>
+      <p style={{ ...serif, fontStyle:"italic", fontSize:15, color:C.text, marginBottom:10 }}>{cur.prompt}</p>
+      <textarea value={cur.val} onChange={(e) => cur.set(e.target.value)} placeholder="Write your truth…" style={taStyle(accent)} />
+      <div style={{ marginTop:10, textAlign:"right" }}>
+        <Btn accent={accent} disabled={!cur.val.trim()} onClick={advance}>{step < 2 ? "Forge →" : "Reforge"}</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* The Progression Dashboard HUD — the 5 meters + Hero's-Journey stage.
+   meters = { stage, purpose, faith, fear, courage, trust } (0–10). */
+export function QuestDashboard({ meters }) {
+  const m = meters || {};
+  const rows = [
+    { k:"purpose", label:"Purpose", color:C.phoenix },
+    { k:"faith",   label:"Faith",   color:C.cyan },
+    { k:"courage", label:"Courage", color:C.gold },
+    { k:"trust",   label:"Trust",   color:C.mint },
+    { k:"fear",    label:"Fear",    color:C.danger },
+  ];
+  return (
+    <div style={{ padding:12, borderRadius:14, background:`linear-gradient(160deg, ${C.card}, ${C.cardDeep})`, border:`1px solid ${hexA(C.phoenix,.25)}` }}>
+      {m.stage && <div style={{ fontSize:9, ...mono, color:C.textDim, letterSpacing:2, marginBottom:8, textTransform:"uppercase" }}>{m.stage}</div>}
+      {rows.map((r) => (
+        <div key={r.k} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+          <span style={{ width:58, fontSize:9, ...mono, color:C.textDim, textTransform:"uppercase" }}>{r.label}</span>
+          <div style={{ flex:1, height:5, borderRadius:999, background:"rgba(255,255,255,.06)", overflow:"hidden" }}>
+            <div style={{ width:`${Math.max(0, Math.min(10, Number(m[r.k]) || 0)) * 10}%`, height:"100%", background:`linear-gradient(90deg, ${hexA(r.color,.55)}, ${r.color})`, transition:"width .5s" }} />
+          </div>
+          <span style={{ width:18, textAlign:"right", fontSize:10, ...mono, color:r.color }}>{m[r.k] ?? 0}</span>
+        </div>
+      ))}
+    </div>
   );
 }

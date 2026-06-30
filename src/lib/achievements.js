@@ -112,6 +112,12 @@ export const ACHIEVEMENTS = [
     title: "4-Week Reviewer",
     description: "Four straight weeks showing up for the Sunday Review.",
     icon: "🧭"
+  },
+  {
+    id: "shadow_alchemist",
+    title: "Shadow Alchemist",
+    description: "You met a mask and transmuted it into its essence.",
+    icon: "🜂"
   }
 ];
 

@@ -31,6 +31,10 @@ tmp/
 .claude/
 .playwright-mcp/
 
+# ElevenLabs voice auditions (local scratch — not for production)
+public/audio/voice-previews/
+public/audio/tts-test.mp3
+
 # Stray root media (duplicate of public/alchemist-card.mp4)
 /alchmeist card.mp4
 

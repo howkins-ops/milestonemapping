@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import AuthGate from "./components/auth/AuthGate.jsx";
 import AppShell from "./components/layout/AppShell.jsx";
 import BootSequence from "./components/layout/BootSequence.jsx";
@@ -24,9 +24,8 @@ import BlazeRealTrainingOS from "./components/blaze/BlazeRealTrainingOS.jsx";
 import ProfilePage from "./components/profile/ProfilePage.jsx";
 import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
 import SeekerCity from "./components/game/SeekerCity.jsx";
-import ChapterAnchor from "./components/map-quest/chapters/ChapterAnchor.jsx";
-import ChapterShadow from "./components/map-quest/chapters/ChapterShadow.jsx";
-import ChapterAlchemy from "./components/map-quest/chapters/ChapterAlchemy.jsx";
+import { CHAPTER_COMPONENTS } from "./components/map-quest/chapterRegistry.js";
+import { getChapterByKey } from "./components/map-quest/questChapters.js";
 import TopFivePage from "./components/daily/TopFivePage.jsx";
 import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
 import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
@@ -186,11 +185,17 @@ function AppContent({ signOut }) {
       case "openworld-legacy":
         return <OpenWorldMap onNavigate={navigate} onOpenProject={openProject} />;
       case "chapter-anchor":
-        return <ChapterAnchor onComplete={() => navigate("openworld")} />;
-      case "chapter-shadow":
-        return <ChapterShadow onComplete={() => navigate("openworld")} />;
-      case "chapter-alchemy":
-        return <ChapterAlchemy onComplete={() => navigate("openworld")} />;
+      case "chapter-shadow": {
+        const chapterDef = getChapterByKey(currentPage);
+        const ChapterComponent = chapterDef && CHAPTER_COMPONENTS[chapterDef.component];
+        return ChapterComponent ? (
+          <Suspense fallback={null}>
+            <ChapterComponent onComplete={() => navigate("openworld")} />
+          </Suspense>
+        ) : (
+          <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />
+        );
+      }
       case "assets":
         return <AssetLibraryPage />;
       default:

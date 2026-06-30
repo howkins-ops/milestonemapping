@@ -12,7 +12,9 @@ export const XP_VALUES = {
   projectCompleted: 1000,
   commitmentKept: 25,
   allCommitmentsKept: 100,
-  reviewStreak4: 200
+  reviewStreak4: 200,
+  shadowToolCompleted: 15,
+  shadowTransmutation: 40
 };
 
 export const RANKS = [

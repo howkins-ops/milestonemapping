@@ -7598,6 +7598,10 @@
 .mq-seal--3 { top: 422px; left: 56px; }
 .mq-seal--4 { top: 540px; right: 86px; flex-direction: row-reverse; text-align: right; }
 
+/* Data-driven serpentine layout (MapQuestMap computes top + side inline). */
+.mq-seal.is-right { flex-direction: row-reverse; text-align: right; }
+.mq-seal.is-right .mq-seal__card-art { transform: rotate(2deg); }
+
 .mq-seal__stone {
   position: relative;
   display: grid;
@@ -7828,8 +7832,7 @@
   }
 
   .mq-book__trail {
-    transform: scaleX(0.72);
-    transform-origin: center;
+    transform: none;
   }
 
   .mq-seal {

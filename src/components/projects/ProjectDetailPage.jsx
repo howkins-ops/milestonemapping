@@ -8,8 +8,7 @@ import TreasureMap from "./TreasureMap.jsx";
 import ProjectWizard from "./ProjectWizard.jsx";
 import MilestoneCard from "../milestones/MilestoneCard.jsx";
 import MilestoneWizard from "../milestones/MilestoneWizard.jsx";
-import VisionBoardCard from "../vision/VisionBoardCard.jsx";
-import VisionBoardForm from "../vision/VisionBoardForm.jsx";
+import VisionCollage from "../vision/VisionCollage.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones, getProjectProgress, getMilestoneProgress } from "../../lib/progress.js";
 import { getProjectColorHex } from "../../lib/constants.js";
@@ -30,11 +29,10 @@ const HERO_EMBERS = Array.from({ length: 14 }, (_, i) => ({
 }));
 
 export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, onOpenRPGWorld }) {
-  const { projects, milestones, visionBoard, userId, createMilestone, updateMilestone, updateProject, deleteProject, addVisionBoardItem, detachVisionFromProject } =
+  const { projects, milestones, userId, createMilestone, updateMilestone, updateProject, deleteProject } =
     useAppData();
   const project = projects.find((p) => p.id === projectId);
   const [editOpen, setEditOpen] = useState(false);
-  const [addVisionOpen, setAddVisionOpen] = useState(false);
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [trailView, setTrailView] = useState(true);
@@ -90,7 +88,6 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
   const currentMsProgress = currentMilestone ? getMilestoneProgress(currentMilestone) : 100;
   const completed = project.status === "completed";
   const hex = getProjectColorHex(project.color);
-  const linkedVisions = visionBoard.filter((v) => (v.projectIds || []).includes(project.id));
   return (
     <div className="anim-fade-in">
       <Button variant="ghost" size="sm" onClick={onBack} style={{ marginBottom: 16 }}>
@@ -364,31 +361,10 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
         </div>
       )}
 
-      {/* Vision Wall */}
-      {linkedVisions.length > 0 && (
-        <>
-          <SectionHeader
-            title="Vision Wall"
-            icon="🔭"
-            action={
-              <Button variant="secondary" size="sm" onClick={() => setAddVisionOpen(true)}>
-                + Add Vision
-              </Button>
-            }
-          />
-          <div style={{ columns: "3 200px", columnGap: 14, marginBottom: 16 }}>
-            {linkedVisions.map((v, i) => (
-              <VisionBoardCard
-                key={v.id}
-                item={v}
-                index={i}
-                compact
-                onDelete={() => detachVisionFromProject(v.id, project.id)}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      {/* Per-project vision board — imagine this project done */}
+      <div style={{ marginTop: 8, marginBottom: 24 }}>
+        <VisionCollage projectId={project.id} kicker="PROJECT VISION" title="Imagine this done" />
+      </div>
 
       {/* Milestone dossiers */}
       {list.length > 0 && (
@@ -434,14 +410,6 @@ export default function ProjectDetailPage({ projectId, onBack, onOpenMilestone, 
         danger
       />
 
-      {addVisionOpen && (
-        <VisionBoardForm
-          open={addVisionOpen}
-          onClose={() => setAddVisionOpen(false)}
-          onAdd={addVisionBoardItem}
-          defaultProjectId={project.id}
-        />
-      )}
     </div>
   );
 }

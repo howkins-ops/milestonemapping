@@ -2,6 +2,7 @@ import React from "react";
 import MissionHero from "./MissionHero.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
 import MapQuestHero from "../projects/MapQuestHero.jsx";
+import VisionCollage from "../vision/VisionCollage.jsx";
 import Button from "../ui/Button.jsx";
 
 function IconLightning() {
@@ -114,6 +115,8 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
           </button>
         ))}
       </div>
+
+      <VisionCollage onNavigate={onNavigate} />
 
       <div className="dashboard-command-row">
         <Button variant="primary" onClick={() => onNavigate("milestones")} className="dashboard-command-row__primary">
