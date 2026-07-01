@@ -5,11 +5,13 @@ import AnimatedBackground from "./AnimatedBackground.jsx";
 import SyncStatus from "../ui/SyncStatus.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import NavIcon from "../ui/NavIcon.jsx";
+import "../../styles/wave.css";
 
 const GROWTH_MENU = [
   { id: "identity", label: "Identity", sub: "Name the new version" },
   { id: "vision", label: "Vision Board", sub: "See where you're going" },
   { id: "essence", label: "Shadow Work", sub: "Face what's holding you back" },
+  { id: "anger", label: "Anger Gym", sub: "Turn pressure into power" },
   { id: "training", label: "5 Shifts", sub: "Cinematic transformation" },
   { id: "wellbeing", label: "Fill Your Cup", sub: "Energy & recovery" },
   { id: "blaze", label: "B.L.A.Z.E.", sub: "Advanced training lab" },
@@ -21,7 +23,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, children }) {
   const { profile, syncStatus } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -121,6 +123,19 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, children 
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
+                {onOpenSOS && (
+                  <button
+                    type="button"
+                    className="app-topbar__profile-btn app-topbar__sos"
+                    onClick={onOpenSOS}
+                    aria-label="Anxiety SOS — Ride the Wave"
+                  >
+                    <span className="app-topbar__icon-box" aria-hidden="true">
+                      <span className="app-topbar__sos-emoji">🌊</span>
+                    </span>
+                    <span className="app-topbar__btn-label">SOS</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="app-topbar__profile-btn"

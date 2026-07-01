@@ -14,7 +14,8 @@ export const XP_VALUES = {
   allCommitmentsKept: 100,
   reviewStreak4: 200,
   shadowToolCompleted: 15,
-  shadowTransmutation: 40
+  shadowTransmutation: 40,
+  waveRidden: 20
 };
 
 export const RANKS = [

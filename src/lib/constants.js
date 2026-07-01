@@ -164,6 +164,7 @@ export const NAV_ITEMS = [
   // EXTRAS
   { id: "training", label: "5 Shifts", icon: "🌀", group: "extras" },
   { id: "essence", label: "Shadow Work", icon: "🌑", group: "extras" },
+  { id: "anger", label: "Anger Gym", icon: "🔥", group: "extras" },
   // CONFIG
   { id: "settings", label: "Settings", icon: "⚙️", group: "config" }
 ];

@@ -4,6 +4,7 @@ import AppShell from "./components/layout/AppShell.jsx";
 import BootSequence from "./components/layout/BootSequence.jsx";
 import ToastStack from "./components/ui/Toast.jsx";
 import CelebrationOverlay from "./components/ui/CelebrationOverlay.jsx";
+import AnxietySOS from "./components/ui/AnxietySOS.jsx";
 import DashboardPage from "./components/dashboard/DashboardPage.jsx";
 import DailyPage from "./components/daily/DailyPage.jsx";
 import ProjectsPage from "./components/projects/ProjectsPage.jsx";
@@ -20,6 +21,7 @@ import SettingsPage from "./components/settings/SettingsPage.jsx";
 import ShadowWorkPage from "./components/shadow/ShadowWorkPage.jsx";
 import SciencePage from "./components/science/SciencePage.jsx";
 import FillYourCup from "./components/wellbeing/FillYourCup.jsx";
+import AngerGymPage from "./components/anger/AngerGymPage.jsx";
 import BlazeRealTrainingOS from "./components/blaze/BlazeRealTrainingOS.jsx";
 import ProfilePage from "./components/profile/ProfilePage.jsx";
 import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
@@ -40,6 +42,7 @@ function AppContent({ signOut }) {
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
   const [rpgWorldProjectId, setRpgWorldProjectId] = useState(null);
   const [rpgWorldInitialMode, setRpgWorldInitialMode] = useState(null);
+  const [sosOpen, setSosOpen] = useState(false);
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
     try {
@@ -174,6 +177,8 @@ function AppContent({ signOut }) {
         return <SciencePage />;
       case "wellbeing":
         return <FillYourCup />;
+      case "anger":
+        return <AngerGymPage />;
       case "blaze":
         return <BlazeRealTrainingOS />;
       case "profile":
@@ -209,11 +214,12 @@ function AppContent({ signOut }) {
 
   return (
     <>
-      <AppShell currentPage={currentPage} onNavigate={navigate} onSignOut={signOut}>
+      <AppShell currentPage={currentPage} onNavigate={navigate} onSignOut={signOut} onOpenSOS={() => setSosOpen(true)}>
         {renderPage()}
       </AppShell>
       <ToastStack />
       <CelebrationOverlay />
+      <AnxietySOS open={sosOpen} onClose={() => setSosOpen(false)} />
     </>
   );
 }

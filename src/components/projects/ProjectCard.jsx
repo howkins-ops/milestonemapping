@@ -25,6 +25,7 @@ export default function ProjectCard({ project, milestones, onOpen }) {
 
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   const defaultBg = completed
     ? "/assets/projects/project-card-complete-bg.png"
@@ -98,26 +99,39 @@ export default function ProjectCard({ project, milestones, onOpen }) {
         )}
 
         <input ref={fileRef} type="file" accept="image/*" onClick={(e) => e.stopPropagation()} onChange={handleBgFile} style={{ display: "none" }} />
-        <div className="project-map-card__bg-tools">
+        <div className={`project-map-card__bg-tools ${toolsOpen ? "is-open" : ""}`}>
+          {toolsOpen && (
+            <>
+              <button
+                type="button"
+                className="project-map-card__bg-btn"
+                onClick={openPicker}
+                disabled={uploading}
+                aria-label={project.cardImageUrl ? "Replace card background" : "Upload card background"}
+              >
+                {uploading ? "Uploading…" : project.cardImageUrl ? "↻ Replace" : "⤓ Background"}
+              </button>
+              {project.cardImageUrl && (
+                <button
+                  type="button"
+                  className="project-map-card__bg-btn"
+                  onClick={clearBg}
+                  aria-label="Remove custom card background"
+                >
+                  ✕ Remove
+                </button>
+              )}
+            </>
+          )}
           <button
             type="button"
-            className="project-map-card__bg-btn"
-            onClick={openPicker}
-            disabled={uploading}
-            aria-label={project.cardImageUrl ? "Replace card background" : "Upload card background"}
+            className="project-map-card__bg-toggle"
+            onClick={(e) => { e.stopPropagation(); setToolsOpen((o) => !o); }}
+            aria-label={toolsOpen ? "Hide image tools" : "Edit card image"}
+            aria-expanded={toolsOpen}
           >
-            {uploading ? "Uploading…" : project.cardImageUrl ? "↻ Replace" : "⤓ Background"}
+            {toolsOpen ? "⌄" : "⚙"}
           </button>
-          {project.cardImageUrl && (
-            <button
-              type="button"
-              className="project-map-card__bg-btn"
-              onClick={clearBg}
-              aria-label="Remove custom card background"
-            >
-              ✕
-            </button>
-          )}
         </div>
       </div>
 

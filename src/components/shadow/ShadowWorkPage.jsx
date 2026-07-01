@@ -6,20 +6,24 @@ import { XP_VALUES } from "../../lib/gamification.js";
 import { Forge, maskCardSrc } from "./shell.jsx";
 import ShadowAlchemist from "./ShadowAlchemist.jsx";
 import HoldTheLine from "./HoldTheLine.jsx";
+import SwampValve from "./swamp/SwampValve.jsx";
 import ReframeForge from "./ReframeForge.jsx";
 import InnerChild from "./InnerChild.jsx";
 import SelfCompassion from "./SelfCompassion.jsx";
 import Grounding from "./Grounding.jsx";
 import IntegrationTool from "./IntegrationTool.jsx";
+import RideTheWave from "./RideTheWave.jsx";
 import EssenceGallery from "./EssenceGallery.jsx";
 import { maskCards } from "../../data/maskCards.js";
 import "../../styles/shadow.css";
+import "../../styles/wave.css";
 
 // Seven moments that knock you off-centre. Shadow Alchemist is the featured
 // first responder (full-width hero); the other six fill a clean 2×3 grid.
 const TOOLS = [
   { id: "alchemist",  name: "Shadow Alchemist", when: "A mask took the wheel",      relic: "Transmutation Forge", sub: "Name the Survival Mechanism running you — then transmute the mask into its essence.", accent: "#FACC15", featured: true },
   { id: "line",       name: "Hold the Line",    when: "Anger is rising",            relic: "Pressure Crystal",    sub: "Cool the body, name the heat, choose your response.",                    accent: "#FF3B5C" },
+  { id: "swamp",      name: "Swamp Valve",      when: "Pressure is building",       relic: "Pressure Valve",      sub: "Better out safely than trapped inside — vent the steam before the system blows.", accent: "#2FE0A6" },
   { id: "reframe",    name: "Reframe Forge",    when: "An old belief is loud",      relic: "Belief Flame",        sub: "Melt the old story down and forge a truer one.",                          accent: "#7B2CFF" },
   { id: "inner",      name: "Inner Child",      when: "Something old got triggered", relic: "Safe Harbor",        sub: "Turn toward the younger you — and give them what they needed.",           accent: "#D11EFF" },
   { id: "compassion", name: "Self-Compassion",  when: "Being hard on yourself",     relic: "Warm Light",          sub: "Answer the inner critic with the kindness you'd give a friend.",          accent: "#FF3EDB" },
@@ -48,9 +52,10 @@ export default function ShadowWorkPage() {
 
   const finish = (tool, takeaway, opts = {}) => {
     const res = recordCompletion({ tool, takeaway, essence: opts.essence });
-    const xp = opts.transmuted ? XP_VALUES.shadowTransmutation : XP_VALUES.shadowToolCompleted;
+    const xp = opts.xp ?? (opts.transmuted ? XP_VALUES.shadowTransmutation : XP_VALUES.shadowToolCompleted);
     addXP(xp, `${tool} complete`);
     if (opts.transmuted) unlockAchievement("shadow_alchemist");
+    (opts.achievements || []).forEach((id) => unlockAchievement(id));
     if (res.newEssence) {
       celebrate({
         variant: "reward",
@@ -66,11 +71,13 @@ export default function ShadowWorkPage() {
 
   if (view === "alchemist")  return <ShadowAlchemist onClose={close} onFinish={finish} />;
   if (view === "line")       return <HoldTheLine     onClose={close} onFinish={finish} />;
+  if (view === "swamp")      return <SwampValve      onClose={close} onFinish={finish} />;
   if (view === "reframe")    return <ReframeForge    onClose={close} onFinish={finish} />;
   if (view === "inner")      return <InnerChild      onClose={close} onFinish={finish} />;
   if (view === "compassion") return <SelfCompassion  onClose={close} onFinish={finish} />;
   if (view === "ground")     return <Grounding       onClose={close} onFinish={finish} />;
   if (view === "integrate")  return <IntegrationTool onClose={close} onFinish={finish} />;
+  if (view === "wave")       return <RideTheWave     onClose={close} onFinish={finish} />;
   if (view === "gallery")    return <EssenceGallery  essences={essences} onClose={close} />;
 
   return (
@@ -136,6 +143,17 @@ function Hub({ open, brokeKingShadow, takeaways = [], essences = [], streak, onC
           </div>
         )}
       </div>
+
+      {/* ── Anxiety SOS · Ride the Wave (panic button) ── */}
+      <button className="wave-sosbar" onClick={() => open("wave")} aria-label="Open Anxiety SOS — Ride the Wave">
+        <span className="wave-sosbar__icon" aria-hidden>🌊</span>
+        <span className="wave-sosbar__txt">
+          <span className="wave-sosbar__kicker">Anxiety SOS · right now</span>
+          <span className="wave-sosbar__title">Ride the Wave</span>
+          <span className="wave-sosbar__sub">Panic or overwhelm rising? Feel the wave, ride it, choose one brave step.</span>
+        </span>
+        <span className="wave-sosbar__go">START →</span>
+      </button>
 
       {/* ── Essence Gallery teaser ── */}
       <button className="sx-gallerylink" onClick={() => open("gallery")}>

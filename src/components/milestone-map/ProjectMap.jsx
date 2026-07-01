@@ -1,7 +1,9 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useSettings } from "../../hooks/useSettings.js";
+import { useAppData } from "../../hooks/useAppData.js";
 import { useProjectProgress } from "../../hooks/useProjectProgress.js";
 import { useCharacterMovement } from "../../hooks/useCharacterMovement.js";
+import { resolveImageSrc } from "../../lib/imageUploadService.js";
 import MapBackground from "./MapBackground.jsx";
 import MapPath from "./MapPath.jsx";
 import MapNode from "./MapNode.jsx";
@@ -72,6 +74,7 @@ function persistPositions(projectId, milestones, positions) {
 
 export default function ProjectMap({ project, milestones, onOpenMilestone, onAddMilestone, justUnlocked }) {
   const { settings } = useSettings();
+  const { userId, updateProject } = useAppData();
   const { doneCount, allDone, averageProgress, fillPct, xp } = useProjectProgress(milestones);
   const totalHeight = Math.max(MAP_MIN_HEIGHT, TOP_PAD + BOT_PAD + Math.max(0, milestones.length - 1) * MAP_STEP);
 
@@ -97,6 +100,29 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
   const currentPoint = positions[currentIndex] || { x: 50, y: totalHeight - 130 };
 
   const [managerOpen, setManagerOpen] = useState(false);
+
+  // Custom world background image (mirrors the project card background tools)
+  const bgFileRef = useRef(null);
+  const [bgUploading, setBgUploading] = useState(false);
+  const [bgToolsOpen, setBgToolsOpen] = useState(false);
+
+  const handleWorldBgFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBgUploading(true);
+    try {
+      const url = await resolveImageSrc(file, userId);
+      updateProject(project.id, { worldImageUrl: url });
+    } catch (err) {
+      console.error("World background upload failed:", err);
+    } finally {
+      setBgUploading(false);
+      if (bgFileRef.current) bgFileRef.current.value = "";
+    }
+  };
+
+  const clearWorldBg = () => updateProject(project.id, { worldImageUrl: "" });
+  const openWorldPicker = () => bgFileRef.current?.click();
 
   const mapRef = useRef(null);
   const dragRef = useRef(null);
@@ -171,7 +197,49 @@ export default function ProjectMap({ project, milestones, onOpenMilestone, onAdd
       className={`trail-world ${allDone ? "is-goal-complete" : ""}`}
       style={{ "--trail-height": `${totalHeight}px` }}
     >
-      <MapBackground />
+      <MapBackground imageUrl={project.worldImageUrl} />
+
+      <input
+        ref={bgFileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleWorldBgFile}
+        style={{ display: "none" }}
+      />
+      <div className={`trail-world__bg-tools ${bgToolsOpen ? "is-open" : ""}`}>
+        <button
+          type="button"
+          className="trail-world__bg-toggle"
+          onClick={() => setBgToolsOpen((o) => !o)}
+          aria-label={bgToolsOpen ? "Hide background tools" : "Edit world background"}
+          aria-expanded={bgToolsOpen}
+        >
+          {bgToolsOpen ? "⌄" : "⚙"}
+        </button>
+        {bgToolsOpen && (
+          <>
+            <button
+              type="button"
+              className="trail-world__bg-btn"
+              onClick={openWorldPicker}
+              disabled={bgUploading}
+              aria-label={project.worldImageUrl ? "Replace world background" : "Upload world background"}
+            >
+              {bgUploading ? "Uploading…" : project.worldImageUrl ? "↻ Replace" : "⤓ Background"}
+            </button>
+            {project.worldImageUrl && (
+              <button
+                type="button"
+                className="trail-world__bg-btn"
+                onClick={clearWorldBg}
+                aria-label="Remove custom world background"
+              >
+                ✕ Remove
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
       <div className="trail-world__header">
         <div>

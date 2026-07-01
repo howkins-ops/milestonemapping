@@ -118,6 +118,18 @@ export const ACHIEVEMENTS = [
     title: "Shadow Alchemist",
     description: "You met a mask and transmuted it into its essence.",
     icon: "🜂"
+  },
+  {
+    id: "wave_first",
+    title: "First Wave Ridden",
+    description: "You rode your first anxiety wave and stayed with yourself.",
+    icon: "🌊"
+  },
+  {
+    id: "wave_returned",
+    title: "Returned Under Pressure",
+    description: "You came back to ride the wave when it counted.",
+    icon: "🏄"
   }
 ];
 
