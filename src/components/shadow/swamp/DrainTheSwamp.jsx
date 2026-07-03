@@ -1,34 +1,110 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/drain-swamp.css";
 import { SwampStage, Eyebrow, Heading, Lead, Science, Primary, Ghost, Chips, Fireflies } from "./swampShell.jsx";
+import { scanForRisk, SafetyScreen } from "./safety.jsx";
+import { sfxSplat, sfxBubble, sfxDrainLoop, sfxRainbow } from "../../../lib/sfx";
 
 /* ════════════════════════════════════════════════════════════════════════
-   DRAIN THE SWAMP — cinematic signature mode.
+   DRAIN THE SWAMP — cinematic signature mode, now a 3-swamp campaign.
 
-   A polluted swamp fills the frame. The player grips an industrial valve
-   wheel and slowly turns it open. Every degree of rotation drains the
-   water, lifts the fog, breaks the light through, and wakes the plants —
-   stress literally leaves the landscape while they breathe out.
+   1. Feed the swamp: name what you're carrying and THROW it in — each word
+      arcs into the black water and sinks (affect labeling disguised as a
+      throwing game; the release language in the toasts does quiet NLP work).
+   2. Turn the valve: the whole landscape drains at 60fps off one --p custom
+      property, and the words you threw dissolve with the water.
+   3. The rainbow: every cleared swamp earns its sky. Three swamps —
+      Stress, Rage, Doubt — each with its own palette and script.
 
-   The whole environment is driven by ONE custom property (--p, 0→1) set
-   imperatively from pointer events, so the scene runs at 60fps with zero
-   React re-renders mid-turn. React state changes only at story beats.
-
-   Contract: { onBack, onComplete } like every swamp mode; no free text,
-   so no safety scan is needed here.
+   Contract: { onBack, onComplete } like every swamp mode. Free text is
+   scanned with scanForRisk → SafetyScreen.
    ════════════════════════════════════════════════════════════════════════ */
 
 const TURNS = 6; // full wheel rotations to open the gate
 const TOTAL_RAD = TURNS * Math.PI * 2;
 const MAX_STEP = 0.045; // rad per pointer event — enforces a slow, deliberate open
+const MAX_THROWS = 8;
 
-const SOURCES = [
-  { id: "work", emoji: "💼", label: "Work" },
-  { id: "people", emoji: "🗣️", label: "People" },
-  { id: "money", emoji: "💸", label: "Money" },
-  { id: "health", emoji: "🫀", label: "Body & health" },
-  { id: "everything", emoji: "🌊", label: "Everything at once" },
-  { id: "unknown", emoji: "🌫️", label: "Can't name it yet" },
+const LEVELS = [
+  {
+    key: "stress",
+    title: "The Stress Swamp",
+    eyebrow: "Swamp I · Stress",
+    klass: "",
+    intro: (
+      <>
+        Stress pools like flood-water — it doesn&rsquo;t drain on its own. <b>Someone has to open
+        the gate.</b> First: everything that&rsquo;s flooding you goes IN the swamp. Throw it.
+      </>
+    ),
+    science:
+      "Naming a stressor and physically 'placing' it outside you (affect labeling + externalization) measurably calms the amygdala. The slow exhales you'll pace with each valve turn engage the vagal brake. The relief is real, not decorative.",
+    emotions: ["Overwhelm", "Pressure", "Deadlines", "Everyone needs me", "No time", "Tight chest", "Can't switch off", "Money worry"],
+    beats: [
+      "Grip the wheel. Turn slowly — one long exhale per pull.",
+      "The gate groans open. Everything you threw in is already moving toward it.",
+      "The level is dropping. Notice the pressure dropping with it.",
+      "Halfway. Your shoulders already know what to do — let them fall.",
+      "Light is breaking through. It finds you easier now, doesn't it?",
+      "Nearly clear. What you carried in here is just water now — leaving.",
+    ],
+  },
+  {
+    key: "rage",
+    title: "The Rage Bog",
+    eyebrow: "Swamp II · Anger",
+    klass: "dts-scene--rage",
+    intro: (
+      <>
+        This one runs hot. Every grudge, every &ldquo;are you KIDDING me&rdquo;, every slow-burn
+        resentment — <b>throw it in the bog where it can boil without burning anyone.</b>
+      </>
+    ),
+    science:
+      "Anger discharged at a symbol (not a person) while the body stays slow teaches the nervous system that the heat can move THROUGH you without running you. Throw hard. Turn slow.",
+    emotions: ["Rage", "Resentment", "Disrespect", "They lied", "NOT fair", "Betrayed", "Being ignored", "That one person"],
+    beats: [
+      "Grip the wheel. The heat wants OUT — give it the gate, not the people.",
+      "The gate groans open. The boiling starts to move.",
+      "The level is dropping. Every word you threw is dissolving into steam.",
+      "Halfway. The fire is fuel now — not the driver.",
+      "The red is running out of the water. Cooler with every turn.",
+      "Nearly clear. Anger arrived as a flood — watch it leave as a stream.",
+    ],
+  },
+  {
+    key: "doubt",
+    title: "The Doubt Marsh",
+    eyebrow: "Swamp III · Doubt",
+    klass: "dts-scene--doubt",
+    intro: (
+      <>
+        The quietest swamp and the deepest. The &ldquo;who am I kidding&rdquo; voice, the imposter
+        whispers — <b>they only survive inside your head. Out here, they sink.</b>
+      </>
+    ),
+    science:
+      "Seeing a thought as an OBJECT you can throw (cognitive defusion) breaks the fusion between you and the story. A doubt in the water is just words. You are the one holding the wheel.",
+    emotions: ["Not enough", "Imposter", "What if I fail", "They'll laugh", "Too late for me", "I always quit", "Who am I kidding", "Not smart enough"],
+    beats: [
+      "Grip the wheel. Doubt hates motion — keep turning.",
+      "The gate groans open. The whispers drain first.",
+      "The level is dropping. Those old stories are losing their grip.",
+      "Halfway. The fog thins — you can see further than you could.",
+      "Light is breaking through. It was there the whole time, above the fog.",
+      "Nearly clear. Who are you without that story? Keep turning. Find out.",
+    ],
+  },
+];
+
+// Release lines — rotate as each feeling hits the water. Quiet NLP: presuppose
+// the letting-go already happened, direct attention to the space it leaves.
+const TOSS_LINES = [
+  "Thrown. It's the swamp's problem now.",
+  "The water closes over it. Feel the hand that let go.",
+  "Sinking. What you can name, you no longer have to carry.",
+  "Gone. Notice the space where it used to sit.",
+  "The swamp eats these for breakfast. Keep going.",
+  "That one's been heavy long enough. Down it goes.",
 ];
 
 const FEELINGS = [
@@ -39,18 +115,10 @@ const FEELINGS = [
   { id: "heavy", emoji: "🪨", label: "Still heavy — honest" },
 ];
 
-const BEATS = [
-  { at: 0.0, line: "Grip the wheel. Turn slowly — one long exhale per pull." },
-  { at: 0.12, line: "The gate groans open. The black water starts to move." },
-  { at: 0.3, line: "The level is dropping. The fog is thinning out." },
-  { at: 0.5, line: "Halfway. Let your shoulders drop with the water." },
-  { at: 0.7, line: "Light is breaking through. Green things are waking up." },
-  { at: 0.88, line: "Nearly clear. Last slow turns — stay with the breath." },
-];
-
-function beatIndexFor(p) {
+function beatIndexFor(p, beats) {
+  const AT = [0, 0.12, 0.3, 0.5, 0.7, 0.88];
   let idx = 0;
-  for (let i = 0; i < BEATS.length; i++) if (p >= BEATS[i].at) idx = i;
+  for (let i = 0; i < beats.length; i++) if (p >= AT[i]) idx = i;
   return idx;
 }
 
@@ -111,10 +179,10 @@ function ValveWheel() {
 }
 
 /* The living scene. Everything reads --p (0..1) from the scene element. */
-function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0 }) {
+function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0, klass = "", thrown = [], showWheel = true, rainbow = false }) {
   return (
     <div
-      className={`dts-scene ${draining ? "is-live" : ""}`}
+      className={`dts-scene ${klass} ${draining ? "is-live" : ""}`}
       ref={sceneRef}
       style={{ "--p": initialP, "--rot": initialP * TOTAL_RAD }}
     >
@@ -123,6 +191,9 @@ function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0 
       <div className="dts-sky dts-sky--murky" />
       <div className="dts-sun" />
       <div className="dts-rays" />
+
+      {/* every drained swamp earns its rainbow */}
+      {rainbow && <div className="dts-rainbow" aria-hidden />}
 
       {/* birds return near the end */}
       <span className="dts-bird dts-bird--a" aria-hidden>🕊️</span>
@@ -157,6 +228,21 @@ function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0 
         </div>
       </div>
 
+      {/* the feelings you fed it — they bob in the murk, then drain out with it */}
+      <div className="dts-toss" aria-hidden>
+        {thrown.map((w) => (
+          <React.Fragment key={w.id}>
+            <span
+              className={w.fresh ? "is-flying" : "is-sunk"}
+              style={{ "--tx": `${w.tx}%`, "--ty": `${w.ty}%` }}
+            >
+              {w.text}
+            </span>
+            {w.fresh && <i style={{ "--tx": `${w.tx}%`, "--ty": `${w.ty}%` }} />}
+          </React.Fragment>
+        ))}
+      </div>
+
       {/* fog banks */}
       <div className="dts-fog dts-fog--a" />
       <div className="dts-fog dts-fog--b" />
@@ -169,18 +255,20 @@ function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0 
       </div>
 
       {/* the wheel */}
-      <div
-        className="dts-wheel"
-        ref={wheelRef}
-        role="slider"
-        aria-label="Floodgate valve — turn clockwise to drain the swamp"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        tabIndex={0}
-        {...wheelHandlers}
-      >
-        <ValveWheel />
-      </div>
+      {showWheel && (
+        <div
+          className="dts-wheel"
+          ref={wheelRef}
+          role="slider"
+          aria-label="Floodgate valve — turn clockwise to drain the swamp"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          tabIndex={0}
+          {...wheelHandlers}
+        >
+          <ValveWheel />
+        </div>
+      )}
 
       <div className="dts-vignette" />
     </div>
@@ -188,22 +276,68 @@ function SwampScene({ sceneRef, wheelHandlers, wheelRef, draining, initialP = 0 
 }
 
 export default function DrainTheSwamp({ onBack, onComplete }) {
-  const [phase, setPhase] = useState("arrive"); // arrive | drain | clear
-  const [source, setSource] = useState(null);
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [phase, setPhase] = useState("arrive"); // arrive | toss | drain | clear
   const [before, setBefore] = useState(6);
   const [after, setAfter] = useState(3);
   const [feeling, setFeeling] = useState(null);
   const [beat, setBeat] = useState(0);
   const [pct, setPct] = useState(0); // coarse display % (updates ~per beat, cheap)
+  const [thrown, setThrown] = useState([]); // {id, text, tx, ty, fresh}
+  const [tossToast, setTossToast] = useState(null);
+  const [custom, setCustom] = useState("");
+  const [risk, setRisk] = useState(null);
+  const [clearedCount, setClearedCount] = useState(0);
+  const [totalThrown, setTotalThrown] = useState(0);
 
   const sceneRef = useRef(null);
   const wheelRef = useRef(null);
   const pRef = useRef(0);
   const lastAngle = useRef(null);
   const doneRef = useRef(false);
+  const tossId = useRef(0);
+  const drainLoop = useRef(null);
 
-  const sourceLabel = useMemo(() => (SOURCES.find((s) => s.id === source) || {}).label, [source]);
+  useEffect(() => () => drainLoop.current?.stop(), []);
 
+  const level = LEVELS[levelIdx];
+  const chipOptions = useMemo(
+    () => level.emotions.filter((e) => !thrown.some((w) => w.text === e)),
+    [level, thrown]
+  );
+
+  /* ── feed the swamp ── */
+  const throwIn = (text) => {
+    if (!text.trim() || thrown.length >= MAX_THROWS) return;
+    const scan = scanForRisk(text);
+    if (scan.risk) {
+      setRisk(scan.kind);
+      return;
+    }
+    const id = tossId.current++;
+    const word = {
+      id,
+      text: text.trim(),
+      tx: 14 + ((id * 37) % 70), // deterministic spread across the water
+      ty: 60 + ((id * 23) % 24),
+      fresh: true,
+    };
+    setThrown((prev) => [...prev, word]);
+    setTotalThrown((n) => n + 1);
+    setTossToast(TOSS_LINES[id % TOSS_LINES.length]);
+    buzz(12);
+    window.setTimeout(() => sfxSplat(), 520);
+    window.setTimeout(() => {
+      setThrown((prev) => prev.map((w) => (w.id === id ? { ...w, fresh: false } : w)));
+    }, 1000);
+  };
+
+  const throwCustom = () => {
+    throwIn(custom);
+    setCustom("");
+  };
+
+  /* ── the drain ── */
   const apply = (nextP) => {
     pRef.current = nextP;
     const el = sceneRef.current;
@@ -211,9 +345,12 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
       el.style.setProperty("--p", String(nextP));
       el.style.setProperty("--rot", String(nextP * TOTAL_RAD));
     }
-    const idx = beatIndexFor(nextP);
+    const idx = beatIndexFor(nextP, level.beats);
     setBeat((prev) => {
-      if (idx !== prev) buzz(10);
+      if (idx !== prev) {
+        buzz(10);
+        sfxBubble();
+      }
       return idx;
     });
     setPct((prev) => {
@@ -223,7 +360,13 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
     if (nextP >= 1 && !doneRef.current) {
       doneRef.current = true;
       buzz([28, 50, 28, 50, 60]);
-      window.setTimeout(() => setPhase("clear"), 1400);
+      drainLoop.current?.stop();
+      drainLoop.current = null;
+      window.setTimeout(() => {
+        setPhase("clear");
+        setClearedCount((n) => n + 1);
+        sfxRainbow();
+      }, 1400);
     }
   };
 
@@ -237,6 +380,10 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
       if (doneRef.current) return;
       e.currentTarget.setPointerCapture(e.pointerId);
       lastAngle.current = angleAt(e);
+      if (!drainLoop.current) {
+        drainLoop.current = sfxDrainLoop();
+        drainLoop.current.setLevel(0.2);
+      }
     },
     onPointerMove: (e) => {
       if (lastAngle.current == null || doneRef.current) return;
@@ -248,8 +395,16 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
       if (d <= 0) return; // clockwise opens the gate
       apply(Math.min(1, pRef.current + Math.min(d, MAX_STEP) / TOTAL_RAD));
     },
-    onPointerUp: () => { lastAngle.current = null; },
-    onPointerCancel: () => { lastAngle.current = null; },
+    onPointerUp: () => {
+      lastAngle.current = null;
+      drainLoop.current?.stop();
+      drainLoop.current = null;
+    },
+    onPointerCancel: () => {
+      lastAngle.current = null;
+      drainLoop.current?.stop();
+      drainLoop.current = null;
+    },
     onKeyDown: (e) => {
       if (doneRef.current) return;
       if (e.key === "ArrowRight" || e.key === "ArrowUp") {
@@ -260,40 +415,45 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
     "aria-valuenow": pct,
   };
 
-  const reset = () => {
+  const startLevel = (idx) => {
     doneRef.current = false;
     pRef.current = 0;
+    drainLoop.current?.stop();
+    drainLoop.current = null;
+    setLevelIdx(idx);
     setBeat(0);
     setPct(0);
     setFeeling(null);
-    setPhase("drain");
-    // scene remounts via key below, so vars start clean
+    setThrown([]);
+    setTossToast(null);
+    setCustom("");
+    setBefore(6);
+    setAfter(3);
+    setPhase("arrive");
   };
 
   const seal = () => {
+    drainLoop.current?.stop();
     const feelLabel = (FEELINGS.find((f) => f.id === feeling) || {}).label || "Lighter";
-    const what = sourceLabel ? `"${sourceLabel}"` : "the flood";
+    const names = LEVELS.slice(0, Math.max(1, clearedCount)).map((l) => l.title).join(", ");
     onComplete(
-      `Drained the swamp — ${what} · intensity ${before}→${after} · left feeling ${feelLabel.toLowerCase()}`
+      `Drained ${clearedCount || 1} swamp${clearedCount > 1 ? "s" : ""} (${names}) — fed it ${totalThrown} feelings · intensity ${before}→${after} · left feeling ${feelLabel.toLowerCase()}`
     );
   };
+
+  if (risk) {
+    return <SafetyScreen kind={risk} onClose={() => setRisk(null)} />;
+  }
 
   /* ── ARRIVE ── */
   if (phase === "arrive") {
     return (
-      <SwampStage title="Drain the Swamp" onClose={onBack}>
+      <SwampStage title="Drain the Swamp" onClose={onBack} total={LEVELS.length} active={levelIdx}>
         <div className="sv-center">
-          <Eyebrow>Stress Zone · Signature</Eyebrow>
-          <Heading>Drain the Swamp</Heading>
-          <Lead>
-            Stress pools like flood-water — it doesn't drain on its own. <b>Someone has to open the gate.</b>{" "}
-            Name what's flooding you, then turn the valve and watch it leave the landscape.
-          </Lead>
-          <Science>
-            Naming the stressor first (affect labeling) measurably calms the amygdala, and the slow
-            exhales you'll pace with each turn engage the vagal brake. The relief is real, not decorative.
-          </Science>
-          <Chips options={SOURCES} value={source} onChange={setSource} />
+          <Eyebrow>{level.eyebrow}</Eyebrow>
+          <Heading>{level.title}</Heading>
+          <Lead>{level.intro}</Lead>
+          <Science>{level.science}</Science>
           <div className="dts-rate">
             <span className="dts-rate__label">How flooded are you right now?</span>
             <div className="sv-intensity">
@@ -301,7 +461,42 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
               <span className="sv-intensity__num">{before}</span>
             </div>
           </div>
-          <Primary onClick={() => setPhase("drain")} disabled={!source}>Open the floodgate →</Primary>
+          <Primary onClick={() => setPhase("toss")}>Walk to the swamp →</Primary>
+        </div>
+      </SwampStage>
+    );
+  }
+
+  /* ── TOSS — feed the swamp before you drain it ── */
+  if (phase === "toss") {
+    return (
+      <SwampStage title="Drain the Swamp" onClose={onBack} total={LEVELS.length} active={levelIdx}>
+        <div className="sv-pane">
+          <div className="dts-hud">
+            <span className="dts-hud__label">Feed the swamp</span>
+            <span className="dts-hud__pct">{thrown.length}/{MAX_THROWS}</span>
+          </div>
+          <SwampScene sceneRef={sceneRef} wheelRef={wheelRef} wheelHandlers={{}} draining={false} klass={level.klass} thrown={thrown} showWheel={false} />
+          <p className="dts-beat" key={tossToast || "hint"}>
+            {tossToast || "Tap what you're carrying. Throw it in. It can't swim."}
+          </p>
+          <Chips options={chipOptions} value={null} onChange={throwIn} sm />
+          <div className="dts-throwbar">
+            <input
+              className="dts-throwbar__input"
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") throwCustom(); }}
+              placeholder="…or name it in your own words"
+              maxLength={48}
+            />
+            <button className="dts-throwbar__btn" onClick={throwCustom} disabled={!custom.trim() || thrown.length >= MAX_THROWS}>
+              Throw 🪨
+            </button>
+          </div>
+          <Primary onClick={() => setPhase("drain")} disabled={thrown.length === 0}>
+            That&rsquo;s everything. Open the floodgate →
+          </Primary>
         </div>
       </SwampStage>
     );
@@ -309,17 +504,18 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
 
   /* ── CLEAR ── */
   if (phase === "clear") {
+    const lastLevel = levelIdx >= LEVELS.length - 1;
     return (
-      <SwampStage title="Drain the Swamp" onClose={onBack}>
+      <SwampStage title="Drain the Swamp" onClose={onBack} total={LEVELS.length} active={levelIdx}>
         <div className="sv-pane">
-          <SwampScene sceneRef={sceneRef} wheelRef={wheelRef} wheelHandlers={{}} draining={false} initialP={1} />
+          <SwampScene sceneRef={sceneRef} wheelRef={wheelRef} wheelHandlers={{}} draining={false} initialP={1} klass={level.klass} rainbow />
           <div className="sv-center" style={{ position: "relative" }}>
             <Fireflies />
-            <Eyebrow>Gate open · Water clear</Eyebrow>
-            <Heading>The swamp is clear.</Heading>
+            <Eyebrow>Gate open · Rainbow earned</Eyebrow>
+            <Heading>{lastLevel && clearedCount >= LEVELS.length ? "All three swamps. Drained." : `${level.title} is clear.`}</Heading>
             <Lead>
-              Same place — different water. You drained <b>{sourceLabel || "the flood"}</b> instead of
-              carrying it. Where's the level now?
+              Same place — different water. Everything you fed it went out with the flood.
+              Where&rsquo;s the level now?
             </Lead>
             <div className="sv-intensity">
               <input type="range" min="1" max="10" value={after} onChange={(e) => setAfter(Number(e.target.value))} />
@@ -327,7 +523,12 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
             </div>
             <Chips options={FEELINGS} value={feeling} onChange={setFeeling} sm />
             <Primary onClick={seal}>Seal it →</Primary>
-            <Ghost onClick={reset}>Drain another</Ghost>
+            {!lastLevel && (
+              <Ghost onClick={() => startLevel(levelIdx + 1)}>
+                Next: {LEVELS[levelIdx + 1].title} →
+              </Ghost>
+            )}
+            {lastLevel && <Ghost onClick={() => startLevel(0)}>Run the swamps again</Ghost>}
           </div>
         </div>
       </SwampStage>
@@ -336,14 +537,14 @@ export default function DrainTheSwamp({ onBack, onComplete }) {
 
   /* ── DRAIN ── */
   return (
-    <SwampStage title="Drain the Swamp" onClose={onBack}>
+    <SwampStage title="Drain the Swamp" onClose={onBack} total={LEVELS.length} active={levelIdx}>
       <div className="sv-pane">
         <div className="dts-hud">
-          <span className="dts-hud__label">Draining{sourceLabel ? `: ${sourceLabel}` : ""}</span>
+          <span className="dts-hud__label">Draining: {level.title}</span>
           <span className="dts-hud__pct">{pct}%</span>
         </div>
-        <SwampScene key="live" sceneRef={sceneRef} wheelRef={wheelRef} wheelHandlers={wheelHandlers} draining />
-        <p className="dts-beat" key={beat}>{BEATS[beat].line}</p>
+        <SwampScene key={`live-${levelIdx}`} sceneRef={sceneRef} wheelRef={wheelRef} wheelHandlers={wheelHandlers} draining klass={level.klass} thrown={thrown} />
+        <p className="dts-beat" key={beat}>{level.beats[beat]}</p>
       </div>
     </SwampStage>
   );

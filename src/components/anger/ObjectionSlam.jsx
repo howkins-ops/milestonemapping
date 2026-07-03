@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/objection.css";
+import { SLAM_CUSTOMERS, SLAM_REP, SLAM_WINS } from "../../data/angerVoiceLines";
+import {
+  sfxWhoosh,
+  sfxImpact,
+  sfxShatter,
+  sfxZap,
+  playVoiceLine,
+  stopVoiceLine,
+} from "../../lib/sfx";
 
 /* ════════════════════════════════════════════════════════════════════════
    OBJECTION SLAM — rejection-resilience arcade.
@@ -26,51 +35,21 @@ const DEFEAT_MS = 1900;
 const FLIGHT_MS = [2600, 2200, 1800];
 const SUPER_FLIGHT_MS = 3200;
 
-const CUSTOMERS = [
-  {
-    name: "The Tire-Kicker",
-    tagline: "Just looking. Always just looking.",
-    emoji: "🤔", hurt: "😬", smug: "😏",
-    objections: [
-      "I need to think about it.",
-      "Just leave a card, maybe.",
-      "I never buy on the first visit.",
-      "Let me ask my neighbor first.",
-    ],
-  },
-  {
-    name: "The Excuse Machine",
-    tagline: "Has a reason for everything.",
-    emoji: "😤", hurt: "😰", smug: "😏",
-    objections: [
-      "It's too expensive!",
-      "My cousin does it cheaper.",
-      "My wife will KILL me.",
-      "I had a bad experience in 2009.",
-      "The economy, you know?",
-    ],
-  },
-  {
-    name: "Mrs. NO",
-    tagline: "Undefeated since 1987.",
-    emoji: "👵", hurt: "😱", smug: "😏",
-    objections: [
-      "No.",
-      "Still no.",
-      "I've said no to better than you.",
-      "My door has a NO list. You're on it.",
-      "NOT. INTERESTED.",
-      "I NEVER buy from salespeople.", // ← the super objection
-    ],
-  },
+// Objection text + voice ids come from angerVoiceLines (baked mp3s); the
+// personas stay here. Last objection of Mrs. NO is still the super volley.
+const PERSONAS = [
+  { name: "The Tire-Kicker", tagline: "Just looking. Always just looking.", emoji: "🤔", hurt: "😬", smug: "😏" },
+  { name: "The Excuse Machine", tagline: "Has a reason for everything.", emoji: "😤", hurt: "😰", smug: "😏" },
+  { name: "Mrs. NO", tagline: "Undefeated since 1987.", emoji: "👵", hurt: "😱", smug: "😏" },
 ];
+const CUSTOMERS = PERSONAS.map((p, i) => ({ ...p, objections: SLAM_CUSTOMERS[i].objections }));
 
 const RESPONSES = [
   "Cool story. Anyway—",
-  "I don't care. Continue.",
+  "I don't give a fuck. Continue.",
   "You're buying anyway.",
   "Noted. Ignored.",
-  "That's not a real objection.",
+  "That's cute. NEXT.",
   "I've heard worse from my GPS.",
   "So anyway — here's the pen.",
   "My feelings called in sick.",
@@ -78,9 +57,10 @@ const RESPONSES = [
   "Teflon. Nothing sticks.",
   "Weird way to say YES.",
   "Objection overruled.",
+  "Fuck the maybe. It's a yes.",
 ];
 
-const TAUNTS = ["Ha! Saw you flinch!", "Got you with that one!", "That one stung, didn't it?"];
+const TAUNTS = ["HA! You FLINCHED!", "Got you with that one!", "That one stung, didn't it?", "Too slow, sunshine."];
 
 function buzz(pattern) {
   try {
@@ -133,8 +113,12 @@ export default function ObjectionSlam({ onClose, onComplete }) {
 
   const throwObjection = (ci, oi, shout) => {
     setV({ ci, oi, mode: "windup", shout, hand: deal(), said: null, perfect: false, taunt: null });
+    const obj = CUSTOMERS[ci].objections[oi];
+    // re-thrown objections come back LOUDER — "I SAID, ..."
+    playVoiceLine(obj.id, { volume: shout ? 1 : 0.72, rate: shout ? 1.06 : 1 });
     t(() => {
       flightStart.current = Date.now();
+      sfxWhoosh();
       setV((prev) => ({ ...prev, mode: "incoming" }));
       landTimer.current = t(() => land(ci, oi), flightMs(ci, oi));
     }, WINDUP_MS);
@@ -150,6 +134,11 @@ export default function ObjectionSlam({ onClose, onComplete }) {
     if (perfect) stats.current.perfects += 1;
     setCares((c) => Math.max(0, c - (perfect ? 16 : 12)));
     buzz(perfect ? [10, 30, 16] : 10);
+    // rep stinger ladder: each slam hits harder and MOUTHIER than the last
+    const idx = Math.min(SLAM_REP.length - 1, stats.current.deflected - 1);
+    sfxImpact(1 + Math.min(4, idx) + (perfect ? 1 : 0));
+    sfxShatter();
+    t(() => playVoiceLine(SLAM_REP[idx].id, { volume: 0.55 + idx * 0.075 }), 220);
     setV({ ...cur, mode: "smash", said: line, perfect });
     t(() => advance(cur.ci, cur.oi), SMASH_MS);
   };
@@ -158,6 +147,8 @@ export default function ObjectionSlam({ onClose, onComplete }) {
     stats.current.flinches += 1;
     setCares((c) => Math.min(100, c + 8));
     buzz([30, 40, 30]);
+    sfxImpact(2);
+    sfxZap();
     setV((prev) => ({ ...prev, mode: "landed", taunt: TAUNTS[stats.current.flinches % TAUNTS.length] }));
     t(() => throwObjection(ci, oi, true), LANDED_MS);
   };
@@ -168,6 +159,8 @@ export default function ObjectionSlam({ onClose, onComplete }) {
     } else {
       setV((prev) => ({ ...prev, mode: "defeat" }));
       buzz([20, 50, 20, 50, 60]);
+      sfxImpact(6);
+      t(() => playVoiceLine(SLAM_WINS[ci % SLAM_WINS.length].id, { volume: 1 }), 350);
       t(() => {
         if (ci + 1 < CUSTOMERS.length) enterCustomer(ci + 1);
         else setPhase("won");
@@ -183,6 +176,7 @@ export default function ObjectionSlam({ onClose, onComplete }) {
   };
 
   const seal = () => {
+    stopVoiceLine();
     const s = stats.current;
     onComplete({
       deflected: s.deflected,
@@ -215,6 +209,10 @@ export default function ObjectionSlam({ onClose, onComplete }) {
             strips the charge (desensitization + cognitive defusion). Batting them away in here lowers
             the sting of the real ones out there. <b>This trains your nervous system, not your sales
             script</b> — stay human with real customers.
+          </div>
+          <div className="ob-rated">
+            <span className="ob-rated__badge">21+</span>
+            RAW MODE — the rep talks back like you WISH you could. Sound on, volume up.
           </div>
           <button className="ob-primary" onClick={start}>Ring the doorbell →</button>
         </div>
@@ -256,7 +254,7 @@ export default function ObjectionSlam({ onClose, onComplete }) {
   /* ── BATTLE ── */
   const c = CUSTOMERS[v.ci];
   const superVolley = isSuper(v.ci, v.oi);
-  const objectionText = (v.shout ? "I SAID, " : "") + c.objections[v.oi];
+  const objectionText = (v.shout ? "I SAID, " : "") + c.objections[v.oi].text;
   const face =
     v.mode === "defeat" ? "😵" :
     v.mode === "landed" ? c.smug :

@@ -36,6 +36,7 @@ export async function generateSpeech({
   model = 'eleven_multilingual_v2',
   format = 'mp3_44100_128',
   apiKey,
+  voiceSettings,
 }) {
   const res = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=${format}`,
@@ -45,7 +46,7 @@ export async function generateSpeech({
       body: JSON.stringify({
         text,
         model_id: model,
-        voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true },
+        voice_settings: voiceSettings || { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true },
       }),
     },
   );

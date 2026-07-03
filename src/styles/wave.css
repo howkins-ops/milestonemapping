@@ -4,32 +4,53 @@
    No red/alarm UI, no fail states. Reuses globals.css tokens.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── The breath / anchor orb (press & hold) ───────────────────────────────── */
+/* ── The living sea (WaveOcean canvas) ────────────────────────────────────── */
+.wave-ocean { position: absolute; inset: 0; }
+.wave-ocean__canvas { display: block; width: 100%; height: 100%; }
+
+/* Hero stage: the full night ocean with the breath orb floating on it. */
 .wave-stage {
   position: relative;
   width: 100%;
-  max-width: 340px;
-  height: 236px;
+  max-width: 480px;
+  height: 310px;
   margin: 10px auto 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
-.wave-stage__sea {
-  position: absolute;
-  left: -15%;
-  right: -15%;
-  bottom: -12%;
-  height: 84%;
-  border-radius: 50%;
-  background: radial-gradient(55% 60% at 50% 100%, rgba(0, 240, 255, 0.3), rgba(123, 44, 255, 0.1) 55%, transparent 72%);
-  filter: blur(10px);
-  transition: transform 4s ease-in-out;
+
+/* Slimmer ocean window for the intro + dawn finale. */
+.wave-band {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 150px;
+  margin: 8px auto 14px;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 32px rgba(0, 240, 255, 0.07);
 }
-.wave-stage[data-phase="inhale"] .wave-stage__sea { transform: translateY(-16px) scale(1.06); }
-.wave-stage[data-phase="exhale"] .wave-stage__sea { transform: translateY(10px) scale(0.96); }
+.wave-band--dawn {
+  height: 190px;
+  border-color: rgba(255, 190, 120, 0.32);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 38px rgba(255, 170, 90, 0.16);
+}
+
+/* The orb bobs gently on the swell; the button inside handles breath scale. */
+.wave-float { position: relative; z-index: 1; animation: waveFloat 7s ease-in-out infinite; }
+@keyframes waveFloat {
+  0%, 100% { transform: translateY(4px); }
+  50% { transform: translateY(-6px); }
+}
 
 .wave-btn {
   position: relative;
@@ -37,8 +58,10 @@
   width: 152px;
   height: 152px;
   border-radius: 50%;
-  border: 2px solid var(--brand-cyan);
-  background: radial-gradient(circle at 50% 38%, rgba(0, 240, 255, 0.28), rgba(0, 240, 255, 0.04) 70%);
+  border: 1.5px solid rgba(170, 236, 255, 0.75);
+  background: radial-gradient(circle at 50% 34%, rgba(190, 245, 255, 0.3), rgba(0, 240, 255, 0.1) 55%, rgba(3, 22, 44, 0.35) 80%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   color: var(--text-main);
   display: flex;
   flex-direction: column;
@@ -49,17 +72,31 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  box-shadow: 0 0 32px rgba(0, 240, 255, 0.24);
+  box-shadow: 0 0 36px rgba(0, 240, 255, 0.32), inset 0 0 26px rgba(120, 220, 255, 0.14);
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .wave-btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 4px; }
-.wave-btn[data-held="1"] { box-shadow: 0 0 46px rgba(0, 240, 255, 0.46); }
-.wave-btn[data-match="yes"] { border-color: var(--brand-green); box-shadow: 0 0 48px rgba(0, 255, 191, 0.46); }
-.wave-btn__ring { position: absolute; inset: -10px; border-radius: 50%; border: 1px solid rgba(0, 240, 255, 0.18); }
-.wave-btn__label { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--brand-cyan); }
-.wave-btn[data-match="yes"] .wave-btn__label { color: var(--brand-green); }
-.wave-btn__count { font-family: var(--font-body); font-weight: 700; font-size: 34px; line-height: 1; }
-.wave-btn__sub { font-size: 11px; color: var(--text-soft); max-width: 120px; text-align: center; line-height: 1.25; }
+.wave-btn[data-held="1"] {
+  box-shadow: 0 0 52px rgba(0, 240, 255, 0.5), inset 0 0 30px rgba(140, 230, 255, 0.2);
+}
+.wave-btn[data-match="yes"] {
+  border-color: rgba(140, 255, 220, 0.9);
+  box-shadow: 0 0 52px rgba(0, 255, 191, 0.48), inset 0 0 28px rgba(120, 255, 210, 0.16);
+}
+.wave-btn__ring { position: absolute; inset: -10px; border-radius: 50%; border: 1px solid rgba(190, 240, 255, 0.3); }
+.wave-btn__label {
+  font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #d9f7ff;
+  text-shadow: 0 1px 10px rgba(2, 20, 40, 0.8), 0 0 18px rgba(0, 240, 255, 0.45);
+}
+.wave-btn[data-match="yes"] .wave-btn__label { color: #c9ffe9; }
+.wave-btn__count {
+  font-family: var(--font-body); font-weight: 700; font-size: 34px; line-height: 1;
+  text-shadow: 0 1px 10px rgba(2, 20, 40, 0.85);
+}
+.wave-btn__sub {
+  font-size: 11px; color: #bfe4f5; max-width: 120px; text-align: center; line-height: 1.25;
+  text-shadow: 0 1px 8px rgba(2, 20, 40, 0.9);
+}
 
 .wave-nudge { min-height: 20px; margin: 2px 0 12px; font-size: 13px; color: var(--text-soft); }
 
@@ -103,7 +140,6 @@
 .wave-soften { margin: 4px 0 10px; font-size: 14px; font-weight: 700; color: var(--brand-cyan); }
 
 /* ── Completion payoff ─────────────────────────────────────────────────────── */
-.wave-complete__badge { font-size: 44px; margin-bottom: 2px; }
 .wave-proofcard {
   width: 100%; max-width: 360px; margin: 10px auto; padding: 12px 16px; border-radius: 14px;
   border: 1px solid rgba(0, 240, 255, 0.28);
@@ -206,14 +242,15 @@
   50% { box-shadow: 0 0 18px rgba(0, 240, 255, 0.5); }
 }
 
-/* ── Reduced motion: no wave drift, no pulse, static orb + text ───────────── */
+/* ── Reduced motion: still sea, no bob, no pulse, static orb + text ────────── */
 @media (prefers-reduced-motion: reduce) {
-  .wave-stage__sea { transition: none; }
+  .wave-float { animation: none; }
   .wave-btn { transition: none; }
   .app-topbar__sos .app-topbar__icon-box { animation: none; }
   .wave-sosbar__icon { animation: none; }
   .wave-overlay { animation: none; }
 }
+.wave-stage[data-rm="1"] .wave-float { animation: none; }
 
 /* ════════════════════════════════════════════════════════════════════════
    EMOTIONAL RESET HUB — six doors back to calm. Prefix: .sos-

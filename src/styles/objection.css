@@ -56,6 +56,17 @@
   display: block; margin-bottom: 4px; font-family: var(--font-mono); font-size: 10px;
   font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #FF3EDB;
 }
+.ob-rated {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 14px; font-size: 12.5px; line-height: 1.5;
+  color: var(--text-muted); background: rgba(255, 92, 77, .06);
+  border: 1px solid rgba(255, 92, 77, .3);
+}
+.ob-rated__badge {
+  flex: none; padding: 4px 8px; border-radius: 8px;
+  font-family: var(--font-display); font-weight: 900; font-size: 14px; letter-spacing: .04em;
+  color: #FF5C4D; border: 2px solid #FF5C4D; box-shadow: 0 0 14px rgba(255, 92, 77, .35);
+}
 .ob-primary {
   margin-top: 6px; padding: 14px 22px; border: none; border-radius: 14px; cursor: pointer;
   font-family: var(--font-display); font-weight: 800; font-size: 15.5px; color: #170618;

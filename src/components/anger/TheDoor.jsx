@@ -1,5 +1,14 @@
 import React, { useMemo, useRef, useState } from "react";
 import "../../styles/door-game.css";
+import { DOOR_TIERS, DOOR_OPEN } from "../../data/angerVoiceLines";
+import {
+  sfxKnock,
+  sfxImpact,
+  sfxDoorBreak,
+  sfxZap,
+  playVoiceLine,
+  stopVoiceLine,
+} from "../../lib/sfx";
 
 /* ════════════════════════════════════════════════════════════════════════
    THE DOOR — persistence arcade.
@@ -19,7 +28,9 @@ import "../../styles/door-game.css";
 
 const KNOCKS_TO_BREAK = 45;
 const LINE_EVERY = 4; // knocks between dialogue beats
-const STAGE_AT = [0, 0.22, 0.48, 0.72]; // damage stage thresholds
+const STAGE_AT = [0, 0.2, 0.4, 0.62, 0.82]; // damage stage thresholds (5 rage tiers)
+// Their voice + your SFX get progressively LOUDER per tier — that's the design.
+const VOICE_VOL = [0.45, 0.6, 0.75, 0.9, 1.0];
 
 const DOORS = [
   { id: "customers", emoji: "🚪", label: "Real customers" },
@@ -29,31 +40,25 @@ const DOORS = [
   { id: "any", emoji: "👊", label: "Just let me knock" },
 ];
 
-const THEM = [
-  // stage 0 — polite refusal
-  ["No thank you!", "We're not interested.", "We're eating DINNER.", "Nobody's home!"],
-  // stage 1 — annoyed
-  ["Please go away.", "I already HAVE a vacuum!", "Sir, this is a private residence.", "I'm watching my SHOW."],
-  // stage 2 — rattled
-  ["I'm calling my husband!", "You're STILL here?!", "THE ANSWER IS NO!", "The dog stopped barking. He respects you now."],
-  // stage 3 — cracking
-  ["OKAY, WAIT— let's talk about this!", "Who RAISED you?!", "You're insane. I respect it.", "FINE! FINE! HOLD ON—"],
-];
+// Voiced + escalating: text lives in angerVoiceLines so the bubble always
+// matches the baked audio coming out of the speaker.
+const THEM = DOOR_TIERS.map((t) => t.lines);
 
 const YOU = [
   "I know you're in there.",
-  "Come out.",
-  "I heard the TV pause.",
   "I can do this all day.",
-  "I cleared my whole schedule for this.",
-  "Lovely porch, by the way.",
   "That's one more NO for my collection.",
+  "Scream louder. It feeds me.",
   "My knuckles are just warming up.",
   "I've been told no by scarier doors.",
+  "Fuck your no. I'm still knocking.",
   "Was that a maybe? Sounded like a maybe.",
+  "You're going to LOVE what I'm selling.",
+  "I don't hear doors. I hear drums.",
 ];
 
-const KNOCK_WORDS = ["KNOCK", "KNOCK", "BANG", "BAM", "WHAM", "THUD"];
+const KNOCK_WORDS = ["KNOCK", "BANG", "BAM", "BAM BAM", "WHAM", "THUD"];
+const POWER_WORDS = ["BOOM!", "BAM!!", "CRACK!!"];
 
 function buzz(pattern) {
   try {
@@ -104,6 +109,7 @@ export default function TheDoor({ onClose, onComplete }) {
 
   const sceneRef = useRef(null);
   const doorRef = useRef(null);
+  const flashRef = useRef(null);
   const burstsRef = useRef(null);
   const knocksRef = useRef(0);
   const burstIdx = useRef(0);
@@ -130,7 +136,9 @@ export default function TheDoor({ onClose, onComplete }) {
     const y = e.clientY ? e.clientY - rect.top : rect.height / 2;
     node.style.left = `${x}px`;
     node.style.top = `${y}px`;
-    node.textContent = power ? "BOOM!" : KNOCK_WORDS[Math.floor(Math.random() * KNOCK_WORDS.length)];
+    node.textContent = power
+      ? POWER_WORDS[Math.floor(Math.random() * POWER_WORDS.length)]
+      : KNOCK_WORDS[Math.floor(Math.random() * KNOCK_WORDS.length)];
     node.classList.toggle("is-power", power);
     retrigger(node, "is-live");
   };
@@ -141,23 +149,30 @@ export default function TheDoor({ onClose, onComplete }) {
     const n = knocksRef.current;
     const p = Math.min(1, n / KNOCKS_TO_BREAK);
     const power = n % 10 === 0;
+    const s = stageFor(p);
 
     const el = sceneRef.current;
     if (el) el.style.setProperty("--p", String(p));
     retrigger(doorRef.current, power ? "is-pounded" : "is-hit");
+    if (power) retrigger(flashRef.current, "is-live");
     spawnBurst(e, power);
     buzz(power ? [14, 30, 20] : 8);
+    // every knock lands harder as the damage climbs
+    if (power) sfxImpact(2 + s);
+    else sfxKnock(1 + s);
 
-    const s = stageFor(p);
     setStage((prev) => (prev === s ? prev : s));
 
     // dialogue beats — alternate their NO with your comeback
     if (n % (LINE_EVERY * 2) === LINE_EVERY) {
       const pool = THEM[s];
-      setThemLine(pool[themIdx.current % pool.length]);
+      const line = pool[themIdx.current % pool.length];
+      setThemLine(line.text);
       setYouLine(null);
       themIdx.current += 1;
       setNos((v) => v + 1);
+      // the whole point: they get LOUDER the longer you keep knocking
+      playVoiceLine(line.id, { volume: VOICE_VOL[s], rate: 1 + s * 0.02 });
     } else if (n % (LINE_EVERY * 2) === 0) {
       setYouLine(YOU[youIdx.current % YOU.length]);
       setThemLine(null);
@@ -167,7 +182,11 @@ export default function TheDoor({ onClose, onComplete }) {
     if (p >= 1 && !doneRef.current) {
       doneRef.current = true;
       buzz([30, 60, 30, 60, 90]);
-      window.setTimeout(() => setPhase("broke"), 1100);
+      sfxDoorBreak();
+      window.setTimeout(() => {
+        setPhase("broke");
+        playVoiceLine(DOOR_OPEN.id, { volume: 0.9 });
+      }, 1100);
     }
   };
 
@@ -176,6 +195,7 @@ export default function TheDoor({ onClose, onComplete }) {
     setYouLine("Give up? Never heard of her.");
     setThemLine(null);
     buzz([8, 40, 8]);
+    sfxZap();
     window.setTimeout(() => setDenied(false), 1200);
   };
 
@@ -192,6 +212,7 @@ export default function TheDoor({ onClose, onComplete }) {
   };
 
   const seal = () => {
+    stopVoiceLine();
     onComplete({
       knocks: knocksRef.current,
       nos,
@@ -221,6 +242,10 @@ export default function TheDoor({ onClose, onComplete }) {
             Rejection fires the same circuits as physical pain — until repetition recalibrates them.
             Safe, playful exposure to NO (behavioral desensitization) makes every real-world NO
             cheaper. You&rsquo;re not training charm here. You&rsquo;re training <b>the part of you that stays</b>.
+          </div>
+          <div className="dg-rated">
+            <span className="dg-rated__badge">21+</span>
+            RAW MODE — they will scream at you. They will swear at you. Sound on. That&rsquo;s the workout.
           </div>
           <p className="dg-asklabel">What&rsquo;s this door today?</p>
           <div className="dg-chips">
@@ -266,7 +291,7 @@ export default function TheDoor({ onClose, onComplete }) {
           <div className="dg-mat"><span>FINE. COME IN.</span></div>
         </div>
         <div className="dg-bubble dg-bubble--them is-final">
-          &ldquo;…Alright. FINE. What are you selling?&rdquo;
+          &ldquo;{DOOR_OPEN.text}&rdquo;
         </div>
         <div className="dg-seal">
           <h2 className="dg-heading">The door is down.</h2>
@@ -299,8 +324,9 @@ export default function TheDoor({ onClose, onComplete }) {
         className="dg-scene"
         ref={sceneRef}
         data-stage={stage}
-        style={{ "--p": 0 }}
+        style={{ "--p": 0, "--amp": 1 + stage * 0.55 }}
       >
+        <div className="dg-flash" ref={flashRef} aria-hidden />
         <div className="dg-resolve">
           <span className="dg-resolve__label">Resolve</span>
           <div className="dg-resolve__track"><div className="dg-resolve__fill" /></div>

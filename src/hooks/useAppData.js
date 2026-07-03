@@ -51,6 +51,7 @@ import {
 import { computeReviewStreak, computeCommitmentStreak } from "../lib/utils.js";
 import { validateImportPayload } from "../lib/validators.js";
 import { playSound } from "../lib/sounds.js";
+import { setSfxEnabled } from "../lib/sfx.js";
 import { buildSampleData } from "../lib/sampleData.js";
 import { supabase } from "../lib/supabase.js";
 import { getProfile, createProfileIfMissing } from "../lib/profileService.js";
@@ -150,6 +151,8 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
 
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  // keep the game SFX engine in sync with the global sound toggle
+  setSfxEnabled(settings.soundEnabled !== false);
 
   const xpRef = useRef(xp);
   xpRef.current = xp;

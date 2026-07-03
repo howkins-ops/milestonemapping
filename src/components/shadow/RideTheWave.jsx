@@ -4,7 +4,8 @@ import { useBreathTimer } from "./useBreathTimer.js";
 import { useWaveSessions } from "./useWaveSessions.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { XP_VALUES } from "../../lib/gamification.js";
-import { playSound } from "../../lib/sounds.js";
+import { createWaveAudio } from "../../lib/waveAudio.js";
+import WaveOcean from "./WaveOcean.jsx";
 import {
   BREATH_PATTERN, RIDE_CYCLES, NUDGES, SAFETY, GROUND, RIDE, SCAN, RELEASE, PROOF, COMPLETE, INTENSITY,
 } from "./waveCopy.js";
@@ -19,6 +20,17 @@ import "../../styles/wave.css";
 // ─────────────────────────────────────────────────────────────────────────
 const SAFETY_KEY = "wave_safety_ack_v1";
 const PHASES = ["intro", "ground", "ride", "scan", "release", "proof", "complete"];
+
+// Baked guide lines (public/audio/wave/) — one per screen, plus rotating
+// breath cues for the first waves. After that she steps back and the ocean
+// carries the rhythm on its own.
+const PHASE_VOICE = {
+  intro: "v-welcome", ground: "v-ground", ride: "v-ride", scan: "v-scan",
+  release: "v-release", proof: "v-proof", complete: "v-complete",
+};
+const IN_CUES = ["v-in-1", "v-in-2", "v-in-3"];
+const OUT_CUES = ["v-out-1", "v-out-2", "v-out-3"];
+const VOICED_CYCLES = 2;
 
 const INTRO = {
   eyebrow: "Ride the wave",
@@ -192,6 +204,27 @@ export default function RideTheWave({ onClose, onFinish }) {
   const [rideDone, setRideDone] = useState(false);
   const [nudge, setNudge] = useState("");
   const heldDuringExhaleRef = useRef(false);
+  const driftVoicedRef = useRef(0);
+
+  // The living sea. The canvas reads the breath through this ref at 60fps;
+  // the soundscape (ocean beds + guide voice) lives for the whole session.
+  const breathRef = useRef({ active: false, phase: "inhale", progress: 0 });
+  const seaRef = useRef(null);
+  useEffect(() => {
+    const sea = createWaveAudio(settings);
+    seaRef.current = sea;
+    sea.start();
+    // Mobile browsers keep the context suspended until a gesture lands.
+    const kick = () => sea.resume();
+    window.addEventListener("pointerdown", kick);
+    window.addEventListener("keydown", kick);
+    return () => {
+      window.removeEventListener("pointerdown", kick);
+      window.removeEventListener("keydown", kick);
+      sea.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const idx = Math.max(0, PHASES.indexOf(phase));
   const meter = phase === "safety" ? 0 : Math.round(((idx + 1) / PHASES.length) * 100);
@@ -204,18 +237,41 @@ export default function RideTheWave({ onClose, onFinish }) {
   };
 
   const onPhaseChange = useCallback((next) => {
-    if (next === "inhale") { playSound("breatheIn", settings); buzz(16, settings); }
-    else { playSound("breatheOut", settings); buzz([10, 40, 10], settings); heldDuringExhaleRef.current = false; }
+    const sea = seaRef.current;
+    sea?.setBreath(next); // the tide swells with the in-breath
+    const cyc = cyclesAttemptedRef.current;
+    if (cyc < VOICED_CYCLES) {
+      sea?.voice(next === "inhale" ? IN_CUES[cyc % IN_CUES.length] : OUT_CUES[cyc % OUT_CUES.length], 0.9);
+    }
+    if (next === "inhale") buzz(16, settings);
+    else { buzz([10, 40, 10], settings); heldDuringExhaleRef.current = false; }
     setNudge("");
   }, [settings]);
 
   const onCycleComplete = useCallback((n) => {
     cyclesAttemptedRef.current = n;
     if (heldDuringExhaleRef.current) { cyclesCompletedRef.current += 1; setNudge(""); }
-    else setNudge(NUDGES[n % NUDGES.length]);
+    else {
+      setNudge(NUDGES[n % NUDGES.length]);
+      // She only says it out loud twice — after that the text alone nudges.
+      if (driftVoicedRef.current < 2) {
+        seaRef.current?.voice(driftVoicedRef.current === 0 ? "v-back-1" : "v-back-2", 0.9);
+        driftVoicedRef.current += 1;
+      }
+    }
   }, []);
 
   const onComplete = useCallback(() => setRideDone(true), []);
+
+  // Guide line + wave-wash on every screen change; sunrise on the last one.
+  useEffect(() => {
+    const sea = seaRef.current;
+    if (!sea || phase === "safety") return;
+    const line = PHASE_VOICE[phase];
+    if (line) sea.voice(line);
+    if (phase !== "intro") sea.swell();
+    if (phase === "complete") { sea.dawn(); sea.chime(); }
+  }, [phase]);
 
   const timer = useBreathTimer({
     inhaleSeconds: BREATH_PATTERN.inhaleSeconds,
@@ -231,6 +287,15 @@ export default function RideTheWave({ onClose, onFinish }) {
   useEffect(() => {
     if (phase === "ride" && held && timer.phase === "exhale") heldDuringExhaleRef.current = true;
   }, [held, timer.phase, phase]);
+
+  // Feed the canvas: it eases toward these values at 60fps on its own clock.
+  useEffect(() => {
+    breathRef.current = {
+      active: phase === "ride" && !rideDone,
+      phase: timer.phase,
+      progress: timer.progress,
+    };
+  }, [phase, rideDone, timer.phase, timer.progress]);
 
   const rideScale = reducedMotion
     ? 1
@@ -299,6 +364,9 @@ export default function RideTheWave({ onClose, onFinish }) {
           <Eyebrow>{INTRO.eyebrow}</Eyebrow>
           <Heading>{INTRO.heading}</Heading>
           <Lead>{INTRO.lead}</Lead>
+          <div className="wave-band">
+            <WaveOcean breathRef={breathRef} reducedMotion={reducedMotion} />
+          </div>
           <Science>{INTRO.science}</Science>
           <div className="wave-checkin">
             <p className="wave-checkin__q">{INTENSITY.before}</p>
@@ -315,18 +383,20 @@ export default function RideTheWave({ onClose, onFinish }) {
           <Heading>{GROUND.heading}</Heading>
           <Lead>{GROUND.lead}</Lead>
           <div className="wave-stage" data-rm={reducedMotion ? "1" : "0"}>
-            <div className="wave-stage__sea" aria-hidden />
-            <BreathButton
-              label="You are here"
-              sub="thumb on the circle"
-              count={null}
-              expected={null}
-              held={held}
-              setHeld={setHeld}
-              scale={held ? 1.06 : 1}
-              ariaLabel="Rest your thumb on the circle. You are here."
-              reducedMotion={reducedMotion}
-            />
+            <WaveOcean breathRef={breathRef} reducedMotion={reducedMotion} />
+            <div className="wave-float">
+              <BreathButton
+                label="You are here"
+                sub="thumb on the circle"
+                count={null}
+                expected={null}
+                held={held}
+                setHeld={setHeld}
+                scale={held ? 1.06 : 1}
+                ariaLabel="Rest your thumb on the circle. You are here."
+                reducedMotion={reducedMotion}
+              />
+            </div>
           </div>
           <Science>{GROUND.science}</Science>
           <Primary onClick={() => go("ride")}>{GROUND.cta}</Primary>
@@ -337,19 +407,21 @@ export default function RideTheWave({ onClose, onFinish }) {
         <div className="sx-center">
           <Eyebrow>{RIDE.eyebrow}</Eyebrow>
           <Heading>{RIDE.heading}</Heading>
-          <div className="wave-stage" data-phase={timer.phase} data-rm={reducedMotion ? "1" : "0"}>
-            <div className="wave-stage__sea" aria-hidden />
-            <BreathButton
-              label={timer.phase === "inhale" ? RIDE.inhaleLabel : RIDE.exhaleLabel}
-              sub={timer.phase === "inhale" ? RIDE.inhaleSub : RIDE.exhaleSub}
-              count={timer.remaining}
-              expected={timer.phase === "inhale" ? "release" : "hold"}
-              held={held}
-              setHeld={setHeld}
-              scale={rideScale}
-              ariaLabel={timer.phase === "inhale" ? RIDE.aria.inhale : RIDE.aria.exhale}
-              reducedMotion={reducedMotion}
-            />
+          <div className="wave-stage" data-rm={reducedMotion ? "1" : "0"}>
+            <WaveOcean breathRef={breathRef} reducedMotion={reducedMotion} />
+            <div className="wave-float">
+              <BreathButton
+                label={timer.phase === "inhale" ? RIDE.inhaleLabel : RIDE.exhaleLabel}
+                sub={timer.phase === "inhale" ? RIDE.inhaleSub : RIDE.exhaleSub}
+                count={timer.remaining}
+                expected={timer.phase === "inhale" ? "release" : "hold"}
+                held={held}
+                setHeld={setHeld}
+                scale={rideScale}
+                ariaLabel={timer.phase === "inhale" ? RIDE.aria.inhale : RIDE.aria.exhale}
+                reducedMotion={reducedMotion}
+              />
+            </div>
           </div>
           <p className="wave-nudge" aria-live="polite">
             {nudge || `Wave ${Math.min(RIDE_CYCLES, timer.cycle + 1)} of ${RIDE_CYCLES}`}
@@ -382,7 +454,9 @@ export default function RideTheWave({ onClose, onFinish }) {
 
       {phase === "complete" && (
         <div className="sx-center wave-complete">
-          <div className="wave-complete__badge" aria-hidden>🌊</div>
+          <div className="wave-band wave-band--dawn">
+            <WaveOcean breathRef={breathRef} mode="dawn" reducedMotion={reducedMotion} />
+          </div>
           <Eyebrow>{COMPLETE.eyebrow}</Eyebrow>
           <Heading>{COMPLETE.title}</Heading>
           <Lead>{COMPLETE.lead}</Lead>

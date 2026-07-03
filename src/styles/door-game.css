@@ -57,6 +57,17 @@
   display: block; margin-bottom: 4px; font-family: var(--font-mono); font-size: 10px;
   font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #FFD84D;
 }
+.dg-rated {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 14px; font-size: 12.5px; line-height: 1.5;
+  color: var(--text-muted); background: rgba(255, 92, 77, .06);
+  border: 1px solid rgba(255, 92, 77, .3);
+}
+.dg-rated__badge {
+  flex: none; padding: 4px 8px; border-radius: 8px;
+  font-family: var(--font-display); font-weight: 900; font-size: 14px; letter-spacing: .04em;
+  color: #FF5C4D; border: 2px solid #FF5C4D; box-shadow: 0 0 14px rgba(255, 92, 77, .35);
+}
 .dg-asklabel {
   margin: 4px 0 0; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
   letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
@@ -174,18 +185,31 @@
 }
 .dg-doorshake.is-hit { animation: dgKnock .26s var(--ease-out); }
 .dg-doorshake.is-pounded { animation: dgPound .5s var(--ease-out); }
+/* --amp (set per rage tier by the component, 1 → ~3.2) scales every shake —
+   late-game knocks rattle the whole doorway, not just nudge it. */
 @keyframes dgKnock {
   0% { transform: translateX(0); }
-  25% { transform: translateX(-3px) rotate(-.5deg); }
-  55% { transform: translateX(3px) rotate(.5deg); }
+  25% { transform: translateX(calc(-3px * var(--amp, 1))) rotate(calc(-.5deg * var(--amp, 1))); }
+  55% { transform: translateX(calc(3px * var(--amp, 1))) rotate(calc(.5deg * var(--amp, 1))); }
   100% { transform: translateX(0); }
 }
 @keyframes dgPound {
   0% { transform: scale(1); }
-  22% { transform: scale(1.035) translateX(-4px) rotate(-1deg); }
-  48% { transform: scale(1.02) translateX(4px) rotate(1deg); }
-  72% { transform: scale(1.01) translateX(-2px); }
+  22% { transform: scale(1.035) translateX(calc(-4px * var(--amp, 1))) rotate(calc(-1deg * var(--amp, 1))); }
+  48% { transform: scale(1.02) translateX(calc(4px * var(--amp, 1))) rotate(calc(1deg * var(--amp, 1))); }
+  72% { transform: scale(1.01) translateX(calc(-2px * var(--amp, 1))); }
   100% { transform: scale(1); }
+}
+/* screen flash on power hits — retriggered from the component */
+.dg-flash {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 60%, rgba(255, 244, 214, .95), rgba(255, 216, 77, .35) 45%, transparent 72%);
+}
+.dg-flash.is-live { animation: dgFlash .38s var(--ease-out); }
+@keyframes dgFlash {
+  0% { opacity: 0; }
+  12% { opacity: .9; }
+  100% { opacity: 0; }
 }
 
 .dg-doorwrap {
@@ -272,12 +296,12 @@
   color: #FFD84D; text-shadow: 0 2px 0 rgba(0, 0, 0, .55), 0 0 18px rgba(255, 216, 77, .55);
   white-space: nowrap;
 }
-.dg-bursts span.is-power { font-size: 27px; color: #FF5C4D; text-shadow: 0 2px 0 rgba(0, 0, 0, .55), 0 0 22px rgba(255, 92, 77, .65); }
+.dg-bursts span.is-power { font-size: 38px; color: #FF5C4D; text-shadow: 0 3px 0 rgba(0, 0, 0, .6), 0 0 34px rgba(255, 92, 77, .9); }
 .dg-bursts span.is-live { animation: dgBurst .55s var(--ease-out) forwards; }
 @keyframes dgBurst {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(-8deg); }
-  28% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(2deg); }
-  100% { opacity: 0; transform: translate(-50%, calc(-50% - 30px)) scale(1) rotate(0deg); }
+  28% { opacity: 1; transform: translate(-50%, -50%) scale(calc(1.15 * var(--amp, 1))) rotate(2deg); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 38px)) scale(var(--amp, 1)) rotate(0deg); }
 }
 
 /* ── resolve bar (reads --p straight from the scene) ─────────────────── */

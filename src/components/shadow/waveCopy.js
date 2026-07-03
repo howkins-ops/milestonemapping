@@ -114,7 +114,7 @@ export const PROOF = {
 export const COMPLETE = {
   eyebrow: "Wave ridden",
   title: "The wave moved through.",
-  lead: "You stayed with yourself. That counts.",
+  lead: "You stayed with yourself — and the light came back. That counts.",
   again: "Ride another wave",
   done: "Return",
 };

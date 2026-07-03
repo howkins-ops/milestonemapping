@@ -359,6 +359,115 @@
   text-align: center;
 }
 
+/* ── Swamp variants: same scene, different poison ────────────────────────── */
+/* Rage Bog: the murk runs red-hot */
+.dts-scene--rage .dts-sky--murky,
+.dts-scene--rage .dts-water__murky,
+.dts-scene--rage .dts-fog { filter: hue-rotate(-70deg) saturate(1.6) brightness(1.06); }
+/* Doubt Marsh: cold violet, heavier fog */
+.dts-scene--doubt .dts-sky--murky,
+.dts-scene--doubt .dts-water__murky { filter: hue-rotate(190deg) saturate(1.1); }
+.dts-scene--doubt .dts-fog { filter: hue-rotate(190deg); opacity: calc(1 - var(--p) * 0.9); }
+
+/* ── Thrown feelings: arc in, splash, bob in the murk, drain with it ─────── */
+.dts-toss { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.dts-toss span {
+  position: absolute;
+  left: var(--tx);
+  top: var(--ty);
+  transform: translate(-50%, -50%);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: #e8f4ee;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 255, 191, 0.25);
+  white-space: nowrap;
+}
+.dts-toss span.is-flying { animation: dtsTossArc 1s cubic-bezier(0.3, 0.7, 0.35, 1) both; }
+.dts-toss span.is-sunk {
+  font-size: 12px;
+  /* sinks out of sight as the water leaves — the whole point */
+  opacity: calc(0.6 * (1 - var(--p) * 1.15));
+  animation: dtsBob 5.5s ease-in-out infinite;
+}
+@keyframes dtsTossArc {
+  0% { transform: translate(-50%, 240px) scale(1.5) rotate(-8deg); opacity: 0.95; }
+  55% { transform: translate(-50%, calc(-50% - 34px)) scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.9) rotate(0deg); opacity: 0.8; }
+}
+/* splash ring where it lands */
+.dts-toss i {
+  position: absolute;
+  left: var(--tx);
+  top: var(--ty);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(230, 250, 240, 0.6);
+  animation: dtsSplash 0.7s ease-out 0.52s both;
+}
+@keyframes dtsSplash {
+  from { transform: translate(-50%, -50%) scale(0.4); opacity: 0.9; }
+  to { transform: translate(-50%, -50%) scale(4.4); opacity: 0; }
+}
+
+/* the custom-throw bar */
+.dts-throwbar { display: flex; gap: 8px; width: 100%; }
+.dts-throwbar__input {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-main, #F2F0F4);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--brand-green, #00FFBF) 25%, transparent);
+}
+.dts-throwbar__input:focus { outline: none; border-color: rgba(0, 255, 191, 0.6); }
+.dts-throwbar__btn {
+  flex: none;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #04231a;
+  background: linear-gradient(100deg, #00FFBF, #17c98a);
+  box-shadow: 0 8px 22px rgba(0, 255, 191, 0.25);
+}
+.dts-throwbar__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.dts-throwbar__btn:active { transform: scale(0.96); }
+
+/* ── The rainbow: every drained swamp earns its sky ──────────────────────── */
+.dts-rainbow {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 30%;
+  width: min(150%, 620px);
+  aspect-ratio: 2 / 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(100% 200% at 50% 100%,
+    transparent 52%,
+    rgba(255, 59, 92, 0.55) 53% 56%,
+    rgba(255, 176, 0, 0.55) 56% 59%,
+    rgba(255, 216, 77, 0.5) 59% 62%,
+    rgba(0, 255, 191, 0.5) 62% 65%,
+    rgba(0, 240, 255, 0.5) 65% 68%,
+    rgba(123, 44, 255, 0.5) 68% 71%,
+    transparent 72%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0 60%, transparent 92%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0 60%, transparent 92%);
+  animation: dtsRainbowIn 2.6s var(--ease-out, ease-out) both;
+}
+@keyframes dtsRainbowIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.85); }
+  100% { opacity: 0.85; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
 /* ── Keyframes ───────────────────────────────────────────────────────────── */
 @keyframes dtsRayDrift { from { transform: rotate(4deg) translateX(-4%); } to { transform: rotate(8deg) translateX(5%); } }
 @keyframes dtsFogDrift { from { transform: translateX(-5%); } to { transform: translateX(6%); } }
@@ -382,7 +491,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dts-rays, .dts-fog, .dts-debris span, .dts-water__shimmer,
-  .dts-gate__flow, .dts-bird, .dts-wheel::before { animation: none; }
+  .dts-gate__flow, .dts-bird, .dts-wheel::before,
+  .dts-toss span, .dts-toss i, .dts-rainbow { animation: none; }
 }
 [data-reduced-motion="true"] .dts-rays,
 [data-reduced-motion="true"] .dts-fog,
@@ -390,4 +500,7 @@
 [data-reduced-motion="true"] .dts-water__shimmer,
 [data-reduced-motion="true"] .dts-gate__flow,
 [data-reduced-motion="true"] .dts-bird,
+[data-reduced-motion="true"] .dts-toss span,
+[data-reduced-motion="true"] .dts-toss i,
+[data-reduced-motion="true"] .dts-rainbow,
 [data-reduced-motion="true"] .dts-wheel::before { animation: none; }

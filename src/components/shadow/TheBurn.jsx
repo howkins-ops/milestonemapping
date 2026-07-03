@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ShadowStage, Eyebrow, Heading, Lead, Science, Safe, Field, Primary, Skip, Chips, Phoenix, Burst } from "./shell.jsx";
 import { XP_VALUES } from "../../lib/gamification.js";
+import { sfxMatchStrike, sfxIgnite, sfxFireLoop, sfxRainbow } from "../../lib/sfx";
 import "../../styles/burn.css";
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -147,11 +148,16 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
   const [holdPct, setHoldPct] = useState(0);
   const [mantra, setMantra] = useState(-1);
   const holdRef = useRef({ timer: null, start: 0, raf: null });
+  const fireLoopRef = useRef(null);
   const timeouts = useRef([]);
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   const later = (fn, ms) => { timeouts.current.push(setTimeout(fn, ms)); };
-  useEffect(() => () => { timeouts.current.forEach(clearTimeout); cancelAnimationFrame(holdRef.current.raf); }, []);
+  useEffect(() => () => {
+    timeouts.current.forEach(clearTimeout);
+    cancelAnimationFrame(holdRef.current.raf);
+    fireLoopRef.current?.stop();
+  }, []);
 
   // reveal the "hold the flame" instruction shortly after the paper writes on
   useEffect(() => {
@@ -160,13 +166,18 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
   }, [phase]);
 
   /* ── hold-to-ignite ── */
-  const holdStart = () => {
+  const holdStart = (e) => {
     if (phase !== "ignite") return;
+    // capture the pointer so a wobbling thumb can't cancel the hold, and
+    // kill the browser's long-press selection/callout before it starts
+    e.preventDefault();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* unsupported */ }
+    sfxMatchStrike();
     holdRef.current.start = performance.now();
     const tick = (now) => {
       const pct = Math.min(100, ((now - holdRef.current.start) / HOLD_MS) * 100);
       setHoldPct(pct);
-      if (pct >= 100) { setPhase("lit"); return; }
+      if (pct >= 100) { sfxIgnite(); setPhase("lit"); return; }
       holdRef.current.raf = requestAnimationFrame(tick);
     };
     holdRef.current.raf = requestAnimationFrame(tick);
@@ -180,17 +191,30 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
   /* ── cast into the fire, then run the long burn timeline ── */
   const cast = () => {
     setPhase("cast");
+    sfxIgnite();
+    fireLoopRef.current?.stop();
+    fireLoopRef.current = sfxFireLoop();
+    fireLoopRef.current.setLevel(0.32);
     const speed = reduced ? 0.25 : 1;
     later(() => {
       setPhase("burning");
+      fireLoopRef.current?.setLevel(0.42);
       MANTRA_AT.forEach((t, i) => later(() => setMantra(i), t * speed));
-      later(() => setPhase("embers"), EMBERS_AT * speed);
-      later(() => setPhase("rebirth"), REBIRTH_AT * speed);
+      later(() => {
+        setPhase("embers");
+        fireLoopRef.current?.setLevel(0.1);
+      }, EMBERS_AT * speed);
+      later(() => {
+        setPhase("rebirth");
+        fireLoopRef.current?.stop();
+        sfxRainbow();
+      }, REBIRTH_AT * speed);
     }, CAST_MS * speed);
   };
 
   const skipToRebirth = () => {
     timeouts.current.forEach(clearTimeout);
+    fireLoopRef.current?.stop();
     setPhase("rebirth");
   };
 
@@ -198,7 +222,7 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
   const feelingLine = feelings.length ? feelings.join(" · ") : null;
 
   return (
-    <div className={`bfc-scene is-${phase}`}>
+    <div className={`bfc-scene is-${phase}`} onContextMenu={(e) => e.preventDefault()}>
       {/* heat glow + vignette */}
       <div className="bfc-heat" aria-hidden />
 
@@ -223,8 +247,8 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
             className="bfc-holdmatch"
             onPointerDown={holdStart}
             onPointerUp={holdEnd}
-            onPointerLeave={holdEnd}
             onPointerCancel={holdEnd}
+            draggable={false}
             aria-label="Press and hold to light the paper"
           >
             <svg className="bfc-holdring" viewBox="0 0 60 60" aria-hidden>
@@ -260,7 +284,7 @@ function BurnRitual({ breakdown, feelings, upset, commitment, action, byWhen, on
           <span className="bfc-embers" />
           {(phase === "burning" || phase === "embers") && (
             <span className="bfc-ashfield">
-              {Array.from({ length: 14 }).map((_, i) => <i key={i} style={{ "--n": i }} />)}
+              {Array.from({ length: 24 }).map((_, i) => <i key={i} style={{ "--n": i }} />)}
             </span>
           )}
         </div>
