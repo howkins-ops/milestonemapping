@@ -6,7 +6,12 @@ target feature · effort · why. Concepts/steps in [01_GEM_CATALOG](01_GEM_CATAL
 
 ---
 
-## ⭐ Centerpiece — BUFCA as the master tool in the Shadow area
+## ⭐ Centerpiece — BUFCA as the master tool in the Shadow area — ✅ BUILT 2026-07-03
+
+> Shipped as **"The Burn"** — `src/components/shadow/TheBurn.jsx` + `src/styles/burn.css`, first chamber
+> of the Threshold in the Shadow Realm hub. Includes the full burn ritual finale below. Remaining from
+> this section: the *completion tools* (Three-Letter Series, 29-Q) and reframing the other shadow tools
+> as BUFCA variants. Next builds: see [07_BUILD_PROMPT.md](07_BUILD_PROMPT.md).
 
 Jon's call: **BUFCA is the concept under all of them.** It becomes the flagship of the Shadow Forge, and the
 existing shadow tools are reframed as *themed BUFCA runs* — same five-beat spine, different trigger.

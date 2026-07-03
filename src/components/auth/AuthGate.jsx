@@ -162,11 +162,16 @@ export default function AuthGate({ children }) {
   const [info, setInfo]         = useState("");
   const [busy, setBusy]         = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
+  const [recovery, setRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     if (!supabase) { setSession(null); return; }
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+      setSession(s ?? null);
+    });
     return () => subscription.unsubscribe();
   }, []);
 
@@ -188,8 +193,55 @@ export default function AuthGate({ children }) {
     );
   }
 
+  if (session && recovery) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020408", padding: "1.5rem", fontFamily: "'Manrope','Segoe UI',sans-serif", color: "#eafbff" }}>
+        <div style={{ width: "100%", maxWidth: "380px", background: "#000000", border: BORDER, borderRadius: "14px", padding: "1.9rem 1.8rem", position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={S.glowBar} />
+          <h3 style={S.loginTitle}>SET NEW PASSWORD</h3>
+          <p style={S.loginSub}>You opened a recovery link. Choose a new password to finish resetting your account.</p>
+          {error && <div style={{ ...S.alert, width: "100%", maxWidth: "340px", boxSizing: "border-box" }}>{error}</div>}
+          <form onSubmit={handleSetNewPassword} style={S.form}>
+            <label style={S.label}>
+              NEW PASSWORD
+              <input
+                style={S.input}
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={6}
+                autoFocus
+                autoComplete="new-password"
+              />
+            </label>
+            <button style={{ ...S.btn, opacity: busy ? 0.6 : 1 }} type="submit" disabled={busy}>
+              {busy ? "..." : "SAVE PASSWORD"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (session)   return children(session.user.id, session.user.email, () => supabase.auth.signOut());
   if (!supabase) return children(null, null, null);
+
+  async function handleSetNewPassword(e) {
+    e.preventDefault();
+    setError(""); setBusy(true);
+    try {
+      const { error: err } = await supabase.auth.updateUser({ password: newPassword });
+      if (err) throw err;
+      setRecovery(false);
+      setNewPassword("");
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
