@@ -3,25 +3,31 @@ import { useAppData } from "../../hooks/useAppData.js";
 import PressureForge from "./PressureForge.jsx";
 import StormCaptain from "../storm/StormCaptain.jsx";
 import SwampValve from "../shadow/swamp/SwampValve.jsx";
+import TheDoor from "./TheDoor.jsx";
+import ObjectionSlam from "./ObjectionSlam.jsx";
 import { loadForgeState, clearForgeTrail } from "./pressureForgeStore.js";
 import { getLevel, getNextLevel } from "./pressureForgeData.js";
 import "../../styles/anger.css";
 
 /* ════════════════════════════════════════════════════════════════════════
-   THE ANGER GYM — four games for turning heat into something useful.
+   THE ANGER GYM — five games for turning heat into something useful.
 
-   1 · Trigger Popper  — anger / rejection arcade      (coming soon)
-   2 · Swamp Valve     — funny, safe pressure release   (LIVE)
-   3 · Storm Captain   — overwhelm survival             (LIVE)
-   4 · Pressure Forge  — stress → one clean action       (LIVE)
+   1 · Pressure Forge  — stress → one clean action       (LIVE)
+   2 · The Door        — knock through the NOs           (LIVE)
+   3 · Objection Slam  — rejection resilience arcade     (LIVE)
+   4 · Swamp Valve     — funny, safe pressure release    (LIVE)
+   5 · Storm Captain   — overwhelm survival              (LIVE)
 
-   Popper, Valve and Captain bleed off raw heat. Forge is where you learn to
-   keep it and shape it. This hub is the training floor that ties them together.
+   Door and Slam train you to eat rejection for breakfast; Valve and Captain
+   bleed off raw heat. Forge is where you learn to keep it and shape it.
+   This hub is the training floor that ties them together.
    ════════════════════════════════════════════════════════════════════════ */
 
 const XP_FORGE = 30;
 const XP_STORM = 25;
 const XP_VALVE = 25;
+const XP_DOOR = 20;
+const XP_SLAM = 20;
 
 const GAMES = [
   {
@@ -36,14 +42,24 @@ const GAMES = [
     featured: true,
   },
   {
-    id: "popper",
-    name: "Trigger Popper",
-    when: "A trigger just hijacked you",
-    relic: "The Arcade",
-    sub: "Pop the triggers before they run you. An anger & rejection reflex game.",
-    tag: "Anger / rejection arcade",
+    id: "door",
+    name: "The Door",
+    when: "They keep telling you no",
+    relic: "The Threshold",
+    sub: "Knock. Get rejected. Knock HARDER. Every NO cracks the wood — break the damn thing down.",
+    tag: "Persistence arcade",
     accent: "#FF3B5C",
-    live: false,
+    live: true,
+  },
+  {
+    id: "slam",
+    name: "Objection Slam",
+    when: "Their words are getting to you",
+    relic: "The Arena",
+    sub: "Customers hurl objections. You slam back “I don’t care.” Drive your cares-given to zero.",
+    tag: "Rejection resilience",
+    accent: "#FF3EDB",
+    live: true,
   },
   {
     id: "valve",
@@ -114,6 +130,26 @@ export default function AngerGymPage() {
     });
   };
 
+  const onDoorComplete = (payload) => {
+    addXP(XP_DOOR, "Door broken down");
+    celebrate({
+      variant: "reward",
+      title: "DOOR: DOWN",
+      subtitle: `${payload.knocks} knocks · ${payload.nos} NOs survived · zero quits.`,
+      detail: payload.takeaway,
+    });
+  };
+
+  const onSlamComplete = (payload) => {
+    addXP(XP_SLAM, "Objections slammed");
+    celebrate({
+      variant: "reward",
+      title: payload.cares <= 20 ? "ZERO CARES GIVEN" : "OBJECTIONS SLAMMED",
+      subtitle: `${payload.deflected} slammed back · ${payload.perfects} without blinking · 3/3 sold.`,
+      detail: payload.takeaway,
+    });
+  };
+
   if (view === "forge") {
     return (
       <PressureForge
@@ -128,6 +164,32 @@ export default function AngerGymPage() {
       <StormCaptain
         onClose={() => { setView(null); setRefresh((n) => n + 1); }}
         onComplete={onStormComplete}
+      />
+    );
+  }
+
+  if (view === "door") {
+    return (
+      <TheDoor
+        onClose={() => { setView(null); setRefresh((n) => n + 1); }}
+        onComplete={(payload) => {
+          onDoorComplete(payload);
+          setView(null);
+          setRefresh((n) => n + 1);
+        }}
+      />
+    );
+  }
+
+  if (view === "slam") {
+    return (
+      <ObjectionSlam
+        onClose={() => { setView(null); setRefresh((n) => n + 1); }}
+        onComplete={(payload) => {
+          onSlamComplete(payload);
+          setView(null);
+          setRefresh((n) => n + 1);
+        }}
       />
     );
   }
@@ -190,8 +252,9 @@ function Hub({ onOpen }) {
         <p className="ag-hub__kicker">Emotional Performance · The Anger Gym</p>
         <h1 className="ag-hero-title">Anger Gym</h1>
         <p className="ag-hub__sub">
-          Four games for the heat. Three of them let you bleed pressure off safely — one teaches you to
-          keep it and forge it into action. You don&rsquo;t come here to calm down. You come here to get <b>trained</b>.
+          Five games for the heat. Two train you to eat rejection for breakfast, two bleed pressure off
+          safely — and one teaches you to keep it and forge it into action. You don&rsquo;t come here to
+          calm down. You come here to get <b>trained</b>.
         </p>
 
         {state.totalForged > 0 && (

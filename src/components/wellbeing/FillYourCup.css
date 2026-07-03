@@ -1351,3 +1351,92 @@
   font-size: 0.9rem;
   text-shadow: 0 0 8px #00FFBF;
 }
+
+/* ─── AAA liquid upgrade: parallax waves, caustics, splash, radiance ────── */
+
+/* surface group rises with the same spring as the body */
+.fyc-surface {
+  transition: transform 0.9s cubic-bezier(0.34, 1.2, 0.64, 1);
+  will-change: transform;
+}
+
+/* two counter-drifting waves = parallax water */
+.fyc-wave2 { will-change: transform; }
+.fyc-wave2--back  { animation: fyc-wave-drift-l 5.2s linear infinite; }
+.fyc-wave2--front { animation: fyc-wave-drift-r 3.4s linear infinite; }
+
+@keyframes fyc-wave-drift-l {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-96px); } /* exactly one back-wave period */
+}
+@keyframes fyc-wave-drift-r {
+  from { transform: translateX(-64px); } /* exactly one front-wave period */
+  to   { transform: translateX(0); }
+}
+
+/* glowing meniscus line where liquid meets glass */
+.fyc-meniscus { animation: fyc-meniscus-pulse 3s ease-in-out infinite; }
+@keyframes fyc-meniscus-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+
+/* splash ripple ring on every pour */
+.fyc-splash {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fyc-splash-ring 0.7s ease-out forwards;
+}
+@keyframes fyc-splash-ring {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(4);   opacity: 0; }
+}
+
+/* caustic light shaft sweeping through the liquid */
+.fyc-caustic { animation: fyc-caustic-sweep 7s ease-in-out infinite; }
+@keyframes fyc-caustic-sweep {
+  0%, 12%   { transform: skewX(-14deg) translateX(0); opacity: 0; }
+  22%       { opacity: 1; }
+  55%, 100% { transform: skewX(-14deg) translateX(290px); opacity: 0; }
+}
+
+/* percent number pops with each pour */
+.fyc-pct-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fyc-pct-pop-anim 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fyc-pct-pop-anim {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* extra bubbles */
+.fyc-b4 { animation-delay: 0.4s; animation-duration: 3.1s; }
+.fyc-b5 { animation-delay: 1.1s; animation-duration: 2.6s; }
+.fyc-b6 { animation-delay: 1.8s; animation-duration: 4s; }
+
+/* radiant rings when the cup is full */
+.fyc-burst {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.fyc-burst--a { animation: fyc-burst-ring 2.6s ease-out infinite; }
+.fyc-burst--b { animation: fyc-burst-ring 2.6s ease-out infinite 1.3s; }
+@keyframes fyc-burst-ring {
+  0%   { transform: scale(0.92); opacity: 0.85; }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fyc-wave2, .fyc-meniscus, .fyc-caustic, .fyc-burst,
+  .fyc-splash, .fyc-pct-pop { animation: none; }
+  .fyc-surface { transition: none; }
+}
+[data-reduced-motion="true"] .fyc-wave2,
+[data-reduced-motion="true"] .fyc-meniscus,
+[data-reduced-motion="true"] .fyc-caustic,
+[data-reduced-motion="true"] .fyc-burst,
+[data-reduced-motion="true"] .fyc-splash,
+[data-reduced-motion="true"] .fyc-pct-pop { animation: none; }

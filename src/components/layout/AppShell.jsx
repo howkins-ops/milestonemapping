@@ -8,6 +8,7 @@ import NavIcon from "../ui/NavIcon.jsx";
 import "../../styles/wave.css";
 
 const GROWTH_MENU = [
+  { id: "zone", label: "The Zone", sub: "Accountability with your people" },
   { id: "identity", label: "Identity", sub: "Name the new version" },
   { id: "vision", label: "Vision Board", sub: "See where you're going" },
   { id: "essence", label: "Shadow Work", sub: "Face what's holding you back" },
@@ -128,7 +129,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                     type="button"
                     className="app-topbar__profile-btn app-topbar__sos"
                     onClick={onOpenSOS}
-                    aria-label="Anxiety SOS — Ride the Wave"
+                    aria-label="SOS — Emotional Reset Hub"
                   >
                     <span className="app-topbar__icon-box" aria-hidden="true">
                       <span className="app-topbar__sos-emoji">🌊</span>

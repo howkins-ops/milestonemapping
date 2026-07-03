@@ -78,10 +78,45 @@ function computePct(completed, habitsMap, threshold) {
 
 // ─── Animated Cup SVG ─────────────────────────────────────────────────────────
 
+// Seamlessly-looping sine surface (local coords, crest line at y=0).
+// Shifting by exactly one period reads identical, so the CSS loop never jumps.
+function wavePath(amp, period, width = 520, depth = 34) {
+  const half = width / 2;
+  let x = -half;
+  let d = `M ${x} 0 Q ${x + period / 4} ${-amp} ${x + period / 2} 0`;
+  x += period / 2;
+  while (x < half) {
+    d += ` T ${x + period / 2} 0`;
+    x += period / 2;
+  }
+  return `${d} L ${half} ${depth} L ${-half} ${depth} Z`;
+}
+const WAVE_BACK = wavePath(6, 96);
+const WAVE_FRONT = wavePath(3.5, 64);
+
+const CUP_BUBBLES = [
+  { cx: 70, f: 0.72, r: 3, cls: "fyc-b0" },
+  { cx: 100, f: 0.5, r: 2, cls: "fyc-b1" },
+  { cx: 130, f: 0.82, r: 3.5, cls: "fyc-b2" },
+  { cx: 85, f: 0.36, r: 2.5, cls: "fyc-b3" },
+  { cx: 115, f: 0.62, r: 1.8, cls: "fyc-b4" },
+  { cx: 58, f: 0.48, r: 2.2, cls: "fyc-b5" },
+  { cx: 142, f: 0.4, r: 1.6, cls: "fyc-b6" },
+];
+
 function AnimatedCup({ pct, pour = false }) {
   const isFull = pct >= 100;
   const isEmpty = pct === 0;
   const fillY = 215 - (195 * Math.min(pct, 100) / 100);
+  const hasSurface = pct > 2 && pct < 100;
+
+  // Ripple + number-pop every time the liquid rises.
+  const [splash, setSplash] = useState(0);
+  const prevPct = useRef(pct);
+  useEffect(() => {
+    if (pct > prevPct.current) setSplash((s) => s + 1);
+    prevPct.current = pct;
+  }, [pct]);
 
   return (
     <div className={`fyc-cup ${isFull ? "fyc-cup--full" : ""} ${isEmpty ? "fyc-cup--empty" : ""} ${pour ? "fyc-cup--pour" : ""}`}>
@@ -94,6 +129,11 @@ function AnimatedCup({ pct, pour = false }) {
             <stop offset="0%" stopColor="#00F0FF" />
             <stop offset="50%" stopColor="#D11EFF" />
             <stop offset="100%" stopColor="#00FFBF" />
+          </linearGradient>
+          <linearGradient id="fyc-depth" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.14)" />
+            <stop offset="30%" stopColor="rgba(255,255,255,0)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.38)" />
           </linearGradient>
           <linearGradient id="fyc-glass" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.10)" />
@@ -110,24 +150,46 @@ function AnimatedCup({ pct, pour = false }) {
         </defs>
 
         <g clipPath="url(#fyc-clip)">
+          {/* liquid body + depth shading */}
           <rect className="fyc-liquid-rect"
-            x="0" y={fillY} width="200" height={215 - fillY}
-            fill="url(#fyc-liq)" opacity="0.88" />
-          {pct > 2 && pct < 100 && (
-            <path className="fyc-wave"
-              d={`M -50 ${fillY} Q 25 ${fillY - 8} 100 ${fillY} Q 175 ${fillY + 8} 250 ${fillY} L 250 ${fillY + 20} L -50 ${fillY + 20} Z`}
-              fill="rgba(0,240,255,0.4)" />
+            x="0" y={fillY} width="200" height={218 - fillY}
+            fill="url(#fyc-liq)" opacity="0.9" />
+          <rect className="fyc-liquid-rect"
+            x="0" y={fillY} width="200" height={218 - fillY}
+            fill="url(#fyc-depth)" />
+
+          {/* caustic light sweeping through the liquid */}
+          {pct > 8 && (
+            <rect className="fyc-liquid-rect fyc-caustic"
+              x="-70" y={fillY} width="26" height={218 - fillY}
+              fill="rgba(255,255,255,0.07)" transform="skewX(-14)" />
           )}
-          {pct > 15 && [
-            { cx: 70, f: 0.7, r: 3, cls: "fyc-b0" },
-            { cx: 100, f: 0.5, r: 2, cls: "fyc-b1" },
-            { cx: 130, f: 0.8, r: 3.5, cls: "fyc-b2" },
-            { cx: 85, f: 0.35, r: 2.5, cls: "fyc-b3" },
-          ].map(({ cx, f, r, cls }) => (
+
+          {/* living surface: parallax waves + meniscus glow + splash rings */}
+          {hasSurface && (
+            <g className="fyc-surface" style={{ transform: `translateY(${fillY}px)` }}>
+              <path className="fyc-wave2 fyc-wave2--back" d={WAVE_BACK} fill="rgba(0,240,255,0.32)" />
+              <path className="fyc-wave2 fyc-wave2--front" d={WAVE_FRONT} fill="rgba(255,255,255,0.22)" />
+              <ellipse className="fyc-meniscus" cx="100" cy="1" rx="80" ry="3" fill="rgba(0,240,255,0.45)" />
+              {splash > 0 && (
+                <ellipse key={splash} className="fyc-splash"
+                  cx="100" cy="1.5" rx="14" ry="4.5"
+                  fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" />
+              )}
+            </g>
+          )}
+
+          {/* rising bubbles */}
+          {pct > 15 && CUP_BUBBLES.map(({ cx, f, r, cls }) => (
             <circle key={cls} className={`fyc-bubble ${cls}`}
               cx={cx} cy={fillY + (215 - fillY) * f} r={r}
               fill="rgba(255,255,255,0.18)" />
           ))}
+
+          {/* inner glass gloss */}
+          <path d="M 42 32 Q 37 112 49 188"
+            stroke="rgba(255,255,255,0.13)" strokeWidth="7"
+            fill="none" strokeLinecap="round" />
         </g>
 
         <path d="M 30 20 L 170 20 L 147 202 Q 140 218 100 218 Q 60 218 53 202 Z"
@@ -150,14 +212,22 @@ function AnimatedCup({ pct, pour = false }) {
           </g>
         )}
         {isFull && (
-          <ellipse cx="100" cy="118" rx="88" ry="98"
-            fill="none" stroke="#D11EFF" strokeWidth="1.5" opacity="0.4"
-            className="fyc-aura" />
+          <>
+            <ellipse cx="100" cy="118" rx="88" ry="98"
+              fill="none" stroke="#D11EFF" strokeWidth="1.5" opacity="0.4"
+              className="fyc-aura" />
+            <ellipse cx="100" cy="118" rx="80" ry="90"
+              fill="none" stroke="#00FFBF" strokeWidth="1.5"
+              className="fyc-burst fyc-burst--a" />
+            <ellipse cx="100" cy="118" rx="80" ry="90"
+              fill="none" stroke="#00F0FF" strokeWidth="1"
+              className="fyc-burst fyc-burst--b" />
+          </>
         )}
-        <text x="100" y="130" textAnchor="middle"
+        <text key={splash} x="100" y="130" textAnchor="middle"
           fill="white" fontSize="26" fontWeight="800"
           fontFamily="inherit" filter="url(#fyc-glow)"
-          className="fyc-pct-svg">
+          className={`fyc-pct-svg ${splash > 0 ? "fyc-pct-pop" : ""}`}>
           {Math.round(pct)}%
         </text>
       </svg>

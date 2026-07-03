@@ -120,6 +120,12 @@ export const ACHIEVEMENTS = [
     icon: "🜂"
   },
   {
+    id: "first_burn",
+    title: "The First Burn",
+    description: "You walked the full BUFCA and burned the old story. From the ashes, a commitment.",
+    icon: "🔥"
+  },
+  {
     id: "wave_first",
     title: "First Wave Ridden",
     description: "You rode your first anxiety wave and stayed with yourself.",

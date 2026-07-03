@@ -15,7 +15,16 @@ export const XP_VALUES = {
   reviewStreak4: 200,
   shadowToolCompleted: 15,
   shadowTransmutation: 40,
-  waveRidden: 20
+  bufcaBurn: 50,
+  waveRidden: 20,
+  // Accountability Zone — amounts are computed server-side in the az_* RPCs
+  // (supabase/migrations); these mirror them for display/reference only.
+  zoneDeclare: 10,
+  zoneProof: 25,
+  zoneProofRepeat: 5,
+  zoneChallengeCheckin: 15,
+  zoneChallengeComplete: 200,
+  zoneWeeklyReport: 50
 };
 
 export const RANKS = [

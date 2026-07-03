@@ -1,0 +1,494 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE BURN — BUFCA ritual cinematics. Prefix: .bfc-
+   Paper → hold-to-ignite → cast → the long burn → embers → rebirth.
+   Fire palette stays in-brand: gold #FFD166/#FFB000 → ember #FF7A3C → red #FF3B5C.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── intro ladder ───────────────────────────────────────────────────────── */
+.bfc-ladder {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bfc-ladder li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.bfc-ladder li b {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 178, 64, 0.5);
+  background: rgba(255, 154, 60, 0.1);
+  color: #ffc76a;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+
+/* ── the ritual scene ───────────────────────────────────────────────────── */
+.bfc-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 520px;
+  padding-bottom: 150px; /* room for the pit */
+  isolation: isolate;
+}
+
+/* heat glow + vignette — breathes with the phase */
+.bfc-heat {
+  position: absolute;
+  inset: -18px -18px -40px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 46% at 50% 100%, rgba(255, 122, 60, 0.22), transparent 70%),
+    radial-gradient(120% 60% at 50% 0%, rgba(4, 0, 8, 0.6), transparent 60%);
+  opacity: 0.7;
+  transition: opacity 1.2s ease, filter 1.2s ease;
+}
+.bfc-scene.is-cast .bfc-heat,
+.bfc-scene.is-burning .bfc-heat { opacity: 1; filter: brightness(1.35); }
+.bfc-scene.is-embers .bfc-heat { opacity: 0.55; }
+
+/* ── the paper ──────────────────────────────────────────────────────────── */
+.bfc-paper {
+  position: relative;
+  width: min(300px, 82vw);
+  margin: 18px auto 10px;
+  padding: 22px 22px 26px;
+  border-radius: 4px;
+  transform: rotate(-2deg);
+  background:
+    radial-gradient(140% 90% at 20% 0%, rgba(255, 255, 255, 0.16), transparent 50%),
+    linear-gradient(168deg, #f2e7d0, #e5d3b2 62%, #d9c49e);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    inset 0 0 34px rgba(122, 84, 40, 0.22);
+  color: #33241a;
+  animation: bfcPaperIn 1s var(--ease-out) both;
+  overflow: hidden;
+}
+@keyframes bfcPaperIn {
+  from { opacity: 0; transform: rotate(-2deg) translateY(26px) scale(0.96); }
+  to { opacity: 1; transform: rotate(-2deg) translateY(0) scale(1); }
+}
+.bfc-paper__title {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8a6a42;
+  animation: bfcInk 1.2s ease 0.2s both;
+}
+.bfc-paper__text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+  animation: bfcInk 1.4s ease 0.55s both;
+}
+.bfc-paper__feelings {
+  margin: 12px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7c5230;
+  animation: bfcInk 1.2s ease 1s both;
+}
+.bfc-paper__scrawl {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: #59422e;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  animation: bfcInk 1.2s ease 1.35s both;
+}
+@keyframes bfcInk {
+  from { opacity: 0; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+/* char creeping from the lit corner */
+.bfc-paper__char {
+  position: absolute;
+  right: -46px;
+  bottom: -46px;
+  width: 120px;
+  height: 120px;
+  border-radius: 46% 54% 40% 60% / 55% 45% 55% 45%;
+  background: radial-gradient(circle, #0a0603 38%, #241109 58%, rgba(255, 110, 40, 0.85) 66%, transparent 74%);
+  opacity: 0;
+  transform: scale(0.3);
+  pointer-events: none;
+}
+.bfc-paper.is-lit .bfc-paper__char {
+  animation: bfcChar 7s linear forwards;
+}
+@keyframes bfcChar {
+  0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  12% { opacity: 1; }
+  100% { opacity: 1; transform: scale(3.1) rotate(14deg); }
+}
+
+/* small corner flame once lit */
+.bfc-paper__cornerflame {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  width: 40px;
+  height: 52px;
+  opacity: 0;
+  pointer-events: none;
+}
+.bfc-paper.is-lit .bfc-paper__cornerflame { opacity: 1; }
+.bfc-paper__cornerflame i {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(50% 66% at 50% 76%, #ffe9a8, #ffb000 46%, #ff5a3c 78%, transparent);
+  filter: blur(1.5px);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+}
+.bfc-paper__cornerflame i:nth-child(1) { left: 4px; width: 16px; height: 30px; animation: bfcFlick 0.62s ease-in-out infinite alternate; }
+.bfc-paper__cornerflame i:nth-child(2) { left: 16px; width: 20px; height: 44px; animation: bfcFlick 0.5s ease-in-out 0.12s infinite alternate; }
+.bfc-paper__cornerflame i:nth-child(3) { left: 28px; width: 12px; height: 24px; animation: bfcFlick 0.72s ease-in-out 0.2s infinite alternate; }
+
+/* the throw — paper falls into the pit */
+.bfc-paper.is-cast {
+  animation: bfcCast 1.7s cubic-bezier(0.5, 0.02, 0.74, 0.4) forwards;
+}
+@keyframes bfcCast {
+  0% { opacity: 1; transform: rotate(-2deg) translate(0, 0) scale(1); }
+  30% { transform: rotate(6deg) translate(14px, 60px) scale(0.9); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(26deg) translate(-8px, 320px) scale(0.34); }
+}
+
+/* ── captions & controls ────────────────────────────────────────────────── */
+.bfc-caption {
+  margin: 14px auto 0;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-soft);
+  animation: bfcInkLight 0.9s ease 0.3s both;
+}
+.bfc-caption.is-hot { color: #ffc76a; text-shadow: 0 0 18px rgba(255, 154, 60, 0.5); }
+@keyframes bfcInkLight {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.bfc-ignite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bfc-castbtn { margin-top: 10px; background: linear-gradient(100deg, #ffb000, #ff5a3c); }
+
+/* hold-to-ignite match */
+.bfc-holdmatch {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  margin-top: 14px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(10, 4, 2, 0.72);
+  box-shadow: 0 0 30px rgba(255, 122, 60, 0.25), inset 0 0 0 1px rgba(255, 178, 64, 0.28);
+  cursor: pointer;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+}
+.bfc-holdring { position: absolute; inset: 4px; transform: rotate(-90deg); }
+.bfc-holdring circle { fill: none; stroke-width: 3; }
+.bfc-holdring__track { stroke: rgba(255, 255, 255, 0.12); }
+.bfc-holdring__fill {
+  stroke: #ffb000;
+  stroke-linecap: round;
+  stroke-dasharray: 163.4;
+  filter: drop-shadow(0 0 6px rgba(255, 176, 0, 0.9));
+}
+.bfc-holdmatch__flame { position: relative; width: 26px; height: 34px; display: block; }
+.bfc-holdmatch__flame i {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+}
+.bfc-holdmatch__flame i:nth-child(1) {
+  left: 3px; width: 20px; height: 32px;
+  background: radial-gradient(50% 66% at 50% 76%, #ffe9a8, #ffb000 48%, #ff5a3c 80%, transparent);
+  filter: blur(1.5px);
+  animation: bfcFlick 0.55s ease-in-out infinite alternate;
+}
+.bfc-holdmatch__flame i:nth-child(2) {
+  left: 8px; width: 10px; height: 18px;
+  background: radial-gradient(50% 66% at 50% 76%, #fff, #ffe9a8 60%, transparent);
+  filter: blur(1px);
+  animation: bfcFlick 0.42s ease-in-out 0.1s infinite alternate;
+}
+@keyframes bfcFlick {
+  from { transform: scaleY(0.86) skewX(-2.5deg); }
+  to { transform: scaleY(1.14) skewX(2.5deg); }
+}
+
+/* ── mantras over the burn ──────────────────────────────────────────────── */
+.bfc-mantra {
+  position: relative;
+  z-index: 2;
+  margin: 42px auto 0;
+  max-width: 30ch;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 5vw, 24px);
+  font-weight: 800;
+  line-height: 1.35;
+  color: #ffe2b8;
+  text-shadow: 0 0 26px rgba(255, 154, 60, 0.55), 0 2px 18px rgba(0, 0, 0, 0.8);
+  animation: bfcMantra 1.6s var(--ease-out) both;
+}
+@keyframes bfcMantra {
+  from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* ── the fire pit ───────────────────────────────────────────────────────── */
+.bfc-pit {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(340px, 92vw);
+  height: 190px;
+  pointer-events: none;
+}
+.bfc-glowcore {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 130px;
+  background: radial-gradient(50% 62% at 50% 78%, rgba(255, 176, 0, 0.5), rgba(255, 90, 60, 0.26) 46%, transparent 72%);
+  filter: blur(10px);
+  transition: opacity 1.4s ease, transform 1.4s ease;
+}
+.bfc-flame {
+  position: absolute;
+  bottom: 6px;
+  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+  background: radial-gradient(50% 70% at 50% 80%, #ffe9a8, #ffb000 42%, #ff7a3c 66%, #ff3b5c 84%, transparent);
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+  transition: transform 1.4s ease, opacity 1.4s ease;
+}
+.bfc-flame.f1 { left: 50%; margin-left: -34px; width: 68px; height: 128px; animation: bfcFlick 0.72s ease-in-out infinite alternate; }
+.bfc-flame.f2 { left: 50%; margin-left: -72px; width: 44px; height: 86px; animation: bfcFlick 0.58s ease-in-out 0.12s infinite alternate; }
+.bfc-flame.f3 { left: 50%; margin-left: 26px; width: 48px; height: 96px; animation: bfcFlick 0.64s ease-in-out 0.2s infinite alternate; }
+.bfc-flame.f4 { left: 50%; margin-left: -108px; width: 30px; height: 52px; animation: bfcFlick 0.5s ease-in-out 0.05s infinite alternate; }
+.bfc-flame.f5 { left: 50%; margin-left: 74px; width: 32px; height: 58px; animation: bfcFlick 0.55s ease-in-out 0.16s infinite alternate; }
+
+/* ember bed */
+.bfc-embers {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78%;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(18% 45% at 26% 55%, rgba(255, 176, 0, 0.9), transparent 70%),
+    radial-gradient(14% 40% at 48% 62%, rgba(255, 90, 60, 0.85), transparent 70%),
+    radial-gradient(16% 42% at 70% 52%, rgba(255, 154, 60, 0.8), transparent 70%),
+    radial-gradient(60% 90% at 50% 60%, #26100a, #0c0505 80%);
+  box-shadow: 0 0 34px rgba(255, 122, 60, 0.4);
+}
+
+/* fire intensity per phase */
+.bfc-scene.is-paper .bfc-flame,
+.bfc-scene.is-ignite .bfc-flame,
+.bfc-scene.is-lit .bfc-flame { transform: scale(0.82); opacity: 0.85; }
+.bfc-scene.is-cast .bfc-flame { transform: scale(1.3); opacity: 1; }
+.bfc-scene.is-burning .bfc-flame { transform: scale(1.14); opacity: 1; }
+.bfc-scene.is-embers .bfc-flame { transform: scaleY(0.22) scaleX(0.7); opacity: 0.45; }
+.bfc-scene.is-embers .bfc-glowcore { opacity: 0.55; transform: translateX(-50%) scaleY(0.7); }
+
+/* the sheet blackening inside the fire */
+.bfc-burnsheet {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  width: 92px;
+  height: 66px;
+  margin-left: -46px;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #1a0e08, #050302 70%);
+  box-shadow: inset 0 0 12px rgba(255, 122, 60, 0.85), 0 0 18px rgba(255, 90, 60, 0.4);
+  animation: bfcSheet 7.5s ease-in forwards;
+}
+@keyframes bfcSheet {
+  0% { opacity: 0; transform: rotate(-6deg) scale(1.1); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  10% { opacity: 1; }
+  45% { transform: rotate(4deg) scale(0.9); clip-path: polygon(6% 14%, 92% 4%, 86% 92%, 12% 84%); }
+  75% { opacity: 0.85; transform: rotate(-3deg) scale(0.62); clip-path: polygon(18% 30%, 74% 18%, 66% 74%, 30% 66%); }
+  100% { opacity: 0; transform: rotate(6deg) scale(0.3); clip-path: polygon(34% 44%, 58% 38%, 54% 58%, 40% 56%); }
+}
+
+/* rising ash + sparks */
+.bfc-ashfield { position: absolute; inset: 0; overflow: visible; }
+.bfc-ashfield i {
+  position: absolute;
+  bottom: 20px;
+  left: calc(12% + var(--n) * 5.6%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 154, 60, 0.9);
+  box-shadow: 0 0 8px rgba(255, 154, 60, 0.8);
+  opacity: 0;
+  animation: bfcAsh 4.6s linear calc(var(--n) * 0.42s) infinite;
+}
+.bfc-ashfield i:nth-child(odd) {
+  width: 5px;
+  height: 5px;
+  border-radius: 40% 60% 55% 45%;
+  background: rgba(140, 128, 120, 0.75);
+  box-shadow: none;
+}
+@keyframes bfcAsh {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+  12% { opacity: 0.95; }
+  60% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(calc(-14px + var(--n) * 2.4px), -300px) rotate(220deg); }
+}
+
+/* ── rebirth ────────────────────────────────────────────────────────────── */
+.bfc-rebirth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 10px;
+  animation: bfcInkLight 0.9s ease both;
+}
+.bfc-rebirth__phoenix { position: relative; width: 240px; margin: 0 auto; }
+.bfc-rebirth__eyebrow {
+  margin: 6px 0 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #ffc76a;
+  text-shadow: 0 0 16px rgba(255, 176, 0, 0.55);
+  animation: bfcInkLight 0.9s ease 0.5s both;
+}
+.bfc-rebirthcard {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 20px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  border: 2px solid #ffb000;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 176, 0, 0.12), transparent 60%),
+    linear-gradient(170deg, rgba(24, 12, 2, 0.92), rgba(10, 3, 12, 0.96));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px rgba(255, 176, 0, 0.18);
+  text-align: left;
+  animation: bfcRise 1s var(--ease-out) 0.7s both;
+}
+@keyframes bfcRise {
+  from { opacity: 0; transform: translateY(26px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.bfc-rebirthcard__label {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffc76a;
+}
+.bfc-rebirthcard__commitment {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+.bfc-rebirthcard__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  background: rgba(255, 176, 0, 0.08);
+  border: 1px solid rgba(255, 176, 0, 0.3);
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.bfc-rebirthcard__action b { flex: none; color: #ffb000; font-family: var(--font-display); }
+.bfc-rebirth .sx-primary { animation: bfcInkLight 0.8s ease 1.5s both; }
+
+/* skip link sits under everything */
+.bfc-scene .sx-skip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.6;
+}
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .bfc-paper, .bfc-paper__title, .bfc-paper__text, .bfc-paper__feelings, .bfc-paper__scrawl,
+  .bfc-paper__cornerflame i, .bfc-flame, .bfc-holdmatch__flame i, .bfc-caption,
+  .bfc-mantra, .bfc-burnsheet, .bfc-ashfield i, .bfc-rebirthcard, .bfc-rebirth,
+  .bfc-rebirth__eyebrow, .bfc-rebirth .sx-primary { animation: none !important; opacity: 1; }
+  .bfc-paper.is-cast { opacity: 0; }
+  .bfc-paper.is-lit .bfc-paper__char { animation: none; opacity: 1; transform: scale(1.6); }
+}
+
+/* ── small phones ───────────────────────────────────────────────────────── */
+@media (max-width: 420px) {
+  .bfc-scene { min-height: 480px; padding-bottom: 130px; }
+  .bfc-paper { padding: 18px 18px 22px; }
+  .bfc-paper__text { font-size: 15px; }
+  .bfc-pit { height: 160px; }
+  .bfc-flame.f1 { height: 106px; }
+  .bfc-mantra { margin-top: 30px; }
+}

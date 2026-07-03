@@ -229,11 +229,37 @@
   }
 }
 
+/* Boot: sparks pulled inward to condense into the diamond */
+@keyframes boot-converge {
+  from { opacity: 0; transform: translate(var(--cx, 60px), var(--cy, -60px)) scale(1); }
+  25%  { opacity: 1; }
+  to   { opacity: 0; transform: translate(0, 0) scale(0.25); }
+}
+
+/* Boot: single impact jolt at ignition (transform-only) */
+@keyframes boot-jolt {
+  0%, 100% { transform: translate(0, 0); }
+  30%      { transform: translate(2px, -1px); }
+  60%      { transform: translate(-2px, 1px); }
+  80%      { transform: translate(1px, -1px); }
+}
+
+/* Boot: light-ray fan drifting behind the centerpiece */
+@keyframes boot-rays {
+  from { transform: rotate(-4deg); }
+  50%  { transform: rotate(4deg); }
+  to   { transform: rotate(-4deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    /* Staggered entrances must not leave elements invisible while
+       they wait out their delay — zero the delay too. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
 }
 
@@ -243,4 +269,6 @@
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  transition-delay: 0s !important;
 }

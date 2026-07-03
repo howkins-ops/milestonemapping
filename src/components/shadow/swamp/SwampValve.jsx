@@ -5,6 +5,7 @@ import { boggoLine } from "./swampData.js";
 import PressureChamber from "./PressureChamber.jsx";
 import BellyBoiler from "./BellyBoiler.jsx";
 import RuminationBog from "./RuminationBog.jsx";
+import DrainTheSwamp from "./DrainTheSwamp.jsx";
 
 /* ════════════════════════════════════════════════════════════════════════
    SWAMP VALVE — the anger game inside Shadow Work.
@@ -19,6 +20,11 @@ import RuminationBog from "./RuminationBog.jsx";
    ════════════════════════════════════════════════════════════════════════ */
 
 const MODES = [
+  {
+    id: "drain", emoji: "🌊", tag: "Signature · Cinematic", accent: "#00F0FF", featured: true,
+    name: "Drain the Swamp",
+    blurb: "Grip the great valve and slowly open the floodgate. Watch the black water leave, the fog lift, the sun break through — stress drains out of the landscape while you breathe it out of your body.",
+  },
   {
     id: "pressure", emoji: "🔧", tag: "Main game", accent: "#00FFBF",
     name: "Pressure Chamber",
@@ -42,6 +48,7 @@ export default function SwampValve({ onClose, onFinish }) {
   const toHub = () => setMode(null);
   const complete = (takeaway) => onFinish("Swamp Valve", takeaway);
 
+  if (mode === "drain") return <DrainTheSwamp onBack={toHub} onComplete={complete} />;
   if (mode === "pressure") return <PressureChamber onBack={toHub} onComplete={complete} />;
   if (mode === "belly") return <BellyBoiler onBack={toHub} onComplete={complete} />;
   if (mode === "bog") return <RuminationBog onBack={toHub} onComplete={complete} />;
@@ -74,7 +81,12 @@ export default function SwampValve({ onClose, onFinish }) {
 
         <div className="sv-modes" style={{ marginTop: 16 }}>
           {MODES.map((m) => (
-            <button key={m.id} className="sv-modecard" style={{ "--mc": m.accent }} onClick={() => setMode(m.id)}>
+            <button
+              key={m.id}
+              className={`sv-modecard ${m.featured ? "sv-modecard--featured" : ""}`}
+              style={{ "--mc": m.accent }}
+              onClick={() => setMode(m.id)}
+            >
               <div className="sv-modecard__top">
                 <span className="sv-modecard__emoji">{m.emoji}</span>
                 <span className="sv-modecard__tag">{m.tag}</span>

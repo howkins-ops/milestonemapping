@@ -24,6 +24,12 @@ existing shadow tools are reframed as *themed BUFCA runs* — same five-beat spi
 Details: back-up-one-step if stuck; end on a committed action with a by-when; celebrate as a Shadow "win"
 (XP/essence, reusing the existing `useShadowWork` + `useAppData` reward wiring). See memory `project_shadowwork`.
 
+**Finale — The Burn (Jon's call, 2026-07-03):** after **A**, BUFCA ends as a game moment. The old
+belief/breakdown story appears written on a piece of paper; the user throws it into the forge ashes and
+watches it **burn** — then a **phoenix / new identity rises from the ashes** carrying the Commitment
+(reuse the `sx-phoenix` rise + `phoenix-shrine` sprites and the Reframe Forge burn language). The rebirth
+card is the takeaway that lands in the trail; transmutation XP + essence wiring as above.
+
 **Reframe existing Shadow tools as BUFCA variants** (shared 5-beat engine, themed copy):
 - Hold the Line (anger) → BUFCA with a heat/regulation skin.
 - Shadow Alchemist (mask running me) → BUFCA where "Facts" exposes the mask's story.

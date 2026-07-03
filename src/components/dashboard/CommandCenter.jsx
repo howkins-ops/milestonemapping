@@ -34,6 +34,15 @@ function IconClipboard() {
   );
 }
 
+function IconFlame() {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M10 2c1.6 2.3 4 3.6 4 6.5A4 4 0 0 1 12.4 12c.2-2-0.9-3.1-2.4-4.1C8.5 8.9 7.4 10 7.6 12A4 4 0 0 1 6 8.5C6 5.6 8.4 4.3 10 2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" fill="currentColor" fillOpacity="0.08" />
+      <path d="M5 13.5c1.2 2.4 2.9 3.7 5 3.7s3.8-1.3 5-3.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconGift() {
   return (
     <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
@@ -81,6 +90,15 @@ const QUICK_ACTIONS = [
     Icon: IconGift,
     asset: "/assets/dashboard/action-rewards-v2.png",
     tone: "cyan",
+  },
+  {
+    label: "The Zone",
+    eyebrow: "Together",
+    description: "Declare. Prove. Rise with your people.",
+    route: "zone",
+    Icon: IconFlame,
+    asset: "/assets/phoenix-shrine/phoenix-rising.png",
+    tone: "pink",
   },
 ];
 

@@ -33,6 +33,8 @@ import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
 import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
 import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
 
+const ZonePage = React.lazy(() => import("./components/zone/ZonePage.jsx"));
+
 const BOOT_SESSION_FLAG = "milestone_mapping_boot_shown";
 
 function AppContent({ signOut }) {
@@ -160,7 +162,7 @@ function AppContent({ signOut }) {
       case "rewards":
         return <RewardsPage onNavigate={navigate} />;
       case "essence":
-        return <ShadowWorkPage />;
+        return <ShadowWorkPage onNavigate={navigate} />;
       case "vision":
         return <VisionBoardPage />;
       case "identity":
@@ -179,6 +181,12 @@ function AppContent({ signOut }) {
         return <FillYourCup />;
       case "anger":
         return <AngerGymPage />;
+      case "zone":
+        return (
+          <Suspense fallback={null}>
+            <ZonePage />
+          </Suspense>
+        );
       case "blaze":
         return <BlazeRealTrainingOS />;
       case "profile":

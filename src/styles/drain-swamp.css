@@ -1,0 +1,393 @@
+/* ════════════════════════════════════════════════════════════════════════
+   DRAIN THE SWAMP — cinematic environmental transformation.
+   Prefix: .dts-
+
+   The entire scene is driven by one custom property on .dts-scene:
+     --p    0 → 1   how far the floodgate is open (set from JS pointer code)
+     --rot  0 → 12π wheel rotation in radians (unitless, multiplied by 1rad)
+
+   Every layer derives its state from --p with calc()/clamp(), so the
+   landscape transforms continuously at 60fps with zero re-renders:
+   water falls, murk fades, fog lifts, sun breaks, flora blooms, birds fly.
+   All motion is transform/opacity. No blur on moving layers (seam rule).
+   ════════════════════════════════════════════════════════════════════════ */
+
+.dts-scene {
+  --p: 0;
+  --rot: 0;
+  position: relative;
+  width: 100%;
+  height: min(54vh, 480px);
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #04110c;
+  border: 1px solid color-mix(in srgb, var(--brand-green, #00FFBF) 22%, transparent);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 0 40px color-mix(in srgb, var(--brand-green, #00FFBF) 8%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Sky: clear dawn beneath, murk cross-fading away ─────────────────────── */
+.dts-sky { position: absolute; inset: 0; z-index: 0; }
+
+.dts-sky--clear {
+  background:
+    radial-gradient(60% 45% at 28% 18%, rgba(250, 204, 21, 0.34), transparent 65%),
+    linear-gradient(180deg, #062c38 0%, #0a4a4d 46%, #0e6b58 100%);
+}
+
+.dts-sky--murky {
+  opacity: calc(1 - var(--p));
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(60, 20, 80, 0.5), transparent 70%),
+    linear-gradient(180deg, #090b06 0%, #131a0c 48%, #1c2410 100%);
+}
+
+/* sun core — wakes past the halfway mark */
+.dts-sun {
+  position: absolute;
+  top: 8%;
+  left: 20%;
+  width: 90px;
+  height: 90px;
+  z-index: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 231, 150, 0.95) 0%, rgba(250, 204, 21, 0.4) 40%, transparent 70%);
+  opacity: clamp(0, (var(--p) - 0.45) * 2.2, 1);
+}
+
+/* god rays — no blur, pure gradients, slow drift */
+.dts-rays {
+  position: absolute;
+  top: -20%;
+  left: 4%;
+  width: 60%;
+  height: 130%;
+  z-index: 2;
+  background:
+    linear-gradient(112deg, transparent 30%, rgba(255, 231, 150, 0.12) 38%, transparent 46%),
+    linear-gradient(112deg, transparent 52%, rgba(0, 240, 255, 0.08) 60%, transparent 68%);
+  transform: rotate(6deg);
+  opacity: clamp(0, (var(--p) - 0.55) * 2, 0.85);
+  animation: dtsRayDrift 14s ease-in-out infinite alternate;
+}
+
+/* ── Birds return at the end ─────────────────────────────────────────────── */
+.dts-bird {
+  position: absolute;
+  z-index: 3;
+  font-size: 15px;
+  opacity: clamp(0, (var(--p) - 0.85) * 6, 1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+.dts-bird--a { top: 14%; animation: dtsBirdFly 18s linear infinite; }
+.dts-bird--b { top: 24%; font-size: 12px; animation: dtsBirdFly 24s linear infinite; animation-delay: -9s; }
+
+/* ── Trees: dead silhouettes that green up ────────────────────────────────── */
+.dts-tree {
+  position: absolute;
+  bottom: 30%;
+  width: 27%;
+  max-width: 150px;
+  z-index: 4;
+}
+.dts-tree--l { left: -2%; }
+.dts-tree--r { right: -2%; }
+.dts-tree__wood { fill: #0c130e; stroke: rgba(0, 255, 191, 0.12); stroke-width: 0.6; }
+.dts-tree__leaves { fill: #17c98a; opacity: clamp(0, (var(--p) - 0.52) * 2.4, 0.92); }
+
+/* ── Riverbed behind the water ───────────────────────────────────────────── */
+.dts-bed {
+  position: absolute;
+  inset: auto 0 0;
+  height: 40%;
+  z-index: 5;
+  background:
+    radial-gradient(80% 40% at 50% 100%, rgba(0, 255, 191, 0.08), transparent 70%),
+    linear-gradient(180deg, #12301f 0%, #0a2015 55%, #061710 100%);
+}
+
+/* flora blooms out of the bed, each item past its own --t threshold */
+.dts-flora { position: absolute; inset: auto 0 0; height: 34%; z-index: 5; pointer-events: none; }
+.dts-flora i {
+  position: absolute;
+  bottom: 6%;
+  left: calc(5% + var(--fi) * 11.8%);
+  font-style: normal;
+  font-size: 19px;
+  transform: scale(clamp(0, (var(--p) - var(--t)) * 6, 1));
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.dts-flora i:nth-child(even) { bottom: 13%; font-size: 16px; }
+
+/* ── Water: murky body drains, clear water lives beneath it ──────────────── */
+.dts-water {
+  position: absolute;
+  inset: auto 0 0;
+  height: 46%;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.dts-water__murky,
+.dts-water__clear,
+.dts-water__shimmer {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(calc(1 - var(--p) * 0.86));
+  transform-origin: 50% 100%;
+}
+
+.dts-water__murky {
+  background:
+    linear-gradient(180deg, rgba(90, 84, 20, 0.85) 0%, rgba(45, 48, 14, 0.92) 30%, rgba(24, 28, 10, 0.96) 100%);
+  box-shadow: 0 -2px 14px rgba(120, 110, 30, 0.35);
+  opacity: calc(1 - var(--p) * 0.92);
+}
+
+.dts-water__clear {
+  background:
+    linear-gradient(180deg, rgba(0, 240, 255, 0.5) 0%, rgba(0, 160, 190, 0.42) 35%, rgba(0, 80, 110, 0.5) 100%);
+  opacity: calc(var(--p) * 0.9);
+}
+
+/* sparkle sweep on the clear surface near the end */
+.dts-water__shimmer {
+  background:
+    repeating-linear-gradient(100deg,
+      transparent 0 26px,
+      rgba(255, 255, 255, 0.16) 26px 30px,
+      transparent 30px 64px);
+  background-size: 220% 100%;
+  opacity: clamp(0, (var(--p) - 0.72) * 2.4, 0.5);
+  animation: dtsShimmer 6s linear infinite;
+}
+
+/* debris sinks toward the gate and vanishes early in the drain */
+.dts-debris {
+  position: absolute;
+  inset: 0;
+  transform: translateY(calc(var(--p) * 150px));
+  opacity: calc(1 - var(--p) * 2.4);
+}
+.dts-debris span {
+  position: absolute;
+  top: calc(6% + var(--dxi) * 9%);
+  left: calc(10% + var(--dxi) * 22%);
+  font-size: 17px;
+  animation: dtsBob 4.5s ease-in-out infinite;
+  animation-delay: calc(var(--dxi) * -1.2s);
+}
+
+/* ── Fog banks: lift as the gate opens ───────────────────────────────────── */
+.dts-fog {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  height: 26%;
+  z-index: 7;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(190, 210, 190, 0.16) 18%,
+    rgba(160, 190, 175, 0.22) 42%,
+    rgba(190, 210, 190, 0.14) 70%,
+    transparent 100%);
+  border-radius: 50%;
+}
+.dts-fog--a {
+  top: 36%;
+  opacity: calc(0.9 * (1 - var(--p)));
+  animation: dtsFogDrift 16s ease-in-out infinite alternate;
+}
+.dts-fog--b {
+  top: 52%;
+  height: 20%;
+  opacity: calc(0.65 * (1 - var(--p)));
+  animation: dtsFogDrift 22s ease-in-out infinite alternate-reverse;
+}
+
+/* ── The floodgate ───────────────────────────────────────────────────────── */
+.dts-gate {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 148px;
+  height: 46%;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.dts-gate__frame {
+  position: absolute;
+  inset: 0;
+  background:
+    /* lintel */
+    linear-gradient(180deg, #12241c 0 14%, transparent 14%),
+    /* posts */
+    linear-gradient(90deg, #10201a 0 12%, transparent 12% 88%, #10201a 88%);
+  border-radius: 10px 10px 0 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 255, 191, 0.18);
+}
+
+.dts-gate__door {
+  position: absolute;
+  top: 14%;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 3px, transparent 3px 14px),
+    linear-gradient(180deg, #1b3a2e, #0d251c);
+  box-shadow: inset 0 0 0 1px rgba(0, 255, 191, 0.22), inset 0 -6px 18px rgba(0, 0, 0, 0.5);
+  transform: translateY(calc(var(--p) * -76%));
+}
+
+/* keep the rising door hidden above the lintel */
+.dts-gate { clip-path: inset(0 round 10px 10px 0 0); }
+
+/* outflow torrent through the open gate — strongest mid-drain */
+.dts-gate__flow {
+  position: absolute;
+  bottom: 0;
+  left: 26%;
+  right: 26%;
+  height: 74%;
+  background:
+    repeating-linear-gradient(180deg,
+      rgba(0, 240, 255, 0.4) 0 10px,
+      rgba(0, 255, 191, 0.16) 10px 22px);
+  background-size: 100% 44px;
+  border-radius: 6px 6px 0 0;
+  opacity: calc(min(var(--p) * 4, (1.04 - var(--p)) * 3));
+  animation: dtsFlow 0.7s linear infinite;
+}
+
+/* ── The valve wheel ─────────────────────────────────────────────────────── */
+.dts-wheel {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  margin-left: -62px;
+  width: 124px;
+  height: 124px;
+  z-index: 10;
+  cursor: grab;
+  border-radius: 50%;
+  outline-offset: 4px;
+  touch-action: none;
+}
+.dts-wheel:active { cursor: grabbing; }
+
+.dts-wheel__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(calc(var(--rot) * 1rad));
+  filter:
+    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 14px rgba(0, 255, 191, 0.35));
+}
+
+/* "turn me" pulse — visible only before the first real turn */
+.dts-wheel::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 191, 0.55);
+  opacity: calc(1 - min(var(--p) * 40, 1));
+  animation: dtsHintPulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+.dts-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, transparent 52%, rgba(2, 8, 5, 0.55) 100%);
+}
+
+/* ── HUD + captions around the scene ─────────────────────────────────────── */
+.dts-hud {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dts-hud__label {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--brand-green, #00FFBF) 80%, #fff);
+}
+.dts-hud__pct {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--text-main, #F2F0F4);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 16px rgba(0, 255, 191, 0.35);
+}
+
+.dts-beat {
+  margin: 2px 0 0;
+  min-height: 42px;
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--text-muted, #d8d3e0);
+  animation: dtsBeatIn 0.5s var(--ease-out) both;
+}
+
+.dts-rate { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 380px; }
+.dts-rate__label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--text-soft, #9a94a6);
+  text-align: center;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+@keyframes dtsRayDrift { from { transform: rotate(4deg) translateX(-4%); } to { transform: rotate(8deg) translateX(5%); } }
+@keyframes dtsFogDrift { from { transform: translateX(-5%); } to { transform: translateX(6%); } }
+@keyframes dtsBob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+@keyframes dtsShimmer { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+@keyframes dtsFlow { from { background-position: 0 0; } to { background-position: 0 44px; } }
+@keyframes dtsBirdFly {
+  from { transform: translateX(-40px); }
+  to { transform: translateX(min(560px, 92vw)); }
+}
+@keyframes dtsHintPulse {
+  0% { transform: scale(1); opacity: calc(0.9 - min(var(--p) * 40, 1)); }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+@keyframes dtsBeatIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 460px) {
+  .dts-scene { height: min(58vh, 430px); }
+  .dts-wheel { width: 108px; height: 108px; margin-left: -54px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dts-rays, .dts-fog, .dts-debris span, .dts-water__shimmer,
+  .dts-gate__flow, .dts-bird, .dts-wheel::before { animation: none; }
+}
+[data-reduced-motion="true"] .dts-rays,
+[data-reduced-motion="true"] .dts-fog,
+[data-reduced-motion="true"] .dts-debris span,
+[data-reduced-motion="true"] .dts-water__shimmer,
+[data-reduced-motion="true"] .dts-gate__flow,
+[data-reduced-motion="true"] .dts-bird,
+[data-reduced-motion="true"] .dts-wheel::before { animation: none; }

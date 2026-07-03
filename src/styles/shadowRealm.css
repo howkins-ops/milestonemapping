@@ -1,0 +1,749 @@
+/* ════════════════════════════════════════════════════════════════════════
+   SHADOW REALM — "THE DESCENT"
+   The shadow-work hub as a world: enter through the temple gate, descend a
+   glowing thread through depth zones (Furnace → Old Stories → Still Waters),
+   and leave through the Moon Gate. Prefix: .swr-
+   Art: /assets/shadow/gate-temple.jpg · sanctum-altar.jpg · exit-path.jpg
+   ════════════════════════════════════════════════════════════════════════ */
+
+.swr {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── The Gate — temple threshold ────────────────────────────────────────── */
+.swr-gate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: clamp(380px, 104vw, 480px);
+  margin-bottom: 14px;
+  padding: 24px 20px 24px;
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(0, 240, 255, 0.14);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 40px rgba(123, 44, 255, 0.08);
+}
+.swr-gate__art {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+.swr-gate__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 26%;
+  transform: scale(1.02);
+  animation: swrGateDrift 22s ease-in-out infinite alternate;
+}
+@keyframes swrGateDrift {
+  from { transform: scale(1.02) translateY(0); }
+  to { transform: scale(1.1) translateY(-2%); }
+}
+.swr-gate__shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(130% 70% at 50% 0%, transparent 40%, rgba(4, 0, 10, 0.42)),
+    linear-gradient(180deg, rgba(4, 0, 10, 0.34), rgba(4, 0, 10, 0.05) 34%, rgba(4, 0, 8, 0.72) 74%, #050007 100%);
+}
+/* parting veil on arrival */
+.swr-gate__veil {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 56%;
+  z-index: 5;
+  pointer-events: none;
+  animation: swrVeil 1.25s var(--ease-out) 0.12s forwards;
+}
+.swr-gate__veil--l {
+  left: -3%;
+  background: linear-gradient(100deg, #030008 82%, transparent);
+}
+.swr-gate__veil--r {
+  right: -3%;
+  background: linear-gradient(-100deg, #030008 82%, transparent);
+}
+.swr-gate__veil--r { animation-name: swrVeilR; }
+@keyframes swrVeil  { to { transform: translateX(-112%); opacity: 0.6; } }
+@keyframes swrVeilR { to { transform: translateX(112%); opacity: 0.6; } }
+.swr-gate__flash {
+  position: absolute;
+  top: 6%;
+  bottom: 6%;
+  left: 50%;
+  width: 1px;
+  z-index: 6;
+  background: linear-gradient(180deg, transparent, rgba(0, 240, 255, 0.9), transparent);
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.8));
+  opacity: 0;
+  pointer-events: none;
+  animation: swrFlash 1s ease-out 0.1s;
+}
+@keyframes swrFlash {
+  0% { opacity: 0; transform: scaleY(0.2); }
+  25% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; }
+}
+
+.swr-gate__kicker {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--brand-cyan);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
+  animation: swrRise 0.9s var(--ease-out) 0.5s both;
+}
+.swr-gate .sx-hero-title { animation-delay: 0.55s; }
+.swr-gate__sub {
+  margin: 12px 0 0;
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: 14.5px;
+  line-height: 1.6;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
+  animation: swrRise 0.9s var(--ease-out) 0.75s both;
+}
+.swr-gate .sx-streak { animation: swrRise 0.9s var(--ease-out) 0.9s both; }
+@keyframes swrRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── SOS lifeline — blend the wave bar into the realm ───────────────────── */
+.swr .wave-sosbar { margin-bottom: 12px; }
+
+/* ── The Sanctum — essence gallery strip over the altar ─────────────────── */
+.swr-sanctum {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 15px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  background: linear-gradient(100deg, rgba(20, 8, 2, 0.88), rgba(18, 0, 34, 0.6));
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.swr-sanctum::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("/assets/shadow/sanctum-altar.jpg") right center / cover no-repeat;
+  opacity: 0.34;
+  mask-image: linear-gradient(90deg, transparent 6%, #000 60%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 6%, #000 60%);
+}
+.swr-sanctum:hover,
+.swr-sanctum:focus-visible {
+  border-color: rgba(250, 204, 21, 0.65);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 26px rgba(250, 204, 21, 0.12);
+}
+.swr-sanctum__orbs { display: flex; flex: none; }
+.swr-sanctum__orb {
+  width: 30px;
+  height: 42px;
+  margin-left: -10px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  background: #0d0514;
+}
+.swr-sanctum__orb:first-child { margin-left: 0; }
+.swr-sanctum__orb.locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+.swr-sanctum__txt { flex: 1; min-width: 0; }
+.swr-sanctum__kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--brand-gold, #ffd166);
+  opacity: 0.85;
+}
+.swr-sanctum__title {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.swr-sanctum__sub { margin-top: 2px; font-size: 12px; color: var(--text-soft); }
+.swr-sanctum__go {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--brand-gold, #ffd166);
+}
+
+/* ── Omen — a shadow from the Map Quest walks with you ──────────────────── */
+.swr-omen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 13px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 201, 77, 0.09), rgba(123, 44, 255, 0.1));
+  border: 1px solid rgba(255, 201, 77, 0.38);
+  box-shadow: 0 0 20px rgba(255, 201, 77, 0.08);
+}
+.swr-omen__icon { font-size: 26px; filter: drop-shadow(0 0 10px rgba(255, 201, 77, 0.5)); }
+.swr-omen__kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #ffc94d;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.swr-omen__title {
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.swr-omen__sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.45; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE DESCENT — spine, zones, chambers
+   ════════════════════════════════════════════════════════════════════════ */
+.swr-descent {
+  --spine-x: 24px;
+  position: relative;
+  margin-top: 10px;
+  padding-bottom: 8px;
+}
+/* the thread you follow down */
+.swr-descent::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: var(--spine-x);
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(250, 204, 21, 0.5) 4%,
+    rgba(255, 59, 92, 0.42) 26%,
+    rgba(123, 44, 255, 0.45) 52%,
+    rgba(0, 255, 191, 0.38) 76%,
+    rgba(0, 240, 255, 0.55) 96%,
+    transparent
+  );
+}
+/* a pulse of light travelling down the thread */
+.swr-descent::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: var(--spine-x);
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, rgba(242, 240, 244, 0.95) 50%, transparent) 0 0 / 100% 160px no-repeat;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.9));
+  animation: swrSpinePulse 9s linear infinite;
+}
+@keyframes swrSpinePulse {
+  0% { background-position-y: 0%; opacity: 0; }
+  6% { opacity: 0.9; }
+  92% { opacity: 0.9; }
+  100% { background-position-y: 100%; opacity: 0; }
+}
+
+/* drifting fog + rising motes */
+.swr-air {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.swr-air__fog {
+  position: absolute;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(70px);
+}
+.swr-air__fog--a { top: 8%; left: -30%; background: #7b2cff; opacity: 0.11; animation: swrFogA 30s ease-in-out infinite alternate; }
+.swr-air__fog--b { top: 42%; right: -34%; background: #00f0ff; opacity: 0.07; animation: swrFogB 38s ease-in-out infinite alternate; }
+.swr-air__fog--c { top: 74%; left: -26%; background: #ff3edb; opacity: 0.07; animation: swrFogA 34s ease-in-out 4s infinite alternate-reverse; }
+@keyframes swrFogA { from { transform: translate(0, 0); } to { transform: translate(14%, 6%); } }
+@keyframes swrFogB { from { transform: translate(0, 0); } to { transform: translate(-12%, -5%); } }
+.swr-air__mote {
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--c, rgba(0, 240, 255, 0.8));
+  box-shadow: 0 0 8px var(--c, rgba(0, 240, 255, 0.8));
+  opacity: 0;
+  animation: swrMote var(--d, 9s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes swrMote {
+  0% { opacity: 0; transform: translateY(0); }
+  18% { opacity: 0.85; }
+  82% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-150px); }
+}
+
+/* ── Zone markers ───────────────────────────────────────────────────────── */
+.swr-zone { position: relative; --zac: var(--brand-cyan); }
+.swr-zone--threshold { --zac: #facc15; }
+.swr-zone--furnace   { --zac: #ff3b5c; }
+.swr-zone--stories   { --zac: #7b2cff; }
+.swr-zone--waters    { --zac: #00ffbf; }
+.swr-zone--moongate  { --zac: #00f0ff; }
+.swr-zone { background: radial-gradient(88% 62% at 50% 34%, color-mix(in srgb, var(--zac) 4%, transparent), transparent 70%); }
+
+.swr-zone__marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  margin: 26px 0 16px;
+  padding-left: calc(var(--spine-x) + 22px);
+  animation: swrRise 0.7s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 0.45s);
+}
+.swr-zone__rune {
+  position: absolute;
+  left: var(--spine-x);
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 9px;
+  height: 9px;
+  background: #05000a;
+  border: 1.5px solid var(--zac);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--zac) 70%, transparent);
+}
+.swr-zone__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--zac) 78%, white);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--zac) 45%, transparent);
+}
+.swr-zone__tag { font-size: 11px; color: var(--text-soft); font-style: italic; letter-spacing: 0.02em; }
+
+/* ── Chambers ───────────────────────────────────────────────────────────── */
+.swr-chamber {
+  --ac: var(--brand-cyan);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  width: auto;
+  margin: 0 0 14px calc(var(--spine-x) + 18px);
+  padding: 15px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--ac) 30%, transparent);
+  background:
+    radial-gradient(120px 120px at 16% 50%, color-mix(in srgb, var(--ac) 12%, transparent), transparent 72%),
+    linear-gradient(155deg, color-mix(in srgb, var(--ac) 9%, rgba(10, 3, 18, 0.94)), rgba(4, 0, 10, 0.97) 58%);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0 24px color-mix(in srgb, var(--ac) 8%, transparent);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  isolation: isolate;
+  animation: swrChamberIn 0.6s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 0.5s);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+@keyframes swrChamberIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+/* node on the spine + connector into the chamber */
+.swr-chamber::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 44px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--ac);
+  box-shadow: 0 0 12px var(--ac);
+  transition: box-shadow 0.2s ease;
+}
+.swr-chamber::after {
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 47.5px;
+  width: 19px;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ac) 75%, transparent), transparent);
+}
+/* corner brackets — relic-plate ornaments */
+.swr-chamber__ornament,
+.swr-chamber__ornament2 {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.75;
+}
+.swr-chamber__ornament {
+  top: 7px;
+  left: 7px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ac) 60%, transparent);
+  border-left: 1.5px solid color-mix(in srgb, var(--ac) 60%, transparent);
+  border-top-left-radius: 6px;
+}
+.swr-chamber__ornament2 {
+  bottom: 7px;
+  right: 7px;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--ac) 60%, transparent);
+  border-right: 1.5px solid color-mix(in srgb, var(--ac) 60%, transparent);
+  border-bottom-right-radius: 6px;
+}
+
+.swr-chamber:hover,
+.swr-chamber:focus-visible {
+  border-color: color-mix(in srgb, var(--ac) 70%, white);
+  transform: translateY(-3px);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px color-mix(in srgb, var(--ac) 22%, transparent),
+    inset 0 0 30px color-mix(in srgb, var(--ac) 7%, transparent);
+}
+.swr-chamber:hover::before,
+.swr-chamber:focus-visible::before { box-shadow: 0 0 18px var(--ac), 0 0 34px var(--ac); }
+.swr-chamber:focus-visible { outline: 2px solid var(--ac); outline-offset: 3px; }
+
+/* ── Totem — sigil in orbiting rings ────────────────────────────────────── */
+.swr-totem {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.swr-totem__bloom {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ac) 26%, transparent), transparent 68%);
+  animation: swrBreath 4.5s ease-in-out infinite;
+}
+@keyframes swrBreath {
+  0%, 100% { opacity: 0.55; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+.swr-totem__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--ac) 55%, transparent);
+  animation: swrSpin 16s linear infinite;
+}
+.swr-totem__ring--2 {
+  inset: 6px;
+  border: 1px solid color-mix(in srgb, var(--ac) 65%, transparent);
+  border-top-color: transparent;
+  border-left-color: transparent;
+  animation: swrSpin 10s linear infinite reverse;
+}
+@keyframes swrSpin { to { transform: rotate(360deg); } }
+.swr-totem svg {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  color: color-mix(in srgb, var(--ac) 88%, white);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ac) 80%, transparent));
+  transition: transform 0.2s var(--ease-out);
+}
+.swr-chamber:hover .swr-totem svg,
+.swr-chamber:focus-visible .swr-totem svg { transform: scale(1.12); }
+
+/* ── Plate — the chamber's inscription ──────────────────────────────────── */
+.swr-plate { min-width: 0; padding-right: 14px; }
+.swr-plate__when {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ac) 82%, white);
+  margin-bottom: 4px;
+}
+.swr-plate__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.swr-plate__sub {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.42;
+}
+.swr-plate__enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--ac) 42%, transparent);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-main);
+  opacity: 0.72;
+  transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.swr-chamber:hover .swr-plate__enter,
+.swr-chamber:focus-visible .swr-plate__enter {
+  opacity: 1;
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #000;
+}
+/* relic name — arcane vertical etching on the right edge */
+.swr-plate__relic {
+  position: absolute;
+  top: 12px;
+  right: 9px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ac) 55%, transparent);
+}
+
+/* ── Featured chambers ──────────────────────────────────────────────────── */
+/* The Threshold — Shadow Alchemist gatehouse */
+.swr-chamber--gatehouse { padding: 20px 18px; }
+.swr-chamber--gatehouse .swr-totem { width: 84px; height: 84px; }
+.swr-chamber--gatehouse .swr-totem svg { width: 40px; height: 40px; }
+.swr-chamber--gatehouse .swr-plate__name { font-size: 24px; }
+.swr-chamber--gatehouse .swr-plate__sub { font-size: 13px; max-width: 44ch; }
+
+/* The Moon Gate — Integration, the way back out */
+.swr-chamber--exit {
+  background:
+    linear-gradient(100deg, rgba(4, 0, 10, 0.96) 34%, rgba(4, 0, 10, 0.42)),
+    #04000a;
+}
+.swr-chamber--exit .swr-exitart {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("/assets/shadow/exit-path.jpg") 78% 30% / cover no-repeat;
+  opacity: 0.5;
+  mask-image: linear-gradient(90deg, transparent 22%, #000 72%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 22%, #000 72%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── Footprints — your trail through the dark ───────────────────────────── */
+.swr-footprints {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.swr-footprints__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.swr-footprints__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.swr-footprints__clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 13px;
+  color: var(--text-soft);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.swr-footprints__clear:hover { color: var(--text-main); border-color: rgba(255, 59, 92, 0.5); }
+.swr-footprints__empty {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-soft);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.swr-footprints__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.swr-footprints__row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(13, 5, 20, 0.7), rgba(5, 0, 7, 0.7));
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--row-accent, var(--brand-cyan));
+}
+.swr-footprints__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--row-accent, var(--brand-cyan));
+  box-shadow: 0 0 10px var(--row-accent, var(--brand-cyan));
+}
+.swr-footprints__main { flex: 1; min-width: 0; }
+.swr-footprints__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+.swr-footprints__tool {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--row-accent, var(--brand-cyan)) 78%, white);
+}
+.swr-footprints__time { flex: none; color: var(--text-soft); font-size: 11px; }
+.swr-footprints__text { margin: 0; color: var(--text-muted); font-size: 13.5px; line-height: 1.45; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Desktop ≥ 700px — the thread moves to centre, chambers alternate sides
+   ════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 700px) {
+  .swr-descent { --spine-x: 50%; }
+
+  .swr-zone__marker {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-left: 0;
+    margin: 30px 0 18px;
+    text-align: center;
+  }
+  .swr-zone__rune {
+    position: static;
+    transform: rotate(45deg);
+    margin-bottom: 8px;
+  }
+
+  .swr-chamber { width: calc(50% - 30px); margin-left: 0; }
+  .swr-chamber--left { margin-right: auto; }
+  .swr-chamber--right { margin-left: auto; margin-top: -96px; }
+
+  /* left cards connect rightwards to the centre spine */
+  .swr-chamber--left::before { left: auto; right: -30px; transform: translateX(50%); }
+  .swr-chamber--left::after {
+    left: auto;
+    right: -27px;
+    width: 27px;
+    background: linear-gradient(-90deg, color-mix(in srgb, var(--ac) 75%, transparent), transparent);
+  }
+  .swr-chamber--right::before { left: -30px; }
+  .swr-chamber--right::after { left: -27px; width: 27px; }
+
+  /* wide chambers straddle the thread */
+  .swr-chamber--wide { width: 100%; margin-left: 0; margin-right: 0; }
+  .swr-chamber--wide::before,
+  .swr-chamber--wide::after { display: none; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .swr-gate__art img,
+  .swr-gate__veil,
+  .swr-gate__flash,
+  .swr-gate__kicker,
+  .swr-gate__sub,
+  .swr-gate .sx-streak,
+  .swr-descent::after,
+  .swr-air__fog,
+  .swr-air__mote,
+  .swr-zone__marker,
+  .swr-chamber,
+  .swr-totem__bloom,
+  .swr-totem__ring,
+  .swr-totem__ring--2 { animation: none !important; }
+  .swr-gate__veil { display: none; }
+  .swr-gate__kicker, .swr-gate__sub, .swr-gate .sx-streak { opacity: 1; }
+  .swr-air__mote { opacity: 0.4; }
+}
+
+/* ── Small phones ───────────────────────────────────────────────────────── */
+@media (max-width: 420px) {
+  .swr-gate { padding: 20px 16px 20px; }
+  .swr-chamber { padding: 13px 13px; gap: 11px; }
+  .swr-totem { width: 58px; height: 58px; }
+  .swr-totem svg { width: 26px; height: 26px; }
+  .swr-chamber--gatehouse .swr-totem { width: 72px; height: 72px; }
+  .swr-chamber--gatehouse .swr-totem svg { width: 34px; height: 34px; }
+  .swr-chamber--gatehouse .swr-plate__name { font-size: 21px; }
+  .swr-plate__name { font-size: 17px; }
+  .swr-plate__sub { font-size: 12px; }
+}

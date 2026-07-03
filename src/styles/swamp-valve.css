@@ -208,6 +208,45 @@
 .sv-modecard p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text-muted); }
 .sv-modecard__go { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 800; color: var(--mc, #00FFBF); }
 
+/* Signature mode — holographic border, water-sheen sweep, bigger presence */
+.sv-modecard--featured {
+  padding: 20px;
+  background:
+    radial-gradient(80% 70% at 82% 0%, color-mix(in srgb, var(--mc, #00F0FF) 16%, transparent), transparent 60%),
+    linear-gradient(rgba(6, 18, 20, 0.92), rgba(4, 12, 14, 0.96)) padding-box;
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 40px color-mix(in srgb, var(--mc, #00F0FF) 14%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--mc, #00F0FF) 32%, transparent);
+}
+.sv-modecard--featured::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, color-mix(in srgb, var(--mc, #00F0FF) 14%, transparent) 45%, transparent 62%);
+  transform: translateX(-110%);
+  animation: svSheenSweep 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.sv-modecard--featured h3 {
+  font-size: 24px;
+  background: linear-gradient(120deg, var(--brand-cyan, #00F0FF), var(--brand-green, #00FFBF));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.sv-modecard--featured:hover {
+  box-shadow:
+    0 10px 48px color-mix(in srgb, var(--mc, #00F0FF) 24%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--mc, #00F0FF) 55%, transparent);
+}
+
+@keyframes svSheenSweep {
+  0%, 55% { transform: translateX(-110%); }
+  85%, 100% { transform: translateX(110%); }
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    PRESSURE CHAMBER — the fork + valve loop
    ════════════════════════════════════════════════════════════════════════ */

@@ -146,6 +146,39 @@
 .wave-sosbar__sub { margin-top: 2px; font-size: 12.5px; color: var(--text-soft); }
 .wave-sosbar__go { font-family: var(--font-mono); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: var(--brand-cyan); }
 
+/* ── Twin emergency doors: Anxiety (water) beside Anger (fire) ─────────────── */
+.sos-duo { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 4px 0 18px; }
+.sos-duo .wave-sosbar { margin: 0; height: 100%; }
+@media (min-width: 560px) {
+  .sos-duo { grid-template-columns: 1fr 1fr; }
+  .sos-duo .wave-sosbar__sub { font-size: 12px; }
+}
+
+/* Molten mirror of the wave bar — same anatomy, fire palette */
+.anger-gymbar {
+  background: linear-gradient(120deg, rgba(255, 176, 0, 0.14), rgba(255, 59, 92, 0.12));
+  border-color: rgba(255, 176, 0, 0.45);
+  box-shadow: 0 0 24px rgba(255, 120, 30, 0.12);
+}
+.anger-gymbar:hover {
+  border-color: rgba(255, 176, 0, 0.75);
+  box-shadow: 0 0 30px rgba(255, 140, 30, 0.24);
+  transform: translateY(-2px);
+}
+.anger-gymbar .wave-sosbar__icon {
+  filter: drop-shadow(0 0 10px rgba(255, 140, 30, 0.6));
+  animation: angerFlicker 2.6s ease-in-out infinite;
+}
+.anger-gymbar .wave-sosbar__kicker,
+.anger-gymbar .wave-sosbar__go { color: var(--brand-amber); }
+
+@keyframes angerFlicker {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-2px) scale(1.05); }
+  55% { transform: translateY(-1px) scale(0.98); }
+  75% { transform: translateY(-3px) scale(1.03); }
+}
+
 /* ── Top-bar SOS button (sits just left of "More") ────────────────────────── */
 .app-topbar__sos .app-topbar__icon-box {
   border-color: rgba(0, 240, 255, 0.5) !important;
@@ -160,7 +193,8 @@
 .wave-overlay {
   position: fixed; inset: 0; z-index: 100; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 20px 14px calc(24px + env(safe-area-inset-bottom));
+  padding: calc(20px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right))
+    calc(24px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
   background: rgba(3, 0, 8, 0.94); backdrop-filter: blur(8px);
   animation: fade-in 260ms var(--ease-out);
 }
@@ -180,3 +214,137 @@
   .wave-sosbar__icon { animation: none; }
   .wave-overlay { animation: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   EMOTIONAL RESET HUB — six doors back to calm. Prefix: .sos-
+   ════════════════════════════════════════════════════════════════════════ */
+
+.sos-hub { position: relative; padding: 6px 2px 12px; }
+
+.sos-hub__head { position: relative; text-align: center; padding: 10px 40px 18px; }
+.sos-hub__kicker {
+  margin: 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 800; color: var(--brand-cyan);
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+}
+.sos-hub__title {
+  margin: 8px 0 0; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(26px, 7vw, 36px); line-height: 1.05; color: var(--text-main);
+}
+.sos-hub__sub { margin: 8px auto 0; max-width: 380px; font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+.sos-hub__close {
+  position: absolute; top: 0; right: 0; width: 36px; height: 36px;
+  display: grid; place-items: center; cursor: pointer;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%; color: var(--text-muted); font-size: 14px;
+  transition: background 150ms, color 150ms, border-color 150ms, transform 150ms var(--ease-out);
+}
+.sos-hub__close:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.sos-hub__close:active { transform: scale(0.92); }
+
+.sos-hub__grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+}
+@media (max-width: 380px) { .sos-hub__grid { grid-template-columns: 1fr; } }
+
+.sos-door {
+  --sd: var(--brand-cyan);
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  min-height: 132px; padding: 14px 14px 12px; cursor: pointer; text-align: left;
+  font-family: inherit; color: var(--text-main); overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 85% 0%, color-mix(in srgb, var(--sd) 16%, transparent), transparent 55%),
+    linear-gradient(160deg, rgba(10, 4, 20, 0.92), rgba(4, 1, 10, 0.96));
+  border: 1px solid color-mix(in srgb, var(--sd) 32%, transparent);
+  border-radius: 16px;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    0 0 24px color-mix(in srgb, var(--sd) 9%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 170ms var(--ease-out), border-color 170ms, box-shadow 170ms;
+  animation: sosDoorIn 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+.sos-door:hover, .sos-door:focus-visible {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--sd) 72%, transparent);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.44),
+    0 0 34px color-mix(in srgb, var(--sd) 24%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.sos-door:active { transform: scale(0.97); }
+
+.sos-door__emoji {
+  font-size: 24px; line-height: 1;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--sd) 55%, transparent));
+}
+.sos-door__label {
+  margin-top: 5px; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 800; color: color-mix(in srgb, var(--sd) 85%, #fff);
+}
+.sos-door__title { font-family: var(--font-display); font-weight: 800; font-size: 15.5px; line-height: 1.15; }
+.sos-door__sub { font-size: 11.5px; line-height: 1.4; color: var(--text-soft); }
+.sos-door__time {
+  margin-top: auto; padding-top: 6px; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.08em; color: color-mix(in srgb, var(--sd) 70%, #fff); opacity: 0.85;
+}
+
+.sos-hub__foot {
+  margin: 16px auto 0; max-width: 420px; text-align: center;
+  font-size: 11.5px; line-height: 1.55; color: var(--text-soft);
+}
+.sos-hub__foot b { color: var(--text-main); }
+
+@keyframes sosDoorIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Box Breathing ── */
+.sos-breath {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 54px 16px 30px; text-align: center; min-height: 70vh; justify-content: center;
+}
+.sos-breath__back { position: absolute; top: 8px; left: 4px; }
+.sos-breath__kicker {
+  margin: 0; font-size: 11px; letter-spacing: 0.2em; font-weight: 800;
+  color: var(--brand-purple, #7B2CFF); text-transform: uppercase;
+}
+.sos-breath__orb {
+  position: relative; display: grid; place-items: center;
+  width: 168px; height: 168px; border-radius: 32px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(123, 44, 255, 0.4), rgba(123, 44, 255, 0.08) 60%, transparent 75%),
+    rgba(10, 4, 24, 0.8);
+  border: 1.5px solid rgba(123, 44, 255, 0.55);
+  box-shadow: 0 0 46px rgba(123, 44, 255, 0.35), inset 0 0 34px rgba(123, 44, 255, 0.16);
+  transition: transform 3.8s ease-in-out, box-shadow 3.8s ease-in-out;
+}
+.sos-breath__orb.is-in { transform: scale(1.18); box-shadow: 0 0 66px rgba(123, 44, 255, 0.5), inset 0 0 40px rgba(123, 44, 255, 0.22); }
+.sos-breath__orb.is-hold1 { transform: scale(1.18); }
+.sos-breath__orb.is-out { transform: scale(0.86); box-shadow: 0 0 30px rgba(123, 44, 255, 0.25), inset 0 0 24px rgba(123, 44, 255, 0.1); }
+.sos-breath__orb.is-hold2 { transform: scale(0.86); }
+.sos-breath__orb.is-done {
+  transform: scale(1);
+  border-color: rgba(0, 255, 191, 0.7);
+  box-shadow: 0 0 56px rgba(0, 255, 191, 0.4), inset 0 0 34px rgba(0, 255, 191, 0.16);
+}
+.sos-breath__ring {
+  position: absolute; inset: -12px; border-radius: 40px;
+  border: 1px solid rgba(123, 44, 255, 0.3);
+}
+.sos-breath__count {
+  font-family: var(--font-display); font-weight: 900; font-size: 52px; color: #fff;
+  text-shadow: 0 0 26px rgba(123, 44, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+.sos-breath__phase { margin: 4px 0 0; font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text-main); }
+.sos-breath__hint { margin: 0; max-width: 330px; font-size: 13.5px; line-height: 1.5; color: var(--text-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sos-door { animation: none; }
+  .sos-breath__orb { transition: none; }
+}
+[data-reduced-motion="true"] .sos-door { animation: none; }
+[data-reduced-motion="true"] .sos-breath__orb { transition: none; }
