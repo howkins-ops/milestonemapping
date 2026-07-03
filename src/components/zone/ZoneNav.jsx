@@ -3,6 +3,7 @@ import { useZoneCtx } from "../../hooks/useZone.js";
 
 const TABS = [
   { key: "home", label: "Home", icon: "🔥" },
+  { key: "city", label: "City", icon: "🌆" },
   { key: "feed", label: "Feed", icon: "📜" },
   { key: "squad", label: "Squad", icon: "🛡️" },
   { key: "messages", label: "Chat", icon: "💬" },

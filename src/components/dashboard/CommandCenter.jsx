@@ -2,6 +2,7 @@ import React from "react";
 import MissionHero from "./MissionHero.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
 import MapQuestHero from "../projects/MapQuestHero.jsx";
+import CityHeroCard from "./CityHeroCard.jsx";
 import VisionCollage from "../vision/VisionCollage.jsx";
 import Button from "../ui/Button.jsx";
 
@@ -106,6 +107,8 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
   return (
     <div className="command-center-page">
       <MissionHero />
+
+      <CityHeroCard onEnter={() => onNavigate("city")} />
 
       <SundayReviewAlert onNavigate={onNavigate} />
 

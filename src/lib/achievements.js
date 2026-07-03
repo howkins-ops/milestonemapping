@@ -136,6 +136,36 @@ export const ACHIEVEMENTS = [
     title: "Returned Under Pressure",
     description: "You came back to ride the wave when it counted.",
     icon: "🏄"
+  },
+  {
+    id: "city_arrival",
+    title: "Citizen of the City",
+    description: "You stepped into MapQuest City for the first time. Every path now has an address.",
+    icon: "🌆"
+  },
+  {
+    id: "city_all_districts",
+    title: "Every Street Known",
+    description: "You visited every district in the city. The whole map is yours.",
+    icon: "🧭"
+  },
+  {
+    id: "hall_of_champions",
+    title: "Hall of Champions",
+    description: "You stood in the Hall and saw where you rank among your people.",
+    icon: "🏛️"
+  },
+  {
+    id: "first_lesson",
+    title: "The Student Appears",
+    description: "You heard your first lesson from a city mentor. The city teaches whoever listens.",
+    icon: "🏮"
+  },
+  {
+    id: "city_scholar",
+    title: "City Scholar",
+    description: "Eight mentors have taught you their lesson. The city speaks to you by name now.",
+    icon: "📜"
   }
 ];
 

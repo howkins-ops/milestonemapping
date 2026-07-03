@@ -1,0 +1,390 @@
+/* ════════════════════════════════════════════════════════════════════════
+   MAPQUEST CITY — CITIZEN CARD. Prefix: .mqc-cc-
+   Holo identity card: animated gradient edge, diagonal shimmer sweep,
+   rank sigil, XP bar and stat chips. Base panel chrome (.mqc-panel) is
+   owned by city.css — everything here is card-specific layering.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.mqc-cc {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--radius-lg, 20px);
+  padding: 18px 16px 16px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 46%),
+    radial-gradient(120% 90% at 0% 100%, rgba(123, 44, 255, 0.09) 0%, transparent 52%),
+    linear-gradient(160deg, rgba(13, 5, 20, 0.94), rgba(8, 0, 12, 0.97));
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(209, 30, 255, 0.07);
+}
+
+/* content sits above the decorative layers */
+.mqc-cc-head,
+.mqc-cc-titles,
+.mqc-cc-rank,
+.mqc-cc-stats {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── animated gradient edge ─────────────────────────────────────────────── */
+.mqc-cc-edge {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--grad-primary);
+  background-size: 280% 280%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: mqcCcEdge 9s linear infinite;
+}
+@keyframes mqcCcEdge {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── diagonal holo shimmer sweep ────────────────────────────────────────── */
+.mqc-cc-shimmer {
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  left: 0;
+  width: 44%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(0, 240, 255, 0.045) 32%,
+    rgba(242, 240, 244, 0.085) 50%,
+    rgba(209, 30, 255, 0.05) 68%,
+    transparent 100%
+  );
+  transform: rotate(14deg) translateX(-180%);
+  animation: mqcCcSheen 6.5s ease-in-out 1.2s infinite;
+}
+@keyframes mqcCcSheen {
+  0% { transform: rotate(14deg) translateX(-180%); }
+  60% { transform: rotate(14deg) translateX(360%); }
+  100% { transform: rotate(14deg) translateX(360%); }
+}
+
+/* ── head: avatar + identity ────────────────────────────────────────────── */
+.mqc-cc-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.mqc-cc-avatar {
+  position: relative;
+  flex: none;
+  width: 64px;
+  height: 64px;
+}
+.mqc-cc-avatar__img,
+.mqc-cc-avatar__mono {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+  background: var(--card, #0d0514);
+}
+.mqc-cc-avatar__mono {
+  display: grid;
+  place-items: center;
+  background: var(--grad-primary);
+  color: #050007;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 27px;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  user-select: none;
+}
+.mqc-cc-avatar__ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 21px;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.16),
+    inset 0 0 10px rgba(0, 240, 255, 0.08);
+  pointer-events: none;
+}
+
+.mqc-cc-id {
+  flex: 1;
+  min-width: 0;
+}
+.mqc-cc-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mqc-cc-user {
+  margin: 1px 0 0;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-cyan);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* primary title ribbon — clipped holo banner */
+.mqc-cc-ribbon {
+  display: inline-flex;
+  max-width: 100%;
+  margin: 7px 0 0;
+  padding: 4px 14px 5px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 9px 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(123, 44, 255, 0.32),
+    rgba(209, 30, 255, 0.28) 45%,
+    rgba(255, 62, 219, 0.24)
+  );
+  box-shadow: inset 0 0 12px rgba(209, 30, 255, 0.22);
+}
+.mqc-cc-ribbon__txt {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand-gold);
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── secondary earned title chips ───────────────────────────────────────── */
+.mqc-cc-titles {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.mqc-cc-title {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(209, 30, 255, 0.28);
+  background: rgba(209, 30, 255, 0.08);
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── rank sigil + XP bar ────────────────────────────────────────────────── */
+.mqc-cc-rank {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 16px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border, rgba(209, 30, 255, 0.14));
+  background: rgba(5, 0, 7, 0.55);
+}
+.mqc-cc-sigilwrap {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+}
+.mqc-cc-sigil {
+  display: block;
+  filter: drop-shadow(0 0 7px currentColor);
+}
+.mqc-cc-rank__txt {
+  flex: 1;
+  min-width: 0;
+}
+.mqc-cc-rank__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.mqc-cc-rank__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mqc-cc-rank__xp {
+  flex: none;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.mqc-cc-xpbar {
+  position: relative;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: rgba(242, 240, 244, 0.08);
+  overflow: hidden;
+}
+.mqc-cc-xpbar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-primary-90);
+  box-shadow: 0 0 12px rgba(209, 30, 255, 0.5);
+  transition: width 0.6s var(--ease-out, ease);
+}
+.mqc-cc-xplabel {
+  margin: 6px 0 0;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+/* ── stat chips row ─────────────────────────────────────────────────────── */
+.mqc-cc-stats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.mqc-cc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(209, 30, 255, 0.18);
+  background: rgba(13, 5, 20, 0.66);
+  color: var(--text-main);
+}
+.mqc-cc-chip__icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.mqc-cc-chip__icon--glyph {
+  color: var(--brand-cyan);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.55);
+  font-size: 13px;
+}
+.mqc-cc-chip__val {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12.5px;
+  color: currentColor;
+  white-space: nowrap;
+}
+.mqc-cc-chip__lbl {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* zone fire chip — tinted inline via style={{ color: fire.tint }} */
+.mqc-cc-chip--fire {
+  border-color: currentColor;
+  background: rgba(5, 0, 7, 0.6);
+}
+.mqc-cc-chip--fire .mqc-cc-chip__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* phoenix stage chip */
+.mqc-cc-chip--phoenix {
+  border-color: rgba(209, 30, 255, 0.4);
+  background: rgba(209, 30, 255, 0.09);
+}
+.mqc-cc-chip--phoenix .mqc-cc-chip__val {
+  color: var(--brand-magenta);
+  text-shadow: 0 0 12px rgba(209, 30, 255, 0.45);
+}
+
+/* ── desktop scale-up ───────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .mqc-cc {
+    padding: 22px 22px 20px;
+  }
+  .mqc-cc-avatar {
+    width: 74px;
+    height: 74px;
+  }
+  .mqc-cc-avatar__mono {
+    font-size: 31px;
+  }
+  .mqc-cc-name {
+    font-size: 22px;
+  }
+  .mqc-cc-rank {
+    padding: 14px 16px;
+  }
+}
+
+/* ── reduced motion: kill every animation, both triggers ────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .mqc-cc-edge {
+    animation: none;
+  }
+  .mqc-cc-shimmer {
+    display: none;
+    animation: none;
+  }
+  .mqc-cc-xpbar__fill {
+    transition: none;
+  }
+}
+html[data-reduced-motion="true"] .mqc-cc-edge {
+  animation: none;
+}
+html[data-reduced-motion="true"] .mqc-cc-shimmer {
+  display: none;
+  animation: none;
+}
+html[data-reduced-motion="true"] .mqc-cc-xpbar__fill {
+  transition: none;
+}

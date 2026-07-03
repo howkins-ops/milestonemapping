@@ -1,0 +1,860 @@
+/* ════════════════════════════════════════════════════════════════════════
+   MAPQUEST CITY — scene + shared mqc- primitives
+   The living skyline: time-of-day sky, rank-driven evolution stages,
+   districts as buildings whose glow follows real progress.
+   Shared contract used by the other city modules:
+     .mqc-root  .mqc-panel  .mqc-kicker  .mqc-btn  .mqc-btn--primary
+     .mqc-sheet  .mqc-sheet__scrim  .mqc-sheet__handle
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root ───────────────────────────────────────────────────────────────── */
+
+.mqc-root {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 28px);
+  padding-bottom: calc(clamp(24px, 4vw, 40px) + var(--safe-bottom, 0px));
+  font-family: var(--font-body, "Manrope", sans-serif);
+  color: var(--text-main, #f2f0f4);
+}
+
+.mqc-root--embedded {
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 4px;
+}
+
+/* ── Shared primitives ──────────────────────────────────────────────────── */
+
+.mqc-panel {
+  position: relative;
+  border-radius: var(--radius-lg, 20px);
+  background:
+    linear-gradient(rgba(13, 5, 20, 0.86), rgba(13, 5, 20, 0.86)) padding-box,
+    linear-gradient(135deg, rgba(123, 44, 255, 0.55), rgba(0, 240, 255, 0.35) 55%, rgba(255, 62, 219, 0.45)) border-box;
+  border: 1px solid transparent;
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow:
+    0 0 30px rgba(123, 44, 255, 0.07),
+    0 0 20px rgba(0, 240, 255, 0.04),
+    0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.mqc-kicker {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brand-cyan, #00f0ff);
+}
+
+.mqc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--text-main, #f2f0f4);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow 0.25s var(--ease-out, ease), transform 0.25s var(--ease-out, ease), background 0.25s;
+}
+
+.mqc-btn:hover,
+.mqc-btn:focus-visible {
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.mqc-btn:focus-visible {
+  outline: 2px solid var(--brand-cyan, #00f0ff);
+  outline-offset: 2px;
+}
+
+.mqc-btn--primary {
+  border: none;
+  background: var(--grad-primary, linear-gradient(135deg, #7b2cff, #d11eff 30%, #ff3edb 65%, #00f0ff));
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 22px rgba(209, 30, 255, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.mqc-btn--primary:hover,
+.mqc-btn--primary:focus-visible {
+  box-shadow:
+    0 0 26px rgba(209, 30, 255, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.2),
+    0 10px 26px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Bottom sheet ───────────────────────────────────────────────────────── */
+
+.mqc-sheet__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(2, 0, 6, 0.66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.mqc-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 91;
+  width: min(100%, 560px);
+  max-height: 82vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 22px 22px 0 0;
+  padding: 14px 20px calc(24px + var(--safe-bottom, 0px));
+  background:
+    linear-gradient(rgba(10, 2, 15, 0.97), rgba(13, 5, 20, 0.97)) padding-box,
+    linear-gradient(135deg, rgba(123, 44, 255, 0.6), rgba(0, 240, 255, 0.35) 60%, rgba(255, 62, 219, 0.5)) border-box;
+  border: 1px solid transparent;
+  border-bottom: none;
+  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(123, 44, 255, 0.12);
+  animation: mqc-sheet-up 0.34s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.mqc-sheet__handle {
+  width: 44px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(242, 240, 244, 0.25);
+  margin: 0 auto 14px;
+}
+
+/* ── Page header ────────────────────────────────────────────────────────── */
+
+.mqc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 4px 2px 12px;
+}
+
+.mqc-head__title {
+  margin: 0;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: clamp(22px, 5.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: var(--grad-primary, linear-gradient(135deg, #7b2cff, #d11eff 30%, #ff3edb 65%, #00f0ff));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(123, 44, 255, 0.35));
+}
+
+.mqc-head__sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-soft, rgba(242, 240, 244, 0.65));
+}
+
+.mqc-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 255, 191, 0.3);
+  background: rgba(0, 255, 191, 0.06);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-green, #00ffbf);
+}
+
+.mqc-pulse__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  animation: mqc-pulse 2.6s ease-in-out infinite;
+}
+
+/* ── The Guide strip ────────────────────────────────────────────────────── */
+
+.mqc-guide {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  margin: 14px 0 0;
+  padding: 12px 16px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.mqc-guide__sprite {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 72px;
+  filter: drop-shadow(0 6px 14px rgba(0, 240, 255, 0.25));
+}
+
+.mqc-guide__txt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mqc-guide__name {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand-cyan, #00f0ff);
+}
+
+.mqc-guide__line {
+  margin: 3px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text-muted, rgba(242, 240, 244, 0.88));
+}
+
+.mqc-guide__go {
+  flex: 0 0 auto;
+  font-size: 20px;
+  color: var(--brand-cyan, #00f0ff);
+  transition: transform 0.25s var(--ease-out, ease);
+}
+
+.mqc-guide:hover .mqc-guide__go,
+.mqc-guide:focus-visible .mqc-guide__go {
+  transform: translateX(4px);
+}
+
+.mqc-guide:focus-visible {
+  outline: 2px solid var(--brand-cyan, #00f0ff);
+  outline-offset: 2px;
+}
+
+.mqc-citizenwrap {
+  margin-top: 14px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE SCENE
+   ════════════════════════════════════════════════════════════════════════ */
+
+.mqc-scene {
+  position: relative;
+  height: clamp(400px, 56vh, 620px);
+  border-radius: var(--radius-lg, 20px);
+  overflow: hidden;
+  border: 1px solid rgba(123, 44, 255, 0.28);
+  box-shadow:
+    0 0 40px rgba(123, 44, 255, 0.1),
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 0 80px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+
+  /* night defaults */
+  --mqc-sky-a: #070310;
+  --mqc-sky-b: #1c0b36;
+  --mqc-sky-glow: rgba(123, 44, 255, 0.32);
+  --mqc-tint: rgba(0, 240, 255, 0.1);
+  --mqc-stars: 1;
+}
+
+/* ── Time of day palettes ───────────────────────────────────────────────── */
+
+.mqc-tod-dawn {
+  --mqc-sky-a: #150822;
+  --mqc-sky-b: #47163a;
+  --mqc-sky-glow: rgba(255, 176, 0, 0.28);
+  --mqc-tint: rgba(255, 62, 219, 0.12);
+  --mqc-stars: 0.35;
+}
+
+.mqc-tod-day {
+  --mqc-sky-a: #0b1424;
+  --mqc-sky-b: #21395c;
+  --mqc-sky-glow: rgba(0, 240, 255, 0.2);
+  --mqc-tint: rgba(0, 240, 255, 0.08);
+  --mqc-stars: 0;
+}
+
+.mqc-tod-dusk {
+  --mqc-sky-a: #11051d;
+  --mqc-sky-b: #401033;
+  --mqc-sky-glow: rgba(250, 204, 21, 0.26);
+  --mqc-tint: rgba(255, 176, 0, 0.1);
+  --mqc-stars: 0.55;
+}
+
+/* ── Sky, stars, aurora ─────────────────────────────────────────────────── */
+
+.mqc-sc-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% 108%, var(--mqc-sky-glow), transparent 62%),
+    linear-gradient(180deg, var(--mqc-sky-a) 0%, var(--mqc-sky-b) 100%);
+}
+
+.mqc-sc-stars {
+  position: absolute;
+  inset: 0 0 34% 0;
+  opacity: var(--mqc-stars);
+}
+
+.mqc-sc-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #eaf6ff;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.8);
+  animation: mqc-twinkle 3.8s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.mqc-sc-aurora {
+  position: absolute;
+  inset: -20% -10% 45% -10%;
+  background:
+    radial-gradient(60% 55% at 28% 42%, rgba(0, 255, 191, 0.18), transparent 70%),
+    radial-gradient(55% 50% at 68% 30%, rgba(209, 30, 255, 0.2), transparent 70%),
+    radial-gradient(45% 60% at 50% 55%, rgba(0, 240, 255, 0.12), transparent 70%);
+  filter: blur(14px);
+  opacity: 0;
+  animation: mqc-aurora 16s ease-in-out infinite alternate;
+}
+
+.mqc-stage-4 .mqc-sc-aurora {
+  opacity: 1;
+}
+
+/* ── Far + mid skylines ─────────────────────────────────────────────────── */
+
+.mqc-sc-far,
+.mqc-sc-mid {
+  position: absolute;
+  inset: 0;
+  animation: mqc-drift 26s ease-in-out infinite alternate;
+}
+
+.mqc-sc-mid {
+  animation-duration: 20s;
+  animation-direction: alternate-reverse;
+}
+
+.mqc-sc-fart {
+  position: absolute;
+  bottom: 13%;
+  background: linear-gradient(180deg, rgba(10, 4, 20, 0.9), rgba(5, 0, 10, 0.95));
+  border-radius: 2px 2px 0 0;
+}
+
+.mqc-stage-1 .mqc-sc-far { opacity: 0.4; }
+.mqc-stage-2 .mqc-sc-far { opacity: 0.65; }
+
+.mqc-sc-midt {
+  position: absolute;
+  bottom: 12%;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #0e0618 0%, #090211 100%);
+  box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.08);
+}
+
+/* window grid */
+.mqc-sc-midt::before {
+  content: "";
+  position: absolute;
+  inset: 8% 16% 4% 16%;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 240, 255, 0.55) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, rgba(0, 240, 255, 0.5) 0 3px, transparent 3px 9px);
+  background-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  animation: mqc-flicker 7s steps(2) infinite;
+}
+
+/* window ignition by stage: tier 1 lights first, then 2, then 3 */
+.mqc-stage-1 .mqc-sc-midt--w1::before { opacity: 0.12; animation: none; }
+.mqc-stage-2 .mqc-sc-midt--w1::before,
+.mqc-stage-2 .mqc-sc-midt--w2::before { opacity: 0.3; }
+.mqc-stage-3 .mqc-sc-midt--w1::before,
+.mqc-stage-3 .mqc-sc-midt--w2::before,
+.mqc-stage-3 .mqc-sc-midt--w3::before { opacity: 0.45; }
+.mqc-stage-4 .mqc-sc-midt::before { opacity: 0.6; }
+
+/* rooftop neon strip on some towers */
+.mqc-sc-midt--neon::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--brand-pink, #ff3edb);
+  box-shadow: 0 0 10px rgba(255, 62, 219, 0.8), 0 0 22px rgba(255, 62, 219, 0.4);
+  opacity: 0;
+  animation: mqc-sign 5.2s ease-in-out infinite;
+}
+
+.mqc-stage-2 .mqc-sc-midt--neon::after { opacity: 0.5; }
+.mqc-stage-3 .mqc-sc-midt--neon::after,
+.mqc-stage-4 .mqc-sc-midt--neon::after { opacity: 0.9; }
+
+/* construction cranes — foundations era only */
+.mqc-sc-crane {
+  position: absolute;
+  bottom: 12%;
+  width: 3px;
+  height: 44%;
+  background: rgba(255, 176, 0, 0.4);
+  opacity: 0;
+}
+
+.mqc-sc-crane::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 74px;
+  height: 3px;
+  background: rgba(255, 176, 0, 0.4);
+}
+
+.mqc-sc-crane::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 58px;
+  width: 2px;
+  height: 26px;
+  background: rgba(255, 176, 0, 0.35);
+  box-shadow: 0 26px 0 0 rgba(255, 176, 0, 0.7);
+}
+
+.mqc-sc-crane--flip {
+  transform: scaleX(-1);
+}
+
+.mqc-stage-1 .mqc-sc-crane,
+.mqc-stage-2 .mqc-sc-crane {
+  opacity: 1;
+}
+
+.mqc-stage-2 .mqc-sc-crane {
+  opacity: 0.45;
+}
+
+/* ── Ambient life ───────────────────────────────────────────────────────── */
+
+.mqc-sc-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mqc-sc-ember {
+  position: absolute;
+  bottom: 10%;
+  border-radius: 50%;
+  background: var(--brand-amber, #ffb000);
+  box-shadow: 0 0 8px rgba(255, 176, 0, 0.8);
+  opacity: 0;
+  animation: mqc-ember var(--dur, 12s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.mqc-sc-drone {
+  position: absolute;
+  left: -6%;
+  width: 16px;
+  height: 6px;
+  animation: mqc-drone var(--dur, 28s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.mqc-sc-drone__body {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: rgba(20, 10, 34, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.25);
+}
+
+.mqc-sc-drone__light {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--brand-red, #ff3b5c);
+  box-shadow: 0 0 6px rgba(255, 59, 92, 0.9);
+  animation: mqc-blink 1.4s steps(1) infinite;
+}
+
+.mqc-sc-tram {
+  position: absolute;
+  left: -30%;
+  width: 90px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-cyan, #00f0ff) 60%, #fff);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
+  animation: mqc-tram var(--dur, 10s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.mqc-sc-tram--rev {
+  background: linear-gradient(270deg, transparent, var(--brand-pink, #ff3edb) 60%, #fff);
+  box-shadow: 0 0 12px rgba(255, 62, 219, 0.7);
+  animation-name: mqc-tram-rev;
+}
+
+/* ── District buildings ─────────────────────────────────────────────────── */
+
+.mqc-sc-districts {
+  position: absolute;
+  inset: 0;
+}
+
+.mqc-sc-b {
+  position: absolute;
+  bottom: 11%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* generous invisible hit area for small towers */
+.mqc-sc-b::after {
+  content: "";
+  position: absolute;
+  inset: -10px -8px;
+}
+
+.mqc-sc-b__tower {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, #130a20 0%, #0a0313 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--b-color) 22%, transparent);
+  transition: box-shadow 0.5s ease;
+}
+
+/* windows */
+.mqc-sc-b__tower::before {
+  content: "";
+  position: absolute;
+  inset: 9% 18% 4% 18%;
+  background:
+    repeating-linear-gradient(180deg, var(--b-color) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(90deg, var(--b-color) 0 3px, transparent 3px 8px);
+  opacity: 0.06;
+  transition: opacity 0.6s ease;
+}
+
+/* rooftop glyph sign */
+.mqc-sc-b__sign {
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  transform: translateX(-50%);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--b-color);
+  opacity: 0.4;
+  text-shadow: 0 0 8px var(--b-glow);
+  transition: opacity 0.5s ease, text-shadow 0.5s ease;
+}
+
+/* rooftop beacon beam — radiant only */
+.mqc-sc-b__beacon {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 60px;
+  border-radius: 2px;
+  background: linear-gradient(0deg, var(--b-color), transparent);
+  opacity: 0;
+  filter: blur(0.5px);
+}
+
+/* hover/focus name label */
+.mqc-sc-b__name {
+  position: absolute;
+  left: 50%;
+  top: -46px;
+  transform: translateX(-50%) translateY(4px);
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(5, 0, 10, 0.9);
+  border: 1px solid color-mix(in srgb, var(--b-color) 45%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--b-color);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 3;
+}
+
+.mqc-sc-b:hover .mqc-sc-b__name,
+.mqc-sc-b:focus-visible .mqc-sc-b__name {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.mqc-sc-b:focus-visible .mqc-sc-b__tower {
+  box-shadow:
+    inset 0 0 0 1px var(--b-color),
+    0 0 0 2px color-mix(in srgb, var(--b-color) 60%, transparent);
+}
+
+/* glow states */
+.mqc-sc-b.is-dim .mqc-sc-b__tower::before {
+  opacity: 0.05;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 176, 0, 0.7) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(90deg, rgba(255, 176, 0, 0.6) 0 3px, transparent 3px 8px);
+}
+
+.mqc-sc-b.is-lit .mqc-sc-b__tower {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--b-color) 45%, transparent),
+    0 0 16px var(--b-glow);
+}
+
+.mqc-sc-b.is-lit .mqc-sc-b__tower::before { opacity: 0.4; }
+.mqc-sc-b.is-lit .mqc-sc-b__sign { opacity: 0.85; }
+
+.mqc-sc-b.is-radiant .mqc-sc-b__tower {
+  box-shadow:
+    inset 0 0 0 1px var(--b-color),
+    0 0 22px var(--b-glow),
+    0 0 46px var(--b-glow);
+  animation: mqc-radiant 3.4s ease-in-out infinite;
+}
+
+.mqc-sc-b.is-radiant .mqc-sc-b__tower::before { opacity: 0.75; }
+
+.mqc-sc-b.is-radiant .mqc-sc-b__sign {
+  opacity: 1;
+  text-shadow: 0 0 10px var(--b-glow), 0 0 22px var(--b-glow);
+}
+
+.mqc-sc-b.is-radiant .mqc-sc-b__beacon {
+  opacity: 0.8;
+  animation: mqc-beacon 4s ease-in-out infinite;
+}
+
+/* ── Haze, ground, meta ─────────────────────────────────────────────────── */
+
+.mqc-sc-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  height: 26%;
+  background: linear-gradient(180deg, transparent, var(--mqc-tint));
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.mqc-sc-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12%;
+  background:
+    linear-gradient(180deg, rgba(6, 1, 12, 0.95), rgba(2, 0, 5, 1)),
+    radial-gradient(60% 100% at 50% 0%, var(--mqc-sky-glow), transparent 70%);
+  border-top: 1px solid color-mix(in srgb, var(--brand-cyan, #00f0ff) 18%, transparent);
+  pointer-events: none;
+}
+
+.mqc-sc-meta {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(5, 0, 10, 0.6);
+  border: 1px solid rgba(123, 44, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted, rgba(242, 240, 244, 0.88));
+  pointer-events: none;
+}
+
+.mqc-sc-meta__stage { color: var(--brand-purple, #7b2cff); }
+.mqc-sc-meta__dot { opacity: 0.5; }
+.mqc-sc-meta__tod { color: var(--brand-cyan, #00f0ff); }
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes mqc-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@keyframes mqc-drift {
+  from { transform: translateX(-0.6%); }
+  to { transform: translateX(0.6%); }
+}
+
+@keyframes mqc-aurora {
+  from { transform: translateX(-3%) scale(1); }
+  to { transform: translateX(3%) scale(1.06); }
+}
+
+@keyframes mqc-flicker {
+  0%, 92%, 100% { filter: brightness(1); }
+  94% { filter: brightness(1.4); }
+  96% { filter: brightness(0.85); }
+}
+
+@keyframes mqc-sign {
+  0%, 88%, 100% { filter: brightness(1); }
+  90% { filter: brightness(0.4); }
+  92% { filter: brightness(1.5); }
+  94% { filter: brightness(0.7); }
+}
+
+@keyframes mqc-ember {
+  0% { transform: translate(0, 0); opacity: 0; }
+  8% { opacity: 0.9; }
+  85% { opacity: 0.5; }
+  100% { transform: translate(var(--drift, 12px), -420px); opacity: 0; }
+}
+
+@keyframes mqc-drone {
+  from { transform: translateX(0); }
+  to { transform: translateX(114vw); }
+}
+
+@keyframes mqc-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+
+@keyframes mqc-tram {
+  from { transform: translateX(-10%); opacity: 0; }
+  6% { opacity: 1; }
+  94% { opacity: 1; }
+  to { transform: translateX(140vw); opacity: 0; }
+}
+
+@keyframes mqc-tram-rev {
+  from { transform: translateX(140vw); opacity: 0; }
+  6% { opacity: 1; }
+  94% { opacity: 1; }
+  to { transform: translateX(-10%); opacity: 0; }
+}
+
+@keyframes mqc-radiant {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+
+@keyframes mqc-beacon {
+  0%, 100% { opacity: 0.45; height: 48px; }
+  50% { opacity: 0.9; height: 64px; }
+}
+
+@keyframes mqc-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.6; }
+}
+
+@keyframes mqc-sheet-up {
+  from { transform: translateX(-50%) translateY(28px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+@keyframes mqc-shimmer {
+  from { transform: translateX(-120%) rotate(8deg); }
+  to { transform: translateX(220%) rotate(8deg); }
+}
+
+/* ── Desktop refinements ────────────────────────────────────────────────── */
+
+@media (min-width: 720px) {
+  .mqc-sc-b__sign { font-size: 17px; }
+  .mqc-scene { height: clamp(440px, 52vh, 640px); }
+}
+
+/* ── Reduced motion: the city holds still, nothing disappears ───────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .mqc-scene *,
+  .mqc-scene::before,
+  .mqc-scene::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .mqc-sc-ambient { display: none; }
+  .mqc-sheet { animation: none; }
+  .mqc-pulse__dot { animation: none; }
+  .mqc-btn,
+  .mqc-guide__go { transition: none; }
+}
+
+html[data-reduced-motion="true"] .mqc-scene *,
+html[data-reduced-motion="true"] .mqc-scene::before,
+html[data-reduced-motion="true"] .mqc-scene::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+html[data-reduced-motion="true"] .mqc-sc-ambient { display: none; }
+html[data-reduced-motion="true"] .mqc-sheet { animation: none; }
+html[data-reduced-motion="true"] .mqc-pulse__dot { animation: none; }
+html[data-reduced-motion="true"] .mqc-btn,
+html[data-reduced-motion="true"] .mqc-guide__go { transition: none; }
+
+.mqc-scene--still *,
+.mqc-scene--still::before,
+.mqc-scene--still::after {
+  animation: none !important;
+}

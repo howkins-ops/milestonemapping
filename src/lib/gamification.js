@@ -17,6 +17,10 @@ export const XP_VALUES = {
   shadowTransmutation: 40,
   bufcaBurn: 50,
   waveRidden: 20,
+  // MapQuest City
+  cityFirstVisit: 50,
+  cityDailySweep: 15,
+  mentorLesson: 10,
   // Accountability Zone — amounts are computed server-side in the az_* RPCs
   // (supabase/migrations); these mirror them for display/reference only.
   zoneDeclare: 10,

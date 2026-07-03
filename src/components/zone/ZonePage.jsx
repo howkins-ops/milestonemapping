@@ -18,22 +18,28 @@ import MessagesPanel from "./messages/MessagesPanel.jsx";
 import InboxPanel from "./inbox/InboxPanel.jsx";
 import ZoneProfile from "./profile/ZoneProfile.jsx";
 import ReportsPanel from "./reports/ReportsPanel.jsx";
+import MapQuestCityPage from "../city/MapQuestCityPage.jsx";
 
 // The Accountability Zone — its own world inside the app.
 // Gates: no supabase/user → ZoneGate; no zone identity → onboarding; else the Zone.
-export default function ZonePage() {
+// MapQuest City lives here as its own tab — the Zone is the city's population.
+export default function ZonePage({ onNavigate, onOpenMapQuest, initialView }) {
   const { userId } = useAppData();
   if (!supabase || !userId) return <ZoneGate />;
   return (
     <ZoneProvider userId={userId}>
-      <ZoneInner />
+      <ZoneInner
+        onNavigate={onNavigate}
+        onOpenMapQuest={onOpenMapQuest}
+        initialView={initialView}
+      />
     </ZoneProvider>
   );
 }
 
-function ZoneInner() {
+function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
   const { loading, member, fire, refreshState } = useZoneCtx();
-  const [view, setView] = useState("home");
+  const [view, setView] = useState(initialView || "home");
   const [viewParam, setViewParam] = useState(null);
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
 
@@ -79,6 +85,13 @@ function ZoneInner() {
       <ZoneNav view={view} go={go} />
 
       {view === "home" && <ZoneHome go={go} openDeclare={openDeclare} openProof={openProof} />}
+      {view === "city" && (
+        <MapQuestCityPage
+          onNavigate={onNavigate}
+          onOpenMapQuest={onOpenMapQuest}
+          embedded
+        />
+      )}
       {view === "feed" && <ZoneFeed go={go} />}
       {view === "squad" && <SquadPanel go={go} squadId={viewParam} />}
       {view === "messages" && <MessagesPanel go={go} conversationId={viewParam} />}

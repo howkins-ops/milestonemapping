@@ -1,0 +1,794 @@
+/* ════════════════════════════════════════════════════════════════════════
+   MAPQUEST CITY — THE PLAZA + HALL OF CHAMPIONS. Prefix: .mqc-pl-
+   Plaza: horizontal presence strip (friends in fire auras, squad banner,
+   partner) over a neon ground glow. Hall: full sheet leaderboard with a
+   gold/silver/bronze podium and ranked consistency rows.
+   Base primitives (.mqc-panel / .mqc-sheet / .mqc-scrim / .mqc-btn /
+   .mqc-kicker) are owned by Agent A's city.css — everything below is the
+   .mqc-pl-* extension layer only.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Plaza section ──────────────────────────────────────────────────────── */
+.mqc-pl {
+  position: relative;
+  margin: 4px 0 6px;
+  isolation: isolate;
+}
+
+.mqc-pl-kicker {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 2px 10px;
+}
+.mqc-pl-kicker__name {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--brand-cyan);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
+}
+.mqc-pl-kicker__sep {
+  color: rgba(242, 240, 244, 0.28);
+  font-size: 11px;
+}
+.mqc-pl-kicker__sub {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-soft);
+}
+
+/* ── The strip: horizontal scroll on mobile, wraps on desktop ───────────── */
+.mqc-pl-strip {
+  list-style: none;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 2px 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-left: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mqc-pl-strip::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.mqc-pl-strip > li {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+/* ── Friend chip: avatar in a fire-tier aura ring ───────────────────────── */
+.mqc-pl-chip {
+  --pl-tint: var(--brand-cyan, #00f0ff);
+  --pl-glow: rgba(0, 240, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 76px;
+  padding: 6px 2px 4px;
+}
+.mqc-pl-chip__name {
+  max-width: 74px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* aura ring — spinning conic arc + glow, tinted per fire tier via
+   inline style custom props (--pl-tint / --pl-glow) */
+.mqc-pl-aura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+}
+.mqc-pl-aura::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    var(--pl-tint) 16%,
+    transparent 38%,
+    transparent 52%,
+    var(--pl-tint) 70%,
+    transparent 94%
+  );
+  box-shadow: 0 0 16px var(--pl-glow);
+  opacity: 0.9;
+  animation: mqcPlAuraSpin 3.4s linear infinite;
+}
+.mqc-pl-aura::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid var(--pl-tint);
+  opacity: 0.45;
+  pointer-events: none;
+}
+@keyframes mqcPlAuraSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.mqc-pl-avatar {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--card, #0d0514);
+  border: 1px solid rgba(5, 0, 7, 0.9);
+}
+.mqc-pl-avatar--mono {
+  display: grid;
+  place-items: center;
+  background: var(--grad-primary);
+  color: #050007;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 21px;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  user-select: none;
+}
+
+/* tiny 🔥N streak badge */
+.mqc-pl-flame {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  z-index: 2;
+  padding: 1px 6px 2px;
+  border-radius: 999px;
+  border: 1px solid var(--pl-tint);
+  background: rgba(5, 0, 7, 0.92);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-main);
+  box-shadow: 0 0 10px var(--pl-glow);
+  white-space: nowrap;
+}
+
+/* ── Partner chip ───────────────────────────────────────────────────────── */
+.mqc-pl-chip--partner {
+  --pl-tint: var(--brand-pink, #ff3edb);
+  --pl-glow: rgba(255, 62, 219, 0.4);
+}
+.mqc-pl-aura--partner::before {
+  animation-duration: 4.6s;
+}
+.mqc-pl-proved {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--brand-green, #00ffbf);
+  background: rgba(5, 0, 7, 0.92);
+  color: var(--brand-green, #00ffbf);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(0, 255, 191, 0.4);
+}
+.mqc-pl-partnerlbl {
+  margin-top: -3px;
+  padding: 1px 8px 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 62, 219, 0.45);
+  background: rgba(255, 62, 219, 0.1);
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand-pink, #ff3edb);
+}
+
+/* ── Squad banner chip ──────────────────────────────────────────────────── */
+.mqc-pl-squad {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 168px;
+  max-width: 220px;
+  padding: 10px 16px 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(123, 44, 255, 0.4);
+  background:
+    radial-gradient(110% 100% at 0% 0%, rgba(209, 30, 255, 0.14) 0%, transparent 55%),
+    linear-gradient(120deg, rgba(123, 44, 255, 0.16), rgba(13, 5, 20, 0.85) 70%);
+  box-shadow: 0 0 20px rgba(123, 44, 255, 0.12);
+  overflow: hidden;
+}
+.mqc-pl-squad::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--brand-magenta, #d11eff), var(--brand-purple, #7b2cff));
+  box-shadow: 0 0 12px rgba(209, 30, 255, 0.55);
+}
+.mqc-pl-squad__emblem {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid rgba(209, 30, 255, 0.4);
+  background: rgba(209, 30, 255, 0.1);
+  font-size: 21px;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(209, 30, 255, 0.45));
+}
+.mqc-pl-squad__txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mqc-pl-squad__kicker {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brand-magenta, #d11eff);
+  opacity: 0.9;
+}
+.mqc-pl-squad__name {
+  margin-top: 1px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mqc-pl-squad__count {
+  margin-top: 1px;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* ── Plaza ground glow ──────────────────────────────────────────────────── */
+.mqc-pl-ground {
+  display: block;
+  height: 2px;
+  margin: 0 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 240, 255, 0.35) 30%,
+    rgba(209, 30, 255, 0.35) 70%,
+    transparent
+  );
+  filter: blur(0.5px);
+  animation: mqcPlGround 5s ease-in-out infinite;
+}
+@keyframes mqcPlGround {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   HALL OF CHAMPIONS — full sheet
+   ════════════════════════════════════════════════════════════════════════ */
+
+.mqc-pl-hallscrim {
+  position: fixed;
+  inset: 0;
+  z-index: 340;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(2, 0, 6, 0.74);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: mqcPlFade 0.22s ease-out both;
+}
+@keyframes mqcPlFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mqc-pl-hall {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100dvh - 36px - var(--safe-top, 0px));
+  border-radius: 22px 22px 0 0;
+  border: 1px solid rgba(250, 204, 21, 0.26);
+  border-bottom: none;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(250, 204, 21, 0.07) 0%, transparent 55%),
+    linear-gradient(170deg, rgba(13, 5, 20, 0.99) 0%, rgba(5, 0, 7, 0.99) 100%);
+  box-shadow:
+    0 -14px 60px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(250, 204, 21, 0.08);
+  outline: none;
+  overflow: hidden;
+  animation: mqcPlSheetUp 0.3s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes mqcPlSheetUp {
+  from { transform: translateY(9%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.mqc-pl-hall__handle {
+  flex: none;
+  width: 38px;
+  height: 4px;
+  margin: 10px auto 4px;
+  border-radius: 999px;
+  background: rgba(242, 240, 244, 0.16);
+}
+
+.mqc-pl-hall__head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 16px 14px 20px;
+  border-bottom: 1px solid rgba(250, 204, 21, 0.14);
+}
+.mqc-pl-hall__titles {
+  flex: 1;
+  min-width: 0;
+}
+.mqc-pl-hall__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--brand-gold, #facc15);
+  text-shadow: 0 0 18px rgba(250, 204, 21, 0.4);
+}
+.mqc-pl-hall__sub {
+  margin: 4px 0 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+.mqc-pl-hall__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(242, 240, 244, 0.14);
+  background: rgba(13, 5, 20, 0.7);
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+.mqc-pl-hall__close:hover,
+.mqc-pl-hall__close:focus-visible {
+  border-color: rgba(0, 240, 255, 0.5);
+  color: var(--brand-cyan, #00f0ff);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.18);
+}
+
+.mqc-pl-hall__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 16px calc(22px + var(--safe-bottom, 0px));
+}
+
+.mqc-pl-hall__window {
+  display: inline-flex;
+  margin: 0 0 14px;
+  padding: 3px 10px 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  background: rgba(0, 240, 255, 0.07);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand-cyan, #00f0ff);
+}
+
+.mqc-pl-hall__oath {
+  margin: 18px 4px 0;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+/* ── Podium ─────────────────────────────────────────────────────────────── */
+.mqc-pl-podium {
+  list-style: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 18px;
+  padding: 0;
+}
+.mqc-pl-spot {
+  --spot: var(--brand-gold, #facc15);
+  --spot-glow: rgba(250, 204, 21, 0.4);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex: 1 1 0;
+  max-width: 128px;
+  min-width: 0;
+  text-align: center;
+}
+.mqc-pl-spot--gold {
+  --spot: var(--brand-gold, #facc15);
+  --spot-glow: rgba(250, 204, 21, 0.42);
+  order: 2;
+}
+.mqc-pl-spot--silver {
+  --spot: #cdd8e4;
+  --spot-glow: rgba(205, 216, 228, 0.32);
+  order: 1;
+}
+.mqc-pl-spot--bronze {
+  --spot: var(--brand-amber, #ffb000);
+  --spot-glow: rgba(255, 176, 0, 0.32);
+  order: 3;
+}
+
+.mqc-pl-spot__crown {
+  font-size: 19px;
+  line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.65));
+  animation: mqcPlCrown 2.6s ease-in-out infinite;
+}
+@keyframes mqcPlCrown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.mqc-pl-spot__aura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+.mqc-pl-spot--gold .mqc-pl-spot__aura {
+  width: 68px;
+  height: 68px;
+}
+.mqc-pl-spot__aura::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--spot);
+  box-shadow:
+    0 0 18px var(--spot-glow),
+    inset 0 0 12px var(--spot-glow);
+  opacity: 0.9;
+}
+.mqc-pl-spot--gold .mqc-pl-spot__aura::before {
+  animation: mqcPlChampion 2.4s ease-in-out infinite;
+}
+@keyframes mqcPlChampion {
+  0%, 100% { box-shadow: 0 0 16px var(--spot-glow), inset 0 0 10px var(--spot-glow); }
+  50% { box-shadow: 0 0 30px var(--spot-glow), inset 0 0 16px var(--spot-glow); }
+}
+.mqc-pl-spot__avatar {
+  z-index: 1;
+}
+
+.mqc-pl-spot__name {
+  max-width: 100%;
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mqc-pl-spot__pct {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--spot);
+  text-shadow: 0 0 12px var(--spot-glow);
+}
+.mqc-pl-spot__streak {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+/* pedestal block — center champion stands tallest */
+.mqc-pl-spot__base {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 26px;
+  margin-top: 6px;
+  border-radius: 8px 8px 3px 3px;
+  border: 1px solid var(--spot);
+  border-bottom: none;
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.14), rgba(13, 5, 20, 0.4));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--spot) 20%, transparent), rgba(13, 5, 20, 0.4));
+  box-shadow: 0 -4px 18px var(--spot-glow);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--spot);
+  text-shadow: 0 0 10px var(--spot-glow);
+}
+.mqc-pl-spot--gold .mqc-pl-spot__base { height: 44px; font-size: 16px; }
+.mqc-pl-spot--bronze .mqc-pl-spot__base { height: 20px; }
+
+/* current-user podium highlight */
+.mqc-pl-spot--you .mqc-pl-spot__name {
+  color: var(--brand-cyan, #00f0ff);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+/* ── Ranked rows ────────────────────────────────────────────────────────── */
+.mqc-pl-rows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.mqc-pl-row {
+  display: grid;
+  grid-template-columns: 24px 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 9px 12px;
+  border-radius: 13px;
+  border: 1px solid rgba(209, 30, 255, 0.13);
+  background: rgba(13, 5, 20, 0.6);
+}
+.mqc-pl-row--you {
+  border-color: rgba(0, 240, 255, 0.55);
+  background: rgba(0, 240, 255, 0.06);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.12);
+}
+.mqc-pl-row__rank {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-soft);
+  text-align: center;
+}
+.mqc-pl-row--you .mqc-pl-row__rank {
+  color: var(--brand-cyan, #00f0ff);
+}
+.mqc-pl-row__avatar {
+  width: 38px;
+  height: 38px;
+}
+.mqc-pl-row__avatar.mqc-pl-avatar--mono {
+  font-size: 16px;
+}
+.mqc-pl-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.mqc-pl-row__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mqc-pl-row__stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.mqc-pl-row__pct {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--brand-gold, #facc15);
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+}
+.mqc-pl-row__meta {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* consistency bar */
+.mqc-pl-bar {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(242, 240, 244, 0.08);
+  overflow: hidden;
+}
+.mqc-pl-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-primary-90);
+  box-shadow: 0 0 10px rgba(209, 30, 255, 0.45);
+  transition: width 0.6s var(--ease-out, ease);
+}
+
+/* "YOU" chip */
+.mqc-pl-you {
+  flex: none;
+  display: inline-flex;
+  padding: 1px 7px 2px;
+  border-radius: 7px;
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  background: rgba(0, 240, 255, 0.14);
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-cyan, #00f0ff);
+}
+
+/* ── Quiet empty state ──────────────────────────────────────────────────── */
+.mqc-pl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 44px 24px 48px;
+  text-align: center;
+}
+.mqc-pl-empty__glyph {
+  font-size: 34px;
+  line-height: 1;
+  filter: drop-shadow(0 0 16px rgba(250, 204, 21, 0.3));
+  opacity: 0.85;
+}
+.mqc-pl-empty__txt {
+  max-width: 30ch;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ── Desktop scale-up ───────────────────────────────────────────────────── */
+@media (min-width: 760px) {
+  .mqc-pl-strip {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 12px;
+  }
+  .mqc-pl-hallscrim {
+    align-items: center;
+    padding: 28px 20px;
+  }
+  .mqc-pl-hall {
+    border-radius: 22px;
+    border-bottom: 1px solid rgba(250, 204, 21, 0.26);
+    max-height: min(760px, calc(100dvh - 56px));
+  }
+  .mqc-pl-hall__handle {
+    display: none;
+  }
+  .mqc-pl-hall__head {
+    padding: 20px 20px 16px 24px;
+  }
+  .mqc-pl-hall__title {
+    font-size: 22px;
+  }
+  .mqc-pl-hall__body {
+    padding: 20px 22px 26px;
+  }
+  .mqc-pl-podium {
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .mqc-pl-spot {
+    max-width: 150px;
+  }
+}
+
+/* ── Reduced motion: kill every animation + transition, both triggers ───── */
+@media (prefers-reduced-motion: reduce) {
+  .mqc-pl-aura::before,
+  .mqc-pl-ground,
+  .mqc-pl-hallscrim,
+  .mqc-pl-hall,
+  .mqc-pl-spot__crown,
+  .mqc-pl-spot--gold .mqc-pl-spot__aura::before {
+    animation: none;
+  }
+  .mqc-pl-bar__fill,
+  .mqc-pl-hall__close {
+    transition: none;
+  }
+}
+html[data-reduced-motion="true"] .mqc-pl-aura::before,
+html[data-reduced-motion="true"] .mqc-pl-ground,
+html[data-reduced-motion="true"] .mqc-pl-hallscrim,
+html[data-reduced-motion="true"] .mqc-pl-hall,
+html[data-reduced-motion="true"] .mqc-pl-spot__crown,
+html[data-reduced-motion="true"] .mqc-pl-spot--gold .mqc-pl-spot__aura::before {
+  animation: none;
+}
+html[data-reduced-motion="true"] .mqc-pl-bar__fill,
+html[data-reduced-motion="true"] .mqc-pl-hall__close {
+  transition: none;
+}

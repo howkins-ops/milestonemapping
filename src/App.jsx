@@ -25,7 +25,7 @@ import AngerGymPage from "./components/anger/AngerGymPage.jsx";
 import BlazeRealTrainingOS from "./components/blaze/BlazeRealTrainingOS.jsx";
 import ProfilePage from "./components/profile/ProfilePage.jsx";
 import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
-import SeekerCity from "./components/game/SeekerCity.jsx";
+import MapQuestCityPage from "./components/city/MapQuestCityPage.jsx";
 import { CHAPTER_COMPONENTS } from "./components/map-quest/chapterRegistry.js";
 import { getChapterByKey } from "./components/map-quest/questChapters.js";
 import TopFivePage from "./components/daily/TopFivePage.jsx";
@@ -184,7 +184,7 @@ function AppContent({ signOut }) {
       case "zone":
         return (
           <Suspense fallback={null}>
-            <ZonePage />
+            <ZonePage onNavigate={navigate} onOpenMapQuest={openMapQuest} />
           </Suspense>
         );
       case "blaze":
@@ -193,8 +193,15 @@ function AppContent({ signOut }) {
         return <ProfilePage onNavigate={navigate} />;
       case "topfive":
         return <TopFivePage onNavigate={navigate} />;
+      case "city":
       case "openworld":
-        return <SeekerCity onNavigate={navigate} onOpenProject={openProject} />;
+        return (
+          <MapQuestCityPage
+            onNavigate={navigate}
+            onOpenProject={openProject}
+            onOpenMapQuest={openMapQuest}
+          />
+        );
       case "openworld-legacy":
         return <OpenWorldMap onNavigate={navigate} onOpenProject={openProject} />;
       case "chapter-anchor":

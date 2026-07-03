@@ -172,6 +172,18 @@ const ICONS = {
       <circle cx="5" cy="13" r="1.1" className="nav-icon__fill" />
       <circle cx="19" cy="13" r="1.1" className="nav-icon__fill" />
     </>
+  ),
+  city: (
+    <>
+      <path d="M3.5 20.5h17" />
+      <path d="M5.5 20.5v-6.5l3.25-1.75V20.5" />
+      <path d="M10.25 20.5V7.5L14.5 5v15.5" />
+      <path d="M16.25 20.5v-9l3.25 1.75v7.25" />
+      <path d="M12.4 9.5v1.6" className="nav-icon__spark" />
+      <path d="M12.4 13v1.6" className="nav-icon__spark" />
+      <path d="M12.4 16.5v1.6" className="nav-icon__spark" />
+      <path d="M12.4 2v1.75" className="nav-icon__spark" />
+    </>
   )
 };
 
