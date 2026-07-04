@@ -6,6 +6,7 @@ import { MentorSprite } from "../map-quest/kit.jsx";
 import WorldScene from "./world/WorldScene.jsx";
 import { buildCityWorld, STORY_ORDER } from "./cityWorld.js";
 import useJourney from "./useJourney.js";
+import HometownJourney from "./hometown/HometownJourney.jsx";
 import CitizenCard from "./CitizenCard.jsx";
 import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
@@ -39,6 +40,7 @@ import "../../styles/city.css";
 const ALL_DISTRICT_IDS = DISTRICTS.map((d) => d.id);
 
 const POSITION_KEY = "mqw_pos_v1";
+const GATES_SPAWN_X = 210; // arriving from the hometown, you enter at the gates
 
 function loadSavedX() {
   try {
@@ -102,9 +104,11 @@ export default function MapQuestCityPage({
   const timeOfDay = getTimeOfDay();
 
   // ── Arrival rewards (idempotent via cityStore) ──────────────────────────
+  // Only fires once the journey is actually in the city — a new citizen in
+  // the hometown hasn't arrived yet.
   const arrivalFired = useRef(false);
   useEffect(() => {
-    if (arrivalFired.current) return;
+    if (arrivalFired.current || journey.world !== "city") return;
     arrivalFired.current = true;
     const { firstVisit, newDay } = recordVisit();
     if (firstVisit) {
@@ -120,7 +124,7 @@ export default function MapQuestCityPage({
       addXP(XP_VALUES.cityDailySweep, "The city stirs as you return");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [journey.world]);
 
   // ── Interactions ────────────────────────────────────────────────────────
   const openDistrict = (district) => {
@@ -189,8 +193,45 @@ export default function MapQuestCityPage({
     guideName: THE_GUIDE.name,
     guideColor: THE_GUIDE.color,
   });
-  const spawnX = useMemo(() => loadSavedX(), []);
+  const [citySpawnX, setCitySpawnX] = useState(() => loadSavedX());
   const scenePaused = Boolean(selected || hallOpen || lesson);
+
+  // ── Hometown ⇄ city transitions ─────────────────────────────────────────
+  const handleHometownComplete = ({ firstEver }) => {
+    if (firstEver) {
+      addXP(XP_VALUES.hometownDeparture, "The road out of the hometown");
+      unlockAchievement("hometown_departure");
+    }
+    try {
+      sessionStorage.setItem(POSITION_KEY, String(GATES_SPAWN_X));
+    } catch {
+      /* no-op */
+    }
+    setCitySpawnX(GATES_SPAWN_X);
+    journey.refresh(); // completeHometown already moved the world to "city"
+  };
+
+  const handleCityExit = (side) => {
+    if (side === "left") journey.setWorld("hometown"); // THE ROAD HOME
+  };
+
+  // ── World #1: the hometown ──────────────────────────────────────────────
+  if (journey.world === "hometown") {
+    return (
+      <div className={`mqc-root${embedded ? " mqc-root--embedded" : ""}`}>
+        <header className="mqc-head">
+          <div>
+            <h2 className="mqc-head__title">THE HOMETOWN</h2>
+            <p className="mqc-head__sub">Where the road starts.</p>
+          </div>
+        </header>
+        <HometownJourney
+          reducedMotion={reducedMotion}
+          onComplete={handleHometownComplete}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`mqc-root${embedded ? " mqc-root--embedded" : ""}`}>
@@ -210,12 +251,13 @@ export default function MapQuestCityPage({
         world={world}
         stage={stage}
         timeOfDay={timeOfDay}
-        spawnX={spawnX}
+        spawnX={citySpawnX}
         paused={scenePaused}
         reducedMotion={reducedMotion}
         persistKey={POSITION_KEY}
         onEnterBuilding={openDistrictById}
         onTalkNpc={() => (guideDistrict ? openDistrict(guideDistrict) : null)}
+        onExitEdge={handleCityExit}
       />
 
       <button

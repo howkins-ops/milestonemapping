@@ -50,11 +50,19 @@ export default function WorldScene({
         type: "door",
         x: Math.round(b.x + b.w / 2),
         range: Math.max(DOOR_RANGE, b.w / 2),
+        disabled: Boolean(b.disabled),
         building: b,
       });
     }
     for (const n of world.npcs || []) {
-      list.push({ id: `n:${n.id}`, type: "npc", x: n.x, range: 64, npc: n });
+      list.push({
+        id: `n:${n.id}`,
+        type: "npc",
+        x: n.x,
+        range: 64,
+        disabled: Boolean(n.disabled),
+        npc: n,
+      });
     }
     const edges = world.edges || {};
     if (edges.left && edges.left.type === "exit") {

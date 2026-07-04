@@ -138,6 +138,12 @@ export const ACHIEVEMENTS = [
     icon: "🏄"
   },
   {
+    id: "hometown_departure",
+    title: "The Road Out",
+    description: "You took the send-off, packed your word, and walked out of the hometown toward the glow.",
+    icon: "🛣️"
+  },
+  {
     id: "city_arrival",
     title: "Citizen of the City",
     description: "You stepped into MapQuest City for the first time. Every path now has an address.",

@@ -21,6 +21,7 @@ export const XP_VALUES = {
   cityFirstVisit: 50,
   cityDailySweep: 15,
   mentorLesson: 10,
+  hometownDeparture: 40,
   // Accountability Zone — amounts are computed server-side in the az_* RPCs
   // (supabase/migrations); these mirror them for display/reference only.
   zoneDeclare: 10,

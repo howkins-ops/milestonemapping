@@ -164,7 +164,7 @@ export function buildCityWorld(districts, { guideName = "The Guide", guideColor 
     width,
     spawnX: 560,
     edges: {
-      left: { type: "wall", id: "road-home", label: "THE ROAD HOME" },
+      left: { type: "exit", id: "road-home", label: "THE ROAD HOME" },
       right: { type: "wall" },
     },
     far: FAR,
