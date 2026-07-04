@@ -263,7 +263,7 @@ export default function BootSequence({ onDone }) {
             aria-hidden="true"
             style={{
               position: "absolute",
-              left: "50%", top: "39%",
+              left: "50%", top: "35%",
               width: 0, height: 0,
               zIndex: -1,
               opacity: ignited ? 1 : 0,
@@ -368,8 +368,8 @@ export default function BootSequence({ onDone }) {
             </g>
 
             {/* Diamond — condenses out of the air at the phoenix's crown,
-                bottom tip kissing the head. No more long-distance drop. */}
-            <g transform="translate(55,83.1) scale(0.55)">
+                floating just above the head. No more long-distance drop. */}
+            <g transform="translate(55,75) scale(0.55)">
               <g
                 style={{
                   opacity: diaFormed ? 1 : 0,
@@ -398,7 +398,7 @@ export default function BootSequence({ onDone }) {
           {diaCharging && !reduced && (
             <div
               aria-hidden="true"
-              style={{ position: "absolute", left: "50%", top: "37%", width: 0, height: 0, pointerEvents: "none" }}
+              style={{ position: "absolute", left: "50%", top: "33%", width: 0, height: 0, pointerEvents: "none" }}
             >
               {CONVERGE_SPARKS.map((s, i) => (
                 <span
@@ -424,7 +424,7 @@ export default function BootSequence({ onDone }) {
             aria-hidden="true"
             style={{
               position: "absolute",
-              left: "50%", top: "39%",
+              left: "50%", top: "35%",
               width: 80, height: 80,
               marginLeft: -40, marginTop: -40,
               border: "2px solid rgba(0,240,255,0.9)",

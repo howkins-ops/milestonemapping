@@ -105,7 +105,8 @@
 .dg-scene {
   --p: 0;
   position: relative; overflow: hidden; isolation: isolate;
-  height: min(56vh, 420px); border-radius: 16px;
+  /* taller stage so the WHOLE door fits — top used to crop off-screen */
+  height: min(64vh, 540px); border-radius: 16px;
   background: linear-gradient(#05020c, #0b0512 30%);
   border: 1px solid rgba(255, 255, 255, .06);
   user-select: none; -webkit-user-select: none;
@@ -171,16 +172,18 @@
 
 /* ── the door ────────────────────────────────────────────────────────── */
 .dg-hitzone {
-  position: absolute; left: 50%; bottom: 10%; transform: translateX(-50%);
-  z-index: 2; width: min(62%, 250px); padding: 12px; margin: 0;
+  position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
+  z-index: 2; padding: 12px; margin: 0;
+  /* bigger + CLOSER — the vh term guarantees the full door is visible */
+  width: min(76%, 310px, calc((min(64vh, 540px) - 92px) * .58));
   background: none; border: none; cursor: pointer;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
 }
 .dg-doorshake { display: block; perspective: 720px; }
 .dg-doorpos {
   /* broke-phase stand-in for the hitzone: same footprint, no button */
-  position: absolute; left: 50%; bottom: 10%; transform: translateX(-50%);
-  z-index: 2; width: min(62%, 250px); padding: 12px;
+  position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
+  z-index: 2; width: min(76%, 310px, calc((min(64vh, 540px) - 92px) * .58)); padding: 12px;
   perspective: 720px; pointer-events: none;
 }
 .dg-doorshake.is-hit { animation: dgKnock .26s var(--ease-out); }
@@ -225,7 +228,8 @@
 }
 
 .dg-door {
-  position: relative; width: 100%; aspect-ratio: .52; border-radius: 6px 6px 0 0;
+  /* chunkier aspect reads bigger + closer without cropping the top */
+  position: relative; width: 100%; aspect-ratio: .58; border-radius: 6px 6px 0 0;
   background: linear-gradient(100deg, #6b3a1c, #4a2410 55%, #35180a);
   border: 3px solid #2a1206; border-bottom: none;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 10px 30px rgba(0, 0, 0, .55);
@@ -418,6 +422,365 @@
   letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   CINEMA UPDATE — rounds chips, title cards, midnight mode, doorbell,
+   drain warning, door burst, the porch fight and the wife finale.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* round chips on the brief */
+.dg-rounds { display: flex; flex-wrap: wrap; gap: 8px; }
+.dg-rounds__item {
+  padding: 6px 11px; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  color: #FFD84D; background: rgba(255, 216, 77, .07); border: 1px solid rgba(255, 216, 77, .25);
+}
+
+/* midnight clock chip in the top bar */
+.dg-clock {
+  margin-left: auto; font-family: var(--font-mono); font-size: 11.5px; font-weight: 800;
+  letter-spacing: .06em; color: #00F0FF;
+  background: rgba(0, 240, 255, .08); border: 1px solid rgba(0, 240, 255, .3);
+  padding: 5px 10px; border-radius: 999px;
+}
+.dg-clock + .dg-nos { margin-left: 0; }
+
+/* ── letterboxed title cards ─────────────────────────────────────────── */
+.dg-cine { display: flex; flex-direction: column; min-height: min(64vh, 540px); }
+.dg-cine__bar { height: 42px; background: #000; border-radius: 4px; }
+.dg-cine__body {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 26px 18px;
+  background: linear-gradient(#03010a, #0a0414 60%, #03010a);
+}
+.dg-cine__eyebrow {
+  margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: .22em; text-transform: uppercase; color: #FFD84D;
+  animation: dgCineIn .7s var(--ease-out) backwards;
+}
+.dg-cine__title {
+  margin: 0 0 4px; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(26px, 7vw, 38px); line-height: 1.1; color: var(--text-main);
+  text-shadow: 0 0 34px rgba(255, 59, 92, .35);
+  animation: dgCineIn .7s var(--ease-out) .2s backwards;
+}
+.dg-cine__line {
+  margin: 0; max-width: 420px; color: var(--text-muted); font-size: 14.5px; line-height: 1.55;
+  animation: dgCineIn .6s var(--ease-out) backwards;
+}
+.dg-cine__cta { margin-top: 14px; animation: dgCineIn .6s var(--ease-out) 2.1s backwards; }
+@keyframes dgCineIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── midnight mode ───────────────────────────────────────────────────── */
+.dg-scene.is-night { background: linear-gradient(#010107, #05030f 30%); }
+.dg-scene.is-night .dg-sky {
+  background:
+    radial-gradient(1.5px 1.5px at 12% 30%, rgba(255, 255, 255, .8), transparent 60%),
+    radial-gradient(1px 1px at 34% 60%, rgba(255, 255, 255, .6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 25%, rgba(255, 255, 255, .7), transparent 60%),
+    radial-gradient(1px 1px at 82% 50%, rgba(255, 255, 255, .55), transparent 60%),
+    radial-gradient(1px 1px at 70% 75%, rgba(255, 255, 255, .4), transparent 60%),
+    linear-gradient(#000004, #060215);
+}
+.dg-moon {
+  position: absolute; top: 16%; right: 10%; width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #fffbe8, #cfc7a6 68%, #9a927a);
+  box-shadow: 0 0 30px 8px rgba(255, 250, 220, .25), inset -6px -4px 0 rgba(0, 0, 0, .18);
+}
+.dg-scene.is-night .dg-wall {
+  background:
+    repeating-linear-gradient(180deg, rgba(120, 160, 255, .03) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg, #0b0618, #070310 60%, #050208);
+}
+.dg-scene.is-night .dg-porchlight {
+  box-shadow: 0 0 36px 12px rgba(255, 216, 77, .45), 0 0 100px 40px rgba(255, 216, 77, .18);
+}
+
+/* ── the doorbell ────────────────────────────────────────────────────── */
+.dg-bellbtn {
+  position: absolute; right: 6%; bottom: 34%; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 64px; height: 64px; border-radius: 50%; cursor: pointer;
+  font-size: 24px; line-height: 1; font-family: inherit;
+  color: #14060a; background: radial-gradient(circle at 35% 30%, #ffe9a8, #FFB000 70%);
+  border: 2px solid rgba(255, 216, 77, .8);
+  box-shadow: 0 0 24px rgba(255, 176, 0, .5), 0 6px 18px rgba(0, 0, 0, .5);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  animation: dgBellPulse 1.6s ease-in-out infinite;
+  transition: transform .1s var(--ease-out);
+}
+.dg-bellbtn:active { transform: scale(.9); animation: none; }
+.dg-bellbtn small {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 800; letter-spacing: .08em;
+}
+@keyframes dgBellPulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(255, 176, 0, .4), 0 6px 18px rgba(0, 0, 0, .5); }
+  50% { box-shadow: 0 0 34px rgba(255, 176, 0, .75), 0 6px 18px rgba(0, 0, 0, .5); }
+}
+
+/* ── the drain — stop tapping and Harold wins ────────────────────────── */
+.dg-drainwarn {
+  position: absolute; left: 50%; bottom: 16%; transform: translateX(-50%); z-index: 5;
+  padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  color: #FF3B5C; background: rgba(20, 0, 5, .85); border: 1px solid rgba(255, 59, 92, .6);
+  animation: dgDrainPulse .5s ease-in-out infinite;
+}
+.dg-scene.is-draining .dg-resolve__fill {
+  background: linear-gradient(90deg, #7a0d22, #FF3B5C);
+  animation: dgDrainPulse .5s ease-in-out infinite;
+}
+@keyframes dgDrainPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+/* ── late-game door damage: boards splitting ─────────────────────────── */
+.dg-plank {
+  position: absolute; left: -2%; width: 104%; height: 7px; pointer-events: none;
+  background: linear-gradient(90deg, #1b0c04, #000 55%, #1b0c04);
+  clip-path: polygon(0 40%, 12% 0, 30% 70%, 47% 15%, 63% 85%, 80% 25%, 100% 60%, 100% 100%, 0 100%);
+  opacity: 0;
+}
+.dg-plank--1 { top: 38%; transform: rotate(-2.5deg); opacity: clamp((var(--p) - .86) * 8, 0, 1); }
+.dg-plank--2 { top: 64%; transform: rotate(2deg) scaleX(-1); opacity: clamp((var(--p) - .93) * 9, 0, 1); }
+
+/* ── the burst — Harold rips the door open ───────────────────────────── */
+.dg-doorwrap.is-burst {
+  transform-origin: 8% 50%;
+  animation: dgBurstOpen 1s cubic-bezier(.6, 0, .7, .3) .25s forwards;
+}
+@keyframes dgBurstOpen {
+  0% { transform: rotateY(0); filter: brightness(1); }
+  100% { transform: rotateY(-78deg); filter: brightness(.55); }
+}
+.dg-scene.is-bursting { animation: dgSceneQuake .5s var(--ease-out); }
+.dg-scene.is-bursting::after {
+  /* hallway light spilling through the empty frame */
+  content: ""; position: absolute; left: 50%; bottom: 5%; z-index: 1;
+  width: min(60%, 250px); height: 68%; transform: translateX(-50%);
+  background: radial-gradient(80% 100% at 50% 100%, rgba(255, 226, 160, .5), rgba(255, 216, 77, .12) 60%, transparent);
+  animation: dgSpill .9s var(--ease-out) .4s backwards;
+}
+@keyframes dgSceneQuake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 3px); }
+  40% { transform: translate(6px, -3px); }
+  60% { transform: translate(-4px, 2px); }
+  80% { transform: translate(4px, -2px); }
+}
+@keyframes dgSpill { from { opacity: 0; } to { opacity: 1; } }
+
+/* open door frame for the fight + wife scenes */
+.dg-doorframe-open {
+  position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); z-index: 0;
+  width: min(66%, 270px); height: 72%; border-radius: 8px 8px 0 0;
+  background: radial-gradient(80% 70% at 50% 100%, rgba(255, 226, 160, .22), rgba(20, 12, 4, .9) 70%);
+  border: 6px solid #2a1206; border-bottom: none;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, .8);
+}
+
+/* ── THE PORCH FIGHT ─────────────────────────────────────────────────── */
+.dg-hpbars {
+  position: absolute; top: 10px; left: 12px; right: 12px; z-index: 4;
+  display: flex; gap: 14px;
+}
+.dg-hp { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.dg-hp span {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 800; letter-spacing: .14em;
+  color: rgba(255, 255, 255, .65);
+}
+.dg-hp--him span { text-align: right; }
+.dg-hp__track {
+  height: 10px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12);
+}
+.dg-hp__fill {
+  height: 100%; border-radius: 999px; transform-origin: 0 50%;
+  transition: transform .18s var(--ease-out);
+}
+.dg-hp--you .dg-hp__fill { background: linear-gradient(90deg, #00F0FF, #41FF6B); box-shadow: 0 0 10px rgba(0, 240, 255, .5); }
+.dg-hp--him .dg-hp__fill { transform-origin: 100% 50%; background: linear-gradient(90deg, #FF3B5C, #FFB000); box-shadow: 0 0 10px rgba(255, 59, 92, .5); }
+
+/* Harold himself */
+.dg-harold {
+  position: absolute; left: 50%; bottom: 14%; transform: translateX(-50%); z-index: 2;
+  padding: 18px; margin: 0; background: none; border: none; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.dg-harold__shake { position: relative; display: flex; flex-direction: column; align-items: center; }
+.dg-harold__face { font-size: 74px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .6)); }
+.dg-harold__robe { font-size: 64px; line-height: .9; margin-top: -10px; }
+.dg-harold__stars { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); font-size: 26px; opacity: 0; }
+.dg-harold__fists { position: absolute; top: 46%; left: 50%; width: 150px; transform: translateX(-50%); }
+.dg-fist { position: absolute; font-size: 40px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.dg-fist--l { left: -8px; }
+.dg-fist--r { right: -8px; }
+
+.dg-harold.is-guard .dg-harold__shake { animation: dgBob 1.4s ease-in-out infinite; }
+@keyframes dgBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+/* the telegraph — LEARN THIS OR NAP */
+.dg-harold.is-windup .dg-harold__shake {
+  animation: dgTell .3s ease-in-out infinite;
+  filter: drop-shadow(0 0 22px rgba(255, 59, 92, .9));
+}
+.dg-harold.is-windup .dg-fist--r { transform: translate(10px, -16px) scale(1.35) rotate(-24deg); }
+@keyframes dgTell {
+  0%, 100% { transform: translateX(-3px) rotate(-2deg); }
+  50% { transform: translateX(3px) rotate(2deg); }
+}
+.dg-harold.is-swing .dg-fist--r {
+  animation: dgSwing .26s cubic-bezier(.4, 0, .6, 1) forwards;
+}
+@keyframes dgSwing {
+  0% { transform: translate(10px, -16px) scale(1.35); }
+  100% { transform: translate(-30px, 70px) scale(2.6); }
+}
+.dg-harold.is-open .dg-harold__shake { animation: dgWoozy .5s ease-in-out infinite; filter: drop-shadow(0 0 22px rgba(255, 216, 77, .9)); }
+.dg-harold.is-open .dg-harold__stars { opacity: 1; animation: dgStarSpin 1s linear infinite; }
+@keyframes dgWoozy {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes dgStarSpin { to { transform: translateX(-50%) rotate(360deg); } }
+.dg-harold.is-ko { pointer-events: none; }
+.dg-harold.is-ko .dg-harold__shake { animation: dgTimber .8s cubic-bezier(.5, 0, .8, .4) forwards; }
+@keyframes dgTimber {
+  0% { transform: rotate(0); }
+  30% { transform: rotate(6deg); }
+  100% { transform: rotate(88deg) translateY(26px); opacity: .95; }
+}
+/* must out-rank the per-state animations above so landed punches rock him */
+.dg-harold .dg-harold__shake.is-hit { animation: dgKnock .26s var(--ease-out); }
+
+/* your gloves — POV fists at the bottom of the frame */
+.dg-gloves { position: absolute; left: 0; right: 0; bottom: -6px; z-index: 3; pointer-events: none; }
+.dg-glove { position: absolute; bottom: 0; font-size: 64px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .6)); transition: transform .14s var(--ease-out); }
+.dg-glove--l { left: 12%; transform: rotate(-14deg); }
+.dg-glove--r { right: 12%; transform: rotate(14deg) scaleX(-1); }
+.dg-gloves.is-ducking .dg-glove--l { transform: translateY(-34px) rotate(-30deg) scale(1.2); }
+.dg-gloves.is-ducking .dg-glove--r { transform: translateY(-34px) rotate(30deg) scaleX(-1) scale(1.2); }
+
+/* fight controls */
+.dg-fightctl { display: flex; gap: 10px; padding: 12px 4px 0; }
+.dg-duckbtn, .dg-punchbtn {
+  flex: 1; padding: 16px 10px; border-radius: 14px; border: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 900; font-size: 16px; letter-spacing: .04em;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: transform .1s var(--ease-out), box-shadow .15s ease;
+}
+.dg-duckbtn { color: #14100a; background: linear-gradient(100deg, #FFD84D, #FFB000); box-shadow: 0 8px 22px rgba(255, 176, 0, .3); }
+.dg-duckbtn small { font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.dg-duckbtn.is-on { transform: translateY(4px) scale(.97); box-shadow: 0 2px 10px rgba(255, 176, 0, .5); }
+.dg-punchbtn { color: #fff; background: linear-gradient(100deg, #FF3B5C, #d11eff); box-shadow: 0 8px 22px rgba(255, 59, 92, .35); }
+.dg-punchbtn:active { transform: scale(.95); }
+.dg-duckbtn:disabled, .dg-punchbtn:disabled { opacity: .4; }
+
+.dg-fightnote {
+  position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 4;
+  padding: 6px 13px; border-radius: 999px; white-space: nowrap; max-width: 92%;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 800; letter-spacing: .08em;
+  color: #FFD84D; background: rgba(20, 12, 0, .85); border: 1px solid rgba(255, 216, 77, .5);
+  animation: dgBubble .3s var(--ease-out) backwards;
+}
+
+/* getting hit — red vignette */
+.dg-flash.is-hurt { animation: dgHurt .45s var(--ease-out); }
+@keyframes dgHurt {
+  0% { opacity: 0; }
+  15% { opacity: 1; background: radial-gradient(circle at 50% 60%, transparent 30%, rgba(255, 30, 60, .55) 100%); }
+  100% { opacity: 0; }
+}
+
+/* the nap screen */
+.dg-koveil {
+  position: absolute; inset: 0; z-index: 8;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  text-align: center; padding: 20px; background: rgba(2, 0, 6, .88);
+  animation: dgCineIn .4s var(--ease-out);
+}
+.dg-koveil__big {
+  margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 42px;
+  color: #FF3B5C; text-shadow: 0 0 30px rgba(255, 59, 92, .6);
+}
+.dg-koveil__sub { margin: 0 0 8px; color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+
+/* ── THE WIFE ────────────────────────────────────────────────────────── */
+.dg-harold-flat {
+  position: absolute; left: 24%; bottom: 7%; z-index: 1;
+  font-size: 46px; transform: rotate(90deg); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5));
+}
+.dg-wife {
+  position: absolute; left: 50%; bottom: 13%; z-index: 2; transform: translateX(-50%) translateY(30px);
+  opacity: 0; transition: transform .8s var(--ease-out), opacity .8s ease;
+}
+.dg-wife.is-in { opacity: 1; transform: translateX(-50%) translateY(0); }
+.dg-wife__her { font-size: 92px; line-height: 1; filter: drop-shadow(0 0 26px rgba(255, 59, 165, .65)) drop-shadow(0 8px 16px rgba(0, 0, 0, .5)); }
+.dg-wife__spark { position: absolute; top: -14px; right: -18px; font-size: 30px; animation: dgSparkle 1.2s ease-in-out infinite; }
+.dg-wife__hearts { position: absolute; top: 4px; left: -26px; font-size: 24px; animation: dgSparkle 1.2s ease-in-out .5s infinite; }
+@keyframes dgSparkle {
+  0%, 100% { transform: scale(1); opacity: .8; }
+  50% { transform: scale(1.35); opacity: 1; }
+}
+.dg-hearts { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.dg-hearts i {
+  position: absolute; bottom: 18%; font-size: 22px; opacity: 0; font-style: normal;
+  animation: dgHeartFloat 2.6s ease-in infinite;
+}
+.dg-hearts i:nth-child(1) { left: 30%; animation-delay: .2s; }
+.dg-hearts i:nth-child(2) { left: 44%; animation-delay: .9s; font-size: 28px; }
+.dg-hearts i:nth-child(3) { left: 58%; animation-delay: 1.5s; }
+.dg-hearts i:nth-child(4) { left: 68%; animation-delay: .5s; }
+.dg-hearts i:nth-child(5) { left: 38%; animation-delay: 1.9s; }
+@keyframes dgHeartFloat {
+  0% { opacity: 0; transform: translateY(0) scale(.6); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-150px) scale(1.25) rotate(10deg); }
+}
+.dg-bubble--wife {
+  align-self: flex-start; color: #ffd9ec; font-weight: 700;
+  background: rgba(255, 59, 165, .14); border: 1px solid rgba(255, 59, 165, .45);
+  border-bottom-left-radius: 4px;
+}
+
+/* the contract */
+.dg-contract {
+  position: relative; margin-top: 12px; padding: 16px 16px 18px; border-radius: 14px;
+  display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;
+  background: linear-gradient(#f7eeda, #eadfc4); border: 1px solid #c9b98e;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .45);
+  animation: dgCineIn .5s var(--ease-out);
+}
+.dg-contract__head {
+  margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: .12em; color: #4a3a18;
+}
+.dg-contract__head small { display: block; letter-spacing: .06em; font-size: 9px; color: #8a744a; }
+.dg-contract__line {
+  width: 88%; padding: 6px 0 4px; border-bottom: 2px dashed #8a744a;
+}
+.dg-contract__sig {
+  display: inline-block; overflow: hidden; white-space: nowrap; max-width: 100%;
+  font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 26px; color: #232f7a;
+  animation: dgSign 1.4s steps(18) .3s backwards;
+}
+@keyframes dgSign { from { width: 0; } to { width: 100%; } }
+.dg-contract__stamp {
+  position: absolute; top: 12px; right: 14px; transform: rotate(12deg);
+  padding: 3px 10px; border: 3px solid #c22740; border-radius: 6px;
+  font-family: var(--font-display); font-weight: 900; font-size: 18px; letter-spacing: .08em; color: #c22740;
+  animation: dgStamp .45s cubic-bezier(.2, 1.6, .4, 1) 1.7s backwards;
+}
+.dg-contract__trophy {
+  margin: 0; font-family: var(--font-mono); font-size: 10.5px; font-weight: 800;
+  letter-spacing: .1em; color: #8a6a10;
+}
+
 /* ── reduced motion — end frames, not frozen mid-air ─────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .dg-porchlight::after, .dg-doorshake.is-hit, .dg-doorshake.is-pounded,
@@ -427,6 +790,18 @@
   .dg-stamp { animation: none; }
   .dg-owner, .dg-scene.is-broken .dg-owner { animation: none; opacity: 1; }
   .dg-resolve__fill { transition: none; }
+  .dg-cine__eyebrow, .dg-cine__title, .dg-cine__line, .dg-cine__cta,
+  .dg-bellbtn, .dg-drainwarn, .dg-scene.is-draining .dg-resolve__fill,
+  .dg-scene.is-bursting, .dg-scene.is-bursting::after,
+  .dg-harold.is-guard .dg-harold__shake, .dg-harold.is-windup .dg-harold__shake,
+  .dg-harold.is-open .dg-harold__shake, .dg-harold.is-open .dg-harold__stars,
+  .dg-harold__shake.is-hit, .dg-fist--r, .dg-fightnote, .dg-koveil,
+  .dg-wife__spark, .dg-wife__hearts, .dg-hearts i,
+  .dg-contract, .dg-contract__sig, .dg-contract__stamp, .dg-flash.is-hurt { animation: none; }
+  .dg-doorwrap.is-burst { animation: none; transform: rotateY(-78deg); filter: brightness(.55); }
+  .dg-harold.is-ko .dg-harold__shake { animation: none; transform: rotate(88deg) translateY(26px); opacity: .95; }
+  .dg-wife { transition: none; }
+  .dg-hp__fill { transition: none; }
 }
 [data-reduced-motion="true"] .dg-porchlight::after,
 [data-reduced-motion="true"] .dg-doorshake.is-hit,

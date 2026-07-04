@@ -81,6 +81,42 @@
   font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-muted);
 }
 
+/* ── level select ────────────────────────────────────────────────────── */
+.ob-select { display: flex; flex-direction: column; gap: 14px; padding: 10px 4px 4px; }
+.ob-select__grid { display: flex; flex-direction: column; gap: 12px; }
+.ob-select__card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 20px 16px; border-radius: 18px; cursor: pointer; text-align: center;
+  font-family: inherit; color: var(--text-main);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--acc) 12%, transparent), rgba(10, 2, 14, .88));
+  border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--acc) 18%, transparent);
+  transition: transform .15s var(--ease-out), box-shadow .2s ease, border-color .2s ease;
+}
+.ob-select__card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--acc) 70%, transparent);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--acc) 30%, transparent);
+}
+.ob-select__card:active { transform: scale(.97); }
+.ob-select__cleared {
+  position: absolute; top: 10px; right: 10px;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+  color: #00FFBF; background: rgba(0, 255, 191, .1); border: 1px solid rgba(0, 255, 191, .4);
+  padding: 3px 8px; border-radius: 999px;
+}
+.ob-select__face { font-size: 40px; line-height: 1; }
+.ob-select__diff {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--acc);
+}
+.ob-select__card h3 { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 19px; }
+.ob-select__card p { margin: 0; font-size: 13px; color: var(--text-muted); }
+.ob-select__cta {
+  margin-top: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--acc);
+}
+
 /* ── cares meter ─────────────────────────────────────────────────────── */
 .ob-cares { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 0 2px; }
 .ob-cares__label {
@@ -303,6 +339,22 @@
   to { opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
+/* charmed early-win beat — warm gold, deliberately NOT the cold pink/mint
+   attrition-win palette, so a charisma close *feels* different from a grind */
+.ob-charm {
+  position: absolute; top: 40%; left: 50%; z-index: 6; width: max-content; max-width: 82%;
+  transform: translateX(-50%); text-align: center;
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(14px, 3.8vw, 17px);
+  font-style: italic; color: var(--text-main); padding: 14px 20px; border-radius: 16px;
+  background: rgba(255, 209, 102, .1); border: 2px solid rgba(255, 209, 102, .6);
+  box-shadow: 0 0 34px rgba(255, 209, 102, .3);
+  animation: obStampIn .5s cubic-bezier(.2, 1.6, .4, 1) backwards;
+}
+.ob-charm__tag {
+  display: block; margin-bottom: 6px; font-family: var(--font-mono); font-style: normal;
+  font-size: 10px; font-weight: 800; letter-spacing: .16em; color: #FFD166;
+}
+
 /* ── your hand ───────────────────────────────────────────────────────── */
 .ob-hand { display: flex; flex-direction: column; gap: 8px; padding: 12px 2px 0; }
 .ob-card {
@@ -340,6 +392,11 @@
   box-shadow: 0 0 30px rgba(0, 255, 191, .25), inset 0 0 20px rgba(0, 255, 191, .1);
   animation: obStampIn .5s cubic-bezier(.2, 1.6, .4, 1) backwards;
 }
+.ob-won--charmed .ob-won__stamp {
+  color: #FFD166; border-color: #FFD166;
+  text-shadow: 0 0 24px rgba(255, 209, 102, .55);
+  box-shadow: 0 0 30px rgba(255, 209, 102, .25), inset 0 0 20px rgba(255, 209, 102, .1);
+}
 .ob-stats { display: flex; gap: 10px; width: 100%; }
 .ob-stat {
   flex: 1; display: flex; flex-direction: column; gap: 3px; padding: 12px 8px; text-align: center;
@@ -355,7 +412,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ob-cust.is-windup, .ob-cust.is-hit, .ob-obj.is-charging,
   .ob-obj.is-down, .ob-reply, .ob-pow, .ob-taunt, .ob-intro,
-  .ob-stamp, .ob-won__stamp, .ob-arena.is-landed::after,
+  .ob-stamp, .ob-charm, .ob-won__stamp, .ob-arena.is-landed::after,
   .ob-obj.is-smashed .ob-frag--a, .ob-obj.is-smashed .ob-frag--b, .ob-obj.is-smashed .ob-frag--c { animation: none; }
   .ob-cust.is-defeat { animation: none; transform: translateX(-50%) rotate(3deg) translateY(14px); opacity: .8; }
   .ob-obj.is-flying { animation: none; transform: translate(-50%, 110px); }
@@ -372,6 +429,7 @@
 [data-reduced-motion="true"] .ob-taunt,
 [data-reduced-motion="true"] .ob-intro,
 [data-reduced-motion="true"] .ob-stamp,
+[data-reduced-motion="true"] .ob-charm,
 [data-reduced-motion="true"] .ob-won__stamp,
 [data-reduced-motion="true"] .ob-arena.is-landed::after,
 [data-reduced-motion="true"] .ob-obj.is-smashed .ob-frag--a,

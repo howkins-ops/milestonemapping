@@ -27,7 +27,7 @@ const XP_FORGE = 30;
 const XP_STORM = 25;
 const XP_VALVE = 25;
 const XP_DOOR = 20;
-const XP_SLAM = 20;
+const XP_SLAM_LEVEL = 8; // per level cleared — levels are independently replayable
 
 const GAMES = [
   {
@@ -46,8 +46,8 @@ const GAMES = [
     name: "The Door",
     when: "They keep telling you no",
     relic: "The Threshold",
-    sub: "Knock. Get SCREAMED at. Knock HARDER. They get louder, you get harder — break the damn thing down. 21+, sound on.",
-    tag: "Persistence arcade · 21+",
+    sub: "3-round cinema. Knock through the screaming. Close Harold at MIDNIGHT — he swears, you swear BACK. And when the door finally opens... put your hands up. 21+, sound on.",
+    tag: "Persistence arcade · 3 rounds · 21+",
     accent: "#FF3B5C",
     live: true,
   },
@@ -56,8 +56,8 @@ const GAMES = [
     name: "Objection Slam",
     when: "Their words are getting to you",
     relic: "The Arena",
-    sub: "Customers hurl objections OUT LOUD. You slam back like you always wished you could. Zero cares given. 21+, sound on.",
-    tag: "Rejection resilience · 21+",
+    sub: "3 customers, pick your fight. They hurl objections OUT LOUD, you slam back like you always wished you could — and sometimes they respect the hustle and close early. Zero cares given. 21+, sound on.",
+    tag: "Rejection resilience · 3 levels · 21+",
     accent: "#FF3EDB",
     live: true,
   },
@@ -141,11 +141,11 @@ export default function AngerGymPage() {
   };
 
   const onSlamComplete = (payload) => {
-    addXP(XP_SLAM, "Objections slammed");
+    addXP(XP_SLAM_LEVEL, "Objections slammed");
     celebrate({
       variant: "reward",
-      title: payload.cares <= 20 ? "ZERO CARES GIVEN" : "OBJECTIONS SLAMMED",
-      subtitle: `${payload.deflected} slammed back · ${payload.perfects} without blinking · 3/3 sold.`,
+      title: payload.closedEarly ? "CHARMED THE SALE" : (payload.cares <= 20 ? "ZERO CARES GIVEN" : "OBJECTIONS SLAMMED"),
+      subtitle: `${payload.deflected} slammed back · ${payload.perfects} without blinking.`,
       detail: payload.takeaway,
     });
   };
@@ -185,11 +185,7 @@ export default function AngerGymPage() {
     return (
       <ObjectionSlam
         onClose={() => { setView(null); setRefresh((n) => n + 1); }}
-        onComplete={(payload) => {
-          onSlamComplete(payload);
-          setView(null);
-          setRefresh((n) => n + 1);
-        }}
+        onComplete={onSlamComplete}
       />
     );
   }

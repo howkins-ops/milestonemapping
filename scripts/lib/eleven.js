@@ -27,6 +27,7 @@ export const VOICES = {
   callum: 'N2lVS1w4EtoT3dr4eOWO', // Husky trickster
   harry:  'SOYHLrjzK2X1ezoPC6cr', // Fierce warrior
   sarah:  'EXAVITQu4vr4xnSDxMaL', // Reassuring female
+  liam:   'TX3LPaxmHKxFdv7VOQHJ', // Energetic social-media creator — cocky teenage-punk Door rep
 };
 
 // Generate speech and return an mp3 Buffer. Throws on API error.

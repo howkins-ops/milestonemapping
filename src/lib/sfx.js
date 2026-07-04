@@ -108,30 +108,84 @@ function blip(c, { from = 300, to = 600, duration = 0.1, type = "sine", gain = 0
 
 // ---------- one-shots ----------
 
-// Door knock. level 1–6 scales from polite tap to fist-through-wood.
+// Door knock. level 1–8 scales from polite tap to fist-through-wood.
 export function sfxKnock(level = 1, settings) {
   try {
     const c = ok(settings);
     if (!c) return;
-    const n = Math.max(1, Math.min(6, level));
+    const n = Math.max(1, Math.min(8, level));
     const g = 0.16 + n * 0.09;
     subDrop(c, { from: 110 + n * 8, to: 45, duration: 0.14 + n * 0.015, gain: g });
     crack(c, { hp: 500, lp: 3200 + n * 500, duration: 0.05 + n * 0.01, gain: g * 0.7 });
   } catch { /* silent */ }
 }
 
-// The BAM. level 1–6: progressively louder, deeper, nastier.
+// The BAM. level 1–8: progressively louder, deeper, nastier. 7–8 are the
+// midnight WHAMs — the compressor bus is what keeps them from clipping.
 export function sfxImpact(level = 1, settings) {
   try {
     const c = ok(settings);
     if (!c) return;
-    const n = Math.max(1, Math.min(6, level));
-    const g = 0.25 + n * 0.11;
+    const n = Math.max(1, Math.min(8, level));
+    const g = 0.25 + n * 0.12;
     subDrop(c, { from: 150, to: 34, duration: 0.26 + n * 0.04, gain: g });
     crack(c, { hp: 200, lp: 7000, duration: 0.1 + n * 0.02, gain: g * 0.8 });
     if (n >= 3) crack(c, { hp: 80, lp: 900, duration: 0.3, gain: g * 0.5, start: 0.02 });
     if (n >= 4) subDrop(c, { from: 90, to: 28, duration: 0.5, gain: g * 0.6, start: 0.04 });
     if (n >= 5) blip(c, { from: 2400, to: 300, duration: 0.09, type: "sawtooth", gain: 0.1 });
+    if (n >= 7) {
+      // the whole doorframe resonates
+      subDrop(c, { from: 60, to: 22, duration: 0.7, gain: g * 0.7, start: 0.06 });
+      crack(c, { hp: 50, lp: 400, duration: 0.55, gain: g * 0.55, start: 0.05 });
+    }
+  } catch { /* silent */ }
+}
+
+// Doorbell: two-tone ding-dong. rushed=true clips it short for angry spam.
+export function sfxDoorbell(rushed = false, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const d1 = rushed ? 0.16 : 0.34;
+    const d2 = rushed ? 0.2 : 0.5;
+    blip(c, { from: 659.25, to: 659.25, duration: d1, type: "triangle", gain: 0.22 });
+    blip(c, { from: 659.25 * 2, to: 659.25 * 2, duration: d1 * 0.7, type: "sine", gain: 0.06 });
+    blip(c, { from: 523.25, to: 523.25, duration: d2, type: "triangle", gain: 0.2, start: rushed ? 0.09 : 0.22 });
+    blip(c, { from: 523.25 * 2, to: 523.25 * 2, duration: d2 * 0.7, type: "sine", gain: 0.05, start: rushed ? 0.09 : 0.22 });
+  } catch { /* silent */ }
+}
+
+// Boxing round bell — DING DING DING.
+export function sfxRoundBell(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    for (let i = 0; i < 3; i++) {
+      blip(c, { from: 1975, to: 1975, duration: 0.28, type: "square", gain: 0.09, start: i * 0.22 });
+      blip(c, { from: 2960, to: 2960, duration: 0.2, type: "sine", gain: 0.05, start: i * 0.22 });
+    }
+  } catch { /* silent */ }
+}
+
+// A landed punch — meaty smack + sub thump. level 1–3 (chip / clean / haymaker).
+export function sfxPunch(level = 2, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const n = Math.max(1, Math.min(3, level));
+    crack(c, { hp: 300, lp: 2200 + n * 1400, duration: 0.06 + n * 0.02, gain: 0.2 + n * 0.14 });
+    subDrop(c, { from: 120 + n * 20, to: 40, duration: 0.12 + n * 0.05, gain: 0.18 + n * 0.14 });
+    if (n >= 3) crack(c, { hp: 90, lp: 700, duration: 0.24, gain: 0.3, start: 0.02 });
+  } catch { /* silent */ }
+}
+
+// A blocked punch — dull knock on a guard.
+export function sfxBlock(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 150, lp: 900, duration: 0.07, gain: 0.22 });
+    blip(c, { from: 220, to: 120, duration: 0.08, type: "square", gain: 0.06 });
   } catch { /* silent */ }
 }
 
