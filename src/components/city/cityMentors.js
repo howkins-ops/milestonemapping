@@ -7,6 +7,11 @@
 // Lesson content is TRANSMUTED from the coaching source material into the
 // app's own cinematic voice (see coaching/06_IP_AND_SOURCING.md) — never
 // transcribed.
+//
+// VOICE (the 2026-07 rewrite): plain, warm, direct — a coach who likes you
+// and gets to the point. Short sentences. Every beat says something you can
+// do, or sets up the beat that does. At most one metaphor per beat, and the
+// next sentence cashes it out in plain words. No riddles.
 // ════════════════════════════════════════════════════════════════════════
 
 // Deterministic string hash (same family as witnessLines.pickLine) — no RNG.
@@ -39,10 +44,10 @@ export const MENTORS = {
     color: "#7B2CFF",
     spriteVariant: "alchemist",
     greetings: [
-      "You made it back. The spire remembers every step you take.",
-      "I'm not ahead of you. I'm what's left when the old story burns off.",
-      "Twenty chambers. One of them has your name on it today.",
-      "Lead into gold is easy. You into you — that's the real work.",
+      "You came back. That's the real secret — the people who become something keep coming back.",
+      "I'm you, further down the road. I remember standing exactly where you're standing.",
+      "Twenty chambers in this spire. Each one is a piece of work on yourself. One is ready for you today.",
+      "I'm not going to turn lead into gold. I'm going to help you become the person you keep imagining. That's the only alchemy that pays.",
     ],
     lesson: {
       title: "The Transmutation",
@@ -50,24 +55,24 @@ export const MENTORS = {
         {
           speaker: "The Alchemist",
           lines: [
-            "Everyone wants the finished gold.",
-            "Nobody wants the furnace. But the furnace is the whole art.",
+            "Everyone wants to be the finished version of themselves.",
+            "Almost nobody wants the work in the middle. The middle is the whole art.",
           ],
         },
         {
           speaker: "The Alchemist",
           lines: [
             "You don't become someone new by deciding it once.",
-            "You become new in stages — chamber by chamber, chapter by chapter.",
+            "You become new in small steps — one chamber, one chapter, one honest hour at a time.",
           ],
         },
         { speaker: "YOU", lines: ["So what am I supposed to burn?"] },
         {
           speaker: "The Alchemist",
           lines: [
-            "The story that got you this far. It kept you safe.",
-            "It cannot take you higher.",
-            "Bring it to the spire. I'll show you what it turns into.",
+            "The old story about who you are and what you're capable of.",
+            "It kept you safe. It's also keeping you small.",
+            "Bring it into the spire. Chapter by chapter, we'll trade it for something true.",
           ],
         },
       ],
@@ -86,10 +91,10 @@ export const MENTORS = {
     color: "#FF3EDB",
     spriteVariant: "mentor",
     greetings: [
-      "Names are tools. Most people never pick theirs up.",
-      "Say it out loud or it doesn't count. House rule.",
-      "The forge only answers to spoken words.",
-      "Who you were is on file. Who you're becoming needs a signature.",
+      "Welcome to the Forge. This is where you decide who runs your life — on purpose, out loud.",
+      "House rule: say it out loud. A thing you only think stays a thought. A thing you say starts becoming real.",
+      "Most people never actually choose who they are. They just stay whoever the past made them. You get to choose today.",
+      "Who you were is history. Who you're becoming is a decision. I'll help you write it down and say it.",
     ],
     lesson: {
       title: "The Spoken Stand",
@@ -97,35 +102,35 @@ export const MENTORS = {
         {
           speaker: "Declan the Herald",
           lines: [
-            "There's a difference between a wish and a declaration.",
-            "A wish waits for evidence. A declaration creates it.",
+            "A wish and a declaration are different things.",
+            "A wish waits for proof. A declaration decides first, and lets the proof catch up.",
           ],
         },
         {
           speaker: "Declan the Herald",
           lines: [
-            "Whispering 'I'm confident' over a scared mind is paint on rust.",
-            "That's not what we do here.",
+            "And no — I don't mean chanting 'I'm confident' over a scared mind.",
+            "Empty words don't work, and you know it.",
           ],
         },
         {
           speaker: "Declan the Herald",
           lines: [
-            "A stand is spoken, dated, and backed by a move you'll actually make.",
-            "That's what bends the world.",
+            "A real stand is simple: say who you're being, out loud,",
+            "and back it with one action you'll actually take today.",
           ],
         },
         { speaker: "YOU", lines: ["And if I don't believe it yet?"] },
         {
           speaker: "Declan the Herald",
           lines: [
-            "You don't declare it because it's true.",
-            "It becomes true because you declared it — and then acted like the one who said it.",
+            "You don't say it because it's already true.",
+            "You say it, act like the person who said it, and it becomes true. That's the whole mechanism.",
           ],
         },
       ],
       exercise: {
-        prompt: "Forge one 'I am' stand and speak it out loud — then take it into your day.",
+        prompt: "Write one 'I am' stand and speak it out loud — then take it into your day.",
         ctaLabel: "SPEAK THE STAND",
       },
       xp: 10,
@@ -139,10 +144,10 @@ export const MENTORS = {
     color: "#00F0FF",
     spriteVariant: "mentor",
     greetings: [
-      "Most maps show where you've been. Mine show where you're going.",
-      "The view from the top changes what the streets mean.",
-      "Come up. The future's visible from here on a clear day.",
-      "Every district below started as a line on one of my drafts.",
+      "Most maps show where you've been. Mine show where you're going. Come look at yours.",
+      "Up here you can see your whole future — if you're willing to describe it clearly.",
+      "Come up. On a clear day you can see the person you're becoming from here.",
+      "Every big thing in this city started as a picture somebody refused to put down.",
     ],
     lesson: {
       title: "Map It Backward",
@@ -150,24 +155,24 @@ export const MENTORS = {
         {
           speaker: "The Cartographer",
           lines: [
-            "Amateurs plan forward from today.",
-            "That's how you get a longer to-do list, not a future.",
+            "Most people plan forward from today. That just makes a longer to-do list.",
+            "I want you to plan from the other end.",
           ],
         },
         {
           speaker: "The Cartographer",
           lines: [
-            "Stand in the day it's already done. Look around.",
-            "What do you see? Who did you have to become to be standing there?",
+            "Stand in the day it's already done. Really picture it.",
+            "What does that day look like? Who did you have to become to be standing in it?",
           ],
         },
         { speaker: "YOU", lines: ["Then what?"] },
         {
           speaker: "The Cartographer",
           lines: [
-            "Walk backward. Done, almost done, halfway, first milestone.",
-            "Then plan only to that first milestone.",
-            "The rest of the map draws itself as you move.",
+            "Walk backward from that day: done, almost done, halfway, first milestone.",
+            "Then plan only to the first milestone.",
+            "The rest of the map gets clearer as you move.",
           ],
         },
       ],
@@ -186,10 +191,10 @@ export const MENTORS = {
     color: "#00FFBF",
     spriteVariant: "mentor",
     greetings: [
-      "Every student wants tactics. I teach eyes first.",
-      "The lecture halls are quiet. The lessons aren't.",
-      "What you can't see runs you. Class fixes that.",
-      "No exams here. Life grades you daily anyway.",
+      "Welcome to the Academy. Before I teach you a single tactic, I want to upgrade what you can see.",
+      "The five shifts aren't information. They're new eyes. Take one and you can't go back to not seeing.",
+      "Whatever you can't see about your own patterns is running your life. Class exists to fix that.",
+      "No exams in here. Your actual week is the exam. Class just makes it passable.",
     ],
     lesson: {
       title: "New Eyes First",
@@ -197,30 +202,30 @@ export const MENTORS = {
         {
           speaker: "Docent Vale",
           lines: [
-            "You don't get new results with old eyes.",
-            "You just get faster at the wrong game.",
+            "New results need new eyes.",
+            "Keep seeing the game the old way, and you'll just get faster at playing it wrong.",
           ],
         },
         {
           speaker: "Docent Vale",
           lines: [
-            "There are five shifts — five places where how you see the game",
-            "quietly decides how you play it.",
+            "There are five shifts — five places where how you see things",
+            "quietly decides how you act. We take them one at a time.",
           ],
         },
         {
           speaker: "Docent Vale",
           lines: [
-            "Each one feels obvious afterward.",
-            "That's the tell of a real shift: you can't unsee it.",
+            "Every shift feels obvious after you take it.",
+            "That's how you know it's real: you can't un-see it.",
           ],
         },
         { speaker: "YOU", lines: ["Where do I start?"] },
         {
           speaker: "Docent Vale",
           lines: [
-            "At the first one you haven't taken yet.",
-            "The Academy keeps your place.",
+            "At the next one in the sequence.",
+            "The Academy saves your place — just walk in and continue.",
           ],
         },
       ],
@@ -239,10 +244,10 @@ export const MENTORS = {
     color: "#FF3B5C",
     spriteVariant: "mentor",
     greetings: [
-      "A goal without a ladder is a balcony you can't reach.",
-      "In here, ambition gets a chain of command.",
-      "Show me your vision and I'll show you Tuesday.",
-      "Maps on the table. Excuses at the door.",
+      "A goal with no plan under it is a balcony with no stairs. In here, we build the stairs.",
+      "This is where ambition gets organized. Vision at the top, this week's moves at the bottom.",
+      "Tell me your big vision and I'll help you find what to do about it on Tuesday.",
+      "Bring me the dream. You'll leave with a plan.",
     ],
     lesson: {
       title: "The Chain of Command",
@@ -250,30 +255,30 @@ export const MENTORS = {
         {
           speaker: "Commander Sable",
           lines: [
-            "Vision is the why. No deadline, no shrinking it.",
-            "Mission is the what — and for whom.",
+            "Vision is your why — the big picture. It doesn't need a deadline.",
+            "Mission is what you're building, and who it's for.",
           ],
         },
         {
           speaker: "Commander Sable",
           lines: [
-            "Strategy is the finite plan with numbers on it.",
-            "Tactics are the moves you make this week.",
+            "Strategy is the concrete plan with numbers and dates on it.",
+            "Tactics are the actual moves you make this week.",
           ],
         },
         {
           speaker: "Commander Sable",
           lines: [
-            "Most people have a vision and a to-do list, and nothing in between.",
-            "That gap is where dreams go to rot.",
+            "Most people have a big dream and a to-do list, with nothing connecting them.",
+            "That gap is where dreams die.",
           ],
         },
         { speaker: "YOU", lines: ["So I build the middle."] },
         {
           speaker: "Commander Sable",
           lines: [
-            "You build the middle. One milestone at a time,",
-            "each one reporting to the one above it.",
+            "You build the middle. Milestones, one at a time,",
+            "each one clearly serving the one above it.",
           ],
         },
       ],
@@ -292,10 +297,10 @@ export const MENTORS = {
     color: "#FFB000",
     spriteVariant: "mentor",
     greetings: [
-      "Today is the only day that's real. The rest is rumor.",
-      "Every action's a ballot. Who are you voting for?",
-      "Small and done beats big and someday. Every time.",
-      "The Nexus resets at midnight. So do you.",
+      "You can't fix yesterday and you can't touch tomorrow. Today is the day we get. Let's use it.",
+      "Every action you take today is a vote for the person you're becoming. Come cast good ones.",
+      "Small and finished beats big and someday. Every single time.",
+      "The board resets at midnight. Whatever yesterday was, today starts clean.",
     ],
     lesson: {
       title: "Votes for the Future You",
@@ -304,35 +309,35 @@ export const MENTORS = {
           speaker: "Keeper Juno",
           lines: [
             "Every action you take today is a vote for one of two people:",
-            "who you've been, or who you're becoming.",
+            "the person you've been, or the person you're becoming.",
           ],
         },
         {
           speaker: "Keeper Juno",
           lines: [
-            "You don't need a perfect day. You need a counted one —",
-            "five priorities, ranked, number one hammered first.",
+            "You don't need a perfect day. You need a clear one:",
+            "pick five priorities, put them in order, and start with number one.",
           ],
         },
         {
           speaker: "Keeper Juno",
           lines: [
-            "Blocked on one? Drop to two.",
-            "Stalled entirely? Finish one small errand —",
-            "completion changes your energy faster than motivation ever will.",
+            "Stuck on number one? Move to number two.",
+            "Completely stalled? Finish something tiny.",
+            "Finishing anything gives you energy back — that's just how people work.",
           ],
         },
         { speaker: "YOU", lines: ["That's it?"] },
         {
           speaker: "Keeper Juno",
           lines: [
-            "That's it, done daily, forever.",
-            "The whole trick nobody wants to hear.",
+            "That's it — done today, then done again tomorrow.",
+            "Nobody wants the answer to be that simple. It is.",
           ],
         },
       ],
       exercise: {
-        prompt: "Open today's ritual and cast your five votes.",
+        prompt: "Open today's ritual and set your five priorities.",
         ctaLabel: "ENTER THE NEXUS",
       },
       xp: 10,
@@ -346,10 +351,10 @@ export const MENTORS = {
     color: "#D11EFF",
     spriteVariant: "mentor",
     greetings: [
-      "The week already happened. The question is what it taught you.",
-      "Bring your wins and your wreckage. Both are intel.",
-      "We don't do regret in here. We do orders.",
-      "Council's open. Come honest or come back later.",
+      "The week already happened. The only question left is what you'll do differently because of it.",
+      "Bring your wins and your messes. Both are useful information in here.",
+      "No regret in this room. We look at the week, take the lesson, and give next week its orders.",
+      "Council's open. All it costs is honesty.",
     ],
     lesson: {
       title: "Insight Decays",
@@ -357,36 +362,36 @@ export const MENTORS = {
         {
           speaker: "Marshal Ilex",
           lines: [
-            "An insight has a shelf life of about three days.",
-            "After that it turns back into a nice idea.",
+            "An insight only lasts about three days.",
+            "Act on it by then, or it fades back into a nice idea.",
           ],
         },
         {
           speaker: "Marshal Ilex",
           lines: [
-            "That's why we hold council.",
-            "Not to grade the week — to convert it.",
+            "That's why we review every week.",
+            "Not to grade yourself — to turn what happened into what's next.",
           ],
         },
         {
           speaker: "Marshal Ilex",
           lines: [
-            "Every review ends the same way: what did you see,",
-            "and what will you DO because you saw it.",
-            "Insight plus action. Nothing else compounds.",
+            "Every review ends with two questions: what did you notice,",
+            "and what will you DO because you noticed it?",
+            "Insight plus action — that's the only combination that compounds.",
           ],
         },
         { speaker: "YOU", lines: ["And if the week was ugly?"] },
         {
           speaker: "Marshal Ilex",
           lines: [
-            "Ugly weeks carry the best intel.",
-            "Bring it in before it spoils.",
+            "Ugly weeks teach the most.",
+            "Review it while it's fresh, take the lesson, and let the rest go.",
           ],
         },
       ],
       exercise: {
-        prompt: "Run your weekly review and leave with one order you'll execute.",
+        prompt: "Run your weekly review and leave with one thing you'll do differently.",
         ctaLabel: "CONVENE THE COUNCIL",
       },
       xp: 10,
@@ -400,10 +405,10 @@ export const MENTORS = {
     color: "#FACC15",
     spriteVariant: "mentor",
     greetings: [
-      "Everything you finish earns interest in here.",
-      "Most people rob their own vault — they finish things and never collect.",
-      "Receipts. I keep the receipts.",
-      "The door's heavy, but it opens for anyone holding a finished thing.",
+      "Everything you finish is stored in here. Most people forget to come collect.",
+      "Most people rob themselves — they finish something hard and never stop to take the win.",
+      "I keep the receipts on everything you've done. It's more than you think.",
+      "The door is heavy, but it opens for anyone holding a finished thing.",
     ],
     lesson: {
       title: "Collect What You Earned",
@@ -412,28 +417,28 @@ export const MENTORS = {
           speaker: "Auric the Vaultkeeper",
           lines: [
             "You finish something hard, and within the hour you're staring at the next thing.",
-            "That's not discipline. That's theft.",
+            "That's not discipline. You're skipping your own payday.",
           ],
         },
         {
           speaker: "Auric the Vaultkeeper",
           lines: [
-            "A finished thing you never honor keeps a hook in you.",
-            "Complete means it carries no more charge than an old receipt —",
-            "filed, done, yours.",
+            "A win you never honor doesn't feel finished. It keeps tugging at you.",
+            "Celebrate it once, properly, and it finally closes —",
+            "done, filed, yours.",
           ],
         },
         {
           speaker: "Auric the Vaultkeeper",
           lines: [
-            "So name the reward before the work: what you get, when, and how.",
-            "Then when you cross the line, you actually collect.",
+            "So decide the reward before you do the work: what you get, and when.",
+            "Then when you cross the line, actually take it.",
           ],
         },
         { speaker: "YOU", lines: ["Rewards feel… indulgent."] },
         {
           speaker: "Auric the Vaultkeeper",
-          lines: ["Unpaid workers quit.", "You're the worker. Pay yourself."],
+          lines: ["Workers who never get paid quit.", "You're the worker. Pay yourself."],
         },
       ],
       exercise: {
@@ -451,10 +456,10 @@ export const MENTORS = {
     color: "#7B2CFF",
     spriteVariant: "mentor",
     greetings: [
-      "Nothing down here bites. It just wants to be seen.",
-      "You brought your shadow. Good — it goes everywhere you go anyway.",
-      "The dark isn't the enemy. Ignorance of it is.",
-      "Speak softly. Old guardians sleep in these walls.",
+      "Nothing down here will hurt you. It just wants to be seen — that's all it ever wanted.",
+      "You didn't bring your shadow here. It goes everywhere with you. This is just where we look at it.",
+      "The dark isn't your enemy. Not knowing what's in it — that's what costs you.",
+      "Walk gently. The oldest parts of you live in these walls, and they've been carrying a lot.",
     ],
     lesson: {
       title: "The Old Bodyguard",
@@ -462,23 +467,23 @@ export const MENTORS = {
         {
           speaker: "Brother Ashe",
           lines: [
-            "That pattern you hate — the flinch, the hiding, the armor.",
-            "It isn't a defect. It's a bodyguard you hired when you were small.",
+            "That pattern you hate — the flinching, the hiding, the armor.",
+            "It's not a flaw. It's a bodyguard you hired when you were young and something hurt.",
           ],
         },
         {
           speaker: "Brother Ashe",
           lines: [
-            "It did its job. You survived.",
-            "But a bodyguard doesn't know the war is over —",
-            "it still bills you daily, in chances not taken.",
+            "It did its job. You made it through.",
+            "But it never got the message that the danger passed —",
+            "so it still steps in and blocks things you actually want.",
           ],
         },
         {
           speaker: "Brother Ashe",
           lines: [
-            "You don't fight it. You meet it. You name it.",
-            "And then you choose — from essence, not from fear — who acts next.",
+            "We don't fight it. We meet it, name it, and thank it.",
+            "Then you choose who handles the moment — the scared part, or the real you.",
           ],
         },
         { speaker: "YOU", lines: ["And if it doesn't let go?"] },
@@ -505,10 +510,10 @@ export const MENTORS = {
     color: "#FF3B5C",
     spriteVariant: "mentor",
     greetings: [
-      "Bring what angers you. It's ore.",
-      "The forge doesn't care why you're burning. Only what you make.",
-      "Swallowed fire rusts you from the inside. Give it here.",
-      "Hear that ring? That's someone turning a bad day into a blade.",
+      "Something got under your skin today? Good. Bring it here — we'll turn it into fuel for something you care about.",
+      "The forge doesn't care why you're angry. It only cares what you build with it.",
+      "Swallowing your anger doesn't make it go away. It rusts you from the inside. Better to bring it to me.",
+      "Hear that ringing? That's somebody turning a bad day into something useful.",
     ],
     lesson: {
       title: "Fire Wants a Shape",
@@ -516,30 +521,30 @@ export const MENTORS = {
         {
           speaker: "Vessa the Forgemother",
           lines: [
-            "They told you anger was the problem.",
-            "They were half right — unaimed anger is.",
+            "Somebody told you anger is the problem.",
+            "They were half right. Anger with no direction is the problem.",
           ],
         },
         {
           speaker: "Vessa the Forgemother",
           lines: [
-            "But that heat in your chest? That's raw power reading as pain.",
-            "Same fire. No forge.",
+            "That heat in your chest is raw energy that doesn't have a job yet.",
+            "Same fire either way — the question is whether it gets a shape.",
           ],
         },
         {
           speaker: "Vessa the Forgemother",
           lines: [
-            "Swallow it, it rusts you. Spray it, it burns your people.",
-            "Aim it — and it becomes the strongest metal you own.",
+            "Swallow it and it eats you. Spray it and it burns your people.",
+            "Point it at real work, and it becomes the strongest fuel you own.",
           ],
         },
         { speaker: "YOU", lines: ["Aim it at what?"] },
         {
           speaker: "Vessa the Forgemother",
           lines: [
-            "At the work the anger is pointing to. Fire always points.",
-            "Come — the anvils are hot.",
+            "At whatever the anger is about — it always points at something you care about.",
+            "Come on. The anvils are hot.",
           ],
         },
       ],
@@ -558,10 +563,10 @@ export const MENTORS = {
     color: "#00FFBF",
     spriteVariant: "mentor",
     greetings: [
-      "Sit. The water doesn't rush, and neither do we.",
-      "Empty cups make bitter leaders. Drink first.",
-      "Rest isn't what you earn after the work. It's what funds it.",
-      "The springs never ask what you produced today. Notice how that feels.",
+      "Sit down. Nothing here needs to be rushed, including you.",
+      "You can't pour from an empty cup — and everyone you lead drinks from yours. Fill it first.",
+      "Rest isn't the reward you get after the work. Rest is what makes the work possible.",
+      "The springs never ask what you got done today. Notice how rare that is.",
     ],
     lesson: {
       title: "The Cup Ledger",
@@ -569,31 +574,31 @@ export const MENTORS = {
         {
           speaker: "Imara of the Springs",
           lines: [
-            "You've been treating your energy like it's infinite",
+            "You've been treating your energy like it's unlimited",
             "and your time like it's the problem. It's the other way around.",
           ],
         },
         {
           speaker: "Imara of the Springs",
           lines: [
-            "An empty cup doesn't just slow you down.",
-            "It changes who shows up — snappier, smaller, meaner.",
-            "Your people drink from your cup whether you like it or not.",
+            "Running on empty doesn't just slow you down.",
+            "It changes who shows up — a snappier, smaller, more tired you.",
+            "And the people around you feel it first.",
           ],
         },
         {
           speaker: "Imara of the Springs",
           lines: [
-            "So audit like a leader: sleep, body, quiet, play.",
-            "Not as treats. As infrastructure.",
+            "So check the basics like they're infrastructure: sleep, movement, quiet, play.",
+            "Not as treats you earn. As the foundation everything else stands on.",
           ],
         },
         { speaker: "YOU", lines: ["It feels like slacking."] },
         {
           speaker: "Imara of the Springs",
           lines: [
-            "Ask the future you who runs the whole thing.",
-            "They'll tell you: care of the leader IS the work.",
+            "Ask the future you who's running the whole thing.",
+            "They'll tell you straight: taking care of the leader is part of the job.",
           ],
         },
       ],
@@ -613,9 +618,9 @@ export const MENTORS = {
     spriteVariant: "mentor",
     greetings: [
       "Careful with the equipment. Most of it is you.",
-      "Energy isn't a mood. It's an engineering problem.",
-      "Today we find out what makes you combust — in the good way.",
-      "Every breakthrough in this lab started as a bad Tuesday.",
+      "Energy isn't a mood you wait for. It's a system you can work on. That's good news.",
+      "Today we figure out what actually charges you — and what's quietly draining you.",
+      "Every breakthrough in this lab started as somebody's bad Tuesday.",
     ],
     lesson: {
       title: "Three Dials",
@@ -623,31 +628,31 @@ export const MENTORS = {
         {
           speaker: "Dr. Fenn",
           lines: [
-            "Your energy has three dials.",
-            "Most people never touch them on purpose.",
+            "Your energy runs on three dials.",
+            "Most people never touch any of them on purpose.",
           ],
         },
         {
           speaker: "Dr. Fenn",
           lines: [
-            "Dial one: chargers — rest, movement, play, finished things.",
-            "Turn them up and everything runs hotter.",
+            "Dial one: chargers — sleep, movement, play, finishing things.",
+            "Do more of those, on purpose, on the calendar.",
           ],
         },
         {
           speaker: "Dr. Fenn",
           lines: [
-            "Dial two: drains — the habits and tolerations leaking your charge.",
-            "Find one. Cut one.",
+            "Dial two: drains — the habits, the clutter, the things you keep tolerating.",
+            "Find one drain this week and cut it.",
           ],
         },
         { speaker: "YOU", lines: ["And when I need more than maintenance?"] },
         {
           speaker: "Dr. Fenn",
           lines: [
-            "Then you ignite on purpose: declare something scary,",
-            "and act while afraid.",
-            "Fear plus motion is a breakthrough with a fuse. Lab's open.",
+            "That's dial three: ignition. Commit to something that scares you a little,",
+            "then act while you're still afraid.",
+            "Fear plus action is how breakthroughs start. The lab's open.",
           ],
         },
       ],
@@ -666,10 +671,10 @@ export const MENTORS = {
     color: "#00F0FF",
     spriteVariant: "mentor",
     greetings: [
-      "A promise made alone is a rumor. Made here, it's a contract.",
-      "The guild has one rule: be seen doing it.",
-      "Solo runs end where the guild begins.",
-      "Someone in there is one witness away from keeping their word.",
+      "A promise you make alone is easy to break. A promise your people heard? That one holds.",
+      "The guild has one rule: do the work where someone can see it.",
+      "You've gone as far as going alone will take you. That's not failure — that's the doorway.",
+      "Somebody in there is one witness away from keeping their word. Today it might be you.",
     ],
     lesson: {
       title: "Witnessed Work",
@@ -678,22 +683,22 @@ export const MENTORS = {
           speaker: "Guildmaster Bram",
           lines: [
             "A commitment nobody hears is negotiable.",
-            "You'll renegotiate it by Thursday. You always do.",
+            "You'll talk yourself out of it by Thursday. Everyone does.",
           ],
         },
         {
           speaker: "Guildmaster Bram",
           lines: [
-            "Spoken to another soul, it changes weight.",
-            "Being witnessed isn't pressure — it's the honest kind of gravity.",
+            "Say it to another person and it changes weight.",
+            "Being seen isn't pressure — it's support that keeps you honest.",
           ],
         },
         {
           speaker: "Guildmaster Bram",
           lines: [
-            "And when it's your turn to witness: get them fully — just listen.",
-            "Coach only if they invite you. Otherwise, leave them be.",
-            "That's love. The itch to fix them is fear.",
+            "And when someone shares their fire with you: just listen. Really listen.",
+            "Don't fix them. Coach only if they ask.",
+            "Trusting people with their own lives — that's respect.",
           ],
         },
         { speaker: "YOU", lines: ["That's harder than it sounds."] },
@@ -717,9 +722,9 @@ export const MENTORS = {
     color: "#FACC15",
     spriteVariant: "mentor",
     greetings: [
-      "In this hall, we count what you did. The rest never happened.",
-      "Every banner up there started as one kept promise.",
-      "You bow to no one here. You just keep showing up.",
+      "In this hall we count what you did. What you didn't do never happened.",
+      "Every banner up there started as one kept promise. Yours will too.",
+      "Nobody bows in here. You earn your place by showing up again.",
       "The torches stay lit for comebacks. Especially comebacks.",
     ],
     lesson: {
@@ -728,24 +733,24 @@ export const MENTORS = {
         {
           speaker: "Odessa the Crowned",
           lines: [
-            "Shame feels productive. It isn't.",
+            "Shame feels like it's motivating you. It isn't.",
             "Nobody ever shamed themselves into a bigger life —",
-            "they just got quieter.",
+            "they just got quieter about their dreams.",
           ],
         },
         {
           speaker: "Odessa the Crowned",
           lines: [
-            "Celebration is the real engine.",
-            "What gets honored gets repeated.",
-            "What gets repeated becomes reputation.",
+            "Celebration is the engine that actually works.",
+            "Whatever you honor, you repeat.",
+            "Whatever you repeat becomes who you are.",
           ],
         },
         {
           speaker: "Odessa the Crowned",
           lines: [
-            "So the hall keeps one kind of score: streaks, receipts, comebacks.",
-            "Misses aren't recorded. Rises are.",
+            "So this hall keeps one kind of score: wins, streaks, comebacks.",
+            "The misses aren't on the wall. The rises are.",
           ],
         },
         { speaker: "YOU", lines: ["Even the small stuff?"] },
@@ -753,7 +758,7 @@ export const MENTORS = {
           speaker: "Odessa the Crowned",
           lines: [
             "Especially the small stuff.",
-            "Empires are made of small stuff done again.",
+            "Big lives are built out of small wins, celebrated and repeated.",
           ],
         },
       ],
@@ -772,10 +777,10 @@ export const MENTORS = {
     color: "#D11EFF",
     spriteVariant: "mentor",
     greetings: [
-      "Shelves of books, one sentence. Everything else is commentary.",
-      "You don't need more information. You need the sequence.",
-      "Quiet, please. The formula is listening.",
-      "Every visitor wants the secret shelf. You're standing in it.",
+      "All these shelves explain one sentence. Come in — I'll show you the sentence.",
+      "You don't need more information. You need the steps, in order, repeated. That's what lives here.",
+      "Quiet, please — not for the books. For you. Clear thinking likes a quiet room.",
+      "Everyone asks for the secret shelf. You're standing in it.",
     ],
     lesson: {
       title: "One Sentence",
@@ -783,30 +788,30 @@ export const MENTORS = {
         {
           speaker: "Archivist Wren",
           lines: [
-            "People come here expecting a library of secrets.",
-            "There's one formula. The rest of the shelves explain it.",
+            "People walk in expecting a thousand secrets.",
+            "There's no secret in here. There's one method, and every shelf just explains it.",
           ],
         },
         {
           speaker: "Archivist Wren",
           lines: [
-            "See it clearly. Break it into milestones. Vote for it daily.",
-            "Review it weekly. Complete it, celebrate it. Repeat.",
+            "Here it is: see the goal clearly. Break it into milestones. Do one step daily.",
+            "Review weekly. Celebrate what you finish. Repeat.",
           ],
         },
         {
           speaker: "Archivist Wren",
           lines: [
-            "None of the steps are impressive. That's the point —",
-            "mastery isn't a rare move. It's an ordinary loop run without applause.",
+            "None of those steps are impressive on their own. That's the point.",
+            "Mastery isn't a rare talent. It's an ordinary loop, run again and again without applause.",
           ],
         },
         { speaker: "YOU", lines: ["Where do people break it?"] },
         {
           speaker: "Archivist Wren",
           lines: [
-            "The loop. They run the steps once and call it failure.",
-            "The formula only compounds in circles.",
+            "The repeat. They run the loop once, see no magic, and quit.",
+            "The loop only pays when you keep going around it.",
           ],
         },
       ],
@@ -825,10 +830,10 @@ export const MENTORS = {
     color: "#00F0FF",
     spriteVariant: "mentor",
     greetings: [
-      "Come look. It's all cleaner from up here.",
-      "The stars don't have problems. Notice that.",
-      "Every 'disaster' looks different at this magnification.",
-      "I chart openings, not omens. Big difference.",
+      "Come look through the lens. Everything's clearer from up here.",
+      "Out in nature, nothing is a 'problem.' Things just are what they are. There's a lesson in that.",
+      "Every disaster looks different under magnification. Usually smaller.",
+      "I chart openings, not omens. Bring me your worst thing and I'll show you what I mean.",
     ],
     lesson: {
       title: "No Problems in Nature",
@@ -836,24 +841,24 @@ export const MENTORS = {
         {
           speaker: "Orrin the Stargazer",
           lines: [
-            "Out there — collisions, supernovas, whole worlds ending.",
-            "And not one problem among them. Just what is.",
+            "Look out there — collisions, dying stars, whole worlds ending.",
+            "Not one of them is a problem. Things happen. Then we tell stories about them.",
           ],
         },
         {
           speaker: "Orrin the Stargazer",
           lines: [
-            "A problem is two things fused: what happened,",
-            "and the story you welded to it.",
-            "The event is fixed. The weld is yours.",
+            "A 'problem' is two things stuck together: what actually happened,",
+            "and the story you attached to it.",
+            "You can't change the event. The story is all yours.",
           ],
         },
         {
           speaker: "Orrin the Stargazer",
           lines: [
-            "So we run the lens. What's actually so, minus the story?",
-            "What opens up if this were handled for good?",
-            "What does it look like from the life where it already is?",
+            "So we use the lens. What are the plain facts, minus your story?",
+            "What would open up if this were fully handled?",
+            "What does it look like from the future where it's already solved?",
           ],
         },
         { speaker: "YOU", lines: ["And every problem opens like that?"] },
@@ -861,7 +866,7 @@ export const MENTORS = {
           speaker: "Orrin the Stargazer",
           lines: [
             "Every one I've ever put under the glass.",
-            "Some just need a longer exposure.",
+            "Some just take a longer look.",
           ],
         },
       ],
@@ -880,35 +885,35 @@ export const THE_GUIDE = {
   name: "The Guide",
   color: "#00F0FF",
   greetings: [
-    "Welcome back to the plaza, traveler.",
-    "Sixteen districts, one city, all of it yours.",
-    "The city rearranges itself around whoever walks it. Where to?",
-    "Ask me where the day wants you. I always have an answer.",
+    "Welcome back to the plaza. Where do you want to go today?",
+    "Sixteen districts, one city — and all of it is yours to walk.",
+    "I watch this whole city. Ask me where today wants you, and I'll point.",
+    "Every district on this street is a real part of your life. Pick one and I'll walk you there.",
   ],
 };
 
 // One daily-lesson line per district — the Guide points, the district teaches.
 const GUIDE_LINES = {
-  "alchemist-spire": "The spire's lit tonight. Your next chapter is already warm.",
-  "identity-forge": "The Herald's calling for names today. Go speak one that fits the future you.",
+  "alchemist-spire": "The Spire is lit tonight. Your next chapter is ready when you are.",
+  "identity-forge": "Declan is collecting names today. Go say one that fits the person you're becoming.",
   "vision-tower": "Clear skies over the tower. Perfect day to look at where you're headed.",
-  "the-academy": "The Academy bell's ringing. There's a shift waiting with your name on it.",
-  "war-rooms": "The war rooms are humming. Your next milestone wants orders.",
-  "daily-nexus": "The Nexus counts votes at sundown. Go cast yours while the day's still yours.",
-  "war-council": "The Council convenes for anyone honest about their week. That's you, today.",
-  "the-vault": "Auric says you've left winnings uncollected. The vault door's open.",
-  "shadow-sanctum": "The sanctum's quiet today. A good day to meet what follows you around.",
-  "pressure-forge": "The Forge runs hot today. Bring what angers you.",
-  "cup-springs": "Your cup's been ringing hollow. The springs can hear it from here.",
-  "blaze-lab": "Dr. Fenn's running energy trials today. Volunteer yourself.",
+  "the-academy": "The Academy bell is ringing. Your next shift is waiting with your name on it.",
+  "war-rooms": "The war rooms are humming. Your next milestone needs orders.",
+  "daily-nexus": "The Nexus counts today's votes at sundown. Go set your Top Five while the day is still yours.",
+  "war-council": "The Council meets for anyone willing to look at their week honestly. That's you, today.",
+  "the-vault": "Auric says you have wins you never collected. The vault door is open.",
+  "shadow-sanctum": "The Sanctum is quiet today. A good day to meet the part of you that follows you around.",
+  "pressure-forge": "The Forge runs hot today. Bring whatever's been getting under your skin.",
+  "cup-springs": "Your cup has been sounding hollow lately. The springs can fix that.",
+  "blaze-lab": "Dr. Fenn is running energy experiments today. Volunteer.",
   "guild-quarter": "The guild board has room for one more declared mission. Make it yours.",
-  "hall-of-champions": "The hall's hanging new banners today. One of your wins belongs up there.",
+  "hall-of-champions": "New banners go up in the Hall today. One of your wins belongs up there.",
   "formula-athenaeum": "Wren left the formula open on the lectern. Go read the step you keep skipping.",
-  observatory: "Good visibility at the observatory tonight. Bring your biggest problem — it shrinks under the lens.",
+  observatory: "Good visibility at the observatory tonight. Bring your biggest problem — it looks smaller under the lens.",
 };
 
 const GUIDE_FALLBACK_LINE =
-  "The city has something for you today. Walk until you feel it.";
+  "The city has something for you today. Walk until you find it.";
 
 // Date-deterministic daily suggestion — same answer all day, no RNG.
 export function getDailyGuideLesson(date = new Date(), districtIds) {

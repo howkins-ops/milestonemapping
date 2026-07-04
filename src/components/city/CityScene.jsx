@@ -4,6 +4,9 @@ import "../../styles/city.css";
 
 // ════════════════════════════════════════════════════════════════════════
 // MAPQUEST CITY — The living scene
+// ⚠ SUPERSEDED (2026-07): the walkable street (world/WorldScene.jsx +
+// cityWorld.js) replaced this static banner on MapQuestCityPage. Kept for
+// reference like SeekerCity — no live imports remain.
 // Layered parallax skyline, back to front:
 //   sky (time-of-day palette) → stars → aurora (stage 4) → far silhouettes
 //   → mid towers w/ lit windows + cranes (stage 1) → ambient life →
