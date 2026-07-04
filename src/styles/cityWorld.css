@@ -1,0 +1,768 @@
+/* ════════════════════════════════════════════════════════════════════════
+   MAPQUEST WORLD — the walkable side-scrolling world engine (mqw-*)
+   Shared by every world (city now, hometown + forest later). The engine
+   writes transforms straight to DOM nodes; this sheet owns everything else.
+   Layer stack inside .mqw-viewport (back → front):
+     sky → stars → aurora → far (parallax) → mid (parallax) → ambient
+     → main world layer (arches, props, buildings, NPCs, character)
+     → haze → ground → HUD (prompt pill + controls + meta chip)
+   Reuses the mqc-tod-* / mqc-stage-* palette + stage classes from city.css
+   (they only set CSS vars / gate visuals, so they compose onto the viewport).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Viewport ───────────────────────────────────────────────────────────── */
+
+.mqw-viewport {
+  position: relative;
+  height: clamp(360px, 52vh, 620px);
+  border-radius: var(--radius-lg, 20px);
+  overflow: hidden;
+  border: 1px solid rgba(123, 44, 255, 0.28);
+  box-shadow:
+    0 0 40px rgba(123, 44, 255, 0.1),
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 0 80px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+  touch-action: pan-y; /* the page must still scroll vertically over the world */
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* night defaults — mqc-tod-* classes override these vars */
+  --mqc-sky-a: #070310;
+  --mqc-sky-b: #1c0b36;
+  --mqc-sky-glow: rgba(123, 44, 255, 0.32);
+  --mqc-tint: rgba(0, 240, 255, 0.1);
+  --mqc-stars: 1;
+}
+
+@media (min-width: 720px) {
+  .mqw-viewport { height: clamp(420px, 50vh, 640px); }
+}
+
+/* ── Fixed backdrop layers ──────────────────────────────────────────────── */
+
+.mqw-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% 108%, var(--mqc-sky-glow), transparent 62%),
+    linear-gradient(180deg, var(--mqc-sky-a) 0%, var(--mqc-sky-b) 100%);
+}
+
+.mqw-stars {
+  position: absolute;
+  inset: 0 0 34% 0;
+  opacity: var(--mqc-stars);
+  pointer-events: none;
+}
+
+.mqw-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #eaf6ff;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.8);
+  animation: mqc-twinkle 3.8s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.mqw-aurora {
+  position: absolute;
+  inset: -20% -10% 45% -10%;
+  background:
+    radial-gradient(60% 55% at 28% 42%, rgba(0, 255, 191, 0.18), transparent 70%),
+    radial-gradient(55% 50% at 68% 30%, rgba(209, 30, 255, 0.2), transparent 70%),
+    radial-gradient(45% 60% at 50% 55%, rgba(0, 240, 255, 0.12), transparent 70%);
+  filter: blur(14px);
+  opacity: 0;
+  animation: mqc-aurora 16s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.mqc-stage-4 .mqw-aurora { opacity: 1; }
+
+/* ── Parallax + main world layers (engine writes their transforms) ──────── */
+
+.mqw-far,
+.mqw-mid,
+.mqw-main {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  will-change: transform;
+}
+
+.mqw-far, .mqw-mid { pointer-events: none; }
+
+.mqw-fart {
+  position: absolute;
+  bottom: 13%;
+  background: linear-gradient(180deg, rgba(10, 4, 20, 0.9), rgba(5, 0, 10, 0.95));
+  border-radius: 2px 2px 0 0;
+}
+
+.mqc-stage-1 .mqw-far { opacity: 0.4; }
+.mqc-stage-2 .mqw-far { opacity: 0.65; }
+
+.mqw-midt {
+  position: absolute;
+  bottom: 12%;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #0e0618 0%, #090211 100%);
+  box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.08);
+}
+
+.mqw-midt::before {
+  content: "";
+  position: absolute;
+  inset: 8% 16% 4% 16%;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 240, 255, 0.55) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, rgba(0, 240, 255, 0.5) 0 3px, transparent 3px 9px);
+  opacity: 0.2;
+}
+
+.mqc-stage-1 .mqw-midt::before { opacity: 0.12; }
+.mqc-stage-3 .mqw-midt::before { opacity: 0.35; }
+.mqc-stage-4 .mqw-midt::before { opacity: 0.5; }
+
+.mqw-midt--neon::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--brand-pink, #ff3edb);
+  box-shadow: 0 0 10px rgba(255, 62, 219, 0.8), 0 0 22px rgba(255, 62, 219, 0.4);
+  opacity: 0.7;
+  animation: mqc-sign 5.2s ease-in-out infinite;
+}
+
+.mqc-stage-1 .mqw-midt--neon::after { opacity: 0.2; animation: none; }
+
+/* ── Street furniture ───────────────────────────────────────────────────── */
+
+.mqw-lamp {
+  position: absolute;
+  bottom: 12%;
+  width: 3px;
+  height: 15%;
+  background: linear-gradient(180deg, rgba(0, 240, 255, 0.45), rgba(0, 240, 255, 0.12));
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.mqw-lamp::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lamp-color, var(--brand-cyan, #00f0ff));
+  box-shadow: 0 0 12px var(--lamp-color, rgba(0, 240, 255, 0.9)), 0 0 30px rgba(0, 240, 255, 0.3);
+}
+
+.mqw-fountain {
+  position: absolute;
+  bottom: 12%;
+  width: 120px;
+  height: 46px;
+  pointer-events: none;
+}
+
+.mqw-fountain::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(180deg, #170b28, #0a0313);
+  box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.3), 0 0 18px rgba(0, 240, 255, 0.15);
+}
+
+.mqw-fountain::after {
+  content: "";
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 30px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(0deg, rgba(0, 240, 255, 0.7), rgba(0, 255, 191, 0.15));
+  filter: blur(1px);
+  animation: mqw-fountain 2.8s ease-in-out infinite;
+}
+
+/* west gate wall — the city limit (becomes THE ROAD HOME exit) */
+.mqw-gate {
+  position: absolute;
+  bottom: 12%;
+  width: 150px;
+  height: 42%;
+  pointer-events: none;
+}
+
+.mqw-gate::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 14px;
+  background: linear-gradient(180deg, #150a24, #090211);
+  box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.3);
+  border-radius: 4px 4px 0 0;
+}
+
+.mqw-gate::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 14px;
+  background: linear-gradient(180deg, #150a24, #090211);
+  box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.3);
+  border-radius: 4px 4px 0 0;
+}
+
+.mqw-gate__arc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(123, 44, 255, 0.55), rgba(0, 240, 255, 0.45));
+  box-shadow: 0 0 16px rgba(123, 44, 255, 0.45);
+}
+
+.mqw-gate__label {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 244, 0.75);
+  text-shadow: 0 0 10px rgba(123, 44, 255, 0.6);
+}
+
+/* ── Quarter arches ─────────────────────────────────────────────────────── */
+
+.mqw-arch {
+  position: absolute;
+  bottom: 12%;
+  height: 48%;
+  pointer-events: none;
+}
+
+.mqw-arch::before,
+.mqw-arch::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--arch-color) 55%, transparent), rgba(9, 2, 17, 0.9));
+  border-radius: 3px 3px 0 0;
+}
+
+.mqw-arch::before { left: 0; }
+.mqw-arch::after { right: 0; }
+
+.mqw-arch__bar {
+  position: absolute;
+  top: 0;
+  left: -6px;
+  right: -6px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(5, 0, 10, 0.88);
+  border: 1px solid color-mix(in srgb, var(--arch-color) 55%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--arch-color) 40%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--arch-color);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--arch-color) 70%, transparent);
+  white-space: nowrap;
+  padding: 0 12px;
+}
+
+/* ── District buildings ─────────────────────────────────────────────────── */
+
+.mqw-b {
+  position: absolute;
+  bottom: 12%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mqw-b__tower {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #150b24 0%, #0b0416 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--b-color) 30%, transparent);
+  transition: box-shadow 0.5s ease, filter 0.5s ease;
+}
+
+/* windows — the legibility fix: dim floor is 0.18, never 0.05 */
+.mqw-b__tower::before {
+  content: "";
+  position: absolute;
+  inset: 8% 14% 13% 14%;
+  background:
+    repeating-linear-gradient(180deg, var(--b-color) 0 3px, transparent 3px 11px),
+    repeating-linear-gradient(90deg, var(--b-color) 0 4px, transparent 4px 11px);
+  opacity: 0.18;
+  transition: opacity 0.6s ease;
+}
+
+/* lit doorway at street level */
+.mqw-b__door {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 11%;
+  min-height: 16px;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--b-color) 75%, #fff 8%), color-mix(in srgb, var(--b-color) 35%, transparent));
+  box-shadow: 0 0 12px var(--b-glow);
+  opacity: 0.55;
+  transition: opacity 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* rooftop glyph */
+.mqw-b__sign {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  transform: translateX(-50%);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--b-color);
+  opacity: 0.8;
+  text-shadow: 0 0 10px var(--b-glow);
+  transition: opacity 0.5s ease, text-shadow 0.5s ease;
+}
+
+/* rooftop beacon beam */
+.mqw-b__beacon {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 60px;
+  border-radius: 2px;
+  background: linear-gradient(0deg, var(--b-color), transparent);
+  opacity: 0;
+  filter: blur(0.5px);
+}
+
+/* nameplate — ALWAYS visible, mounted on the facade */
+.mqw-b__plate {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% + 26px);
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: rgba(5, 0, 10, 0.88);
+  border: 1px solid color-mix(in srgb, var(--b-color) 50%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.25;
+  color: var(--b-color);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--b-glow) 80%, transparent);
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.4s ease;
+}
+
+/* lock strip under the nameplate */
+.mqw-b__lock {
+  display: none;
+  position: absolute;
+  top: calc(16% + 34px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(5, 0, 10, 0.92);
+  border: 1px solid rgba(242, 240, 244, 0.22);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 244, 0.6);
+  z-index: 2;
+}
+
+.mqw-b:focus-visible .mqw-b__tower {
+  box-shadow:
+    inset 0 0 0 1px var(--b-color),
+    0 0 0 2px color-mix(in srgb, var(--b-color) 60%, transparent);
+}
+
+/* glow states (progress-driven, same grammar as the old scene) */
+.mqw-b.is-lit .mqw-b__tower {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--b-color) 50%, transparent),
+    0 0 18px var(--b-glow);
+}
+.mqw-b.is-lit .mqw-b__tower::before { opacity: 0.42; }
+.mqw-b.is-lit .mqw-b__door { opacity: 0.85; }
+.mqw-b.is-lit .mqw-b__sign { opacity: 0.95; }
+
+.mqw-b.is-radiant .mqw-b__tower {
+  box-shadow:
+    inset 0 0 0 1px var(--b-color),
+    0 0 24px var(--b-glow),
+    0 0 50px var(--b-glow);
+  animation: mqc-radiant 3.4s ease-in-out infinite;
+}
+.mqw-b.is-radiant .mqw-b__tower::before { opacity: 0.75; }
+.mqw-b.is-radiant .mqw-b__door { opacity: 1; box-shadow: 0 0 18px var(--b-glow), 0 0 34px var(--b-glow); }
+.mqw-b.is-radiant .mqw-b__sign {
+  opacity: 1;
+  text-shadow: 0 0 10px var(--b-glow), 0 0 22px var(--b-glow);
+}
+.mqw-b.is-radiant .mqw-b__beacon {
+  opacity: 0.8;
+  animation: mqc-beacon 4s ease-in-out infinite;
+}
+
+/* locked — powered down (orthogonal overlay state; gating, not progress) */
+.mqw-b.is-locked .mqw-b__tower {
+  filter: grayscale(0.75) brightness(0.55);
+  box-shadow: inset 0 0 0 1px rgba(242, 240, 244, 0.12);
+}
+.mqw-b.is-locked .mqw-b__tower::before {
+  opacity: 0.1;
+  animation: mqw-dying 4.6s steps(2) infinite;
+}
+.mqw-b.is-locked .mqw-b__door { opacity: 0.12; box-shadow: none; }
+.mqw-b.is-locked .mqw-b__sign { opacity: 0.25; text-shadow: none; }
+.mqw-b.is-locked .mqw-b__plate { opacity: 0.55; }
+.mqw-b.is-locked .mqw-b__lock { display: block; }
+
+/* next in the story — the city calling */
+.mqw-b.is-next .mqw-b__beacon {
+  opacity: 0.9;
+  animation: mqw-calling 2.2s ease-in-out infinite;
+}
+.mqw-b.is-next .mqw-b__door {
+  opacity: 0.9;
+  animation: mqw-calling 2.2s ease-in-out infinite;
+}
+
+/* ── NPCs ───────────────────────────────────────────────────────────────── */
+
+.mqw-npc {
+  position: absolute;
+  bottom: 12%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: grid;
+  justify-items: center;
+  animation: mqw-idle 3.6s ease-in-out infinite;
+}
+
+.mqw-npc__tag {
+  margin-top: 2px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(5, 0, 10, 0.85);
+  border: 1px solid color-mix(in srgb, var(--npc-color, #00f0ff) 45%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--npc-color, #00f0ff);
+  white-space: nowrap;
+}
+
+.mqw-npc:focus-visible {
+  outline: 2px solid var(--npc-color, #00f0ff);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+/* ── The character ──────────────────────────────────────────────────────── */
+
+.mqw-char {
+  position: absolute;
+  bottom: 9.5%;
+  left: 0;
+  z-index: 4;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.mqw-char__flip {
+  transition: transform 0.12s ease;
+}
+
+.mqw-char--face-left .mqw-char__flip { transform: scaleX(-1); }
+
+.mqw-char__svg { display: block; filter: drop-shadow(0 0 10px var(--char-glow-soft, rgba(0, 240, 255, 0.55))); }
+
+.mqw-char--idle .mqw-char__svg { animation: mqw-idle 3.2s ease-in-out infinite; }
+
+.mqw-char--walk .mqw-char__svg { animation: mqw-bob 0.45s ease-in-out infinite; }
+
+.mqw-char__leg {
+  transform-origin: 50% 8%;
+}
+
+.mqw-char--walk .mqw-char__leg--l { animation: mqw-leg-a 0.45s ease-in-out infinite; }
+.mqw-char--walk .mqw-char__leg--r { animation: mqw-leg-b 0.45s ease-in-out infinite; }
+
+/* ── Haze + ground (viewport-fixed) ─────────────────────────────────────── */
+
+.mqw-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  height: 26%;
+  background: linear-gradient(180deg, transparent, var(--mqc-tint));
+  filter: blur(6px);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.mqw-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12%;
+  background:
+    linear-gradient(180deg, rgba(6, 1, 12, 0.95), rgba(2, 0, 5, 1)),
+    radial-gradient(60% 100% at 50% 0%, var(--mqc-sky-glow), transparent 70%);
+  border-top: 1px solid color-mix(in srgb, var(--brand-cyan, #00f0ff) 18%, transparent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── HUD: prompt pill, controls, meta chip ──────────────────────────────── */
+
+.mqw-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(86%, 420px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--prompt-color, #00f0ff) 55%, transparent);
+  background: rgba(5, 0, 10, 0.9);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--prompt-color, #00f0ff) 35%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--prompt-color, #00f0ff);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: mqw-prompt-in 0.25s ease;
+}
+
+.mqw-prompt__key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  font-size: 11px;
+}
+
+.mqw-prompt:focus-visible {
+  outline: 2px solid var(--prompt-color, #00f0ff);
+  outline-offset: 2px;
+}
+
+.mqw-ctrl {
+  position: absolute;
+  bottom: 14px;
+  z-index: 11;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  background: rgba(5, 0, 10, 0.72);
+  color: var(--brand-cyan, #00f0ff);
+  font-size: 24px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mqw-ctrl--left { left: 14px; }
+.mqw-ctrl--right { right: 14px; }
+
+.mqw-ctrl:active,
+.mqw-ctrl.is-held {
+  background: rgba(0, 240, 255, 0.16);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.35);
+}
+
+.mqw-ctrl:focus-visible {
+  outline: 2px solid var(--brand-cyan, #00f0ff);
+  outline-offset: 2px;
+}
+
+.mqw-holdzone {
+  position: absolute;
+  bottom: 0;
+  height: 30%;
+  width: 50%;
+  z-index: 9;
+  background: none;
+  border: none;
+  padding: 0;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.mqw-holdzone--left { left: 0; }
+.mqw-holdzone--right { right: 0; }
+
+.mqw-meta {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(5, 0, 10, 0.6);
+  border: 1px solid rgba(123, 44, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted, rgba(242, 240, 244, 0.88));
+  pointer-events: none;
+}
+
+.mqw-meta__stage { color: var(--brand-purple, #7b2cff); }
+.mqw-meta__dot { opacity: 0.5; }
+.mqw-meta__tod { color: var(--brand-cyan, #00f0ff); }
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes mqw-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes mqw-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes mqw-leg-a {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+@keyframes mqw-leg-b {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+}
+
+@keyframes mqw-fountain {
+  0%, 100% { height: 26px; opacity: 0.7; }
+  50% { height: 34px; opacity: 1; }
+}
+
+@keyframes mqw-dying {
+  0%, 78%, 100% { opacity: 0.1; }
+  80% { opacity: 0.02; }
+  84% { opacity: 0.14; }
+  88% { opacity: 0.04; }
+}
+
+@keyframes mqw-calling {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+@keyframes mqw-prompt-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Reduced motion: the world holds still, movement stays functional ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  .mqw-viewport *,
+  .mqw-viewport::before,
+  .mqw-viewport::after {
+    animation: none !important;
+  }
+  .mqw-char__flip { transition: none; }
+}
+
+html[data-reduced-motion="true"] .mqw-viewport *,
+html[data-reduced-motion="true"] .mqw-viewport::before,
+html[data-reduced-motion="true"] .mqw-viewport::after {
+  animation: none !important;
+}
+
+.mqw-viewport--still *,
+.mqw-viewport--still::before,
+.mqw-viewport--still::after {
+  animation: none !important;
+}

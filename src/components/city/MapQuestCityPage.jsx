@@ -3,7 +3,8 @@ import { useAppData } from "../../hooks/useAppData.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES, RANKS } from "../../lib/gamification.js";
 import { MentorSprite } from "../map-quest/kit.jsx";
-import CityScene from "./CityScene.jsx";
+import WorldScene from "./world/WorldScene.jsx";
+import { buildCityWorld } from "./cityWorld.js";
 import CitizenCard from "./CitizenCard.jsx";
 import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
@@ -25,15 +26,28 @@ import "../../styles/city.css";
 
 // ════════════════════════════════════════════════════════════════════════
 // MAPQUEST CITY — the living open-world hub
-// One city, sixteen districts, every district a real feature. The skyline
-// evolves with your rank, the buildings glow with your actual progress,
-// your people stand in the plaza, and every district's mentor teaches the
-// lesson that ends where the work begins.
+// One city, sixteen districts, every district a real feature. The street
+// is walkable now: your Seeker walks it end to end, the camera follows,
+// the buildings glow with your actual progress, your people stand in the
+// plaza, and every district's mentor teaches the lesson that ends where
+// the work begins.
 // Canonical home: the City tab inside the Accountability Zone (embedded).
 // Also mounted standalone at nav keys "city" / "openworld".
 // ════════════════════════════════════════════════════════════════════════
 
 const ALL_DISTRICT_IDS = DISTRICTS.map((d) => d.id);
+
+const POSITION_KEY = "mqw_pos_v1";
+
+function loadSavedX() {
+  try {
+    const raw = sessionStorage.getItem(POSITION_KEY);
+    const n = Number(raw);
+    return raw != null && Number.isFinite(n) ? n : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export default function MapQuestCityPage({
   onNavigate,
@@ -141,15 +155,13 @@ export default function MapQuestCityPage({
   const guide = getDailyGuideLesson(new Date(), ALL_DISTRICT_IDS);
   const guideDistrict = districts.find((d) => d.id === guide.districtId) || null;
 
-  const buildings = districts.map((d) => ({
-    id: d.id,
-    name: d.name,
-    icon: d.icon,
-    color: d.color,
-    glow: d.glow,
-    glowState: d.glowState,
-    position: d.position,
-  }));
+  // ── The walkable street ─────────────────────────────────────────────────
+  const world = buildCityWorld(districts, {
+    guideName: THE_GUIDE.name,
+    guideColor: THE_GUIDE.color,
+  });
+  const spawnX = useMemo(() => loadSavedX(), []);
+  const scenePaused = Boolean(selected || hallOpen || lesson);
 
   return (
     <div className={`mqc-root${embedded ? " mqc-root--embedded" : ""}`}>
@@ -165,12 +177,16 @@ export default function MapQuestCityPage({
         </span>
       </header>
 
-      <CityScene
+      <WorldScene
+        world={world}
         stage={stage}
         timeOfDay={timeOfDay}
-        buildings={buildings}
+        spawnX={spawnX}
+        paused={scenePaused}
         reducedMotion={reducedMotion}
-        onBuildingTap={openDistrictById}
+        persistKey={POSITION_KEY}
+        onEnterBuilding={openDistrictById}
+        onTalkNpc={() => (guideDistrict ? openDistrict(guideDistrict) : null)}
       />
 
       <button
