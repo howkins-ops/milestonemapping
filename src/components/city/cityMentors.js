@@ -179,8 +179,8 @@ export const MENTORS = {
     },
   },
 
-  academy: {
-    id: "academy",
+  "the-academy": {
+    id: "the-academy",
     name: "Docent Vale",
     epithet: "Teaches the shifts that change what you can see",
     color: "#00FFBF",
@@ -393,8 +393,8 @@ export const MENTORS = {
     },
   },
 
-  vault: {
-    id: "vault",
+  "the-vault": {
+    id: "the-vault",
     name: "Auric the Vaultkeeper",
     epithet: "Counts the wins you keep forgetting to collect",
     color: "#FACC15",
@@ -892,11 +892,11 @@ const GUIDE_LINES = {
   "alchemist-spire": "The spire's lit tonight. Your next chapter is already warm.",
   "identity-forge": "The Herald's calling for names today. Go speak one that fits the future you.",
   "vision-tower": "Clear skies over the tower. Perfect day to look at where you're headed.",
-  academy: "The Academy bell's ringing. There's a shift waiting with your name on it.",
+  "the-academy": "The Academy bell's ringing. There's a shift waiting with your name on it.",
   "war-rooms": "The war rooms are humming. Your next milestone wants orders.",
   "daily-nexus": "The Nexus counts votes at sundown. Go cast yours while the day's still yours.",
   "war-council": "The Council convenes for anyone honest about their week. That's you, today.",
-  vault: "Auric says you've left winnings uncollected. The vault door's open.",
+  "the-vault": "Auric says you've left winnings uncollected. The vault door's open.",
   "shadow-sanctum": "The sanctum's quiet today. A good day to meet what follows you around.",
   "pressure-forge": "The Forge runs hot today. Bring what angers you.",
   "cup-springs": "Your cup's been ringing hollow. The springs can hear it from here.",

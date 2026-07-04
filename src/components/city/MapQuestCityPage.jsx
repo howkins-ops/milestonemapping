@@ -4,7 +4,8 @@ import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES, RANKS } from "../../lib/gamification.js";
 import { MentorSprite } from "../map-quest/kit.jsx";
 import WorldScene from "./world/WorldScene.jsx";
-import { buildCityWorld } from "./cityWorld.js";
+import { buildCityWorld, STORY_ORDER } from "./cityWorld.js";
+import useJourney from "./useJourney.js";
 import CitizenCard from "./CitizenCard.jsx";
 import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
@@ -64,6 +65,26 @@ export default function MapQuestCityPage({
   const [hallOpen, setHallOpen] = useState(false);
   const [lesson, setLesson] = useState(null); // { mentor, district }
 
+  // ── The journey — story-order unlocks (new citizens only) ──────────────
+  const journey = useJourney(districts, {
+    onPowerOn: (id) => {
+      const d = DISTRICTS.find((x) => x.id === id);
+      if (!d) return;
+      celebrate({
+        variant: "project",
+        title: `${d.name.toUpperCase()} POWERS ON`,
+        subtitle: "A new district joins the grid.",
+        detail: "The city grows as you do.",
+      });
+    },
+  });
+
+  const journeyDistricts = districts.map((d) => ({
+    ...d,
+    locked: !journey.isUnlocked(d.id),
+    next: journey.nextStopId === d.id,
+  }));
+
   const reducedMotion = useMemo(() => {
     if (settings && settings.reducedMotion) return true;
     try {
@@ -110,7 +131,7 @@ export default function MapQuestCityPage({
   };
 
   const openDistrictById = (id) => {
-    openDistrict(districts.find((d) => d.id === id) || null);
+    openDistrict(journeyDistricts.find((d) => d.id === id) || null);
   };
 
   const enterDistrict = (district) => {
@@ -153,10 +174,18 @@ export default function MapQuestCityPage({
 
   // ── The Guide's daily pointer ───────────────────────────────────────────
   const guide = getDailyGuideLesson(new Date(), ALL_DISTRICT_IDS);
-  const guideDistrict = districts.find((d) => d.id === guide.districtId) || null;
+  const guideDistrict = journeyDistricts.find((d) => d.id === guide.districtId) || null;
+
+  // ── Locked-sheet context ────────────────────────────────────────────────
+  const selectedLocked = Boolean(selected && !journey.isUnlocked(selected.id));
+  const selectedStoryIdx = selected ? STORY_ORDER.indexOf(selected.id) : -1;
+  const selectedPrev =
+    selectedStoryIdx > 0
+      ? journeyDistricts.find((d) => d.id === STORY_ORDER[selectedStoryIdx - 1]) || null
+      : null;
 
   // ── The walkable street ─────────────────────────────────────────────────
-  const world = buildCityWorld(districts, {
+  const world = buildCityWorld(journeyDistricts, {
     guideName: THE_GUIDE.name,
     guideColor: THE_GUIDE.color,
   });
@@ -213,7 +242,7 @@ export default function MapQuestCityPage({
 
       {QUARTER_ORDER.map((qKey) => {
         const meta = QUARTER_META[qKey];
-        const qDistricts = districts.filter((d) => d.quarter === qKey);
+        const qDistricts = journeyDistricts.filter((d) => d.quarter === qKey);
         if (!meta || qDistricts.length === 0) return null;
         return (
           <section
@@ -238,6 +267,9 @@ export default function MapQuestCityPage({
       {selected ? (
         <DistrictSheet
           district={selected}
+          locked={selectedLocked}
+          prevDistrict={selectedPrev}
+          onGoPrev={openDistrict}
           onClose={() => setSelected(null)}
           onEnter={enterDistrict}
           onLesson={hearLesson}

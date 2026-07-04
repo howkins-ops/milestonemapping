@@ -19,10 +19,10 @@ export default function DistrictCard({ district, onOpen }) {
   return (
     <button
       type="button"
-      className={`mqc-d-card is-${d.glowState || "dim"}`}
+      className={`mqc-d-card is-${d.glowState || "dim"}${d.locked ? " is-locked" : ""}`}
       style={{ "--d-color": d.color, "--d-glow": d.glow }}
       onClick={() => onOpen && onOpen(d)}
-      aria-label={`${d.name} — ${progress.label || "no progress yet"}`}
+      aria-label={`${d.name} — ${d.locked ? "powered down" : progress.label || "no progress yet"}`}
     >
       <span className="mqc-d-card__medal" aria-hidden="true">
         <svg className="mqc-d-card__ring" viewBox="0 0 36 36" width="42" height="42">
@@ -50,7 +50,9 @@ export default function DistrictCard({ district, onOpen }) {
         <span className="mqc-d-card__sub">{progress.label || d.sublabel}</span>
       </span>
 
-      {progress.streak > 0 ? (
+      {d.locked ? (
+        <span className="mqc-d-card__lock" aria-hidden="true">⏻</span>
+      ) : progress.streak > 0 ? (
         <span className="mqc-d-card__streak" aria-label={`${progress.streak} streak`}>
           🔥{progress.streak}
         </span>

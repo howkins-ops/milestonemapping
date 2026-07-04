@@ -8,6 +8,9 @@ import { MENTORS, getGreeting } from "./cityMentors.js";
 // Bottom sheet for a tapped district: quarter kicker, lore, live progress
 // meter, the resident mentor (greeting + HEAR THE LESSON) and the big
 // ENTER action. Scrim tap + Escape close it.
+// Locked (powered down) districts keep the sheet but swap the mentor for
+// the switch-holder note and the primary CTA for GO TO the previous stop —
+// with a quiet "Enter anyway" path, because the One Law is real life first.
 // ════════════════════════════════════════════════════════════════════════
 
 function enterLabel(action) {
@@ -17,7 +20,15 @@ function enterLabel(action) {
   return "ENTER DISTRICT";
 }
 
-export default function DistrictSheet({ district, onClose, onEnter, onLesson }) {
+export default function DistrictSheet({
+  district,
+  locked = false,
+  prevDistrict = null,
+  onGoPrev,
+  onClose,
+  onEnter,
+  onLesson,
+}) {
   useEffect(() => {
     if (!district) return undefined;
     const onKey = (e) => {
@@ -48,7 +59,11 @@ export default function DistrictSheet({ district, onClose, onEnter, onLesson }) 
       >
         <div className="mqc-sheet__handle" aria-hidden="true" />
 
-        {quarter ? (
+        {locked ? (
+          <p className="mqc-kicker mqc-d-sheet__quarter mqc-d-sheet__quarter--locked">
+            ⏻ POWERED DOWN
+          </p>
+        ) : quarter ? (
           <p className="mqc-kicker mqc-d-sheet__quarter" style={{ color: quarter.accent }}>
             {quarter.label}
           </p>
@@ -87,7 +102,15 @@ export default function DistrictSheet({ district, onClose, onEnter, onLesson }) 
           ) : null}
         </div>
 
-        {mentor ? (
+        {locked ? (
+          <div className="mqc-d-sheet__lockednote">
+            <p className="mqc-d-sheet__lockedline">
+              {prevDistrict
+                ? `${(MENTORS[prevDistrict.id] && MENTORS[prevDistrict.id].name) || "The mentor"} of ${prevDistrict.name} holds the switch — hear their lesson to power this street.`
+                : "This street hasn't been powered on yet."}
+            </p>
+          </div>
+        ) : mentor ? (
           <div className="mqc-d-sheet__mentor">
             <span className="mqc-d-sheet__mentorsprite" aria-hidden="true">
               {mentor.spriteVariant === "alchemist" ? (
@@ -110,13 +133,33 @@ export default function DistrictSheet({ district, onClose, onEnter, onLesson }) 
           </div>
         ) : null}
 
-        <button
-          type="button"
-          className="mqc-btn mqc-btn--primary mqc-d-sheet__enter"
-          onClick={() => onEnter && onEnter(d)}
-        >
-          {enterLabel(d.action)}
-        </button>
+        {locked && prevDistrict ? (
+          <button
+            type="button"
+            className="mqc-btn mqc-btn--primary mqc-d-sheet__enter"
+            onClick={() => onGoPrev && onGoPrev(prevDistrict)}
+          >
+            GO TO {prevDistrict.name.toUpperCase()}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="mqc-btn mqc-btn--primary mqc-d-sheet__enter"
+            onClick={() => onEnter && onEnter(d)}
+          >
+            {enterLabel(d.action)}
+          </button>
+        )}
+
+        {locked ? (
+          <button
+            type="button"
+            className="mqc-d-sheet__enteranyway"
+            onClick={() => onEnter && onEnter(d)}
+          >
+            Enter anyway →
+          </button>
+        ) : null}
       </div>
     </>
   );

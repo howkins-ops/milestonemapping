@@ -338,6 +338,57 @@
   width: 100%;
 }
 
+/* ── Locked (powered down) — story gating, new citizens only ───────────── */
+
+.mqc-d-card.is-locked {
+  filter: grayscale(0.7);
+  opacity: 0.65;
+}
+
+.mqc-d-card__lock {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: rgba(242, 240, 244, 0.55);
+}
+
+.mqc-d-sheet__quarter--locked {
+  color: rgba(242, 240, 244, 0.6);
+}
+
+.mqc-d-sheet__lockednote {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed rgba(242, 240, 244, 0.25);
+  background: rgba(5, 0, 10, 0.5);
+}
+
+.mqc-d-sheet__lockedline {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-soft, rgba(242, 240, 244, 0.65));
+}
+
+.mqc-d-sheet__enteranyway {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 12.5px;
+  color: var(--text-soft, rgba(242, 240, 244, 0.55));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mqc-d-sheet__enteranyway:hover,
+.mqc-d-sheet__enteranyway:focus-visible {
+  color: var(--text-main, #f2f0f4);
+}
+
 /* ── Reduced motion ─────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
