@@ -108,7 +108,7 @@ export default function ZoneNav({ view, go }) {
             type="button"
             data-key={t.key}
             className={`zn-tab${isActive ? " zn-tab--active" : ""}${badge > 0 ? " zn-tab--alert" : ""}`}
-            onClick={() => go(t.key)}
+            onClick={() => go(t.key === "squad" ? "arena" : t.key)}
             aria-current={isActive ? "page" : undefined}
           >
             <span className="zn-tab__icon" aria-hidden="true">

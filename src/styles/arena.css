@@ -1,0 +1,283 @@
+/* ============================================================
+   THE SQUAD ARENA — motion layer on top of zone.css tokens.
+   Ember backdrop, entrance reveals, sound toggle, and the
+   once-per-session intro cinematic. Mobile-first; every animation
+   uses only transform/opacity and respects reduced motion.
+   (SQUAD-ARENA-APP-BUILD-PROMPT §3/§4)
+   ============================================================ */
+
+/* ---------- ambient ember backdrop ----------
+   Fixed, full-viewport, painted behind Zone content. Sits inside the
+   .app-shell stacking context at z-index:-1 → above the app's ambient
+   background, below every Zone surface. Soft fire glows framing the void. */
+.arena-embers {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  background:
+    radial-gradient(120% 80% at 50% 108%, rgba(255, 122, 26, 0.10), transparent 60%),
+    radial-gradient(90% 60% at 12% -10%, rgba(0, 240, 255, 0.06), transparent 55%),
+    radial-gradient(90% 60% at 88% -10%, rgba(209, 30, 255, 0.06), transparent 55%);
+}
+
+/* ---------- entrance reveal (IntersectionObserver adds .is-in) ---------- */
+.arena-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 560ms var(--ease-out), transform 560ms var(--ease-out);
+}
+/* Reveal whether .is-in lands on the SAME element (Phase-0 pattern) OR on a
+   ref'd ancestor wrapper (the pattern every game uses: ref on the wrapper,
+   .arena-reveal on child cards). Without the descendant selector those child
+   cards would stay opacity:0 forever. */
+.arena-reveal.is-in,
+.is-in .arena-reveal {
+  opacity: 1;
+  transform: none;
+}
+/* optional stagger: set --i on each child */
+.arena-reveal { transition-delay: calc(var(--i, 0) * 55ms); }
+
+/* ---------- sound toggle ---------- */
+.arena-sound {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--zn-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--zfire, var(--brand-cyan));
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.arena-sound:hover { border-color: var(--zfire, var(--brand-cyan)); transform: translateY(-1px); }
+.arena-sound.is-muted { color: var(--text-soft); }
+.arena-sound__glyph { width: 20px; height: 20px; display: block; }
+.arena-sound:focus-visible { outline: 2px solid var(--zfire, var(--brand-cyan)); outline-offset: 2px; }
+
+/* ============================================================
+   INTRO CINEMATIC (portaled to <body>, once per session)
+   ============================================================ */
+.arena-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  background: radial-gradient(120% 120% at 50% 42%, #0B0114 0%, #05000A 62%, rgba(2, 0, 6, 0.6) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: var(--font-body);
+  will-change: clip-path, opacity;
+  clip-path: circle(150% at 50% 50%);
+}
+.arena-intro.is-out {
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 720ms cubic-bezier(0.7, 0, 0.84, 0), opacity 720ms ease;
+  opacity: 0;
+}
+
+.arena-intro__embers { position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: screen; }
+
+.arena-intro__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(60% 50% at 50% 46%, #FFF2D0 0%, #FFD166 22%, transparent 62%);
+  opacity: 0;
+}
+.arena-intro__flash.is-boom { animation: arena-flashfx 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes arena-flashfx {
+  0% { opacity: 0; transform: scale(0.6); }
+  14% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+.arena-intro__shake { position: relative; z-index: 4; }
+.arena-intro__shake.is-quake { animation: arena-quake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes arena-quake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 3px) rotate(-0.4deg); }
+  40% { transform: translate(7px, -4px) rotate(0.4deg); }
+  60% { transform: translate(-5px, 2px); }
+  80% { transform: translate(4px, -2px); }
+}
+
+.arena-intro__stage {
+  position: relative;
+  text-align: center;
+  padding: 0 22px;
+  width: 100%;
+  max-width: 1180px;
+  will-change: transform;
+}
+
+.arena-intro__kicker {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(10px, 2.6vw, 13px);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--brand-cyan);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: arena-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) 160ms forwards;
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.6);
+  margin-bottom: clamp(10px, 2vw, 18px);
+}
+.arena-intro__dot { color: var(--brand-magenta); text-shadow: 0 0 14px rgba(209, 30, 255, 0.7); }
+
+.arena-intro__wordwrap { position: relative; display: inline-block; }
+
+.arena-intro__zone {
+  display: block;
+  line-height: 0.92;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 13vw, 7.6rem);
+  letter-spacing: 0.02em;
+  color: #EAF6FF;
+  text-shadow: 0 0 22px rgba(0, 240, 255, 0.35);
+}
+.arena-intro__ch {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(38px) rotateX(-70deg);
+  transform-origin: 50% 100%;
+  animation: arena-drop 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes arena-drop {
+  0% { opacity: 0; transform: translateY(38px) rotateX(-70deg); filter: blur(10px); }
+  100% { opacity: 1; transform: translateY(0) rotateX(0); filter: blur(0); }
+}
+
+.arena-intro__arena {
+  display: block;
+  line-height: 0.92;
+  position: relative;
+  margin-top: clamp(4px, 1.4vw, 10px);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3rem, 17vw, 9.5rem);
+  letter-spacing: 0.015em;
+  background: linear-gradient(96deg, var(--brand-cyan) 0%, var(--brand-pink) 46%, var(--brand-magenta) 78%, #FFB000 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  transform: scale(0.86);
+  filter: drop-shadow(0 0 26px rgba(209, 30, 255, 0));
+}
+.arena-intro__arena.is-ignite {
+  animation: arena-ignite 1200ms cubic-bezier(0.16, 1, 0.3, 1) forwards, arena-flow 3.2s linear 0.9s infinite;
+}
+@keyframes arena-ignite {
+  0% { opacity: 0; transform: scale(0.86); filter: drop-shadow(0 0 0 rgba(209, 30, 255, 0)) blur(14px); }
+  40% { opacity: 1; }
+  60% { transform: scale(1.05); filter: drop-shadow(0 0 40px rgba(255, 122, 26, 0.65)) blur(0); }
+  78% { transform: scale(0.985); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 30px rgba(209, 30, 255, 0.55)); }
+}
+@keyframes arena-flow { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
+/* heat-haze behind ARENA */
+.arena-intro__arena::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -40%);
+  width: 118%;
+  height: 150%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 60%, rgba(255, 122, 26, 0.3), rgba(255, 59, 92, 0.16) 45%, transparent 72%);
+  filter: blur(18px);
+  opacity: 0;
+  animation: arena-flicker 140ms steps(2) infinite, arena-heatin 1200ms ease forwards;
+}
+@keyframes arena-heatin { 0% { opacity: 0; } 55% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes arena-flicker { 0% { transform: translate(-50%, -40%) scale(1); } 100% { transform: translate(-50.6%, -41%) scale(1.02); } }
+
+.arena-intro__scan {
+  position: absolute;
+  left: -8%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--brand-cyan), var(--brand-magenta), transparent);
+  box-shadow: 0 0 18px var(--brand-cyan);
+  opacity: 0;
+}
+.arena-intro__scan.is-sweep { animation: arena-sweep 820ms cubic-bezier(0.16, 1, 0.3, 1) 900ms forwards; }
+@keyframes arena-sweep {
+  0% { opacity: 0; left: -8%; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; left: 108%; }
+}
+
+.arena-intro__tag {
+  margin-top: clamp(16px, 3.4vw, 30px);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(11px, 2.8vw, 15px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  opacity: 0;
+  transform: translateY(12px);
+  animation: arena-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) 1180ms forwards;
+}
+.arena-intro__tag b { color: #FFD166; font-weight: 800; text-shadow: 0 0 12px rgba(255, 209, 102, 0.55); }
+
+@keyframes arena-rise { to { opacity: 1; transform: translateY(0); } }
+
+.arena-intro__skip {
+  position: absolute;
+  right: 16px;
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  z-index: 8;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 9px 16px;
+  background-image: linear-gradient(#0A0A12, #0A0A12), linear-gradient(96deg, var(--brand-cyan), var(--brand-magenta), var(--brand-pink));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  opacity: 0;
+  animation: arena-rise 500ms ease 700ms forwards;
+  transition: color 120ms ease, transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.arena-intro__skip:hover { color: #EAF6FF; transform: translateY(-2px); }
+.arena-intro__skip:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 2px; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .arena-reveal { opacity: 1; transform: none; transition: none; }
+  .arena-intro__ch,
+  .arena-intro__arena.is-ignite,
+  .arena-intro__arena::before,
+  .arena-intro__scan.is-sweep,
+  .arena-intro__shake.is-quake,
+  .arena-intro__flash.is-boom { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+  .arena-intro.is-out { transition-duration: 200ms; }
+  .arena-intro__kicker, .arena-intro__tag { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+}
+html[data-reduced-motion="true"] .arena-reveal { opacity: 1; transform: none; transition: none; }

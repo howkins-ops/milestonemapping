@@ -6327,6 +6327,245 @@ h4,
 }
 
 /* ============================================================
+   DASHBOARD FRONT IMAGE CARDS
+   Fresh generated art for MapQuest City, The Zone, and Sunday Review.
+   ============================================================ */
+.dashboard-image-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 250px;
+  margin-top: 14px;
+  padding: 0;
+  border: 1.5px solid rgba(0, 240, 255, 0.28);
+  border-radius: 22px;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  color: var(--text-main);
+  text-align: left;
+  background: #050007;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(0, 240, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  transition: transform 220ms var(--ease-out), border-color 220ms, box-shadow 220ms;
+}
+
+.dashboard-image-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 240, 255, 0.58);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.62),
+    0 0 46px rgba(0, 240, 255, 0.18),
+    0 0 52px rgba(209, 30, 255, 0.18);
+}
+
+.dashboard-image-card:focus-visible {
+  outline: 2px solid var(--brand-cyan);
+  outline-offset: 3px;
+}
+
+.dashboard-image-card--zone {
+  border-color: rgba(255, 62, 219, 0.34);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(255, 62, 219, 0.11),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.dashboard-image-card--zone:hover {
+  border-color: rgba(255, 62, 219, 0.62);
+}
+
+.dashboard-image-card--sunday {
+  min-height: 235px;
+  border-color: rgba(250, 204, 21, 0.46);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55),
+    0 0 38px rgba(250, 204, 21, 0.14),
+    0 0 32px rgba(209, 30, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.dashboard-image-card--sunday:hover {
+  border-color: rgba(250, 204, 21, 0.72);
+}
+
+.dashboard-image-card__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center right;
+  transform: scale(1.01);
+  transition: transform 420ms var(--ease-out), filter 220ms;
+}
+
+.dashboard-image-card:hover .dashboard-image-card__bg {
+  transform: scale(1.045);
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.dashboard-image-card__shade {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(90deg, rgba(3, 0, 8, 0.96) 0%, rgba(3, 0, 8, 0.84) 36%, rgba(3, 0, 8, 0.3) 64%, rgba(3, 0, 8, 0.08) 100%),
+    radial-gradient(80% 115% at 18% 50%, rgba(0, 240, 255, 0.15), transparent 58%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.08));
+}
+
+.dashboard-image-card--zone .dashboard-image-card__shade {
+  background:
+    linear-gradient(90deg, rgba(5, 0, 10, 0.96) 0%, rgba(5, 0, 10, 0.84) 36%, rgba(5, 0, 10, 0.28) 64%, rgba(5, 0, 10, 0.08) 100%),
+    radial-gradient(80% 115% at 18% 50%, rgba(255, 62, 219, 0.15), transparent 58%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.08));
+}
+
+.dashboard-image-card--sunday .dashboard-image-card__shade {
+  background:
+    linear-gradient(90deg, rgba(5, 3, 0, 0.97) 0%, rgba(5, 3, 0, 0.86) 37%, rgba(5, 3, 0, 0.32) 66%, rgba(5, 3, 0, 0.08) 100%),
+    radial-gradient(78% 120% at 18% 50%, rgba(250, 204, 21, 0.18), transparent 58%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.08));
+}
+
+.dashboard-image-card__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: inherit;
+  max-width: 58%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 26px 24px;
+}
+
+.dashboard-image-card__kicker {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand-cyan);
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
+}
+
+.dashboard-image-card--zone .dashboard-image-card__kicker {
+  color: var(--brand-pink);
+  text-shadow: 0 0 16px rgba(255, 62, 219, 0.52);
+}
+
+.dashboard-image-card--sunday .dashboard-image-card__kicker {
+  color: var(--brand-gold);
+  text-shadow: 0 0 18px rgba(250, 204, 21, 0.48);
+}
+
+.dashboard-image-card__title {
+  margin-top: 7px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 22px rgba(0, 240, 255, 0.34);
+}
+
+.dashboard-image-card--zone .dashboard-image-card__title {
+  text-shadow: 0 0 22px rgba(255, 62, 219, 0.38);
+}
+
+.dashboard-image-card--sunday .dashboard-image-card__title {
+  text-shadow: 0 0 22px rgba(250, 204, 21, 0.36);
+}
+
+.dashboard-image-card__copy {
+  margin-top: 10px;
+  max-width: 360px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.42;
+  color: rgba(242, 240, 244, 0.88);
+}
+
+.dashboard-image-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--grad-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px rgba(209, 30, 255, 0.42);
+  transition: transform 180ms var(--ease-out);
+}
+
+.dashboard-image-card:hover .dashboard-image-card__cta {
+  transform: translateX(3px);
+}
+
+.dashboard-image-card__cta--gold {
+  background: linear-gradient(135deg, var(--brand-gold), #ffb000 48%, var(--brand-pink));
+  color: #120600;
+  box-shadow: 0 0 26px rgba(250, 204, 21, 0.4);
+}
+
+@media (max-width: 620px) {
+  .dashboard-image-card {
+    min-height: 230px;
+  }
+
+  .dashboard-image-card__bg {
+    object-position: 66% center;
+  }
+
+  .dashboard-image-card__shade {
+    background:
+      linear-gradient(90deg, rgba(3, 0, 8, 0.98) 0%, rgba(3, 0, 8, 0.9) 45%, rgba(3, 0, 8, 0.3) 82%, rgba(3, 0, 8, 0.12) 100%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.06));
+  }
+
+  .dashboard-image-card__content {
+    max-width: 68%;
+    padding: 22px 18px;
+  }
+
+  .dashboard-image-card__title {
+    font-size: 22px;
+  }
+
+  .dashboard-image-card__copy {
+    max-width: 270px;
+    font-size: 12.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-image-card,
+  .dashboard-image-card__bg,
+  .dashboard-image-card__cta {
+    transition: none;
+  }
+
+  .dashboard-image-card:hover,
+  .dashboard-image-card:hover .dashboard-image-card__bg,
+  .dashboard-image-card:hover .dashboard-image-card__cta {
+    transform: none;
+  }
+}
+
+/* ============================================================
    VISION FEATURE CARD — the official home-page entry point.
    A peek of the pinned board + a big "open your board" CTA.
    ============================================================ */

@@ -1,0 +1,300 @@
+/* Dawn Raid — co-located styles. Every class prefixed `dawn-` so game CSS never
+   collides. Built on zone.css tokens (--zfire, --zfire-glow, --zn-card,
+   --zn-border, --text-main, --text-soft, --ease-out). Animates transform/opacity
+   only (PERFORMANCE LAW §3). Reduced motion respected at the foot of the file. */
+
+.dawn-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.dawn-back {
+  align-self: flex-start;
+}
+
+.dawn-head {
+  padding: 2px 2px 0;
+}
+.dawn-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 2px 0 6px;
+  line-height: 1.15;
+}
+.dawn-sub {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.dawn-card {
+  padding: 16px;
+}
+
+/* ---------- loading skeleton ---------- */
+.dawn-skeleton {
+  height: 116px;
+  border-radius: 14px;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 176, 32, 0.05) 30%,
+    rgba(255, 176, 32, 0.14) 50%,
+    rgba(255, 176, 32, 0.05) 70%
+  );
+  background-size: 220% 100%;
+  animation: dawn-shimmer 1.4s var(--ease-out) infinite;
+}
+.dawn-loadtext {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+/* ---------- hero: today's sunrise crown ---------- */
+.dawn-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 16px 20px;
+  width: 100%;
+  border: 1px solid var(--zn-border);
+  background: var(--zn-card);
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+.dawn-hero:active {
+  transform: scale(0.985);
+}
+.dawn-hero:focus-visible {
+  outline: 2px solid var(--zfire);
+  outline-offset: 3px;
+}
+.dawn-hero--mine {
+  border-color: var(--zfire);
+  box-shadow: 0 0 22px var(--zfire-glow);
+}
+
+/* a soft rising-sun glow behind the hero — pure opacity/transform */
+.dawn-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dawn-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -70px;
+  width: 180px;
+  height: 180px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 176, 32, 0.28) 0%,
+    rgba(255, 122, 26, 0.12) 45%,
+    transparent 70%
+  );
+  animation: dawn-rise 6s ease-in-out infinite;
+}
+.dawn-hero--mine .dawn-sun {
+  background: radial-gradient(
+    circle,
+    rgba(255, 176, 32, 0.42) 0%,
+    rgba(255, 122, 26, 0.2) 45%,
+    transparent 72%
+  );
+}
+
+.dawn-heroicon {
+  position: relative;
+  font-size: 34px;
+  line-height: 1;
+  animation: dawn-bob 3.2s ease-in-out infinite;
+}
+.dawn-herolabel {
+  position: relative;
+  margin-top: 2px;
+}
+.dawn-heroname {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+.dawn-herotime {
+  position: relative;
+  margin-top: 2px;
+}
+.dawn-herohint {
+  position: relative;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+/* ---------- neutral status line ---------- */
+.dawn-status {
+  margin: 2px 2px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-soft);
+  text-align: center;
+}
+.dawn-status--win {
+  color: var(--zfire);
+  font-weight: 600;
+}
+
+/* ---------- my stats row ---------- */
+.dawn-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dawn-stat {
+  text-align: center;
+}
+
+/* ---------- squad board ---------- */
+.dawn-board {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dawn-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dawn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--zn-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.dawn-row--first {
+  border-color: var(--zfire);
+  box-shadow: inset 0 0 0 1px var(--zfire-glow);
+}
+.dawn-row--me {
+  background: rgba(255, 176, 32, 0.06);
+}
+.dawn-rank {
+  flex: 0 0 22px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.dawn-row--first .dawn-rank {
+  font-size: 15px;
+}
+.dawn-rowavatar {
+  flex: 0 0 auto;
+}
+.dawn-rowname {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dawn-rowyou {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+.dawn-rowtime {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--zfire);
+}
+.dawn-row:not(.dawn-row--first) .dawn-rowtime {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+.dawn-emptyboard {
+  margin-top: 6px;
+}
+
+/* ---------- CTA card ---------- */
+.dawn-cta {
+  text-align: center;
+}
+.dawn-ctalead {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+.dawn-provebtn {
+  width: 100%;
+}
+.dawn-ctahint {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  opacity: 0.85;
+}
+
+/* ---------- keyframes (transform/opacity only) ---------- */
+@keyframes dawn-shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+@keyframes dawn-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes dawn-rise {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+    opacity: 1;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .dawn-skeleton,
+  .dawn-heroicon,
+  .dawn-sun {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,283 @@
+/* Ascension — co-located styles. Every class prefixed `asc-` so game CSS never
+   collides. Built on zone.css tokens (--zn-card, --zn-border, --text-main,
+   --text-soft, --ease-out) + a per-render division tint injected as --asc-tint /
+   --asc-glow. Animates transform/opacity only (PERFORMANCE LAW §3). Reduced
+   motion respected at the foot of the file. */
+
+.asc-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.asc-back {
+  align-self: flex-start;
+}
+
+.asc-head {
+  padding: 2px 2px 0;
+}
+.asc-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 2px 0 6px;
+  line-height: 1.15;
+}
+.asc-sub {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.asc-card {
+  padding: 16px;
+}
+
+/* ---------- division banner ---------- */
+.asc-division {
+  padding: 16px;
+  border-color: var(--asc-tint, var(--zn-border));
+  box-shadow: 0 0 22px var(--asc-glow, transparent);
+}
+.asc-divtop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.asc-divbadge {
+  font-size: 30px;
+  line-height: 1;
+  animation: asc-flicker 2.6s ease-in-out infinite;
+}
+.asc-divmeta {
+  flex: 1;
+  min-width: 0;
+}
+.asc-diveyebrow {
+  margin: 0 0 2px;
+}
+.asc-divname {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--asc-tint, var(--text-main));
+  margin: 0;
+  line-height: 1.05;
+}
+
+/* fire-tier ladder pips */
+.asc-divladder {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.asc-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: transform 200ms var(--ease-out);
+}
+.asc-pip--past {
+  background: rgba(255, 255, 255, 0.28);
+}
+.asc-pip--on {
+  width: 11px;
+  height: 11px;
+  box-shadow: 0 0 10px var(--asc-glow, transparent);
+}
+
+/* my-squad stat row */
+.asc-mystats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+.asc-stat {
+  align-items: center;
+  text-align: center;
+}
+
+/* projected standing line */
+.asc-projection {
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--zn-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.asc-projection--up {
+  border-color: var(--asc-tint);
+  color: var(--text-main);
+}
+.asc-projection--down {
+  color: var(--text-soft);
+}
+
+/* ---------- standings board ---------- */
+.asc-boardcard {
+  padding: 16px;
+}
+.asc-boardhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.asc-legend {
+  font-weight: 700;
+  font-size: 11px;
+}
+.asc-legend--up {
+  border-color: var(--asc-tint);
+  color: var(--asc-tint);
+}
+
+.asc-board {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  counter-reset: none;
+}
+.asc-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--zn-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.asc-row--promote {
+  border-left: 3px solid var(--asc-tint);
+}
+.asc-row--relegate {
+  border-left: 3px solid rgba(255, 255, 255, 0.14);
+  opacity: 0.9;
+}
+.asc-row--me {
+  border-color: var(--asc-tint);
+  background: var(--zfire-soft, rgba(255, 122, 26, 0.08));
+  box-shadow: 0 0 14px var(--asc-glow, transparent);
+}
+.asc-rank {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-soft);
+  text-align: center;
+}
+.asc-row--promote .asc-rank {
+  color: var(--asc-tint);
+}
+.asc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.asc-row--me .asc-name {
+  color: var(--asc-tint);
+}
+.asc-pts {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.asc-ptslabel {
+  font-family: var(--font-body, inherit);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.asc-dropnote {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin: 12px 0 0;
+}
+
+/* ---------- rally CTA ---------- */
+.asc-rally {
+  padding: 18px 16px;
+  text-align: center;
+  border-color: var(--asc-tint, var(--zn-border));
+}
+.asc-rallylead {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 12px;
+}
+.asc-rallybtn {
+  width: 100%;
+  max-width: 320px;
+}
+.asc-rallyhint {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin: 8px 0 0;
+}
+
+.asc-cta {
+  margin-top: 14px;
+  text-align: center;
+}
+
+/* ---------- loading skeleton ---------- */
+.asc-skeleton {
+  height: 120px;
+  border-radius: 14px;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.03) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 70%
+  );
+  background-size: 220% 100%;
+  animation: asc-shimmer 1.4s ease-in-out infinite;
+}
+.asc-loadtext {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin: 12px 0 0;
+}
+
+@keyframes asc-flicker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+@keyframes asc-shimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asc-divbadge,
+  .asc-skeleton { animation: none; }
+  .asc-pip { transition: none; }
+}

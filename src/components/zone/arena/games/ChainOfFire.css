@@ -1,0 +1,285 @@
+/* Chain of Fire — co-located styles. Every class prefixed `chain-` so game CSS
+   never collides. Built on zone.css tokens (--zfire, --zfire-glow, --zn-card,
+   --zn-border, --text-main, --text-soft, --ease-out). Animates transform/opacity
+   only (PERFORMANCE LAW §3). Reduced motion respected at the foot of the file. */
+
+.chain-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.chain-back {
+  align-self: flex-start;
+}
+
+.chain-head {
+  padding: 2px 2px 0;
+}
+.chain-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 2px 0 6px;
+  line-height: 1.15;
+}
+.chain-sub {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.chain-card {
+  padding: 16px;
+}
+
+/* ---------- hero counter ---------- */
+.chain-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 22px 16px 20px;
+  width: 100%;
+  border: 1px solid var(--zn-border);
+  background: var(--zn-card);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms var(--ease-out);
+}
+.chain-hero:active {
+  transform: scale(0.98);
+}
+.chain-hero:focus-visible {
+  outline: 2px solid var(--zfire);
+  outline-offset: 3px;
+}
+.chain-hero--lit {
+  border-color: var(--zfire);
+  box-shadow: 0 0 20px var(--zfire-glow);
+}
+.chain-heroicon {
+  font-size: 30px;
+  line-height: 1;
+  animation: chain-sway 3s ease-in-out infinite;
+}
+.chain-hero--lit .chain-heroicon {
+  filter: drop-shadow(0 0 10px var(--zfire-glow));
+}
+.chain-heronum {
+  font-family: var(--font-display);
+  font-size: 54px;
+  font-weight: 800;
+  line-height: 1.02;
+  color: var(--text-main);
+  letter-spacing: -1px;
+}
+.chain-hero--lit .chain-heronum {
+  color: var(--zfire);
+}
+.chain-herolabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--text-soft);
+  text-transform: lowercase;
+}
+.chain-herobadge {
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--zfire);
+}
+@keyframes chain-sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.chain-witness {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 2px 2px 0;
+  text-align: center;
+}
+
+/* ---------- stats ---------- */
+.chain-stats {
+  margin: 0;
+}
+.chain-stat {
+  padding: 12px 6px;
+}
+
+/* ---------- today's links ---------- */
+.chain-linkhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.chain-status {
+  font-weight: 700;
+}
+.chain-status--lit {
+  border-color: var(--zfire);
+  color: var(--zfire);
+}
+
+.chain-links {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chain-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--zn-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.chain-link--done {
+  border-color: var(--zfire);
+  background: var(--zfire-soft, rgba(255, 122, 26, 0.08));
+}
+.chain-link--wait {
+  opacity: 0.72;
+}
+.chain-link--me {
+  box-shadow: inset 0 0 0 1px var(--zfire);
+}
+.chain-linkavatar {
+  flex-shrink: 0;
+}
+.chain-linkname {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chain-linkstate {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+.chain-partyempty {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin-top: 6px;
+}
+
+/* ---------- ember freeze ---------- */
+.chain-freezecard {
+  padding: 14px 16px;
+}
+.chain-freezerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chain-freezeicon {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.chain-freezemeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.chain-freezetitle {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+.chain-freezesub {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+.chain-freezecount {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #3be0ff;
+  border-color: rgba(59, 224, 255, 0.4);
+}
+.chain-freezebtn {
+  width: 100%;
+  margin-top: 12px;
+}
+.chain-freezebtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------- CTA ---------- */
+.chain-cta {
+  margin-top: 8px;
+  text-align: center;
+}
+.chain-cta--sticky {
+  position: sticky;
+  bottom: 8px;
+}
+.chain-ctahint {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin: 6px 0 0;
+}
+.chain-heldbanner {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+/* ---------- loading skeleton ---------- */
+.chain-skeleton {
+  height: 96px;
+  border-radius: 14px;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.03) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 70%
+  );
+  background-size: 220% 100%;
+  animation: chain-shimmer 1.4s ease-in-out infinite;
+}
+.chain-loadtext {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin: 12px 0 0;
+}
+@keyframes chain-shimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain-heroicon,
+  .chain-skeleton { animation: none; }
+  .chain-hero { transition: none; }
+}

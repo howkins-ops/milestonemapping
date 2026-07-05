@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import "../../styles/zone.css";
+import "../../styles/arena.css";
 import { supabase } from "../../lib/supabase.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { ZoneProvider, useZoneCtx } from "../../hooks/useZone.js";
@@ -18,7 +19,9 @@ import MessagesPanel from "./messages/MessagesPanel.jsx";
 import InboxPanel from "./inbox/InboxPanel.jsx";
 import ZoneProfile from "./profile/ZoneProfile.jsx";
 import ReportsPanel from "./reports/ReportsPanel.jsx";
+import ArenaHome from "./arena/ArenaHome.jsx";
 import MapQuestCityPage from "../city/MapQuestCityPage.jsx";
+import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
 
 // The Accountability Zone — its own world inside the app.
 // Gates: no supabase/user → ZoneGate; no zone identity → onboarding; else the Zone.
@@ -70,6 +73,8 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
 
   return (
     <div className="zone-root" data-fire={fire.key}>
+      <EmberCanvas tint={fire.tint} />
+      <ArenaIntro />
       <header className="zn-head">
         <div className="zn-head__titlewrap">
           <h1 className="zn-head__title" data-text="The Zone">The Zone</h1>
@@ -84,7 +89,7 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
         </span>
       </header>
 
-      <ZoneNav view={view} go={go} />
+      <ZoneNav view={view === "arena" ? "squad" : view} go={go} />
 
       {view === "home" && <ZoneHome go={go} openDeclare={openDeclare} openProof={openProof} />}
       {view === "city" && (
@@ -95,6 +100,7 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
         />
       )}
       {view === "feed" && <ZoneFeed go={go} />}
+      {view === "arena" && <ArenaHome go={go} gameKey={viewParam} />}
       {view === "squad" && <SquadPanel go={go} squadId={viewParam} />}
       {view === "messages" && <MessagesPanel go={go} conversationId={viewParam} />}
       {view === "inbox" && <InboxPanel go={go} />}

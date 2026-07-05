@@ -4,6 +4,7 @@ import { useZoneCtx } from "../../../hooks/useZone.js";
 import { squadDetail } from "../../../lib/zoneService.js";
 import { zoneErrorMessage } from "../../../lib/zoneFire.js";
 import SquadRoster from "./SquadRoster.jsx";
+import SquadInviteFriends from "./SquadInviteFriends.jsx";
 import Leaderboard from "./Leaderboard.jsx";
 import UserChip from "../shared/UserChip.jsx";
 
@@ -112,6 +113,13 @@ export default function SquadHome({ squadId, go }) {
           📋 Copy invite
         </button>
       </div>
+
+      {/* Pull existing friends straight into the squad */}
+      <SquadInviteFriends
+        squad={squad}
+        memberIds={members.map((m) => m.user_id)}
+        go={go}
+      />
 
       {/* Group stats */}
       <div className="zn-card">
