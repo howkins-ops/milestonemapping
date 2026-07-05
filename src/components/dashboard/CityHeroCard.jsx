@@ -19,7 +19,9 @@ export default function CityHeroCard({ onEnter }) {
         <span className="dashboard-image-card__kicker">Open World</span>
         <span className="dashboard-image-card__title">MAPQUEST CITY</span>
         <span className="dashboard-image-card__copy">
-          Every feature is a district. The city grows as you do.
+          Every feature is a district.
+          <br />
+          The city grows as you do.
         </span>
         <span className="dashboard-image-card__cta">
           Enter the City <span aria-hidden="true">-&gt;</span>

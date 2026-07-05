@@ -12,6 +12,10 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
     <div className="command-center-page">
       <MissionHero />
 
+      {/* On Sundays this jumps to the very top of the cards (self-gates via
+          isSunday — renders null every other day, so order is unchanged then). */}
+      <SundayReviewAlert onNavigate={onNavigate} />
+
       {/* Two main features get matched heroes — the daily anchors of the app.
           Everything else (Daily, Map, Fill Cup, Shadow) lives on the bottom
           nav; Weekly Review surfaces via the Sunday alert; Rewards is a
@@ -19,8 +23,6 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
       <CityHeroCard onEnter={() => onNavigate("city")} />
 
       <ZoneHeroCard onEnter={() => onNavigate("zone")} />
-
-      <SundayReviewAlert onNavigate={onNavigate} />
 
       <VisionFeatureCard onNavigate={onNavigate} />
 

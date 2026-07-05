@@ -19,7 +19,9 @@ export default function ZoneHeroCard({ onEnter }) {
         <span className="dashboard-image-card__kicker">Accountability / Daily</span>
         <span className="dashboard-image-card__title">THE ZONE</span>
         <span className="dashboard-image-card__copy">
-          Declare it. Prove it. Rise with your people every single day.
+          Declare it. Prove it.
+          <br />
+          Rise with your people every single day.
         </span>
         <span className="dashboard-image-card__cta">
           Enter the Zone <span aria-hidden="true">-&gt;</span>

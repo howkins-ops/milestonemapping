@@ -444,6 +444,14 @@ button {
     brightness(1.02)
     drop-shadow(0 0 8px rgba(0, 240, 255, 0.24));
 }
+.app-topbar__icon-art--glyph {
+  object-fit: contain;
+  padding: 5px;
+  filter:
+    saturate(1.15)
+    brightness(1.06)
+    drop-shadow(0 0 7px rgba(0, 240, 255, 0.34));
+}
 .app-topbar__diamond:hover .app-topbar__icon-box,
 .app-topbar__diamond.is-open .app-topbar__icon-box,
 .app-topbar__profile-btn:hover .app-topbar__icon-box {
@@ -655,7 +663,7 @@ button {
 
 .bottom-nav__inner {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   max-width: 680px;
   margin: 0 auto;
   width: 100%;
@@ -5248,6 +5256,26 @@ h4,
   transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out), filter 180ms var(--ease-out);
 }
 
+/* Line-art SVG glyph (e.g. Zone) — matches the painted PNGs' 27px footprint */
+.bottom-nav__glyph {
+  display: block;
+  width: 27px;
+  height: 27px;
+  opacity: 0.72;
+  filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.4));
+  transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out), filter 180ms var(--ease-out);
+}
+
+.bottom-nav__item:hover .bottom-nav__glyph {
+  opacity: 0.9;
+}
+
+.bottom-nav__item.is-active .bottom-nav__glyph {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.08);
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.42)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.48));
+}
+
 .bottom-nav__item:hover .bottom-nav__art {
   opacity: 0.86;
   filter: saturate(1) brightness(0.92) drop-shadow(0 0 12px rgba(0, 240, 255, 0.24));
@@ -6379,17 +6407,28 @@ h4,
 }
 
 .dashboard-image-card--sunday {
-  min-height: 235px;
-  border-color: rgba(250, 204, 21, 0.46);
+  aspect-ratio: 1867 / 842;
+  min-height: 0;
+  border-color: rgba(209, 30, 255, 0.5);
   box-shadow:
     0 18px 44px rgba(0, 0, 0, 0.55),
-    0 0 38px rgba(250, 204, 21, 0.14),
-    0 0 32px rgba(209, 30, 255, 0.1),
+    0 0 38px rgba(0, 240, 255, 0.14),
+    0 0 32px rgba(209, 30, 255, 0.16),
     inset 0 0 0 1px rgba(255, 255, 255, 0.035);
 }
 
 .dashboard-image-card--sunday:hover {
-  border-color: rgba(250, 204, 21, 0.72);
+  border-color: rgba(0, 240, 255, 0.58);
+}
+
+.dashboard-image-card--sunday .dashboard-image-card__bg {
+  object-fit: cover;
+  object-position: center;
+  transform: none;
+}
+
+.dashboard-image-card--sunday:hover .dashboard-image-card__bg {
+  transform: none;
 }
 
 .dashboard-image-card__bg {
@@ -6524,6 +6563,10 @@ h4,
 @media (max-width: 620px) {
   .dashboard-image-card {
     min-height: 230px;
+  }
+
+  .dashboard-image-card--sunday {
+    min-height: 0;
   }
 
   .dashboard-image-card__bg {

@@ -1,6 +1,4 @@
-import React, { useMemo, useState } from "react";
-import VisionImageGenerator from "./VisionImageGenerator.jsx";
-import VisionMeditation from "./VisionMeditation.jsx";
+import React, { useMemo } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 
 // The scattered angles the peek polaroids sit at — small, hand-pinned tilt.
@@ -23,17 +21,14 @@ const PROMPTS = [
  * The Vision Board entry point on the home command center. A single official
  * feature card: a peek of the pinned board on the right, the pitch + a big
  * "Open your board" CTA on the left. The whole card navigates to the full
- * corkboard; Imagine / Meditate stay as quick actions.
+ * corkboard.
  */
 export default function VisionFeatureCard({ onNavigate }) {
-  const { visionBoard, addVisionBoardItem } = useAppData();
-  const [genOpen, setGenOpen] = useState(false);
-  const [meditateOpen, setMeditateOpen] = useState(false);
+  const { visionBoard } = useAppData();
 
   const withImages = useMemo(() => visionBoard.filter((v) => v.imageUrl), [visionBoard]);
   const peek = withImages.slice(0, 3);
   const count = visionBoard.length;
-  const meditationImages = withImages.map((v) => v.imageUrl);
 
   const prompt = useMemo(() => {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
@@ -41,19 +36,9 @@ export default function VisionFeatureCard({ onNavigate }) {
   }, []);
 
   const open = () => onNavigate?.("vision");
-  const stop = (fn) => (e) => {
-    e.stopPropagation();
-    fn();
-  };
-
-  const useGeneratedImage = ({ imageUrl, title }) => {
-    addVisionBoardItem({ imageUrl, title: title || "My vision", category: "Dream Life", projectIds: [] });
-    setGenOpen(false);
-  };
 
   return (
-    <>
-      <section
+    <section
         className="vision-feature anim-slide-up"
         role="button"
         tabIndex={0}
@@ -89,20 +74,6 @@ export default function VisionFeatureCard({ onNavigate }) {
             <span className="vision-feature__cta">
               Open your board <span aria-hidden="true">→</span>
             </span>
-            <button
-              type="button"
-              className="vision-feature__pill"
-              onClick={stop(() => setGenOpen(true))}
-            >
-              ✨ Imagine
-            </button>
-            <button
-              type="button"
-              className="vision-feature__pill vision-feature__pill--med"
-              onClick={stop(() => setMeditateOpen(true))}
-            >
-              ▶ Meditate
-            </button>
           </div>
         </div>
 
@@ -132,18 +103,5 @@ export default function VisionFeatureCard({ onNavigate }) {
               ))}
         </div>
       </section>
-
-      {genOpen && (
-        <VisionImageGenerator
-          onUse={useGeneratedImage}
-          onClose={() => setGenOpen(false)}
-          title="Imagine Your Future"
-        />
-      )}
-
-      {meditateOpen && (
-        <VisionMeditation images={meditationImages} onClose={() => setMeditateOpen(false)} />
-      )}
-    </>
   );
 }

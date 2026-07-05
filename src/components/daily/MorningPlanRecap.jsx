@@ -6,8 +6,8 @@ export default function MorningPlanRecap() {
   const hasCommit = !!todayLog.dailyCommit;
   const hasStand  = !!todayLog.dailyStand;
 
-  // Note: the stand itself is already shown in full (with checklist + intention)
-  // by MorningStandPanel above this component — don't repeat it here.
+  // Note: this overview sits at the top of the morning flow; the stand itself is
+  // shown in full (with checklist + intention) by MorningStandPanel below — don't repeat it here.
   if (!hasCommit && !hasStand) {
     return (
       <div className="morning-activation anim-fade-in">
@@ -18,22 +18,26 @@ export default function MorningPlanRecap() {
             Win the morning.<br />Own the day.
           </h2>
           <p className="morning-activation__sub">
-            Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Three steps. Five minutes. Today is yours.
+            Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Four steps. Five minutes. Today is yours.
           </p>
         </div>
 
         <div className="morning-activation__steps">
           <div className="morning-activation__step">
             <span className="morning-activation__step-num">01</span>
-            <span>Gratitude below — drops anxiety 23%, sharpens your focus for the whole day</span>
+            <span><strong className="morning-activation__step-key">Take your stand</strong> — decide who you are before the day decides for you</span>
           </div>
           <div className="morning-activation__step">
             <span className="morning-activation__step-num">02</span>
-            <span>Your Top 5 — the exact moves that push your biggest projects forward today</span>
+            <span><strong className="morning-activation__step-key">Gratitude</strong> — drops anxiety <strong className="morning-activation__step-hot">23%</strong>, sharpens your focus for the whole day</span>
           </div>
           <div className="morning-activation__step">
             <span className="morning-activation__step-num">03</span>
-            <span>One battle — one decisive win that makes today a victory worth building on</span>
+            <span><strong className="morning-activation__step-key">Your Top 5</strong> — the exact moves that push your biggest projects forward today</span>
+          </div>
+          <div className="morning-activation__step">
+            <span className="morning-activation__step-num">04</span>
+            <span><strong className="morning-activation__step-key">One battle</strong> — one decisive win that makes today a victory worth building on</span>
           </div>
         </div>
       </div>

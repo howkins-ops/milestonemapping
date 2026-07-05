@@ -19,6 +19,8 @@ const GROWTH_MENU = [
 ];
 
 const TOPBAR_ICONS = {
+  sos: "/assets/topbar/topbar-sos.png",
+  rewards: "/assets/topbar/topbar-rewards.png",
   paths: "/assets/topbar/topbar-paths.png",
   more: "/assets/topbar/topbar-more.png",
   profile: "/assets/topbar/topbar-profile.png",
@@ -132,7 +134,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                     aria-label="SOS — Emotional Reset Hub"
                   >
                     <span className="app-topbar__icon-box" aria-hidden="true">
-                      <span className="app-topbar__sos-emoji">🌊</span>
+                      <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.sos} alt="" />
                     </span>
                     <span className="app-topbar__btn-label">SOS</span>
                   </button>
@@ -144,7 +146,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                   aria-label="Rewards vault"
                 >
                   <span className="app-topbar__icon-box" aria-hidden="true">
-                    <span className="app-topbar__rewards-emoji">🏆</span>
+                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.rewards} alt="" />
                   </span>
                   <span className="app-topbar__btn-label">Rewards</span>
                 </button>
@@ -156,7 +158,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                   aria-haspopup="dialog"
                 >
                   <span className="app-topbar__icon-box" aria-hidden="true">
-                    <img className="app-topbar__icon-art" src={TOPBAR_ICONS.more} alt="" />
+                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.more} alt="" />
                   </span>
                   <span className="app-topbar__btn-label">More</span>
                 </button>
@@ -167,7 +169,7 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                   aria-label="View profile"
                 >
                   <span className="app-topbar__icon-box" aria-hidden="true">
-                    <img className="app-topbar__icon-art" src={TOPBAR_ICONS.profile} alt="" />
+                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.profile} alt="" />
                   </span>
                   <span className="app-topbar__btn-label">Profile</span>
                 </button>

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bottom Nav · 5 Animated SVG Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  /* ---- Milestone Mapping brand palette ---- */
+  --cy:#00F0FF;        /* electric cyan   */
+  --mg:#D11EFF;        /* neon magenta    */
+  --pk:#FF3EDB;        /* hot pink        */
+  --mint:#00FFBF;      /* aqua mint       */
+  --ice:#F2F0F4;       /* soft ice white  */
+  --violet:#7B2CFF;    /* phoenix purple  */
+  --void:#05000A;
+  --void2:#08001a;
+  --card:#0A0712;
+  --font-display:'Sora','Segoe UI',system-ui,sans-serif;
+  --font-body:'Manrope','Segoe UI',system-ui,sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--font-body);
+  color:var(--ice);
+  background:
+    radial-gradient(60% 45% at 20% 8%, rgba(0,240,255,.10), transparent 60%),
+    radial-gradient(55% 45% at 82% 4%, rgba(209,30,255,.12), transparent 60%),
+    radial-gradient(70% 60% at 50% 108%, rgba(123,44,255,.14), transparent 65%),
+    #000;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  padding:0 0 80px;
+}
+
+/* ---------- page header ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.hero{padding:56px 20px 30px;text-align:center;max-width:820px;margin:0 auto}
+.eyebrow{
+  display:inline-block;font-family:var(--font-body);font-weight:700;font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--cy);
+  padding:6px 14px;border:1px solid rgba(0,240,255,.28);border-radius:999px;
+  background:rgba(0,240,255,.05);margin-bottom:20px;
+}
+h1{
+  font-family:var(--font-display);font-weight:800;font-size:clamp(30px,5vw,52px);
+  line-height:1.05;margin:0 0 14px;letter-spacing:-.02em;
+  background:linear-gradient(96deg,var(--cy),var(--ice) 40%,var(--pk) 78%,var(--mg));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.sub{font-size:16px;line-height:1.6;color:rgba(242,240,244,.66);margin:0 auto;max-width:600px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px}
+.chip{
+  font-size:11.5px;font-weight:600;letter-spacing:.04em;color:rgba(242,240,244,.72);
+  padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.03);display:inline-flex;align-items:center;gap:7px;
+}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* ---------- concept grid ---------- */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:26px;margin-top:38px;
+}
+.concept{
+  border:1px solid rgba(255,255,255,.08);border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008));
+  padding:22px 22px 26px;position:relative;overflow:hidden;
+  transition:border-color .3s var(--ease),transform .3s var(--ease);
+}
+.concept:hover{border-color:rgba(0,240,255,.28);transform:translateY(-3px)}
+.concept__head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.concept__no{font-family:var(--font-display);font-weight:800;font-size:13px;color:rgba(242,240,244,.34);letter-spacing:.04em}
+.concept__name{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.concept__tag{font-size:12.5px;line-height:1.5;color:rgba(242,240,244,.55);margin:6px 0 18px;min-height:38px}
+
+/* ---------- phone mock ---------- */
+.phone{
+  border-radius:22px;border:1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(0,240,255,.06), transparent 60%),
+    linear-gradient(180deg,#04010c,#000);
+  overflow:hidden;position:relative;
+}
+.screen{position:relative;height:118px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.screen__mark{
+  font-family:var(--font-display);font-weight:800;font-size:34px;letter-spacing:-.02em;
+  color:rgba(255,255,255,.045);text-transform:uppercase;user-select:none;
+}
+.screen__glow{position:absolute;width:180px;height:120px;border-radius:50%;filter:blur(40px);opacity:.5}
+
+/* ---------- the nav bar (mirrors real .bottom-nav) ---------- */
+.nav{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  background:
+    linear-gradient(180deg, rgba(6,2,16,.78), rgba(0,0,0,.98));
+  border-top:1px solid rgba(0,240,255,.16);
+  padding:8px 6px 10px;backdrop-filter:blur(18px);
+}
+.tab{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:6px 2px 8px;background:none;border:0;cursor:pointer;
+  color:rgba(140,225,245,.55);font-family:var(--font-body);font-weight:600;
+  transition:color .18s var(--ease);
+}
+.tab:focus-visible{outline:2px solid var(--cy);outline-offset:3px;border-radius:10px}
+.iconbox{
+  position:relative;display:grid;place-items:center;width:30px;height:30px;
+  border:1px solid rgba(0,240,255,.12);border-radius:10px;
+  background:rgba(0,240,255,.04);
+  transition:border-color .22s var(--ease),background .22s var(--ease),box-shadow .22s var(--ease);
+}
+.label{font-size:9.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;transition:color .18s var(--ease),text-shadow .18s var(--ease)}
+.ic{width:22px;height:22px;display:block;overflow:visible}
+
+/* shared active treatment (brand-consistent) */
+.tab::after{
+  content:"";position:absolute;left:50%;bottom:1px;width:0;height:2px;border-radius:2px;
+  transform:translateX(-50%);opacity:0;
+  background:linear-gradient(90deg,var(--cy),var(--mg));
+  box-shadow:0 0 8px rgba(0,240,255,.7);
+  transition:width .32s var(--ease),opacity .2s var(--ease);
+}
+.tab.active::after{width:26px;opacity:1}
+.tab.active{color:var(--cy)}
+.tab.active .label{color:var(--cy);text-shadow:0 0 12px rgba(0,240,255,.6)}
+.tab.active .iconbox{
+  border-color:rgba(0,240,255,.5);
+  background:
+    radial-gradient(circle at 70% 20%, rgba(255,62,219,.22), transparent 45%),
+    rgba(0,240,255,.12);
+  box-shadow:0 0 18px rgba(0,240,255,.22), inset 0 0 14px rgba(209,30,255,.1);
+}
+.tab:hover:not(.active) .iconbox{border-color:rgba(0,240,255,.3);background:rgba(0,240,255,.08)}
+.tab:hover:not(.active){color:rgba(200,240,250,.82)}
+
+/* =====================================================================
+   CONCEPT 1 — NEON WIRE  (stroked line icons, gradient draw-on)
+   ===================================================================== */
+.ic-line .ln{
+  stroke:rgba(120,225,245,.7);stroke-width:1.6;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:70;stroke-dashoffset:0;
+  transition:stroke .22s var(--ease);
+}
+.ic-line .lndot{fill:rgba(120,225,245,.7)}
+.ic-line .spark{opacity:.5}
+.tab:hover .ic-line .ln{stroke:var(--cy)}
+.c-line .tab.active .ic-line{filter:drop-shadow(0 0 4px rgba(0,240,255,.85))}
+.c-line .tab.active .ic-line .ln{stroke:url(#navGrad);animation:draw 1.05s var(--ease) both}
+.c-line .tab.active .ic-line .lndot{fill:var(--pk)}
+.c-line .tab.active .ic-line .spark{opacity:1;animation:sparkPulse 1.8s var(--ease) .4s infinite}
+@keyframes draw{from{stroke-dashoffset:70}to{stroke-dashoffset:0}}
+@keyframes sparkPulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* =====================================================================
+   CONCEPT 2 — PRISM  (faceted crystal glyphs + shimmer sweep)
+   ===================================================================== */
+.ic-gem .gfill{fill:url(#gemGrad);opacity:.9}
+.ic-gem .gedge2{fill:none;stroke:rgba(0,240,255,.85);stroke-width:1;stroke-linejoin:round}
+.ic-gem .gedge{fill:none;stroke:rgba(242,240,244,.45);stroke-width:.75;stroke-linejoin:round;stroke-linecap:round}
+.ic-gem .gdot{fill:var(--ice)}
+.ic-gem .shimmer{fill:url(#shimmerGrad);transform-box:fill-box;transform-origin:center;
+  animation:shimmer 3.4s var(--ease) infinite}
+.c-gem .tab.active .ic-gem{filter:drop-shadow(0 0 6px rgba(209,30,255,.75))}
+.c-gem .tab.active .ic-gem .gfill{opacity:1}
+.c-gem .tab.active .ic-gem .shimmer{animation-duration:1.5s}
+.c-gem .tab.active .ic-gem .gedge2{stroke:var(--cy)}
+@keyframes shimmer{
+  0%{transform:rotate(22deg) translateX(-20px);opacity:0}
+  35%{opacity:1}
+  70%,100%{transform:rotate(22deg) translateX(26px);opacity:0}
+}
+
+/* =====================================================================
+   CONCEPT 3 — AURORA FILL  (living gradient fill + bloom, lift & bob)
+   ===================================================================== */
+.ic-aurora .aur-body path[fill]{fill:url(#auroraGrad)}
+.ic-aurora .aline{fill:none;stroke:rgba(4,0,16,.55);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ic-aurora .adot{fill:var(--ice)}
+.ic-aurora .bloom{fill:var(--mg);filter:blur(7px);opacity:.32;transition:opacity .3s var(--ease)}
+.ic-aurora .aur-body{transform-box:view-box;transform-origin:12px 12px}
+.c-aurora .tab.active .ic-aurora .bloom{opacity:.75;animation:bloomPulse 2.4s var(--ease) infinite}
+.c-aurora .tab.active .ic-aurora .aur-body{animation:bob 2.6s var(--ease) infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.8px)}}
+@keyframes bloomPulse{0%,100%{opacity:.55}50%{opacity:.9}}
+
+/* =====================================================================
+   CONCEPT 4 — ORBIT  (line glyph + dashed orbit ring, satellite spin-up)
+   ===================================================================== */
+.ic-orbit .oln{stroke:rgba(120,225,245,.72);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ic-orbit .odot{fill:rgba(120,225,245,.72)}
+.ic-orbit .ring{fill:none;stroke:rgba(0,240,255,.35);stroke-width:1;stroke-dasharray:2 4.5;stroke-linecap:round}
+.ic-orbit .sat{fill:var(--cy)}
+.ic-orbit .orbit-ring{transform-box:view-box;transform-origin:12px 12px;animation:spin 9s linear infinite}
+.ic-orbit .ring2{animation-duration:13s;animation-direction:reverse;opacity:0;transition:opacity .3s var(--ease)}
+.ic-orbit .rb{stroke:rgba(209,30,255,.5);stroke-dasharray:1.5 5}
+.tab:hover .ic-orbit .ring{stroke:rgba(0,240,255,.6)}
+.c-orbit .tab.active .ic-orbit .orbit-ring{animation-duration:3.4s}
+.c-orbit .tab.active .ic-orbit .ring2{opacity:1;animation-duration:5s}
+.c-orbit .tab.active .ic-orbit .ring{stroke:rgba(0,240,255,.85)}
+.c-orbit .tab.active .ic-orbit .sat{filter:drop-shadow(0 0 4px var(--cy))}
+.c-orbit .tab.active .ic-orbit .oln{stroke:var(--cy)}
+.c-orbit .tab.active .ic-orbit{filter:drop-shadow(0 0 3px rgba(0,240,255,.6))}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* =====================================================================
+   CONCEPT 5 — LIQUID POP  (chunky glyph, rising fluid, squish bounce)
+   ===================================================================== */
+.ic-liquid .lbase{fill:rgba(0,240,255,.10)}
+.ic-liquid .lstroke{fill:none;stroke:var(--cy);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;opacity:.85}
+.ic-liquid .lln{fill:none;stroke:rgba(0,240,255,.7);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.ic-liquid .ldot{fill:var(--mint)}
+.ic-liquid .gloss{fill:rgba(255,255,255,.5)}
+.ic-liquid .fluid{fill:url(#liquidGrad);transform:translateY(14px);animation:liqWave 3s ease-in-out infinite}
+.ic-liquid .liq-body{transform-box:view-box;transform-origin:12px 12px}
+.c-liquid .tab.active .ic-liquid .fluid{animation:liqWaveHi 2.2s ease-in-out infinite}
+.c-liquid .tab.active .ic-liquid .lstroke{opacity:1;stroke:var(--mint)}
+.c-liquid .tab.active .ic-liquid .liq-body{animation:pop .55s var(--ease)}
+.c-liquid .tab.active .ic-liquid{filter:drop-shadow(0 0 5px rgba(0,255,191,.55))}
+@keyframes liqWave{0%,100%{transform:translateY(14px)}50%{transform:translateY(12px)}}
+@keyframes liqWaveHi{0%,100%{transform:translateY(4px)}50%{transform:translateY(2.4px)}}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.16)}55%{transform:scale(.94)}100%{transform:scale(1)}}
+
+/* ---------- footer ---------- */
+.foot{max-width:820px;margin:46px auto 0;text-align:center;color:rgba(242,240,244,.5);font-size:13px;line-height:1.65}
+.foot b{color:var(--ice)}
+.hint{margin-top:8px;font-size:12px;color:rgba(0,240,255,.7)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- global gradient / shimmer defs (referenced by fill:url / stroke:url) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="navGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00F0FF"/><stop offset="1" stop-color="#D11EFF"/>
+    </linearGradient>
+    <linearGradient id="gemGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00F0FF"/><stop offset=".5" stop-color="#7B2CFF"/><stop offset="1" stop-color="#FF3EDB"/>
+    </linearGradient>
+    <linearGradient id="liquidGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#00FFBF"/><stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="shimmerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="auroraGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="24" y2="24">
+      <stop offset="0" stop-color="#00F0FF"/>
+      <stop offset=".45" stop-color="#D11EFF"/>
+      <stop offset="1" stop-color="#00FFBF"/>
+      <animateTransform attributeName="gradientTransform" type="rotate" from="0 12 12" to="360 12 12" dur="7s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<header class="hero">
+  <span class="eyebrow">Bottom Navigation · Design Studio</span>
+  <h1>Five Animated SVG Nav Concepts</h1>
+  <p class="sub">All six glyphs — Command · Daily · Map · Fill Cup · Shadow · Zone — drawn fresh as pure SVG, one 24&times;24 grid, one 30px icon box. Five completely different motion languages, every one on brand.</p>
+  <div class="chips">
+    <span class="chip"><i style="background:#00F0FF"></i>Electric Cyan</span>
+    <span class="chip"><i style="background:#D11EFF"></i>Neon Magenta</span>
+    <span class="chip"><i style="background:#FF3EDB"></i>Hot Pink</span>
+    <span class="chip"><i style="background:#00FFBF"></i>Aqua Mint</span>
+    <span class="chip"><i style="background:#7B2CFF"></i>Phoenix Violet</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid" id="grid"></div>
+  <p class="foot">
+    Every concept renders the identical icon set at the identical size — drop the winner's glyph paths straight into <b>NavIcon.jsx</b> and the motion classes into <b>globals.css</b>.
+    <span class="hint">Tap any icon to fire its active-state animation.</span>
+  </p>
+</div>
+
+<script>
+/* ---------- shared glyph geometry (24x24 viewBox) ---------- */
+const ICONS = {
+  command: {
+    label:'Command',
+    out:['M12 3.4 19.6 7.8v8.4L12 20.6 4.4 16.2V7.8L12 3.4Z'],
+    detail:['M12 8v8','M7.4 10.4 12 13l4.6-2.6'],
+    spark:['M8 6 12 8.3 16 6']
+  },
+  daily: {
+    label:'Daily',
+    out:['M13.4 2.6 5.4 13.2h5.6l-1.4 8.6L18.6 9.8h-5.9l.6-7.2Z'],
+    detail:[],
+    spark:['M16 4.6 19.6 2.4','M18.7 7.5h2.2']
+  },
+  map: {
+    label:'Map',
+    out:['M12 3.2 20.2 12 12 20.8 3.8 12 12 3.2Z'],
+    detail:['M12 7.4 13.4 12 12 16.6 10.6 12 12 7.4Z'],
+    dots:[{cx:12,cy:12,r:1}]
+  },
+  fillcup: {
+    label:'Fill Cup',
+    out:['M6.4 8.2h9.3v5.3a4.65 4.65 0 0 1-9.3 0V8.2Z'],
+    detail:['M15.7 9.9h1.3a2.2 2.2 0 1 1 0 4.4h-1.3','M6.8 20.2h8.6'],
+    spark:['M8.6 5.7c.9-.8.9-1.7 0-2.5','M11.4 5.7c.9-.8.9-1.7 0-2.5','M14.2 5.7c.9-.8.9-1.7 0-2.5']
+  },
+  shadow: {
+    label:'Shadow',
+    out:['M16.9 18.7A7.8 7.8 0 0 1 9.2 5a7.7 7.7 0 1 0 7.7 13.7Z'],
+    detail:[],
+    spark:['M16.8 4.8v3.2','M15.2 6.4h3.2']
+  },
+  zone: {
+    label:'Zone',
+    out:['M12 3c1.9 2.7 4.7 4.2 4.7 7.6 0 1.7-.8 3.1-1.9 4 .2-2.4-1-3.7-2.9-5-1.9 1.3-3.1 2.6-2.9 5a5.1 5.1 0 0 1-1.9-4C7.2 7.2 10.1 5.7 12 3Z'],
+    detail:[],
+    spark:['M6.6 15.6c1.4 2.6 3.2 4 5.4 4s4-1.4 5.4-4'],
+    dots:[{cx:5,cy:13,r:1},{cx:19,cy:13,r:1}]
+  }
+};
+const ORDER = ['command','daily','map','fillcup','shadow','zone'];
+
+/* ---------- render helpers ---------- */
+const paths = (arr,cls)=>(arr||[]).map(d=>`<path d="${d}" class="${cls}"/>`).join('');
+const circles = (arr,cls)=>(arr||[]).map(o=>`<circle cx="${o.cx}" cy="${o.cy}" r="${o.r}" class="${cls}"/>`).join('');
+const svg = (cls,inner,attrs='')=>`<svg class="ic ${cls}" viewBox="0 0 24 24" ${attrs} aria-hidden="true">${inner}</svg>`;
+
+/* Concept 1 — Neon Wire */
+function renderLine(g){
+  return svg('ic-line',
+    paths(g.out,'ln')+paths(g.detail,'ln')+paths(g.spark,'ln spark')+circles(g.dots,'lndot'),
+    'fill="none"');
+}
+/* Concept 2 — Prism (faceted gem + shimmer) */
+function renderGem(g,key){
+  const clip='cg-'+key;
+  const body =
+    g.out.map(d=>`<path d="${d}" class="gfill"/>`).join('')+
+    paths(g.out,'gedge2')+paths(g.detail,'gedge')+paths(g.spark,'gedge')+circles(g.dots,'gdot');
+  return svg('ic-gem',
+    `<defs><clipPath id="${clip}">${g.out.map(d=>`<path d="${d}"/>`).join('')}</clipPath></defs>`+
+    `<g class="gem-body">${body}</g>`+
+    `<g clip-path="url(#${clip})"><rect class="shimmer" x="-3" y="-6" width="10" height="36"/></g>`);
+}
+/* Concept 3 — Aurora Fill */
+function renderAurora(g){
+  return svg('ic-aurora',
+    `<ellipse class="bloom" cx="12" cy="13" rx="9" ry="8"/>`+
+    `<g class="aur-body">`+
+      g.out.map(d=>`<path d="${d}" fill="#00F0FF"/>`).join('')+
+      paths(g.detail,'aline')+paths(g.spark,'aline')+circles(g.dots,'adot')+
+    `</g>`);
+}
+/* Concept 4 — Orbit */
+function renderOrbit(g){
+  return svg('ic-orbit',
+    `<g class="orbit-ring"><circle cx="12" cy="12" r="10.7" class="ring"/><circle cx="12" cy="1.3" r="1.15" class="sat"/></g>`+
+    `<g class="orbit-ring ring2"><circle cx="12" cy="12" r="7.6" class="ring rb"/></g>`+
+    `<g class="orb-glyph" transform="translate(2.4 2.4) scale(0.8)">`+
+      paths(g.out,'oln')+paths(g.detail,'oln')+paths(g.spark,'oln')+circles(g.dots,'odot')+
+    `</g>`,
+    'fill="none"');
+}
+/* Concept 5 — Liquid Pop */
+function renderLiquid(g,key){
+  const clip='cl-'+key;
+  return svg('ic-liquid',
+    `<defs><clipPath id="${clip}">${g.out.map(d=>`<path d="${d}"/>`).join('')}</clipPath></defs>`+
+    `<g class="liq-body">`+
+      g.out.map(d=>`<path d="${d}" class="lbase"/>`).join('')+
+      `<g clip-path="url(#${clip})"><rect class="fluid" x="-2" y="-2" width="28" height="28"/></g>`+
+      paths(g.detail,'lln')+paths(g.spark,'lln')+circles(g.dots,'ldot')+
+      `<ellipse class="gloss" cx="9" cy="8.4" rx="2" ry="1.15"/>`+
+      g.out.map(d=>`<path d="${d}" class="lstroke"/>`).join('')+
+    `</g>`);
+}
+
+const CONCEPTS = [
+  {id:'line',   name:'Neon Wire',  cls:'c-line',   active:'command', glow:'rgba(0,240,255,.5)',
+   tag:'Single-weight strokes that redraw themselves in a cyan-to-magenta gradient, with a sliding light bar underneath.', render:renderLine},
+  {id:'gem',    name:'Prism',      cls:'c-gem',    active:'map', glow:'rgba(209,30,255,.5)',
+   tag:'Faceted crystal glyphs cut from a cyan / violet / pink gradient, swept by a diagonal shimmer of light.', render:renderGem},
+  {id:'aurora', name:'Aurora Fill',cls:'c-aurora', active:'shadow', glow:'rgba(0,255,191,.45)',
+   tag:'Solid glyphs filled with a slowly rotating aurora gradient, floating on a soft bloom that lifts and bobs when active.', render:renderAurora},
+  {id:'orbit',  name:'Orbit',      cls:'c-orbit',  active:'zone', glow:'rgba(123,44,255,.5)',
+   tag:'Line glyphs framed by a dashed orbit ring and a satellite dot that spins up and adds a counter-ring on select.', render:renderOrbit},
+  {id:'liquid', name:'Liquid Pop', cls:'c-liquid', active:'daily', glow:'rgba(0,255,191,.5)',
+   tag:'Chunky rounded glyphs that fill with rising mint-cyan liquid and give a squishy pop-bounce the moment you tap.', render:renderLiquid}
+];
+
+const grid = document.getElementById('grid');
+CONCEPTS.forEach((c,i)=>{
+  const tabs = ORDER.map(key=>{
+    const g = ICONS[key];
+    const iconHTML = c.render(g,key);
+    const isActive = key===c.active ? ' active':'';
+    return `<button class="tab${isActive}" type="button" data-key="${key}" aria-label="${g.label}">
+      <span class="iconbox">${iconHTML}</span>
+      <span class="label">${g.label}</span>
+    </button>`;
+  }).join('');
+
+  const card = document.createElement('section');
+  card.className = 'concept '+c.cls;
+  card.innerHTML = `
+    <div class="concept__head">
+      <span class="concept__name">${c.name}</span>
+      <span class="concept__no">0${i+1} / 05</span>
+    </div>
+    <p class="concept__tag">${c.tag}</p>
+    <div class="phone">
+      <div class="screen">
+        <div class="screen__glow" style="background:${c.glow}"></div>
+        <span class="screen__mark">${c.name.split(' ')[0]}</span>
+      </div>
+      <nav class="nav" aria-label="${c.name} navigation">${tabs}</nav>
+    </div>`;
+  grid.appendChild(card);
+});
+
+/* tap a tab -> make it active within its own bar (re-fires the active animation) */
+grid.addEventListener('click', e=>{
+  const btn = e.target.closest('.tab');
+  if(!btn) return;
+  const bar = btn.closest('.nav');
+  bar.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  // reflow so re-added animations restart cleanly
+  void btn.offsetWidth;
+  btn.classList.add('active');
+});
+</script>
+</body>
+</html>

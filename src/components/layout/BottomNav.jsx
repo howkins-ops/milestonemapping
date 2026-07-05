@@ -5,7 +5,8 @@ const PRIMARY_TABS = [
   { id: "daily", label: "Daily", art: "/assets/nav/nav-daily.png" },
   { id: "milestones", label: "Map", art: "/assets/nav/nav-map.png" },
   { id: "wellbeing", label: "Fill Cup", art: "/assets/nav/nav-cup.png" },
-  { id: "essence", label: "Shadow", art: "/assets/nav/nav-shadow.png" }
+  { id: "essence", label: "Shadow", art: "/assets/nav/nav-shadow.png" },
+  { id: "zone", label: "Zone", art: "/assets/nav/nav-zone.png" }
 ];
 
 export default function BottomNav({ currentPage, onNavigate }) {

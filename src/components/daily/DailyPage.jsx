@@ -108,9 +108,9 @@ export default function DailyPage() {
         {ritual === "am" ? (
           /* ── MORNING: Execute the plan you loaded last night ── */
           <div className="daily-am-flow">
+            <MorningPlanRecap />
             <MorningStandPanel />
             <GratitudePanel />
-            <MorningPlanRecap />
             <TopFivePanel />
           </div>
         ) : (
