@@ -75,7 +75,7 @@
    rises embers. Everything tints with the live fire level via --zfire. */
 .zn-tabs {
   position: sticky; top: 6px; z-index: 30;
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
   background:
     linear-gradient(180deg, rgba(24, 6, 34, 0.72), rgba(6, 0, 10, 0.9));
   backdrop-filter: blur(18px) saturate(1.2);

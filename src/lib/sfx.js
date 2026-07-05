@@ -7,10 +7,46 @@ let ctx = null;
 let bus = null;
 let enabled = true;
 
+// Persisted mute — the Arena's own sound toggle. Survives reloads via
+// localStorage; independent of the per-game settings.soundEnabled mirror.
+const MUTE_KEY = "zone_sfx_muted";
+const muteListeners = new Set();
+try {
+  if (typeof localStorage !== "undefined" && localStorage.getItem(MUTE_KEY) === "1") {
+    enabled = false;
+  }
+} catch { /* storage blocked → default on */ }
+
 // Global kill-switch mirrored from settings.soundEnabled (games call setSfxEnabled
 // once from their hub; individual calls can also pass settings like sounds.js).
 export function setSfxEnabled(v) {
   enabled = v !== false;
+}
+
+// ---- persisted mute toggle (Arena sound control) ----
+export function isSfxMuted() {
+  return !enabled;
+}
+export function setSfxMuted(muted) {
+  enabled = !muted;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+  } catch { /* silent */ }
+  muteListeners.forEach((fn) => { try { fn(!enabled); } catch { /* silent */ } });
+}
+// Flip mute; returns the new muted state. Also nudges the AudioContext awake so
+// the first post-unmute sound isn't swallowed by the autoplay policy.
+export function toggleSfxMute() {
+  const nextMuted = enabled; // currently on → we're about to mute
+  setSfxMuted(nextMuted);
+  if (!nextMuted) getCtx();
+  return nextMuted;
+}
+// Subscribe to mute changes (for a toggle button's live state). Returns an
+// unsubscribe fn.
+export function onSfxMuteChange(fn) {
+  muteListeners.add(fn);
+  return () => muteListeners.delete(fn);
 }
 
 function getCtx() {
@@ -356,6 +392,101 @@ export function sfxRainbow(settings) {
       blip(c, { from: f * 2, to: f * 2, duration: 0.35, type: "triangle", gain: 0.03, start: i * 0.09 + 0.02 });
     });
     crack(c, { hp: 5000, lp: 12000, duration: 0.9, gain: 0.05, start: 0.1 });
+  } catch { /* silent */ }
+}
+
+// ---------- arena one-shots ----------
+
+// The game buzzer — end-of-quarter / end-of-game horn. Harsh dissonant
+// sawtooth pair with a fast amplitude buzz, capped by the compressor bus.
+export function sfxBuzzer(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const dur = 0.72;
+    const t = c.currentTime;
+    [196, 233].forEach((f, i) => {
+      const o = c.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      const lp = c.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 1500;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.24 / (i + 1), t + 0.02);
+      g.gain.setValueAtTime(0.24 / (i + 1), t + dur - 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      // fast square LFO on the gain = the "bzzzt" grit
+      const lfo = c.createOscillator();
+      lfo.type = "square";
+      lfo.frequency.value = 24;
+      const lfoGain = c.createGain();
+      lfoGain.gain.value = 0.09 / (i + 1);
+      lfo.connect(lfoGain).connect(g.gain);
+      o.connect(lp).connect(g).connect(bus);
+      o.start(t);
+      o.stop(t + dur + 0.05);
+      lfo.start(t);
+      lfo.stop(t + dur + 0.05);
+    });
+    subDrop(c, { from: 92, to: 70, duration: dur, gain: 0.2 });
+  } catch { /* silent */ }
+}
+
+// Arcade coin / point-scored — bright two-note square blip.
+export function sfxCoin(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 987.77, to: 987.77, duration: 0.07, type: "square", gain: 0.1 });
+    blip(c, { from: 1318.51, to: 1318.51, duration: 0.17, type: "square", gain: 0.1, start: 0.07 });
+  } catch { /* silent */ }
+}
+
+// Short bright tap pop — pairs with a spark burst on press.
+export function sfxPop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 620, to: 1180, duration: 0.09, type: "triangle", gain: 0.09 });
+    crack(c, { hp: 2400, lp: 8000, duration: 0.045, gain: 0.1 });
+  } catch { /* silent */ }
+}
+
+// Optional micro-tick for hover/focus affordances (kept very quiet).
+export function sfxHover(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 880, to: 1240, duration: 0.04, type: "sine", gain: 0.028 });
+  } catch { /* silent */ }
+}
+
+// Rebirth flourish — rising airy whoosh + a major shimmer that climbs. Used
+// for phoenix/level-up/defeat-the-boss moments.
+export function sfxPhoenix(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    // upward-sweeping airy whoosh
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 0.9;
+    f.frequency.setValueAtTime(320, t);
+    f.frequency.exponentialRampToValueAtTime(5200, t + 0.95);
+    const g = env(c, { gain: 0.26, attack: 0.16, duration: 1.15 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 1.25);
+    // rising major-chord shimmer
+    [523.25, 659.25, 783.99, 1046.5].forEach((fr, i) => {
+      blip(c, { from: fr * 0.72, to: fr, duration: 0.9, type: "sine", gain: 0.075, start: 0.1 + i * 0.08 });
+      blip(c, { from: fr * 1.44, to: fr * 2, duration: 0.6, type: "triangle", gain: 0.025, start: 0.14 + i * 0.08 });
+    });
+    subDrop(c, { from: 55, to: 130, duration: 0.7, gain: 0.16, start: 0.04 });
   } catch { /* silent */ }
 }
 

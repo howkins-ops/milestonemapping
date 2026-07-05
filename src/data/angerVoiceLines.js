@@ -294,6 +294,170 @@ export const SLAM_WINS = [
 // The one fixed comeback to Mrs. NO's boss-tier super volley.
 export const SLAM_SUPER = { id: "slam-super", text: "WATCH ME.", delivery: NUCLEAR };
 
+// ════════════════════════════════════════════════════════════════════════
+//  THE DOOR — LEVEL LADDER (v4). The original arc above is LEVEL 1
+//  (customer: harry, rep: liam, wife: sarah). Below are Levels 2-4.
+//
+//  Customer voices:  L1 & L3 = harry (SAME guy — Harold moves to a gated
+//  community in L3). L2 = marcus (new, deep + aggressive). L4 = deon (new,
+//  husky + aggressive). Rep is always liam. Delivery escalates with the
+//  in-game Bloody-Knuckles damage stage. 21+ by design — same content law
+//  as the rest of this file.
+// ════════════════════════════════════════════════════════════════════════
+
+// ---------- LEVEL 2 — "ALWAYS BE PERSISTENT" (customer: marcus) ----------
+// Lesson: keep knocking — a no-answer isn't a no, the man's just takin' a shit.
+// Round 1 = the ring-a-thon. Round 2 = the vent + first blood. Round 3 = open.
+
+export const L2_THEM_R1 = [
+  { id: "l2-them-r1-0", text: "Man, I'm BUSY! Give me a goddamn minute!", delivery: HEATED },
+  { id: "l2-them-r1-1", text: "Who the hell is bangin' on my door like that?!", delivery: HEATED },
+  { id: "l2-them-r1-2", text: "I'm in the middle of somethin', fool! Back OFF!", delivery: HEATED },
+  { id: "l2-them-r1-3", text: "Every time you ring that bell I lose my concentration!", delivery: HEATED },
+  { id: "l2-them-r1-4", text: "Ain't NOBODY home for whatever you're sellin'!", delivery: HEATED },
+];
+export const L2_YOU_R1 = [
+  { id: "l2-you-r1-0", text: "Open the damn door! I can hear you shuffling around in there!", delivery: HEATED },
+  { id: "l2-you-r1-1", text: "I'll ring this bell till my thumb falls the fuck OFF!", delivery: FURIOUS },
+  { id: "l2-you-r1-2", text: "That's a no? Cool. I collect those, baby.", delivery: HEATED },
+  { id: "l2-you-r1-3", text: "DING DING DING! I can do this all damn day!", delivery: FURIOUS },
+];
+
+export const L2_THEM_R2 = [
+  { id: "l2-them-r2-0", text: "Bro, is your HAND okay?! That's a lotta blood, man!", delivery: FURIOUS },
+  { id: "l2-them-r2-1", text: "You're STILL out there?! I told you I'm BUSY!", delivery: FURIOUS },
+  { id: "l2-them-r2-2", text: "A grown man does NOT rush a good one, you hear me?!", delivery: FURIOUS },
+  { id: "l2-them-r2-3", text: "You knock like you got a personal problem with me!", delivery: FURIOUS },
+  { id: "l2-them-r2-4", text: "Okay, okay — you persistent as HELL, I'll give you that!", delivery: FURIOUS },
+];
+export const L2_YOU_R2 = [
+  { id: "l2-you-r2-0", text: "I walked six blocks! My hand's BLEEDING! Open UP!", delivery: FURIOUS },
+  { id: "l2-you-r2-1", text: "It's HELPING you?! What the fuck are you DOING in there?!", delivery: FURIOUS },
+  { id: "l2-you-r2-2", text: "I don't leave. EVER. Ask literally anybody!", delivery: FURIOUS },
+  { id: "l2-you-r2-3", text: "Every drop of blood is a bullet point, my guy!", delivery: NUCLEAR },
+];
+
+export const L2_THEM_R3 = [
+  { id: "l2-them-r3-0", text: "AHHH! Okay, OKAY! The hell do you WANT, man?!", delivery: NUCLEAR },
+  { id: "l2-them-r3-1", text: "You bled on my porch so I could finish my BUSINESS?!", delivery: FURIOUS },
+  { id: "l2-them-r3-2", text: "...You didn't leave, though. I respect that. Damn.", delivery: HEATED },
+  { id: "l2-them-r3-3", text: "Always be persistent, huh? Sometimes a man's just takin' a shit!", delivery: HEATED },
+];
+export const L2_YOU_R3 = [
+  { id: "l2-you-r3-0", text: "You left me bleeding out here so you could finish a DUMP?!", delivery: NUCLEAR },
+  { id: "l2-you-r3-1", text: "So the lesson is what — always be fuckin' persistent?", delivery: FURIOUS },
+  { id: "l2-you-r3-2", text: "Sign here before I lose my entire goddamn mind!", delivery: NUCLEAR },
+];
+export const L2_OPEN = { id: "l2-open", text: "Alright, ALRIGHT — you win, man. Get your crazy ass in here.", delivery: HEATED };
+// Power-slap finale bark (rep).
+export const L2_SLAP = { id: "l2-slap", text: "Keep my customer's NAME out ya mouth! SIGN IT!", delivery: NUCLEAR };
+
+// ---------- LEVEL 3 — "THE STEEL DOOR" (customer: harry — same as L1) ----------
+// Harold moved to a gated community to escape. The rep breached the gate.
+// Round 1 = the breach. Round 2 = pounding solid steel. Round 3 = the chainsaw.
+
+export const L3_THEM_R1 = [
+  { id: "l3-them-r1-0", text: "There's a GATE! A WALL! A sign that says FUCK OFF — how are you HERE?!", delivery: FURIOUS },
+  { id: "l3-them-r1-1", text: "This is a GATED community! There are RULES, you animal!", delivery: FURIOUS },
+  { id: "l3-them-r1-2", text: "I moved across the whole damn city to get away from YOU!", delivery: FURIOUS },
+  { id: "l3-them-r1-3", text: "SECURITY! Security?! ...Why is nobody ANSWERING?!", delivery: FURIOUS },
+];
+export const L3_YOU_R1 = [
+  { id: "l3-you-r1-0", text: "A gate is a SUGGESTION, Harold! You think a wall stops COMMISSION?!", delivery: FURIOUS },
+  { id: "l3-you-r1-1", text: "You can run, old man. You cannot HIDE from value!", delivery: FURIOUS },
+  { id: "l3-you-r1-2", text: "Nice neighborhood. Be a shame if I never fuckin' LEFT it!", delivery: HEATED },
+];
+
+export const L3_THEM_R2 = [
+  { id: "l3-them-r2-0", text: "You're gonna break your hand on solid STEEL, you idiot!", delivery: FURIOUS },
+  { id: "l3-them-r2-1", text: "That's blood AND tears — are you CRYING at my door?!", delivery: NUCLEAR },
+  { id: "l3-them-r2-2", text: "This door is REINFORCED! My nephew's a locksmith!", delivery: FURIOUS },
+  { id: "l3-them-r2-3", text: "I will NOT be closed! Not behind STEEL, you maniac!", delivery: NUCLEAR },
+];
+export const L3_YOU_R2 = [
+  { id: "l3-you-r2-0", text: "OPEN — THIS — STEEL — DOOR — I'll rip it off with my TEETH!", delivery: NUCLEAR },
+  { id: "l3-you-r2-1", text: "It's BOTH, Harold! Blood AND tears! It's ALWAYS both!", delivery: NUCLEAR },
+  { id: "l3-you-r2-2", text: "Steel? I EAT steel. I follow up on steel, old man!", delivery: FURIOUS },
+];
+
+export const L3_THEM_R3 = [
+  { id: "l3-them-r3-0", text: "Is that— is that a CHAINSAW?! ARE YOU INSANE?!", delivery: NUCLEAR },
+  { id: "l3-them-r3-1", text: "You can't just SAW through a man's front door!", delivery: NUCLEAR },
+  { id: "l3-them-r3-2", text: "I'm calling the HOA! The POLICE! My MOTHER!", delivery: NUCLEAR },
+];
+export const L3_YOU_R3 = [
+  { id: "l3-you-r3-0", text: "You wouldn't open the door — so now there's NO fuckin' door!", delivery: NUCLEAR },
+  { id: "l3-you-r3-1", text: "THIS is what persistence looks like, Harold!", delivery: NUCLEAR },
+];
+export const L3_CHAINSAW = { id: "l3-chainsaw", text: "Say hello to my little CLOSER!", delivery: NUCLEAR };
+// Level 3 brawl barks (reuses the boxing minigame).
+export const L3_FIGHT_THEM = [
+  { id: "l3-fight-them-0", text: "I did KRAV MAGA at the community center!", delivery: NUCLEAR },
+  { id: "l3-fight-them-1", text: "You sawed my DOOR, now I saw YOU!", delivery: NUCLEAR },
+  { id: "l3-fight-them-2", text: "This is a GATED fist, you little shit!", delivery: NUCLEAR },
+];
+export const L3_FIGHT_YOU = [
+  { id: "l3-fight-you-0", text: "Every jab's a follow-up call, Harold!", delivery: NUCLEAR },
+  { id: "l3-fight-you-1", text: "The contract survives the chainsaw AND you!", delivery: NUCLEAR },
+];
+export const L3_KO = { id: "l3-ko", text: "Fine... FINE. Gimme the pen before you saw somethin' else...", delivery: HEATED };
+
+// ---------- LEVEL 4 — "NEVER DO CALL-BACKS" (customer: deon) ----------
+// The customer said "come back later." So the rep comes back. All day.
+// Morning -> Afternoon -> Evening -> 11:59 PM (rocks) -> kick the door in.
+
+export const L4_THEM_MORN = [
+  { id: "l4-them-morn-0", text: "Ugh... not now, man. Come back LATER.", delivery: CALM },
+  { id: "l4-them-morn-1", text: "It's too damn early for whatever this is.", delivery: CALM },
+  { id: "l4-them-morn-2", text: "Later, dude. Just... come back later, alright?", delivery: CALM },
+];
+export const L4_YOU_MORN = [
+  { id: "l4-you-morn-0", text: "Mornin', sunshine! Gimme two fuckin' minutes!", delivery: HEATED },
+  { id: "l4-you-morn-1", text: "Come back later? Oh, I'll be BACK. Count on it, buddy.", delivery: HEATED },
+];
+
+export const L4_THEM_AFT = [
+  { id: "l4-them-aft-0", text: "I meant a DIFFERENT later, you maniac!", delivery: FURIOUS },
+  { id: "l4-them-aft-1", text: "How are you back ALREADY?! I'm hiding in my own house!", delivery: FURIOUS },
+  { id: "l4-them-aft-2", text: "I said later, not — not THIS later, man!", delivery: FURIOUS },
+];
+export const L4_YOU_AFT = [
+  { id: "l4-you-aft-0", text: "It's LATER! You SAID later, you lyin' piece of shit!", delivery: FURIOUS },
+  { id: "l4-you-aft-1", text: "There's no different later! There's only NOW!", delivery: FURIOUS },
+];
+
+export const L4_THEM_EVE = [
+  { id: "l4-them-eve-0", text: "I'm EATING! I'm eating my goddamn DINNER, man!", delivery: NUCLEAR },
+  { id: "l4-them-eve-1", text: "Get off my porch before I call the COPS!", delivery: NUCLEAR },
+  { id: "l4-them-eve-2", text: "You ruined my WHOLE plate, you psycho!", delivery: NUCLEAR },
+];
+export const L4_YOU_EVE = [
+  { id: "l4-you-eve-0", text: "You said come back later — this is later than the LAST later!", delivery: FURIOUS },
+  { id: "l4-you-eve-1", text: "The cops can sign too! Everybody gets a pen tonight!", delivery: NUCLEAR },
+];
+
+export const L4_THEM_NIGHT = [
+  { id: "l4-them-night-0", text: "It's almost MIDNIGHT you absolute PSYCHOPATH!", delivery: NUCLEAR },
+  { id: "l4-them-night-1", text: "You threw a ROCK through my WINDOW?!", delivery: NUCLEAR },
+  { id: "l4-them-night-2", text: "MY WINDOWS! Those cost MONEY, you animal!", delivery: NUCLEAR },
+];
+export const L4_YOU_NIGHT = [
+  { id: "l4-you-night-0", text: "You said LATER! It doesn't get later than 11:59, you spineless shit!", delivery: NUCLEAR },
+  { id: "l4-you-night-1", text: "KNOCK KNOCK! Wrong window? Here's ANOTHER fuckin' one!", delivery: NUCLEAR },
+];
+
+export const L4_KICK = { id: "l4-kick", text: "FOUR VISITS, buddy! FOUR! Now we do it in BLOOD!", delivery: NUCLEAR };
+export const L4_FIGHT_THEM = [
+  { id: "l4-fight-them-0", text: "You broke my DOOR AND my WINDOW, man!", delivery: NUCLEAR },
+  { id: "l4-fight-them-1", text: "I've been up ALL DAY because of YOU!", delivery: NUCLEAR },
+  { id: "l4-fight-them-2", text: "This is for my DINNER, you son of a bitch!", delivery: NUCLEAR },
+];
+export const L4_FIGHT_YOU = [
+  { id: "l4-fight-you-0", text: "Shoulda signed this MORNING, buddy!", delivery: NUCLEAR },
+  { id: "l4-fight-you-1", text: "Every punch is a callback! RELENTLESS!", delivery: NUCLEAR },
+];
+export const L4_KO = { id: "l4-ko", text: "Okay— OKAY— gimme the damn pen, you animal!", delivery: HEATED };
+
 // ---------- flat manifest for the bake script ----------
 
 export const ALL_VOICE_LINES = [
@@ -318,4 +482,25 @@ export const ALL_VOICE_LINES = [
   ),
   ...SLAM_WINS.map((l) => ({ ...l, voice: "callum" })),
   { ...SLAM_SUPER, voice: "callum" },
+
+  // ── LEVEL 2 — customer: marcus (new), rep: liam ──
+  ...[...L2_THEM_R1, ...L2_THEM_R2, ...L2_THEM_R3, L2_OPEN].map((l) => ({ ...l, voice: "marcus" })),
+  ...[...L2_YOU_R1, ...L2_YOU_R2, ...L2_YOU_R3, L2_SLAP].map((l) => ({ ...l, voice: "liam" })),
+
+  // ── LEVEL 3 — customer: harry (same as L1), rep: liam ──
+  ...[...L3_THEM_R1, ...L3_THEM_R2, ...L3_THEM_R3, ...L3_FIGHT_THEM, L3_KO].map((l) => ({ ...l, voice: "harry" })),
+  ...[...L3_YOU_R1, ...L3_YOU_R2, ...L3_YOU_R3, ...L3_FIGHT_YOU, L3_CHAINSAW].map((l) => ({ ...l, voice: "liam" })),
+
+  // ── LEVEL 4 — customer: deon (new), rep: liam ──
+  ...[
+    ...L4_THEM_MORN, ...L4_THEM_AFT, ...L4_THEM_EVE, ...L4_THEM_NIGHT, ...L4_FIGHT_THEM, L4_KO,
+  ].map((l) => ({ ...l, voice: "deon" })),
+  ...[
+    ...L4_YOU_MORN, ...L4_YOU_AFT, ...L4_YOU_EVE, ...L4_YOU_NIGHT, ...L4_FIGHT_YOU, L4_KICK,
+  ].map((l) => ({ ...l, voice: "liam" })),
 ];
+
+// The two new customer voices, exposed so the audition script can grab a
+// couple of lines per voice without baking the whole set.
+export const L2_AUDITION = ["l2-them-r2-0", "l2-them-r3-0", "l2-them-r1-2"];
+export const L4_AUDITION = ["l4-them-eve-0", "l4-them-night-0", "l4-them-aft-1"];

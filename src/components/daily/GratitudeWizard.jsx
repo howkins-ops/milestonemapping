@@ -289,6 +289,14 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
                   value={current}
                   onChange={(e) => setValue(step, e.target.value)}
                 />
+              </div>
+              {dictation.listening && dictation.interim && (
+                <p className="gw-interim">{dictation.interim}…</p>
+              )}
+              {layer.depth && <DepthMeter score={score} />}
+              {layer.hint && <p className="dsw-hint">{layer.hint}</p>}
+              {/* Footer: the listening tool sits big in the middle, Next pinned bottom-right. */}
+              <div className="dsw-footer gw-footer">
                 {dictation.supported && (
                   <button
                     type="button"
@@ -303,13 +311,6 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
                     </span>
                   </button>
                 )}
-              </div>
-              {dictation.listening && dictation.interim && (
-                <p className="gw-interim">{dictation.interim}…</p>
-              )}
-              {layer.depth && <DepthMeter score={score} />}
-              {layer.hint && <p className="dsw-hint">{layer.hint}</p>}
-              <div className="dsw-footer">
                 <button
                   className="dsw-next gw-next"
                   style={{ "--accent": accent }}

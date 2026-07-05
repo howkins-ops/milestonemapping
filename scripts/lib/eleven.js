@@ -28,6 +28,11 @@ export const VOICES = {
   harry:  'SOYHLrjzK2X1ezoPC6cr', // Fierce warrior
   sarah:  'EXAVITQu4vr4xnSDxMaL', // Reassuring female
   liam:   'TX3LPaxmHKxFdv7VOQHJ', // Energetic social-media creator — cocky teenage-punk Door rep
+  // The Door level ladder — new aggressive customers (L2 & L4). These point at
+  // proven premade voices for a guaranteed bake; swap the id to any ElevenLabs
+  // library voice you prefer and re-run the audition/bake.
+  marcus: 'nPczCjzI2devNBz1zQrb', // deep + resonant — Level 2 customer ("Always Be Persistent")
+  deon:   'N2lVS1w4EtoT3dr4eOWO', // husky + gravelly — Level 4 customer ("Never Do Call-Backs")
 };
 
 // Generate speech and return an mp3 Buffer. Throws on API error.

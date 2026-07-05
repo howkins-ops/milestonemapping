@@ -3,7 +3,7 @@ import { useAppData } from "../../hooks/useAppData.js";
 import PressureForge from "./PressureForge.jsx";
 import StormCaptain from "../storm/StormCaptain.jsx";
 import SwampValve from "../shadow/swamp/SwampValve.jsx";
-import TheDoor from "./TheDoor.jsx";
+import TheDoorHub from "./TheDoorHub.jsx";
 import ObjectionSlam from "./ObjectionSlam.jsx";
 import { loadForgeState, clearForgeTrail } from "./pressureForgeStore.js";
 import { getLevel, getNextLevel } from "./pressureForgeData.js";
@@ -46,8 +46,8 @@ const GAMES = [
     name: "The Door",
     when: "They keep telling you no",
     relic: "The Threshold",
-    sub: "3-round cinema. Knock through the screaming. Close Harold at MIDNIGHT — he swears, you swear BACK. And when the door finally opens... put your hands up. 21+, sound on.",
-    tag: "Persistence arcade · 3 rounds · 21+",
+    sub: "FOUR levels of persistence warfare. Knock through the screaming, chase him behind a gated steel door, saw your way in, and make him regret saying 'come back later.' Bloody Knuckles, power slaps, porch brawls. 21+, sound on.",
+    tag: "Persistence arcade · 4 levels · 21+",
     accent: "#FF3B5C",
     live: true,
   },
@@ -134,8 +134,8 @@ export default function AngerGymPage() {
     addXP(XP_DOOR, "Door broken down");
     celebrate({
       variant: "reward",
-      title: "DOOR: DOWN",
-      subtitle: `${payload.knocks} knocks · ${payload.nos} NOs survived · zero quits.`,
+      title: payload.level ? `LEVEL ${payload.level}: DOWN` : "DOOR: DOWN",
+      subtitle: `${payload.knocks ?? 0} knocks · ${payload.nos ?? 0} NOs survived · zero quits.`,
       detail: payload.takeaway,
     });
   };
@@ -170,13 +170,9 @@ export default function AngerGymPage() {
 
   if (view === "door") {
     return (
-      <TheDoor
+      <TheDoorHub
         onClose={() => { setView(null); setRefresh((n) => n + 1); }}
-        onComplete={(payload) => {
-          onDoorComplete(payload);
-          setView(null);
-          setRefresh((n) => n + 1);
-        }}
+        onComplete={onDoorComplete}
       />
     );
   }

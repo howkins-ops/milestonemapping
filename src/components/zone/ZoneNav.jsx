@@ -15,6 +15,13 @@ const GLYPHS = {
       <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
     </>
   ),
+  friends: (
+    <>
+      <path d="M13 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M19 8v6M22 11h-6" />
+    </>
+  ),
   squad: (
     <>
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -62,8 +69,11 @@ function Glyph({ name }) {
 
 // City (MapQuest) intentionally NOT a tab — it's reachable from the Command
 // dashboard's "open MapQuest". Keeps this dock short and focused.
+// Friends is its own tab (people asked "how do I add a friend?") — one tap
+// to the search + your circle, right next to Squad.
 const TABS = [
   { key: "home", label: "Home" },
+  { key: "friends", label: "Friends" },
   { key: "squad", label: "Squad" },
   { key: "messages", label: "Chat" },
   { key: "inbox", label: "Inbox" },
@@ -76,7 +86,6 @@ const TABS = [
 const TAB_ALIAS = {
   feed: "home",
   city: "home",
-  friends: "profile",
   partner: "home",
   challenges: "home",
   reports: "profile",

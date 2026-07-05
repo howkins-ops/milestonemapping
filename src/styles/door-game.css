@@ -815,3 +815,300 @@
 [data-reduced-motion="true"] .dg-stamp { animation: none; }
 [data-reduced-motion="true"] .dg-scene.is-broken .dg-owner { animation: none; opacity: 1; }
 [data-reduced-motion="true"] .dg-resolve__fill { transition: none; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   LEVEL LADDER (v4) — the hub level-select (.dl-), plus the shared systems
+   for Levels 2-4: Bloody Knuckles, HEAT (reuses .dg-resolve), day/dusk/eve/
+   steel/gate skins, the power-slap / kick charge, chainsaw and rock specials.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── level-select hub ────────────────────────────────────────────────── */
+.dl-hub {
+  position: relative; isolation: isolate; max-width: 660px; margin: 0 auto;
+  padding: 14px 14px calc(48px + var(--safe-bottom, 0px));
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 0%, rgba(40, 10, 14, .9), #07030a 72%);
+  border: 1px solid rgba(255, 59, 92, .16); box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+}
+.dl-hub__top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.dl-hub__count {
+  margin-left: auto; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: .08em; color: #FFD84D;
+  background: rgba(255, 216, 77, .08); border: 1px solid rgba(255, 216, 77, .25);
+  padding: 5px 10px; border-radius: 999px;
+}
+.dl-hub__head { text-align: center; padding: 8px 6px 18px; }
+.dl-hub__kicker {
+  margin: 0; font-family: var(--font-mono); font-size: 10.5px; font-weight: 800;
+  letter-spacing: .2em; text-transform: uppercase; color: #FF3B5C;
+}
+.dl-hero {
+  margin: 4px 0 8px; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(38px, 12vw, 66px); line-height: .95; color: var(--text-main);
+  text-shadow: 0 0 40px rgba(255, 59, 92, .4);
+}
+.dl-hub__sub { margin: 0 auto; max-width: 480px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.dl-hub__sub b { color: var(--text-main); }
+
+.dl-ladder { display: flex; flex-direction: column; gap: 12px; }
+.dl-card {
+  --acc: #FF3B5C;
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; align-items: stretch; gap: 14px; text-align: left; cursor: pointer;
+  padding: 16px 16px; border-radius: 18px; font-family: inherit;
+  background: linear-gradient(120deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+  border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  transition: transform .16s var(--ease-out), box-shadow .2s ease, border-color .2s ease;
+}
+.dl-card:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 16px 40px color-mix(in srgb, var(--acc) 30%, transparent); border-color: var(--acc); }
+.dl-card:not(:disabled):active { transform: scale(.99); }
+.dl-card__aura {
+  position: absolute; inset: 0; z-index: -1; opacity: .55;
+  background: radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 60%);
+}
+.dl-card__num {
+  flex: none; width: 54px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 900; font-size: 34px; color: var(--acc);
+  border-right: 1px solid color-mix(in srgb, var(--acc) 24%, transparent);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--acc) 60%, transparent);
+}
+.dl-card__body { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.dl-card__topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dl-card__when { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.dl-card__relic {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: color-mix(in srgb, var(--acc) 80%, #fff 20%);
+}
+.dl-card__title { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--text-main); }
+.dl-card__blurb { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+.dl-card__tag {
+  margin-top: 2px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--acc) 75%, #fff 25%);
+}
+.dl-card__cta {
+  flex: none; align-self: center; font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  color: var(--acc); white-space: nowrap;
+}
+.dl-card.is-locked { cursor: not-allowed; opacity: .5; filter: grayscale(.6); }
+.dl-card.is-locked .dl-card__cta { color: var(--text-muted); }
+.dl-card.is-done { border-color: color-mix(in srgb, var(--acc) 70%, transparent); }
+.dl-card.is-done .dl-card__num::after { content: "✓"; position: absolute; margin-left: 2px; font-size: 14px; color: #41FF6B; }
+
+/* ── brief lesson box + level-accent eyebrow ─────────────────────────── */
+.dg-stage { --lvacc: #FF3B5C; }
+.dg-brief .dg-eyebrow { color: var(--lvacc); }
+.dg-lesson {
+  padding: 12px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.55;
+  color: var(--text-main); background: color-mix(in srgb, var(--lvacc) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lvacc) 35%, transparent);
+}
+.dg-lesson__tag {
+  display: block; margin-bottom: 4px; font-family: var(--font-mono); font-size: 10px;
+  font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--lvacc);
+}
+
+/* ── BLOODY KNUCKLES HUD ──────────────────────────────────────────────── */
+.dg-knuckle {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  padding: 7px 12px; border-radius: 12px;
+  background: rgba(120, 0, 12, .18); border: 1px solid rgba(255, 59, 92, .3);
+}
+.dg-knuckle__fist { font-size: 22px; line-height: 1; filter: saturate(1.2); transition: filter .3s ease; }
+.dg-knuckle[data-blood="2"] .dg-knuckle__fist { filter: sepia(.5) saturate(3) hue-rotate(-18deg); }
+.dg-knuckle[data-blood="3"] .dg-knuckle__fist { filter: sepia(.7) saturate(5) hue-rotate(-24deg) brightness(.92); }
+.dg-knuckle[data-blood="4"] .dg-knuckle__fist { filter: sepia(.85) saturate(7) hue-rotate(-28deg) brightness(.82); }
+.dg-knuckle__meta { flex: 1; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 3px 10px; }
+.dg-knuckle__label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: rgba(255, 255, 255, .55);
+}
+.dg-knuckle__bar { grid-column: 2; height: 6px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .08); }
+.dg-knuckle__bar i { display: block; height: 100%; transform-origin: 0 50%; border-radius: 999px;
+  background: linear-gradient(90deg, #ff9d9d, #b3001b); box-shadow: 0 0 10px rgba(255, 30, 60, .6);
+  transition: transform .3s var(--ease-out); }
+.dg-knuckle__stage {
+  grid-column: 2; font-family: var(--font-mono); font-size: 8.5px; font-weight: 800;
+  letter-spacing: .1em; color: #ff8a9a;
+}
+
+/* blood SMEARS on the door — build up with the Bloody-Knuckles stage */
+.dg-smear { position: absolute; pointer-events: none; opacity: 0; transition: opacity .35s ease; mix-blend-mode: multiply; }
+.dg-smear--1 { top: 30%; left: 40%; width: 30%; height: 22%; background: radial-gradient(closest-side, rgba(150, 0, 12, .9), transparent 72%); transform: rotate(-12deg); }
+.dg-smear--2 { top: 46%; left: 18%; width: 26%; height: 26%; background: radial-gradient(closest-side, rgba(130, 0, 10, .95), transparent 70%); }
+.dg-smear--3 { top: 20%; left: 20%; width: 42%; height: 14%; background: linear-gradient(90deg, transparent, rgba(150, 0, 12, .85), transparent); transform: rotate(8deg); border-radius: 999px; }
+.dg-smear--4 { top: 55%; left: 44%; width: 34%; height: 30%; background: radial-gradient(closest-side, rgba(110, 0, 8, .95), transparent 66%); }
+.dg-door:is([data-blood="1"], [data-blood="2"], [data-blood="3"], [data-blood="4"]) .dg-smear--1 { opacity: .9; }
+.dg-door:is([data-blood="2"], [data-blood="3"], [data-blood="4"]) .dg-smear--2 { opacity: .92; }
+.dg-door:is([data-blood="3"], [data-blood="4"]) .dg-smear--3 { opacity: .88; }
+.dg-door[data-blood="4"] .dg-smear--4 { opacity: .95; }
+
+/* ── SKINS ────────────────────────────────────────────────────────────── */
+/* dusk (afternoon) — warmer sky */
+.dg-scene--dusk .dg-sky {
+  background:
+    radial-gradient(60% 90% at 30% 100%, rgba(255, 140, 60, .22), transparent 70%),
+    radial-gradient(50% 80% at 85% 100%, rgba(255, 60, 90, .18), transparent 70%),
+    linear-gradient(#1a0e1e, #2a1420);
+}
+/* evening (dinner) — deep amber dusk, warm porch */
+.dg-scene--eve.is-night .dg-sky {
+  background:
+    radial-gradient(70% 90% at 40% 100%, rgba(255, 110, 40, .28), transparent 72%),
+    linear-gradient(#0a0410, #1a0a12 60%, #240c14);
+}
+.dg-scene--eve .dg-porchlight { box-shadow: 0 0 40px 14px rgba(255, 176, 0, .55), 0 0 110px 44px rgba(255, 140, 0, .2); }
+
+/* STEEL door — Level 3 reinforced vault */
+.dg-scene--steel { background: linear-gradient(#0a0c12, #05070c 30%); }
+.dg-scene--steel .dg-wall {
+  background:
+    repeating-linear-gradient(180deg, rgba(180, 210, 255, .04) 0 2px, transparent 2px 30px),
+    linear-gradient(180deg, #1a2230, #10161f 60%, #0a0e14);
+}
+.dg-scene--steel .dg-door {
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, .05) 0 3px, transparent 3px 40px),
+    linear-gradient(100deg, #8a95a5, #5a6473 55%, #3d4552);
+  border-color: #2a303a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 10px 30px rgba(0, 0, 0, .6);
+}
+.dg-scene--steel .dg-door__panel { background: linear-gradient(120deg, #9aa5b5, #6a7484); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5), inset 0 -1px 2px rgba(255, 255, 255, .2); }
+.dg-scene--steel .dg-door__knob { background: radial-gradient(circle at 32% 32%, #eaf2ff, #7a8494 70%); }
+.dg-scene--steel .dg-crack { background: rgba(210, 230, 255, .9); } /* dents read cooler on steel */
+
+/* GATE — Level 3 breach: brick wall + iron gate feel */
+.dg-scene--gate .dg-wall {
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .25) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, .3) 0 1px, transparent 1px 22px),
+    linear-gradient(180deg, #3a2018, #241210);
+}
+.dg-scene--gate .dg-door { background: linear-gradient(100deg, #4a5560, #2f3842 55%, #232a32); border-color: #171c22; }
+
+/* on-door signs */
+.dg-sign {
+  position: absolute; z-index: 3; padding: 6px 10px; border-radius: 4px; text-align: center;
+  font-family: var(--font-display); font-weight: 900; font-size: 12px; line-height: 1.1; letter-spacing: .04em;
+  transform: rotate(-6deg); pointer-events: none;
+}
+.dg-sign--nosolicit { top: 30%; left: 50%; transform: translateX(-50%) rotate(-4deg); color: #fff; background: #c22740; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .5); }
+.dg-sign--gate { top: 26%; left: 50%; transform: translateX(-50%) rotate(3deg); color: #14100a; background: #FFD84D; border: 2px solid #14100a; }
+
+/* ── HEAT full flourish (reuses .dg-resolve) ─────────────────────────── */
+.dg-resolve__fill { background: linear-gradient(90deg, #FF3B5C, #FF7A00 60%, #FFD84D); }
+
+/* ── POWER-SLAP / KICK charge finale ─────────────────────────────────── */
+.dg-scene.is-finale { background: radial-gradient(circle at 50% 40%, rgba(40, 8, 14, .6), #05020a 72%); }
+.dg-face {
+  position: absolute; left: 50%; bottom: 20%; transform: translateX(-50%); z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+}
+.dg-face__emoji { font-size: 120px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, .6)); }
+.dg-face__hand { position: absolute; right: -30%; top: 20%; font-size: 66px; opacity: 0; }
+.dg-face.is-slapped .dg-face__emoji { animation: dgSlapHit .6s var(--ease-out); }
+.dg-face.is-slapped .dg-face__hand { animation: dgSlapHand .5s cubic-bezier(.4, 0, .7, 1); }
+/* bloody handprint left on the cheek when the fist is wrecked */
+.dg-face.is-slapped[data-blood="3"] .dg-face__emoji::after,
+.dg-face.is-slapped[data-blood="4"] .dg-face__emoji::after,
+.dg-face.is-slapped[data-blood="2"] .dg-face__emoji::after {
+  content: "🖐"; position: absolute; left: 30%; top: 34%; font-size: 44px;
+  color: #b3001b; filter: sepia(1) saturate(6) hue-rotate(-20deg); opacity: .8;
+  animation: dgHandprint .4s var(--ease-out) .18s backwards;
+}
+@keyframes dgSlapHit {
+  0% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(34px) rotate(16deg); }
+  45% { transform: translateX(-14px) rotate(-8deg); }
+  100% { transform: translateX(0) rotate(0); }
+}
+@keyframes dgSlapHand {
+  0% { opacity: 0; transform: translateX(60px) rotate(20deg) scale(.7); }
+  40% { opacity: 1; transform: translateX(-40px) rotate(-14deg) scale(1.3); }
+  100% { opacity: 0; transform: translateX(-90px) rotate(-30deg) scale(1); }
+}
+@keyframes dgHandprint { from { opacity: 0; transform: scale(1.6); } to { opacity: .8; transform: scale(1); } }
+
+.dg-charge {
+  position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 4;
+  display: flex; align-items: center; gap: 10px;
+}
+.dg-charge__label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: #FFD84D;
+}
+.dg-charge__track { flex: 1; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12); }
+.dg-charge__fill {
+  height: 100%; border-radius: 999px; transform-origin: 0 50%;
+  background: linear-gradient(90deg, #FFD84D, #FF7A00 55%, #FF3B5C);
+  box-shadow: 0 0 16px rgba(255, 122, 0, .7);
+}
+.dg-slapbtn {
+  width: 100%; padding: 18px 14px; border: none; border-radius: 16px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 900; font-size: 16px; letter-spacing: .03em; color: #fff;
+  background: linear-gradient(100deg, #FF3B5C, #FF7A00); box-shadow: 0 10px 30px rgba(255, 59, 92, .4);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: transform .1s var(--ease-out), box-shadow .15s ease;
+}
+.dg-slapbtn.is-charging { animation: dgChargePulse .35s ease-in-out infinite; box-shadow: 0 0 40px rgba(255, 122, 0, .8); }
+.dg-slapbtn:disabled { opacity: .5; }
+@keyframes dgChargePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+/* ── CHAINSAW special ────────────────────────────────────────────────── */
+.dg-sawbtn {
+  position: absolute; right: 6%; bottom: 30%; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 74px; height: 74px; border-radius: 18px; cursor: pointer;
+  font-size: 28px; line-height: 1; font-family: inherit; color: #14060a;
+  background: radial-gradient(circle at 35% 30%, #ffd27a, #ff7a00 70%);
+  border: 2px solid rgba(255, 176, 0, .8); box-shadow: 0 0 24px rgba(255, 122, 0, .5), 0 6px 18px rgba(0, 0, 0, .5);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  animation: dgBellPulse 1.4s ease-in-out infinite;
+}
+.dg-sawbtn:active { transform: scale(.92); animation: none; }
+.dg-sawbtn small { font-family: var(--font-mono); font-size: 7.5px; font-weight: 800; letter-spacing: .06em; }
+.dg-sawline {
+  position: absolute; top: 44%; left: 6%; width: 88%; height: 4px; z-index: 4; pointer-events: none;
+  background: linear-gradient(90deg, transparent, #FFD84D, #fff, #FF7A00, transparent);
+  opacity: 0; border-radius: 999px;
+}
+.dg-scene.is-sawing .dg-sawline { opacity: 1; animation: dgSaw .13s linear infinite; }
+.dg-scene.is-sawing { animation: dgSawShake .12s linear infinite; }
+@keyframes dgSaw { 0% { transform: translateX(-4px); } 100% { transform: translateX(4px); } }
+@keyframes dgSawShake { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(1px, -1px); } }
+
+/* ── ROCKS special — windows to smash ────────────────────────────────── */
+.dg-windows { position: absolute; top: 24%; left: 8%; z-index: 1; display: flex; gap: 8px; }
+.dg-pane {
+  width: 30px; height: 38px; border-radius: 2px;
+  background: linear-gradient(135deg, rgba(140, 200, 255, .4), rgba(60, 90, 140, .5));
+  border: 2px solid #2a1206; box-shadow: inset 0 0 8px rgba(255, 255, 255, .3);
+}
+.dg-pane.is-broke {
+  background: #0a0710;
+  clip-path: polygon(0 0, 40% 12%, 22% 40%, 60% 30%, 45% 62%, 80% 50%, 100% 100%, 0 100%);
+  border-color: rgba(140, 200, 255, .3);
+}
+.dg-rockbtn {
+  position: absolute; right: 6%; bottom: 30%; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 68px; height: 68px; border-radius: 50%; cursor: pointer;
+  font-size: 26px; line-height: 1; font-family: inherit; color: #fff;
+  background: radial-gradient(circle at 35% 30%, #8a8f99, #40454f 70%);
+  border: 2px solid rgba(200, 210, 225, .5); box-shadow: 0 6px 18px rgba(0, 0, 0, .5);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.dg-rockbtn:active { transform: scale(.9); }
+.dg-rockbtn small { font-family: var(--font-mono); font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+
+/* Bloody-Knuckles reduced-motion + new-animation guards */
+@media (prefers-reduced-motion: reduce) {
+  .dg-knuckle__bar i, .dg-smear, .dg-charge__fill,
+  .dg-slapbtn.is-charging, .dg-face.is-slapped .dg-face__emoji,
+  .dg-face.is-slapped .dg-face__hand, .dg-face__emoji::after,
+  .dg-scene.is-sawing, .dg-scene.is-sawing .dg-sawline,
+  .dl-card { animation: none; transition: none; }
+}
+[data-reduced-motion="true"] .dg-scene.is-sawing,
+[data-reduced-motion="true"] .dg-scene.is-sawing .dg-sawline,
+[data-reduced-motion="true"] .dg-slapbtn.is-charging { animation: none; }
