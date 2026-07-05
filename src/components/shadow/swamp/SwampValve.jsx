@@ -3,7 +3,6 @@ import "../../../styles/swamp-valve.css";
 import Boggo, { BoggoSays } from "./Boggo.jsx";
 import { boggoLine } from "./swampData.js";
 import PressureChamber from "./PressureChamber.jsx";
-import BellyBoiler from "./BellyBoiler.jsx";
 import RuminationBog from "./RuminationBog.jsx";
 import DrainTheSwamp from "./DrainTheSwamp.jsx";
 
@@ -19,6 +18,9 @@ import DrainTheSwamp from "./DrainTheSwamp.jsx";
    onFinish("Swamp Valve", takeaway) → auto XP + trail stamp.
    ════════════════════════════════════════════════════════════════════════ */
 
+// Two ways in — the cinematic drain (fast, wordless) and the full pressure
+// curriculum (deep). Rumination Bog is a quiet secondary for one specific
+// case (a looping thought), offered below rather than as a headline card.
 const MODES = [
   {
     id: "drain", emoji: "🌊", tag: "Signature · Cinematic", accent: "#00F0FF", featured: true,
@@ -30,27 +32,16 @@ const MODES = [
     name: "Pressure Chamber",
     blurb: "Something set you off? Read the pressure, feel it in the body, and open the right valve — breath, truth, boundary, clean action.",
   },
-  {
-    id: "belly", emoji: "🫧", tag: "Fast & funny", accent: "#FACC15",
-    name: "Belly Boiler",
-    blurb: "Boggo ate his feelings. Vent the swamp gas the safe way before it blows — quick rounds, big fireflies, zero swamp damage.",
-  },
-  {
-    id: "bog", emoji: "🌀", tag: "Break the loop", accent: "#7B2CFF",
-    name: "Rumination Bog",
-    blurb: "Same thought on repeat? Climb out of the bog one rung at a time: fact, story, feeling, a truer line, one action.",
-  },
 ];
 
 export default function SwampValve({ onClose, onFinish }) {
   const [mode, setMode] = useState(null);
 
   const toHub = () => setMode(null);
-  const complete = (takeaway) => onFinish("Swamp Valve", takeaway);
+  const complete = (takeaway) => onFinish("Swamp Valve", takeaway, { xp: 25 });
 
   if (mode === "drain") return <DrainTheSwamp onBack={toHub} onComplete={complete} />;
   if (mode === "pressure") return <PressureChamber onBack={toHub} onComplete={complete} />;
-  if (mode === "belly") return <BellyBoiler onBack={toHub} onComplete={complete} />;
   if (mode === "bog") return <RuminationBog onBack={toHub} onComplete={complete} />;
 
   return (
@@ -97,6 +88,14 @@ export default function SwampValve({ onClose, onFinish }) {
             </button>
           ))}
         </div>
+
+        <button className="sv-secondary" style={{ "--mc": "#7B2CFF" }} onClick={() => setMode("bog")}>
+          <span className="sv-secondary__emoji" aria-hidden>🌀</span>
+          <span className="sv-secondary__txt">
+            <b>Stuck on a loop?</b> Rumination Bog — climb out one rung at a time: fact, story, feeling, a truer line, one action.
+          </span>
+          <span className="sv-secondary__go">Enter →</span>
+        </button>
       </div>
     </div>
   );

@@ -26,41 +26,179 @@
 .zone-root[data-fire="inferno"] { --zfire: #FF3B5C; --zfire-glow: rgba(255,59,92,0.45);  --zfire-soft: rgba(255,59,92,0.12); }
 .zone-root[data-fire="phoenix"] { --zfire: #D11EFF; --zfire-glow: rgba(209,30,255,0.50); --zfire-soft: rgba(209,30,255,0.13); }
 
-/* ---------- header ---------- */
-.zn-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 2px 14px; }
+/* ---------- header — hero title + living flame ---------- */
+.zn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 2px 18px; }
+.zn-head__titlewrap { min-width: 0; animation: zn-head-in 720ms var(--ease-out) both; }
 .zn-head__title {
+  position: relative; display: inline-block;
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 800; letter-spacing: 0.4px; margin: 0;
-  background: linear-gradient(120deg, var(--text-main) 30%, var(--zfire));
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  font-size: clamp(34px, 12.5vw, 52px);
+  font-weight: 900; letter-spacing: 0.5px; line-height: 0.94; margin: 0;
+  /* flowing fire gradient, tinted live by --zfire, with a hot white core */
+  background: linear-gradient(100deg,
+    var(--text-main) 0%, var(--zfire) 27%, #ffffff 43%, var(--zfire) 60%, var(--text-main) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: zn-title-flow 6.5s linear infinite;
 }
-.zn-head__sub { font-size: 12.5px; color: var(--text-soft); margin: 2px 0 0; }
+/* blurred neon bloom of the same word, sitting behind the letters */
+.zn-head__title::before {
+  content: attr(data-text); position: absolute; inset: 0; z-index: -1;
+  color: var(--zfire); filter: blur(14px); opacity: 0.5; pointer-events: none;
+  animation: zn-title-bloom 3.4s ease-in-out infinite;
+}
+.zn-head__sub { font-size: 12.5px; color: var(--text-soft); margin: 5px 0 0; letter-spacing: 0.3px; }
 
-/* ---------- tab bar ---------- */
+.zn-head__flame { flex-shrink: 0; display: grid; place-items: center; width: 36px; height: 36px; color: var(--zfire); transform-origin: 50% 92%; animation: zn-cornerflame 2.6s ease-in-out infinite; }
+.zn-head__flame svg { width: 31px; height: 31px; display: block; }
+.zn-head__flame path { fill: currentColor; }
+
+@keyframes zn-head-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.94); filter: blur(5px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes zn-title-flow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes zn-title-bloom {
+  0%, 100% { opacity: 0.38; filter: blur(12px); }
+  50% { opacity: 0.68; filter: blur(18px); }
+}
+@keyframes zn-cornerflame {
+  0%, 100% { transform: scaleY(1) scaleX(1); filter: drop-shadow(0 0 7px var(--zfire-glow)) drop-shadow(0 0 15px var(--zfire-glow)) brightness(1); }
+  45% { transform: scaleY(1.09) scaleX(0.95); filter: drop-shadow(0 0 10px var(--zfire-glow)) drop-shadow(0 0 22px var(--zfire-glow)) brightness(1.18); }
+  72% { transform: scaleY(0.95) scaleX(1.03); filter: drop-shadow(0 0 5px var(--zfire-glow)) drop-shadow(0 0 11px var(--zfire-glow)) brightness(0.9); }
+}
+
+/* ---------- tab bar — "The Forge Dock" ----------
+   Custom neon glyphs, no emoji. The active tab ignites: it floats up,
+   glows, lights a molten bar, throws a one-shot ignition ring, and
+   rises embers. Everything tints with the live fire level via --zfire. */
 .zn-tabs {
   position: sticky; top: 6px; z-index: 30;
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
-  background: rgba(8, 0, 12, 0.86); backdrop-filter: blur(14px);
-  border: 1px solid var(--zn-border); border-radius: 16px; padding: 5px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;
+  background:
+    linear-gradient(180deg, rgba(24, 6, 34, 0.72), rgba(6, 0, 10, 0.9));
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--zn-border); border-radius: 18px; padding: 6px;
   margin-bottom: 16px;
+  box-shadow: 0 10px 34px -18px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
+/* hairline of fire-light across the top edge of the dock */
+.zn-tabs::before {
+  content: ""; position: absolute; left: 14%; right: 14%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--zfire), transparent);
+  opacity: 0.5; filter: drop-shadow(0 0 4px var(--zfire-glow));
+}
+
 .zn-tab {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 7px 2px 6px; border: none; background: transparent; color: var(--text-soft);
-  font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
-  border-radius: 12px; cursor: pointer;
-  transition: color 180ms var(--ease-out), background 180ms var(--ease-out);
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 2px 7px; border: none; background: transparent; color: var(--text-soft);
+  border-radius: 13px; cursor: pointer; isolation: isolate;
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out);
 }
-.zn-tab__icon { font-size: 17px; line-height: 1; filter: grayscale(0.6) opacity(0.8); transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out); }
+/* one-shot ignition ring — replays whenever the tab becomes active */
+.zn-tab::before {
+  content: ""; position: absolute; top: 16px; left: 50%; width: 26px; height: 26px;
+  margin: -13px 0 0 -13px; border-radius: 50%;
+  border: 1.5px solid var(--zfire); opacity: 0; pointer-events: none;
+}
+.zn-tab--active::before { animation: zn-ignite 640ms var(--ease-out) both; }
+/* molten underline bar */
+.zn-tab::after {
+  content: ""; position: absolute; left: 50%; bottom: 3px;
+  width: 58%; height: 2.5px; border-radius: 3px;
+  transform: translateX(-50%) scaleX(0); transform-origin: center; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--zfire), transparent);
+  box-shadow: 0 0 10px var(--zfire-glow), 0 0 20px var(--zfire-glow);
+  transition: transform 340ms var(--ease-out), opacity 340ms var(--ease-out);
+}
+.zn-tab--active::after {
+  transform: translateX(-50%) scaleX(1); opacity: 1;
+  animation: zn-molten 2.4s ease-in-out 340ms infinite;
+}
+
+/* glyph wrapper — hosts the glow halo + rising embers */
+.zn-tab__icon { position: relative; display: grid; place-items: center; width: 24px; height: 24px; }
+.zn-tab__icon::before {
+  content: ""; position: absolute; inset: -7px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, var(--zfire-glow), transparent 68%);
+  opacity: 0; transition: opacity 240ms var(--ease-out);
+}
+.zn-tab__icon::after {
+  content: ""; position: absolute; left: 50%; top: 60%; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--zfire); box-shadow: 6px 1px 0 -0.5px var(--zfire), -5px 2px 0 -1px var(--zfire);
+  opacity: 0; pointer-events: none;
+}
+.zn-glyph {
+  width: 23px; height: 23px; display: block; color: inherit;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), stroke-width 200ms ease, filter 240ms ease;
+}
+
+.zn-tab__label {
+  font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+  transition: color 200ms var(--ease-out);
+}
+
+/* hover — a small lift + faint warmth (idle tabs only) */
+.zn-tab:hover:not(.zn-tab--active) { color: var(--text-muted); }
+.zn-tab:hover:not(.zn-tab--active) .zn-glyph { transform: translateY(-1.5px); }
+.zn-tab:hover:not(.zn-tab--active) .zn-tab__icon::before { opacity: 0.35; }
+
+/* ACTIVE — ignited */
 .zn-tab--active { color: var(--text-main); background: var(--zfire-soft); }
-.zn-tab--active .zn-tab__icon { filter: none; transform: translateY(-1px); }
+.zn-tab--active .zn-glyph {
+  color: var(--zfire); stroke-width: 2.1;
+  transform: translateY(-2px) scale(1.06);
+  filter: drop-shadow(0 0 5px var(--zfire-glow)) drop-shadow(0 0 11px var(--zfire-glow));
+}
+.zn-tab--active .zn-tab__icon::before { opacity: 1; animation: zn-halo 2.6s ease-in-out infinite; }
+.zn-tab--active .zn-tab__icon::after { animation: zn-ember 1.8s ease-out infinite; }
+
+/* icon-specific life */
+.zn-tab--active[data-key="home"] .zn-glyph { animation: zn-flicker 2.2s ease-in-out infinite; }
+/* the bell rings while there's an unread — and calms once you open Inbox */
+.zn-tab--alert:not(.zn-tab--active) .zn-glyph { color: var(--zfire); opacity: 0.92; }
+.zn-tab--alert:not(.zn-tab--active) .zn-tab__icon .zn-glyph { transform-origin: 50% 3px; animation: zn-ring 2.6s ease-in-out infinite; }
+
 .zn-tab:focus-visible { outline: 2px solid var(--zfire); outline-offset: 2px; }
+
 .zn-tab__badge {
-  position: absolute; top: 3px; right: calc(50% - 17px);
+  position: absolute; top: 4px; right: calc(50% - 20px); z-index: 2;
   min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px;
   background: var(--brand-red); color: #fff; font-size: 9.5px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 8px rgba(255, 59, 92, 0.7);
+  animation: zn-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes zn-ignite {
+  0% { opacity: 0.9; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes zn-molten {
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 8px var(--zfire-glow), 0 0 14px var(--zfire-glow); }
+  50% { opacity: 1; box-shadow: 0 0 12px var(--zfire-glow), 0 0 26px var(--zfire-glow); }
+}
+@keyframes zn-halo { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes zn-ember {
+  0% { transform: translate(-50%, 3px) scale(1); opacity: 0.85; }
+  100% { transform: translate(-50%, -15px) scale(0.35); opacity: 0; }
+}
+@keyframes zn-flicker {
+  0%, 100% { filter: drop-shadow(0 0 5px var(--zfire-glow)) drop-shadow(0 0 11px var(--zfire-glow)) brightness(1); }
+  48% { filter: drop-shadow(0 0 7px var(--zfire-glow)) drop-shadow(0 0 17px var(--zfire-glow)) brightness(1.16); }
+  72% { filter: drop-shadow(0 0 4px var(--zfire-glow)) drop-shadow(0 0 8px var(--zfire-glow)) brightness(0.9); }
+}
+@keyframes zn-ring {
+  0%, 58%, 100% { transform: rotate(0deg); }
+  64% { transform: rotate(11deg); }
+  72% { transform: rotate(-8deg); }
+  80% { transform: rotate(5deg); }
+  88% { transform: rotate(-2deg); }
+}
+@keyframes zn-badge-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 59, 92, 0.7); }
+  50% { box-shadow: 0 0 14px rgba(255, 59, 92, 0.95); }
 }
 
 /* ---------- cards ---------- */
@@ -360,7 +498,8 @@ html[data-reduced-motion="true"] .zn-sheet { animation: none !important; transit
 /* ---------- responsive ---------- */
 @media (max-width: 420px) {
   .zn-cats { grid-template-columns: repeat(3, 1fr); }
-  .zn-tab { font-size: 9px; }
+  .zn-tab { padding: 8px 1px 6px; }
+  .zn-tab__label { font-size: 9px; letter-spacing: 0.1px; }
   .zn-2col { grid-template-columns: 1fr; }
 }
 @media (min-width: 760px) {

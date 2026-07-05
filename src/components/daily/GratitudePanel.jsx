@@ -192,8 +192,8 @@ export default function GratitudePanel() {
         ) : (
           <div className="gratitude-cta">
             <p className="gratitude-cta-teaser">
-              Pick one of four doors — a person, a comeback, the overlooked, or your future self.
-              Each one runs a different guided ritual. About two minutes.
+              Pick a door — a person, a comeback, the overlooked, your future self, right now,
+              or free-form. Each one runs a different guided ritual. About two minutes.
             </p>
             <button className="gratitude-lock-btn" onClick={() => setOpen(true)}>
               Choose your gratitude →

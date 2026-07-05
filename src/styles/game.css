@@ -1904,14 +1904,14 @@
 }
 
 .make-stand-locked-text {
-  font-size: 19px;
+  font-size: 16px;
   font-style: normal;
   color: #FBE9F8;
   font-family: var(--font-body);
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0;
-  padding: 16px 20px;
+  padding: 14px 16px;
   background: rgba(255,62,219,0.08);
   border-left: 4px solid #FF3EDB;
   border-radius: 16px;
@@ -1929,7 +1929,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(251, 233, 248, 0.82);
 }
 .make-stand-locked-tick {
@@ -1939,7 +1939,7 @@
 .make-stand-locked-intention {
   margin: 4px 0 0;
   font-style: italic;
-  font-size: 14.5px;
+  font-size: 13px;
   color: rgba(251, 233, 248, 0.7);
 }
 
@@ -2696,6 +2696,37 @@
 }
 .gw-intro-tip-mic { font-size: 18px; flex-shrink: 0; }
 
+/* ── Freedom Express spark chips (optional starters above the first field) ── */
+.gw-sparks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 14px;
+}
+.gw-spark {
+  padding: 8px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: rgba(242, 240, 244, 0.82);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.16s, border-color 0.2s, background 0.2s, box-shadow 0.25s, color 0.2s;
+}
+.gw-spark:hover {
+  transform: translateY(-1px);
+  color: var(--text-main);
+  border-color: color-mix(in srgb, var(--accent, #F472B6) 55%, transparent);
+  background: color-mix(in srgb, var(--accent, #F472B6) 10%, rgba(255, 255, 255, 0.04));
+}
+.gw-spark.is-on {
+  color: #fff;
+  border-color: var(--accent, #F472B6);
+  background: color-mix(in srgb, var(--accent, #F472B6) 20%, rgba(0, 0, 0, 0.2));
+  box-shadow: 0 0 18px -5px color-mix(in srgb, var(--accent, #F472B6) 80%, transparent);
+}
+
 /* ── Answer box + voice dictation ── */
 .gw-field { position: relative; }
 .gw-field-input { padding-bottom: 46px; }  /* room for the mic button */
@@ -3158,12 +3189,6 @@
   background: rgba(0,240,255,0.04);
   border: 1px solid rgba(0,240,255,0.18);
   border-left: 3px solid #00F0FF;
-}
-
-.morning-recap-stand {
-  background: rgba(255,62,219,0.04);
-  border: 1px solid rgba(255,62,219,0.15);
-  border-left: 3px solid #FF3EDB;
 }
 
 .morning-recap-label {
@@ -4134,10 +4159,14 @@
   position: relative;
   background: linear-gradient(135deg, #030010 0%, #0a0020 100%);
   border: 1px solid rgba(0,240,255,0.2);
-  border-radius: 18px;
-  padding: 20px 20px 18px;
+  border-radius: 14px;
+  padding: 11px 14px 10px;
   overflow: hidden;
-  margin-bottom: 12px;
+}
+
+/* Pull Today's Top 5 in tight under the execute banner — they read as one unit */
+.morning-recap-section + section {
+  margin-top: -8px;
 }
 
 .morning-execute-banner-glow {
@@ -4153,27 +4182,27 @@
 
 .morning-execute-eyebrow {
   display: block;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   color: rgba(0,240,255,0.7);
   font-family: var(--font-mono);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .morning-execute-title {
-  font-size: clamp(24px, 4.2vw, 36px);
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 800;
   font-family: var(--font-display);
   color: #F2F0F4;
-  margin: 0 0 6px;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .morning-execute-sub {
-  font-size: 13px;
+  font-size: 11.5px;
   color: rgba(242,240,244,0.45);
   margin: 0;
 }
@@ -7919,7 +7948,7 @@
 }
 
 .daily-hero-title {
-  font-size: clamp(24px, 4.2vw, 36px);
+  font-size: clamp(28px, 5.2vw, 42px);
   line-height: 1.05;
   text-shadow: 0 18px 50px rgba(0, 0, 0, 0.65);
 }
@@ -8242,7 +8271,7 @@
 
 @media (max-width: 920px) {
   .daily-hero-title {
-    font-size: clamp(24px, 6vw, 32px);
+    font-size: clamp(28px, 7.5vw, 36px);
   }
 
   .morning-activation {

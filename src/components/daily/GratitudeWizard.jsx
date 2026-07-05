@@ -6,9 +6,11 @@ import { useSpeechToText } from "../../hooks/useSpeechToText.js";
 
 // ─── Cinematic branching Gratitude wizard ──────────────────────────────────────
 // Step model:  -2 selector · -1 "go deeper" reminder · 0..n-1 layers · n reveal.
-// The user picks one of four gratitude flavors (The Person, The Comeback, The
-// Overlooked, The Future Self), gets a quick depth reminder, then drops into a
-// uniquely-themed 3-layer flow. Each answer box supports voice dictation.
+// The user picks one of six gratitude flavors (The Person, The Comeback, The
+// Overlooked, The Future Self, The Right Now, Freedom Express), gets a quick
+// depth reminder, then drops into a uniquely-themed 3-layer flow. Freedom
+// Express also offers optional "spark" chips that re-frame its first layer.
+// Each answer box supports voice dictation.
 // Teaches DEPTH over breadth: one vivid, specific moment beats a list of three —
 // that depth is where the drop in anxiety and depression actually comes from.
 
@@ -62,6 +64,8 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
   const [step, setStep] = useState(initialType ? 0 : -2);
   const [dir, setDir] = useState(1);
   const [values, setValues] = useState(initial?.values || ["", "", ""]);
+  // Freedom Express only: which starter "spark" (if any) is selected.
+  const [spark, setSpark] = useState(null);
 
   const layers = type?.layers || [];
   const TOTAL = layers.length;
@@ -77,6 +81,7 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
 
   const pickType = (t) => {
     setType(t);
+    setSpark(null);
     setValues(initial?.typeId === t.id ? (initial.values || ["", "", ""]) : ["", "", ""]);
     go(-1); // land on the "go deeper" reminder before the questions
   };
@@ -132,11 +137,16 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
   // Selector exits · reminder returns to selector · first layer returns to reminder.
   const goBack = () => {
     if (step === -2) return onClose?.();
-    if (step === -1) { setDir(-1); setStep(-2); setType(null); playSound("click", { soundEnabled }); return; }
+    if (step === -1) { setDir(-1); setStep(-2); setType(null); setSpark(null); playSound("click", { soundEnabled }); return; }
     go(step - 1, -1);
   };
 
-  const layer = step >= 0 && step < TOTAL ? layers[step] : null;
+  const baseLayer = step >= 0 && step < TOTAL ? layers[step] : null;
+  // Freedom Express: a chosen spark re-frames its first (host) layer.
+  const layer =
+    baseLayer?.sparkHost && spark
+      ? { ...baseLayer, kicker: spark.kicker, title: spark.title, sub: spark.sub, placeholder: spark.placeholder }
+      : baseLayer;
   const current = layer ? values[step] || "" : "";
   const score = layer?.depth ? depthScore(current) : 0;
   // Never trap the user: any non-empty answer advances. The depth meter is pure
@@ -189,7 +199,7 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
               <span className="dsw-kicker" style={{ color: "var(--brand-gold)" }}>CHOOSE YOUR GRATITUDE</span>
               <h2 className="dsw-title">What do you want to feel today?</h2>
               <p className="dsw-sub">
-                Four different doors. Pick one — each one takes you somewhere the others don't.
+                Six different doors. Pick one — each one takes you somewhere the others don't.
                 Depth is the medicine: we'll go deep on one real thing, not wide on a list.
               </p>
               <div className="gw-type-grid">
@@ -255,6 +265,21 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
               <span className="dsw-kicker">{layer.kicker}</span>
               <h2 className="dsw-title">{layer.title}</h2>
               {layer.sub && <p className="dsw-sub">{layer.sub}</p>}
+              {layer.sparkHost && type.sparks && (
+                <div className="gw-sparks" role="group" aria-label="Pick a spark to start">
+                  {type.sparks.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={`gw-spark ${spark?.id === s.id ? "is-on" : ""}`}
+                      style={{ "--accent": accent }}
+                      onClick={() => { setSpark(s); playSound("click", { soundEnabled }); }}
+                    >
+                      {s.chip}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="gw-field">
                 <textarea
                   className="dsw-textarea dsw-textarea--big gw-field-input"

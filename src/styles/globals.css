@@ -6325,3 +6325,562 @@ h4,
   .app-topbar__icon-box { width: 40px; height: 40px; }
   .app-topbar__right { gap: 6px; }
 }
+
+/* ============================================================
+   VISION FEATURE CARD — the official home-page entry point.
+   A peek of the pinned board + a big "open your board" CTA.
+   ============================================================ */
+.vision-feature {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 22px;
+  padding: 24px 26px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--brand-purple) 42%, transparent);
+  background:
+    radial-gradient(130% 150% at 100% 0%, rgba(209, 30, 255, 0.16), transparent 55%),
+    linear-gradient(150deg, rgba(26, 6, 48, 0.94), rgba(8, 2, 16, 0.97));
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 220ms var(--ease-out), border-color 220ms, box-shadow 220ms;
+}
+.vision-feature:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--brand-magenta) 62%, transparent);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), 0 0 44px rgba(123, 44, 255, 0.3);
+}
+.vision-feature:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 3px; }
+
+.vision-feature__glow {
+  position: absolute;
+  top: -60px;
+  right: -30px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123, 44, 255, 0.4), transparent 68%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.vision-feature__body { position: relative; z-index: 1; min-width: 0; }
+
+.vision-feature__kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--brand-magenta) 82%, #fff);
+}
+.vision-feature__title {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3.6vw, 27px);
+  font-weight: 900;
+  line-height: 1.04;
+  color: var(--text-main);
+}
+.vision-feature__prompt {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+.vision-feature__meta { margin-top: 12px; }
+.vision-feature__count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--brand-cyan);
+}
+.vision-feature__count strong { font-size: 15px; font-weight: 900; }
+.vision-feature__count--empty { color: var(--text-muted); opacity: 0.7; }
+
+.vision-feature__actions {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.vision-feature__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 17px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--brand-purple), var(--brand-magenta));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(123, 44, 255, 0.4);
+  transition: transform 150ms var(--ease-out);
+}
+.vision-feature:hover .vision-feature__cta { transform: translateX(2px); }
+.vision-feature__pill {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms, transform 150ms;
+}
+.vision-feature__pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-cyan);
+  background: rgba(0, 240, 255, 0.1);
+}
+.vision-feature__pill--med:hover { border-color: var(--brand-magenta); background: rgba(209, 30, 255, 0.1); }
+
+/* ---- Peek: a small fan of pinned polaroids leaning off the card ---- */
+.vision-feature__peek {
+  position: relative;
+  width: 196px;
+  height: 156px;
+  flex-shrink: 0;
+}
+.vision-feature__board {
+  position: absolute;
+  inset: 6px;
+  border-radius: 14px;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 7px 7px,
+    linear-gradient(160deg, rgba(60, 30, 12, 0.55), rgba(20, 8, 4, 0.6));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+}
+.vision-feature__polaroid {
+  position: absolute;
+  top: calc(14px + var(--i) * 6px);
+  left: calc(14px + var(--i) * 48px);
+  width: 96px;
+  padding: 6px 6px 18px;
+  border-radius: 3px;
+  background: #f4f1ea;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+  transform: rotate(var(--tilt));
+  transition: transform 260ms var(--ease-out);
+}
+.vision-feature:hover .vision-feature__polaroid { transform: rotate(calc(var(--tilt) * 0.4)) translateY(-3px); }
+.vision-feature__polaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 1px;
+  background: #17111f;
+}
+.vision-feature__polaroid--ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  height: 96px;
+  background: #efeae0;
+}
+.vision-feature__ghost-icon { font-size: 30px; opacity: 0.7; }
+.vision-feature__pin {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--brand-pink) 48%, color-mix(in srgb, var(--brand-pink) 55%, #000));
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 0 12px color-mix(in srgb, var(--brand-pink) 60%, transparent);
+}
+.vision-feature__polaroid--cyan .vision-feature__pin { background: radial-gradient(circle at 35% 30%, #fff, var(--brand-cyan) 48%, #036); box-shadow: 0 2px 5px rgba(0,0,0,0.55), 0 0 12px rgba(0,240,255,0.6); }
+.vision-feature__polaroid--purple .vision-feature__pin { background: radial-gradient(circle at 35% 30%, #fff, var(--brand-purple) 48%, #204); box-shadow: 0 2px 5px rgba(0,0,0,0.55), 0 0 12px rgba(123,44,255,0.6); }
+
+@media (max-width: 620px) {
+  .vision-feature { grid-template-columns: 1fr; }
+  .vision-feature__peek { width: 100%; height: 128px; order: -1; }
+  .vision-feature__polaroid { left: calc(50% - 132px + var(--i) * 92px); }
+}
+
+/* ============================================================
+   CORKBOARD — the full vision board. Photos pinned to a
+   midnight board with glowing push-pins; open one for detail.
+   ============================================================ */
+.cork-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+.cork-toolbar__btn {
+  --tb: var(--brand-purple);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--tb) 50%, transparent);
+  border-radius: 999px;
+  padding: 9px 16px;
+  background: color-mix(in srgb, var(--tb) 14%, transparent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 150ms var(--ease-out), border-color 150ms, background 150ms, box-shadow 150ms;
+}
+.cork-toolbar__btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--tb);
+  background: color-mix(in srgb, var(--tb) 24%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--tb) 32%, transparent);
+}
+.cork-toolbar__btn--add { --tb: var(--brand-magenta); }
+.cork-toolbar__btn--med { --tb: var(--brand-cyan); }
+.cork-toolbar__btn--ghost { --tb: var(--brand-gold); }
+
+.corkboard {
+  position: relative;
+  border-radius: 20px;
+  padding: 30px 22px 34px;
+  min-height: 320px;
+  background:
+    radial-gradient(120% 90% at 15% 10%, rgba(123, 44, 255, 0.1), transparent 45%),
+    radial-gradient(120% 90% at 85% 90%, rgba(0, 240, 255, 0.07), transparent 45%),
+    radial-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px) 0 0 / 8px 8px,
+    linear-gradient(160deg, #14082a, #0a0512 70%);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  transition: box-shadow 200ms var(--ease-out);
+}
+.corkboard.is-dragover {
+  box-shadow: inset 0 0 0 2px var(--brand-magenta), inset 0 0 70px rgba(209, 30, 255, 0.25);
+}
+/* Warm frame edge so it reads as a physical board */
+.corkboard__frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  pointer-events: none;
+  border: 6px solid transparent;
+  background:
+    linear-gradient(#0000, #0000) padding-box,
+    linear-gradient(160deg, rgba(120, 78, 40, 0.5), rgba(48, 28, 14, 0.55)) border-box;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+
+.corkboard__wall {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px 26px;
+}
+
+/* ---- A single pinned polaroid ---- */
+.cork-pin {
+  --pin: var(--brand-pink);
+  position: relative;
+  width: 184px;
+  margin-top: 8px;
+  padding: 11px 11px 0;
+  border: none;
+  border-radius: 3px;
+  background: #f5f2ea;
+  color: #1a1622;
+  cursor: pointer;
+  transform: rotate(var(--tilt));
+  transform-origin: 50% -6px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5);
+  transition: transform 240ms var(--ease-out), box-shadow 240ms var(--ease-out);
+}
+.cork-pin:hover,
+.cork-pin:focus-visible {
+  transform: rotate(0deg) translateY(-8px) scale(1.04);
+  z-index: 6;
+  box-shadow: 0 26px 50px rgba(0, 0, 0, 0.6), 0 0 34px color-mix(in srgb, var(--pin) 45%, transparent);
+  outline: none;
+}
+.cork-pin__photo {
+  display: block;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 1px;
+  background: #14101c;
+}
+.cork-pin__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+.cork-pin:hover .cork-pin__photo img { transform: scale(1.06); }
+.cork-pin__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  opacity: 0.4;
+}
+.cork-pin__caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 9px 6px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #241f2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cork-pin__linked {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  color: #6b21a8;
+  background: rgba(123, 44, 255, 0.12);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+/* The glowing push-pin bead */
+.cork-pin__pin {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  z-index: 3;
+  background: radial-gradient(circle at 34% 28%, #fff 8%, var(--pin) 50%, color-mix(in srgb, var(--pin) 55%, #000) 100%);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.55), 0 0 16px color-mix(in srgb, var(--pin) 65%, transparent);
+}
+.cork-pin__pin::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  filter: blur(0.5px);
+}
+.cork-pin__pin--cyan { --pin: var(--brand-cyan); }
+.cork-pin__pin--pink { --pin: var(--brand-pink); }
+.cork-pin__pin--purple { --pin: var(--brand-purple); }
+.cork-pin__pin--magenta { --pin: var(--brand-magenta); }
+.cork-pin__pin--gold { --pin: var(--brand-gold); }
+
+.cork-pin__del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms, background 150ms;
+}
+.cork-pin:hover .cork-pin__del,
+.cork-pin:focus-within .cork-pin__del { opacity: 1; }
+.cork-pin__del:hover { background: var(--brand-red); }
+
+.cork-pin--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 184px;
+  aspect-ratio: 3 / 4;
+  cursor: default;
+  transform: rotate(-2deg);
+}
+.cork-pin__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: var(--brand-purple);
+  animation: vision-spin 0.8s linear infinite;
+}
+
+.cork-pin--ghost {
+  background: rgba(245, 242, 234, 0.06);
+  border: 1.5px dashed rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+.cork-pin--ghost .cork-pin__ghost-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  font-size: 40px;
+  opacity: 0.6;
+}
+.cork-pin--ghost .cork-pin__caption { color: var(--text-muted); }
+
+.corkboard__empty {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 12px 0 8px;
+}
+.corkboard__empty-notes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 26px;
+}
+.corkboard__empty-text {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.corkboard__empty-text em { color: var(--brand-cyan); font-style: normal; }
+
+.corkboard__droptext {
+  position: absolute;
+  inset: auto 0 12px 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--brand-magenta);
+  pointer-events: none;
+}
+
+/* ---- Detail card (extends the vision lightbox with project links) ---- */
+.cork-detail__links { margin-top: 16px; }
+.cork-detail__links-label {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.cork-detail__chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cork-detail__none { font-size: 13px; color: var(--text-muted); opacity: 0.7; }
+.cork-detail__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-cyan);
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 999px;
+  padding: 4px 8px 4px 10px;
+}
+.cork-detail__chip-x {
+  border: none;
+  background: none;
+  color: rgba(0, 240, 255, 0.65);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.cork-detail__chip-x:hover { color: var(--brand-red); }
+.cork-detail__linkwrap { position: relative; }
+.cork-detail__link-btn {
+  border: 1px solid rgba(123, 44, 255, 0.4);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(123, 44, 255, 0.1);
+  color: color-mix(in srgb, var(--brand-purple) 60%, #fff);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+}
+.cork-detail__link-btn:hover { border-color: var(--brand-purple); background: rgba(123, 44, 255, 0.2); }
+.cork-detail__menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  min-width: 200px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 12px;
+  background: #160a28;
+  border: 1px solid rgba(123, 44, 255, 0.4);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.6);
+}
+.cork-detail__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.cork-detail__menu-item:hover { background: rgba(123, 44, 255, 0.18); }
+.cork-detail__actions { margin-top: 18px; }
+.cork-detail__delete {
+  border: 1px solid color-mix(in srgb, var(--brand-red) 45%, transparent);
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--brand-red) 12%, transparent);
+  color: var(--brand-red);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+.cork-detail__delete:hover { background: color-mix(in srgb, var(--brand-red) 22%, transparent); border-color: var(--brand-red); }
+
+@media (max-width: 560px) {
+  .corkboard { padding: 22px 12px 26px; }
+  .corkboard__wall { gap: 24px 16px; }
+  .cork-pin { width: 44%; min-width: 138px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cork-pin,
+  .cork-pin__photo img,
+  .vision-feature,
+  .vision-feature__polaroid { transition: none; }
+  .cork-pin:hover,
+  .cork-pin:focus-visible { transform: rotate(0deg); }
+}

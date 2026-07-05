@@ -321,13 +321,65 @@
 }
 
 /* ── Zone markers ───────────────────────────────────────────────────────── */
+/* Accents deepen with the descent: still-water green → swamp teal → belief
+   purple → furnace gold → moon cyan. */
 .swr-zone { position: relative; --zac: var(--brand-cyan); }
-.swr-zone--threshold { --zac: #facc15; }
-.swr-zone--furnace   { --zac: #ff3b5c; }
-.swr-zone--stories   { --zac: #7b2cff; }
 .swr-zone--waters    { --zac: #00ffbf; }
+.swr-zone--undertow  { --zac: #2fe0a6; }
+.swr-zone--stories   { --zac: #7b2cff; }
+.swr-zone--furnace   { --zac: #facc15; }
 .swr-zone--moongate  { --zac: #00f0ff; }
 .swr-zone { background: radial-gradient(88% 62% at 50% 34%, color-mix(in srgb, var(--zac) 4%, transparent), transparent 70%); }
+
+/* ── Locked / sealed depths — the gate ──────────────────────────────────── */
+.swr-zone--locked { filter: saturate(0.5); }
+.swr-zone--locked .swr-zone__label { color: color-mix(in srgb, var(--zac) 46%, var(--text-soft)); }
+.swr-zone--collapsed { opacity: 0.4; }
+.swr-zone--collapsed .swr-zone__marker { margin: 14px 0 8px; }
+.swr-sealed {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: calc(var(--spine-x) + 22px);
+  margin-right: 6px;
+  padding: 16px 18px;
+  border: 1.5px dashed color-mix(in srgb, var(--zac) 34%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--zac) 5%, #05000a 88%);
+  animation: swrRise 0.7s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 0.5s);
+}
+.swr-sealed--collapsed {
+  padding: 9px 16px;
+  border-style: dotted;
+  border-color: color-mix(in srgb, var(--zac) 20%, transparent);
+  background: transparent;
+}
+.swr-sealed__glyph {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--zac) 40%, transparent);
+  color: color-mix(in srgb, var(--zac) 78%, white);
+  font-size: 17px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--zac) 22%, transparent) inset;
+}
+.swr-sealed--collapsed .swr-sealed__glyph { width: 26px; height: 26px; font-size: 13px; }
+.swr-sealed__txt { display: flex; flex-direction: column; gap: 3px; }
+.swr-sealed__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--zac) 74%, white);
+}
+.swr-sealed__hint { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; }
+.swr-sealed__hint b { color: color-mix(in srgb, var(--zac) 70%, white); font-weight: 700; }
 
 .swr-zone__marker {
   position: relative;

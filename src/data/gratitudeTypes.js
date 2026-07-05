@@ -1,5 +1,5 @@
 // ─── Gratitude flavors ─────────────────────────────────────────────────────────
-// Four distinct *kinds* of gratitude. The user picks one from the selector, then
+// Six distinct *kinds* of gratitude. The user picks one from the selector, then
 // drops into a wizard whose layers, voice, and accent are unique to that flavor —
 // so the ritual feels different every time instead of one fixed script.
 //
@@ -126,6 +126,119 @@ export const GRATITUDE_TYPES = [
         title: "What have you already done for it?",
         sub: "Name one thing you've already done, or can do today, to help it happen.",
         placeholder: "I've already…",
+      },
+    ],
+  },
+  {
+    id: "present",
+    label: "The Right Now",
+    tagline: "Grateful, in this moment",
+    accent: "#38BDF8",
+    glyph: "☀",
+    blurb: "Not the past — right now. Something good from today, and what's good this very second.",
+    labels: ["From today", "Who showed up", "Right now"],
+    layers: [
+      {
+        depth: true,
+        kicker: "FROM TODAY",
+        title: "What's one good thing from today or yesterday?",
+        sub: "Not years ago — recent. A small moment that actually happened. Step back into it: where were you, what did you see or hear?",
+        placeholder: "Earlier today / yesterday, there was…",
+      },
+      {
+        kicker: "WHO SHOWED UP",
+        title: "Who showed up for you lately?",
+        sub: "Someone who texted, helped, listened, or just made you smile this week. Picture their face right now.",
+        placeholder: "Lately, ___ was there when…",
+      },
+      {
+        kicker: "RIGHT NOW",
+        title: "What's good in this exact moment?",
+        sub: "Look up for a second. Your breath, the seat under you, the light, a sound, being alive to read this. Name what's here now.",
+        placeholder: "Right now, I can feel / see / hear…",
+      },
+    ],
+  },
+  {
+    id: "freedom",
+    label: "Freedom Express",
+    tagline: "Anything you want",
+    accent: "#F472B6",
+    glyph: "✷",
+    blurb: "No theme, no rules. Be grateful for anything at all — tap a spark to start, or just go.",
+    labels: ["The thing", "Why it matters", "How it feels"],
+    // Optional starter chips shown on the first layer. Tapping one re-frames that
+    // layer for a direction; skipping them and just typing is equally valid.
+    sparks: [
+      {
+        id: "person",
+        chip: "A person",
+        kicker: "A PERSON",
+        title: "Who are you grateful for?",
+        sub: "One person — and one real reason they come to mind right now.",
+        placeholder: "I'm grateful for ___ because…",
+      },
+      {
+        id: "place",
+        chip: "A place",
+        kicker: "A PLACE",
+        title: "What place are you grateful for?",
+        sub: "Somewhere that feels good to you — a room, a city, a spot outside. Put yourself there.",
+        placeholder: "I'm grateful for this place because…",
+      },
+      {
+        id: "win",
+        chip: "A small win",
+        kicker: "A SMALL WIN",
+        title: "What win are you grateful for?",
+        sub: "Something that went right lately — big or tiny. What did you pull off?",
+        placeholder: "I'm grateful I…",
+      },
+      {
+        id: "body",
+        chip: "My body",
+        kicker: "MY BODY",
+        title: "What about your body are you grateful for?",
+        sub: "It carried you here. Your breath, your legs, your hands, a sense, healing. Name one.",
+        placeholder: "I'm grateful my body…",
+      },
+      {
+        id: "tiny",
+        chip: "A tiny thing",
+        kicker: "A TINY THING",
+        title: "What tiny thing are you grateful for?",
+        sub: "The stuff you'd miss instantly — coffee, a song, warmth, a text back. One small thing.",
+        placeholder: "I'm grateful for this small thing…",
+      },
+      {
+        id: "free",
+        chip: "Just free",
+        kicker: "FREE",
+        title: "What are you grateful for?",
+        sub: "No box. Whatever's in your heart right now — write it.",
+        placeholder: "Right now, I'm grateful for…",
+      },
+    ],
+    layers: [
+      {
+        depth: true,
+        sparkHost: true,
+        kicker: "FREE",
+        title: "What are you grateful for?",
+        sub: "Anything at all — a person, a place, a win, your body, a tiny thing. Tap a spark below, or just start typing.",
+        placeholder: "Right now, I'm grateful for…",
+      },
+      {
+        kicker: "WHY IT MATTERS",
+        title: "What makes it matter to you?",
+        sub: "Say more. Why this one? Why does it hit different when you really stop and look at it?",
+        placeholder: "It matters because…",
+      },
+      {
+        kicker: "SIT WITH IT",
+        title: "How does it feel to sit with it?",
+        sub: "Close the gap between knowing and feeling. Where do you notice it — your chest, your face, a little ease somewhere?",
+        placeholder: "When I sit with it, I feel…",
       },
     ],
   },

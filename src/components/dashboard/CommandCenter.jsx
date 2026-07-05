@@ -3,141 +3,26 @@ import MissionHero from "./MissionHero.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
 import MapQuestHero from "../projects/MapQuestHero.jsx";
 import CityHeroCard from "./CityHeroCard.jsx";
-import VisionCollage from "../vision/VisionCollage.jsx";
+import ZoneHeroCard from "./ZoneHeroCard.jsx";
+import VisionFeatureCard from "../vision/VisionFeatureCard.jsx";
 import Button from "../ui/Button.jsx";
-
-function IconLightning() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <path d="M11 2L3 12h7l-1 6 8-10h-7L11 2z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconMap() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <polygon points="1,4 7,1 13,4 19,1 19,16 13,19 7,16 1,19" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" fill="currentColor" fillOpacity="0.08" />
-      <line x1="7" y1="1" x2="7" y2="16" stroke="currentColor" strokeWidth="1.4" />
-      <line x1="13" y1="4" x2="13" y2="19" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-function IconClipboard() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <rect x="4" y="5" width="12" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 5V3.5a2 2 0 0 1 4 0V5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="7" y1="10" x2="13" y2="10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="7" y1="13.5" x2="11" y2="13.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconFlame() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <path d="M10 2c1.6 2.3 4 3.6 4 6.5A4 4 0 0 1 12.4 12c.2-2-0.9-3.1-2.4-4.1C8.5 8.9 7.4 10 7.6 12A4 4 0 0 1 6 8.5C6 5.6 8.4 4.3 10 2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" fill="currentColor" fillOpacity="0.08" />
-      <path d="M5 13.5c1.2 2.4 2.9 3.7 5 3.7s3.8-1.3 5-3.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconGift() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <rect x="2" y="9" width="16" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-      <rect x="1" y="6" width="18" height="4" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-      <line x1="10" y1="6" x2="10" y2="18" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M7 6c-2-2-2-5 0-5s3 3 3 5M13 6c2-2 2-5 0-5s-3 3-3 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-const QUICK_ACTIONS = [
-  {
-    label: "Daily Plan",
-    eyebrow: "Streak",
-    description: "Lock the next five moves.",
-    route: "daily",
-    Icon: IconLightning,
-    asset: "/assets/dashboard/action-streak-v2.png",
-    tone: "pink",
-  },
-  {
-    label: "My Maps",
-    eyebrow: "Worlds",
-    description: "Open active project trails.",
-    route: "milestones",
-    Icon: IconMap,
-    asset: "/assets/dashboard/action-maps-v2.png",
-    tone: "magenta",
-  },
-  {
-    label: "Weekly Review",
-    eyebrow: "Reflect",
-    description: "Update the strategy layer.",
-    route: "weekly",
-    Icon: IconClipboard,
-    asset: "/assets/dashboard/action-review-v2.png",
-    tone: "purple",
-  },
-  {
-    label: "Rewards",
-    eyebrow: "Vault",
-    description: "Claim what progress unlocked.",
-    route: "rewards",
-    Icon: IconGift,
-    asset: "/assets/dashboard/action-rewards-v2.png",
-    tone: "cyan",
-  },
-  {
-    label: "The Zone",
-    eyebrow: "Together",
-    description: "Declare. Prove. Rise with your people.",
-    route: "zone",
-    Icon: IconFlame,
-    asset: "/assets/phoenix-shrine/phoenix-rising.png",
-    tone: "pink",
-  },
-];
 
 export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest }) {
   return (
     <div className="command-center-page">
       <MissionHero />
 
+      {/* Two main features get matched heroes — the daily anchors of the app.
+          Everything else (Daily, Map, Fill Cup, Shadow) lives on the bottom
+          nav; Weekly Review surfaces via the Sunday alert; Rewards is a
+          top-bar icon. No more redundant quick-action grid. */}
       <CityHeroCard onEnter={() => onNavigate("city")} />
+
+      <ZoneHeroCard onEnter={() => onNavigate("zone")} />
 
       <SundayReviewAlert onNavigate={onNavigate} />
 
-      <div className="dashboard-action-grid">
-        {QUICK_ACTIONS.map(({ label, eyebrow, description, route, Icon, asset, tone }) => (
-          <button
-            key={route}
-            onClick={() => onNavigate(route)}
-            className={`dashboard-action-card dashboard-action-card--${tone}`}
-            aria-label={`Open ${label}`}
-          >
-            <img className="dashboard-action-card__image" src={asset} alt="" aria-hidden="true" />
-            <span className="dashboard-action-card__shade" aria-hidden="true" />
-            <span className="dashboard-action-card__body">
-              <span className="dashboard-action-card__topline">
-                <span className="dashboard-action-card__icon">
-                  <Icon />
-                </span>
-                <span>{eyebrow}</span>
-              </span>
-              <span className="dashboard-action-card__label">{label}</span>
-              <span className="dashboard-action-card__description">{description}</span>
-            </span>
-            <span className="dashboard-action-card__cta" aria-hidden="true">Open</span>
-          </button>
-        ))}
-      </div>
-
-      <VisionCollage onNavigate={onNavigate} />
+      <VisionFeatureCard onNavigate={onNavigate} />
 
       <div className="dashboard-command-row">
         <Button variant="primary" onClick={() => onNavigate("milestones")} className="dashboard-command-row__primary">

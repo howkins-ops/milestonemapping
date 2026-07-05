@@ -6,22 +6,30 @@ import {
 /* ════════════════════════════════════════════════════════════════════════
    SELF-COMPASSION — Kristin Neff's Self-Compassion Break, the 3 moves that
    defuse shame & the inner critic: mindfulness → common humanity → self-kindness.
+   The pivot is the "friend reframe": you'd never speak to a friend the way the
+   critic speaks to you — so say to yourself the thing you'd say to them.
    Science: in an 8-week Mindful Self-Compassion trial, participants showed
    significantly greater self-compassion than controls; self-compassion is
    linked to lower anxiety, depression and stress reactivity.
    ════════════════════════════════════════════════════════════════════════ */
 
-const TOTAL = 5;
+const TOTAL = 6;
 const KIND = ["May I be kind to myself", "I’m doing the best I can", "I deserve compassion too", "I’m allowed to be human", "I forgive myself"];
 
 export default function SelfCompassion({ onClose, onFinish }) {
   const [step, setStep] = useState(0);
   const [hurt, setHurt] = useState("");
+  const [friend, setFriend] = useState("");
   const [phrase, setPhrase] = useState(null);
   const meter = Math.round(((TOTAL - step) / TOTAL) * 100);
 
+  const friendLine = friend.trim();
   const finish = () =>
-    onFinish("Self-Compassion", `Met the critic with kindness · "${phrase || "I’m doing my best"}"`, { accent: "pink" });
+    onFinish(
+      "Self-Compassion",
+      friendLine ? `Said to myself what I'd tell a friend: "${friendLine.slice(0, 60)}"` : `Met the critic with kindness · "${phrase || "I’m doing my best"}"`,
+      { accent: "pink" }
+    );
 
   return (
     <ShadowStage accent="pink" title="Self-Compassion" onClose={onClose} meter={meter} total={TOTAL} active={step}>
@@ -57,25 +65,36 @@ export default function SelfCompassion({ onClose, onFinish }) {
       )}
 
       {step === 3 && (
+        <div className="sx-pane">
+          <Eyebrow>3 · The friend reframe</Eyebrow>
+          <Heading>What would you say to a friend?</Heading>
+          <Lead>Picture someone you love sitting where you are, saying{hurt.trim() ? <> &ldquo;{hurt.trim()}&rdquo;</> : " exactly this"}. You wouldn&rsquo;t pile on — you&rsquo;d be kind and honest. Write what you&rsquo;d actually say to <b>them</b>.</Lead>
+          <Field value={friend} onChange={setFriend} placeholder="Hey — this is genuinely hard, and you&rsquo;re not failing. Anyone would struggle here. I&rsquo;ve got you…" rows={3} />
+          <p className="sx-safe">Now read it back as if it were meant for you — because it is.</p>
+          <div className="sx-btnrow"><Primary disabled={!friendLine} onClick={() => setStep(4)}>Now offer it to myself →</Primary></div>
+        </div>
+      )}
+
+      {step === 4 && (
         <div className="sx-center">
-          <Eyebrow>3 · Self-kindness</Eyebrow>
-          <Heading>Now offer yourself warmth.</Heading>
+          <Eyebrow>4 · Self-kindness</Eyebrow>
+          <Heading>Let the warmth land.</Heading>
           <Lead>Place a hand on your heart — the touch alone signals safety. Breathe with the orb, and pick the words you most need to hear.</Lead>
           <BreathOrb phases={[
             { key: "Breathe in", sub: "hand on your heart", s: 4, scale: 1.5, col: "var(--brand-pink)" },
             { key: "Breathe out", sub: "soften", s: 6, scale: 0.82, col: "var(--brand-magenta)" },
           ]} />
           <Chips options={KIND} value={phrase} onChange={setPhrase} />
-          <div className="sx-btnrow"><Primary disabled={!phrase} onClick={() => setStep(4)}>Let it land ✦</Primary></div>
+          <div className="sx-btnrow"><Primary disabled={!phrase} onClick={() => setStep(5)}>Let it land ✦</Primary></div>
         </div>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <Seal
           eyebrow="Softened"
           title="You took your own side."
-          lead="That&rsquo;s the whole skill — not silencing the critic by force, but answering it with warmth. The more you practice, the more it becomes your default inner voice."
-          stamp={phrase || "I’m doing the best I can."}
+          lead="That&rsquo;s the whole skill — not silencing the critic by force, but answering it with the warmth you&rsquo;d give a friend. The more you practice, the more it becomes your default inner voice."
+          stamp={friendLine || phrase || "I’m doing the best I can."}
           onDone={finish}
         />
       )}

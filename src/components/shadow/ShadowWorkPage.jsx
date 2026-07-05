@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
+import { getChapterByKey } from "../map-quest/questChapters.js";
 import { useShadowWork } from "./useShadowWork.js";
+import useDescent from "./useDescent.js";
+import { DEPTH_QUEST_KEYS } from "./descentStore.js";
 import { XP_VALUES } from "../../lib/gamification.js";
 import { maskCardSrc } from "./shell.jsx";
 import ShadowAlchemist from "./ShadowAlchemist.jsx";
@@ -20,8 +23,9 @@ import "../../styles/shadow.css";
 import "../../styles/shadowRealm.css";
 import "../../styles/wave.css";
 
-// Eight chambers of the Shadow Realm. The Alchemist guards the threshold;
-// Integration is the Moon Gate you leave through.
+// Nine chambers of the Shadow Realm. The descent is a guided journey — you
+// start in the still waters and earn your way down to the transmutation
+// rituals; Integration is the Moon Gate you leave through.
 const TOOLS = [
   { id: "bufca",      name: "The Burn",         when: "Something just hit the fan",  relic: "Phoenix Fire",        sub: "BUFCA — Breakdown, Upset, Facts, Commitment, Action. Then write the old story down and burn it.", accent: "#FF9A3C", sigil: "burn",    wide: true },
   { id: "alchemist",  name: "Shadow Alchemist", when: "A mask took the wheel",       relic: "Transmutation Forge", sub: "Name the Survival Mechanism running you — then transmute the mask into its essence.", accent: "#FACC15", sigil: "mask",    wide: true },
@@ -36,14 +40,17 @@ const TOOLS = [
 const TOOL_BY_ID = Object.fromEntries(TOOLS.map((t) => [t.id, t]));
 const TOOL_LABEL = Object.fromEntries(TOOLS.map((t) => [t.name, t.accent]));
 
-// The descent, top to bottom: threshold → heat → old stories → still waters → the way out.
+// The descent, top (gentle) to bottom (the heavy rituals, then the way out).
+// Depths unlock one at a time — see useDescent.js. Zone ids double as the
+// unlock keys and the CSS accent keys (shadowRealm.css .swr-zone--*).
 const ZONES = [
-  { id: "threshold", label: "The Threshold",             tag: "every descent begins at the forge",  tools: ["bufca", "alchemist"] },
-  { id: "furnace",   label: "Depth I · The Furnace",     tag: "heat, pressure, steam",              tools: ["line", "swamp"] },
-  { id: "stories",   label: "Depth II · The Old Stories", tag: "beliefs and echoes that still speak", tools: ["reframe", "inner"] },
-  { id: "waters",    label: "Depth III · The Still Waters", tag: "soften, settle, come back to your senses", tools: ["compassion", "ground"] },
-  { id: "moongate",  label: "The Moon Gate",             tag: "the way back out",                   tools: ["integrate"] },
+  { id: "waters",   label: "Depth I · The Still Waters",  tag: "gentle entry — soften, settle, breathe",         tools: ["ground", "compassion"] },
+  { id: "undertow", label: "Depth II · The Undertow",     tag: "pressure and heat you learn to hold",            tools: ["line", "swamp"] },
+  { id: "stories",  label: "Depth III · The Old Stories", tag: "beliefs and echoes that still speak",            tools: ["reframe", "inner"] },
+  { id: "furnace",  label: "Depth IV · The Furnace",      tag: "the heavy transmutation — masks turned to gold", tools: ["alchemist", "bufca"] },
+  { id: "moongate", label: "Depth V · The Moon Gate",     tag: "the way back out",                               tools: ["integrate"] },
 ];
+const ZONE_BY_ID = Object.fromEntries(ZONES.map((z) => [z.id, z]));
 
 const MOTES = [
   { x: "8%",  y: "12%", c: "rgba(0,240,255,0.8)",  d: "9s",  delay: "0s" },
@@ -150,9 +157,51 @@ function Sigil({ id }) {
 export default function ShadowWorkPage({ onNavigate }) {
   const [view, setView] = useState(null); // null=hub | tool id | "gallery"
   const { addXP, unlockAchievement, celebrate } = useAppData();
-  const { getBrokeKingShadow } = useMapQuestState();
+  const { getBrokeKingShadow, isChapterComplete } = useMapQuestState();
   const brokeKingShadow = getBrokeKingShadow();
-  const { takeaways, essences, streak, recordCompletion, clearTrail } = useShadowWork();
+  const { takeaways, essences, streak, completions, recordCompletion, clearTrail } = useShadowWork();
+
+  // ── The guided descent — depths unlock one at a time (see useDescent.js) ──
+  // completions is keyed by the tool's DISPLAY NAME, so carry names not ids.
+  const DEPTHS = useMemo(
+    () =>
+      ZONES.map((z) => ({
+        id: z.id,
+        toolNames: z.tools.map((id) => TOOL_BY_ID[id].name),
+        questKeys: DEPTH_QUEST_KEYS[z.id] || [],
+      })),
+    []
+  );
+  if (process.env.NODE_ENV !== "production") {
+    // drift guard: every depth tool name must exist in TOOLS or it can never complete
+    DEPTHS.forEach((d) =>
+      d.toolNames.forEach((n) =>
+        console.assert(TOOL_LABEL[n] != null, `[descent] tool name "${n}" not found in TOOLS`)
+      )
+    );
+  }
+
+  const onReveal = useCallback(
+    (depthId) => {
+      const z = ZONE_BY_ID[depthId];
+      addXP(XP_VALUES.mentorLesson, "A new depth opens");
+      celebrate({
+        variant: "reward",
+        title: "A NEW DEPTH OPENS",
+        subtitle: z ? z.label : "The descent goes deeper.",
+        detail: "You earned your way down. A new chamber is lit.",
+      });
+    },
+    [addXP, celebrate]
+  );
+
+  const { isDepthUnlocked, nextLockedDepthId } = useDescent(DEPTHS, {
+    completions,
+    essences,
+    takeaways,
+    isChapterComplete,
+    onReveal,
+  });
 
   const finish = (tool, takeaway, opts = {}) => {
     const res = recordCompletion({ tool, takeaway, essence: opts.essence });
@@ -181,7 +230,7 @@ export default function ShadowWorkPage({ onNavigate }) {
   if (view === "inner")      return <InnerChild      onClose={close} onFinish={finish} />;
   if (view === "compassion") return <SelfCompassion  onClose={close} onFinish={finish} />;
   if (view === "ground")     return <Grounding       onClose={close} onFinish={finish} />;
-  if (view === "integrate")  return <IntegrationTool onClose={close} onFinish={finish} />;
+  if (view === "integrate")  return <IntegrationTool onClose={close} onFinish={finish} takeaways={takeaways} streak={streak} />;
   if (view === "wave")       return <RideTheWave     onClose={close} onFinish={finish} />;
   if (view === "gallery")    return <EssenceGallery  essences={essences} onClose={close} />;
 
@@ -194,6 +243,8 @@ export default function ShadowWorkPage({ onNavigate }) {
       essences={essences}
       streak={streak}
       onClearTrail={clearTrail}
+      isDepthUnlocked={isDepthUnlocked}
+      nextLockedDepthId={nextLockedDepthId}
     />
   );
 }
@@ -226,7 +277,30 @@ function Chamber({ tool, index, side, onOpen }) {
   );
 }
 
-function Hub({ open, onNavigate, brokeKingShadow, takeaways = [], essences = [], streak, onClearTrail }) {
+/* A locked depth — sealed until the depth above is cleared. Not a button:
+   the gate is structural, so there's no way to open a chamber early. The
+   frontier depth shows the unlock hint; deeper depths collapse to one dim
+   line so the page reads as "your current frontier," not a wall of cards. */
+function SealedDepth({ zone, prevZone, questKeys = [], collapsed }) {
+  const questTitle = questKeys.length ? getChapterByKey(questKeys[0])?.title : null;
+  const prevName = prevZone ? prevZone.label.replace(/^Depth [IVX]+ · /, "") : "the depth above";
+  return (
+    <div className={`swr-sealed ${collapsed ? "swr-sealed--collapsed" : ""}`} aria-disabled="true">
+      <span className="swr-sealed__glyph" aria-hidden>⏻</span>
+      <div className="swr-sealed__txt">
+        <span className="swr-sealed__label">Sealed</span>
+        {!collapsed && (
+          <p className="swr-sealed__hint">
+            Complete both chambers in <b>{prevName}</b> to descend
+            {questTitle ? <> · or clear <b>{questTitle}</b> in the Map Quest</> : null}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Hub({ open, onNavigate, brokeKingShadow, takeaways = [], essences = [], streak, onClearTrail, isDepthUnlocked = () => true, nextLockedDepthId = null }) {
   const ownedIds = new Set(essences.map((e) => e.maskId));
   let chamberIndex = 0;
   let sideFlip = 0;
@@ -326,20 +400,38 @@ function Hub({ open, onNavigate, brokeKingShadow, takeaways = [], essences = [],
             <span key={i} className="swr-air__mote" style={{ "--x": m.x, "--y": m.y, "--c": m.c, "--d": m.d, "--delay": m.delay }} />
           ))}
         </div>
-        {ZONES.map((zone, zi) => (
-          <section key={zone.id} className={`swr-zone swr-zone--${zone.id}`}>
-            <div className="swr-zone__marker" style={{ "--i": chamberIndex + zi }}>
-              <span className="swr-zone__rune" aria-hidden />
-              <span className="swr-zone__label">{zone.label}</span>
-              <span className="swr-zone__tag">{zone.tag}</span>
-            </div>
-            {zone.tools.map((id) => {
-              const tool = TOOL_BY_ID[id];
-              const side = tool.wide ? null : (sideFlip++ % 2 === 0 ? "left" : "right");
-              return <Chamber key={id} tool={tool} index={chamberIndex++} side={side} onOpen={open} />;
-            })}
-          </section>
-        ))}
+        {ZONES.map((zone, zi) => {
+          const unlocked = isDepthUnlocked(zone.id);
+          const isFrontier = zone.id === nextLockedDepthId; // the next one to earn
+          const collapsed = !unlocked && !isFrontier;        // deeper than the frontier
+          const prevZone = zi > 0 ? ZONES[zi - 1] : null;
+          return (
+            <section
+              key={zone.id}
+              className={`swr-zone swr-zone--${zone.id}${unlocked ? "" : " swr-zone--locked"}${collapsed ? " swr-zone--collapsed" : ""}`}
+            >
+              <div className="swr-zone__marker" style={{ "--i": chamberIndex + zi }}>
+                <span className="swr-zone__rune" aria-hidden />
+                <span className="swr-zone__label">{zone.label}</span>
+                <span className="swr-zone__tag">{zone.tag}</span>
+              </div>
+              {unlocked ? (
+                zone.tools.map((id) => {
+                  const tool = TOOL_BY_ID[id];
+                  const side = tool.wide ? null : (sideFlip++ % 2 === 0 ? "left" : "right");
+                  return <Chamber key={id} tool={tool} index={chamberIndex++} side={side} onOpen={open} />;
+                })
+              ) : (
+                <SealedDepth
+                  zone={zone}
+                  prevZone={prevZone}
+                  questKeys={DEPTH_QUEST_KEYS[zone.id] || []}
+                  collapsed={collapsed}
+                />
+              )}
+            </section>
+          );
+        })}
       </div>
 
       {/* ── Footprints — the trail you leave in the dark ── */}

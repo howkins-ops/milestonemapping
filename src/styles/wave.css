@@ -225,6 +225,19 @@
 .app-topbar__sos .app-topbar__btn-label { color: var(--brand-cyan); }
 .app-topbar__sos-emoji { display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
 
+/* ── Top-bar Rewards button (gold vault, sits by SOS/More) ─────────────────── */
+.app-topbar__rewards .app-topbar__icon-box {
+  border-color: rgba(250, 204, 21, 0.45) !important;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(255, 62, 219, 0.12)) !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.28);
+}
+.app-topbar__rewards.is-active .app-topbar__icon-box {
+  border-color: rgba(250, 204, 21, 0.75) !important;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.5);
+}
+.app-topbar__rewards .app-topbar__btn-label { color: var(--brand-gold, #FACC15); }
+.app-topbar__rewards-emoji { display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+
 /* ── Global fullscreen overlay wrapper ────────────────────────────────────── */
 .wave-overlay {
   position: fixed; inset: 0; z-index: 100; overflow-y: auto;

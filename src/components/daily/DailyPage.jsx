@@ -109,8 +109,8 @@ export default function DailyPage() {
           /* ── MORNING: Execute the plan you loaded last night ── */
           <div className="daily-am-flow">
             <MorningStandPanel />
-            <MorningPlanRecap />
             <GratitudePanel />
+            <MorningPlanRecap />
             <TopFivePanel />
           </div>
         ) : (

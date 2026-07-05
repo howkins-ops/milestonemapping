@@ -6,6 +6,8 @@ export default function MorningPlanRecap() {
   const hasCommit = !!todayLog.dailyCommit;
   const hasStand  = !!todayLog.dailyStand;
 
+  // Note: the stand itself is already shown in full (with checklist + intention)
+  // by MorningStandPanel above this component — don't repeat it here.
   if (!hasCommit && !hasStand) {
     return (
       <div className="morning-activation anim-fade-in">
@@ -52,13 +54,6 @@ export default function MorningPlanRecap() {
         <div className="morning-recap-card morning-recap-commit">
           <span className="morning-recap-label">TODAY I COMMIT TO</span>
           <p className="morning-recap-text">"{todayLog.dailyCommit}"</p>
-        </div>
-      )}
-
-      {hasStand && (
-        <div className="morning-recap-card morning-recap-stand">
-          <span className="morning-recap-label">MY STAND</span>
-          <p className="morning-recap-text">"{todayLog.dailyStand}"</p>
         </div>
       )}
     </div>

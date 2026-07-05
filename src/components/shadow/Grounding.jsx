@@ -17,39 +17,57 @@ const SENSES = [
 ];
 const TOTAL = SENSES.length + 2; // arrive + 5 senses + seal
 
-function SenseTap({ n, onNext }) {
-  const [hit, setHit] = useState(0);
-  const done = hit >= n;
+// Tap each item as you notice it — and, optionally, name it. The typed words
+// are what make the footprint personal ("cold glass, the fridge hum, …").
+function SenseTap({ n, verb, onNext }) {
+  const [items, setItems] = useState(() => Array.from({ length: n }, () => ({ lit: false, word: "" })));
+  const done = items.filter((it) => it.lit).length >= n;
+  const light = (i) => setItems((arr) => arr.map((it, idx) => (idx === i ? { ...it, lit: true } : it)));
+  const type = (i, w) =>
+    setItems((arr) => arr.map((it, idx) => (idx === i ? { lit: it.lit || w.trim().length > 0, word: w } : it)));
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", margin: "10px 0 18px" }}>
-        {Array.from({ length: n }).map((_, i) => {
-          const lit = i < hit;
-          return (
-            <button key={i} onClick={() => setHit((h) => Math.min(n, Math.max(h, i + 1)))}
-              aria-label={`item ${i + 1}`}
-              style={{
-                width: 46, height: 46, borderRadius: "50%", cursor: "pointer",
-                border: `2px solid ${lit ? "var(--brand-green)" : "var(--border)"}`,
-                background: lit ? "radial-gradient(circle at 50% 40%, rgba(0,255,191,0.4), transparent 70%)" : "var(--card)",
-                boxShadow: lit ? "0 0 18px rgba(0,255,191,0.4)" : "none",
-                color: "var(--text-main)", fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: 14,
-                transition: "all .2s ease",
-              }}>
-              {lit ? "✓" : i + 1}
+      <div className="gr-senses">
+        {items.map((it, i) => (
+          <div key={i} className="gr-sense">
+            <button className={`gr-sense__dot ${it.lit ? "on" : ""}`} onClick={() => light(i)} aria-label={`${verb} item ${i + 1}`}>
+              {it.lit ? "✓" : i + 1}
             </button>
-          );
-        })}
+            <input
+              className="gr-sense__word"
+              value={it.word}
+              onChange={(e) => type(i, e.target.value)}
+              placeholder={`something you ${verb}…`}
+              maxLength={40}
+              aria-label={`name the thing you ${verb}`}
+            />
+          </div>
+        ))}
       </div>
-      <div className="sx-btnrow"><Primary disabled={!done} onClick={onNext}>{done ? "Next →" : `Tap each one as you notice it`}</Primary></div>
+      <div className="sx-btnrow">
+        <Primary disabled={!done} onClick={() => onNext(items.map((it) => it.word.trim()).filter(Boolean))}>
+          {done ? "Next →" : "Tap each one as you notice it"}
+        </Primary>
+      </div>
     </>
   );
 }
 
 export default function Grounding({ onClose, onFinish }) {
   const [step, setStep] = useState(0);
+  const [caught, setCaught] = useState([]); // words noticed across all senses
   const meter = Math.round(((TOTAL - step) / TOTAL) * 100);
-  const finish = () => onFinish("Grounding", "Came back to the present through the senses", { accent: "green" });
+
+  const captured = caught.map((w) => w.trim()).filter(Boolean).slice(0, 6);
+  const personal = captured.length
+    ? `Came back through: ${captured.join(", ")}`
+    : "Came back to the present through the senses";
+  const finish = () => onFinish("Grounding", personal, { accent: "green" });
+
+  const advance = (words = []) => {
+    if (words.length) setCaught((c) => [...c, ...words]);
+    setStep((s) => s + 1);
+  };
 
   const senseIdx = step - 1;
   const sense = SENSES[senseIdx];
@@ -70,10 +88,10 @@ export default function Grounding({ onClose, onFinish }) {
         <div className="sx-center">
           <Eyebrow>{sense.n} · {sense.verb}</Eyebrow>
           <Heading>{sense.prompt}</Heading>
-          <Lead>Slowly. Really look, really listen. Tap each one as you find it.</Lead>
+          <Lead>Slowly. Really look, really listen. Tap each one as you find it — name it if you can.</Lead>
           <BreathOrb />
-          <SenseTap n={sense.n} onNext={() => setStep(step + 1)} />
-          <Skip onClick={() => setStep(step + 1)}>Skip this one</Skip>
+          <SenseTap n={sense.n} verb={sense.verb} onNext={advance} />
+          <Skip onClick={() => advance()}>Skip this one</Skip>
         </div>
       )}
 
@@ -82,7 +100,7 @@ export default function Grounding({ onClose, onFinish }) {
           eyebrow="Landed"
           title="You&rsquo;re here. You&rsquo;re safe."
           lead="The spiral lives in the future and the past — your senses only exist now. You just walked yourself back to solid ground."
-          stamp="I can always come back through my senses."
+          stamp={captured.length ? captured.join(" · ") : "I can always come back through my senses."}
           onDone={finish}
         />
       )}

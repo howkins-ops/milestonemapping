@@ -15,6 +15,7 @@ export const XP_VALUES = {
   reviewStreak4: 200,
   shadowToolCompleted: 15,
   shadowTransmutation: 40,
+  shadowIntegration: 40,
   bufcaBurn: 50,
   waveRidden: 20,
   // MapQuest City

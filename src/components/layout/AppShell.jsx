@@ -139,6 +139,17 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                 )}
                 <button
                   type="button"
+                  className={`app-topbar__profile-btn app-topbar__rewards ${currentPage === "rewards" ? "is-active" : ""}`}
+                  onClick={() => onNavigate("rewards")}
+                  aria-label="Rewards vault"
+                >
+                  <span className="app-topbar__icon-box" aria-hidden="true">
+                    <span className="app-topbar__rewards-emoji">🏆</span>
+                  </span>
+                  <span className="app-topbar__btn-label">Rewards</span>
+                </button>
+                <button
+                  type="button"
                   className="app-topbar__profile-btn"
                   onClick={() => setMoreOpen(true)}
                   aria-label="More options"
