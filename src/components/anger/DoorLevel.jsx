@@ -3,6 +3,9 @@ import "../../styles/door-game.css";
 import {
   sfxKnock, sfxImpact, sfxDoorBreak, sfxZap, sfxDoorbell, sfxRoundBell,
   sfxPunch, sfxBlock, sfxWhoosh, sfxWoodCrack, sfxShatter,
+  sfxThunder, sfxHorn, sfxIgnite, sfxMatchStrike, sfxSplat,
+  sfxCoin, sfxBuzzer, sfxPop, sfxPhoenix, sfxRainbow,
+  sfxRainLoop, sfxWindLoop, sfxFireLoop,
   playVoiceLine, stopVoiceLine,
 } from "../../lib/sfx";
 
@@ -22,7 +25,7 @@ import {
    Contract: { level, onClose, onComplete }.
    ════════════════════════════════════════════════════════════════════════ */
 
-const LINE_EVERY = 3;                          // taps between dialogue beats
+const LINE_EVERY = 2;                          // taps between dialogue beats (denser argument)
 const STAGE_AT = [0, 0.22, 0.45, 0.68, 0.86];  // per-round rage tiers
 const VOICE_VOL = [0.5, 0.65, 0.8, 0.92, 1.0];
 // Cumulative-tap thresholds for the 5 Bloody-Knuckles blood stages.
@@ -103,6 +106,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const [blood, setBlood] = useState(0);
   const [nos, setNos] = useState(0);
   const [rings, setRings] = useState(0);
+  const [panes, setPanes] = useState(0);       // windows smashed by thrown rocks
   const [heat, setHeat] = useState(0);
   const [themLine, setThemLine] = useState(null);
   const [youLine, setYouLine] = useState(null);
@@ -126,6 +130,8 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const flashRef = useRef(null);
   const burstsRef = useRef(null);
   const knocksRef = useRef(0);         // cumulative across the whole level (blood)
+  const lastTapRef = useRef(0);        // ts of last input — feeds the idle-drain
+  const fireHandleRef = useRef(null);  // chainsaw fire-loop handle (swells while sawing)
   const roundRef = useRef({ prog: 0, taps: 0 });
   const themIdx = useRef(0);
   const youIdx = useRef(0);
@@ -143,6 +149,15 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const schedule = (fn, ms) => { const id = window.setTimeout(fn, ms); timersRef.current.push(id); return id; };
   const clearTimers = () => { timersRef.current.forEach((id) => window.clearTimeout(id)); timersRef.current = []; };
   useEffect(() => () => { clearTimers(); stopVoiceLine(); cancelAnimationFrame(chargeRef.current.raf); }, []);
+
+  // Victory fanfare the moment the seal screen appears.
+  useEffect(() => {
+    if (phase !== "seal") return undefined;
+    sfxBuzzer();                                   // final closing-horn
+    sfxPhoenix();
+    const t = window.setTimeout(() => sfxRainbow(), 650);
+    return () => window.clearTimeout(t);
+  }, [phase]);
 
   const retrigger = (el, cls) => {
     if (!el) return;
@@ -175,6 +190,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const tap = (e, kind) => {
     // kind: "knock" | "ring" | "rock"
     if (doneRef.current || phase !== "round") return;
+    lastTapRef.current = performance.now();
     knocksRef.current += 1;
     const r = roundRef.current;
     r.taps += 1;
@@ -192,12 +208,16 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     buzz(power ? [16, 32, 22] : 9);
 
     if (kind === "rock") { sfxShatter(); sfxImpact(Math.min(8, 5 + s)); }
-    else if (kind === "ring") sfxDoorbell(s >= 3);
+    else if (kind === "ring") { sfxDoorbell(s >= 3); sfxPop(); }
     else if (round.skin === "steel" || round.skin === "gate") sfxImpact(Math.min(8, 3 + s));
     else if (power) sfxImpact(Math.min(8, 4 + s));
     else sfxKnock(Math.min(8, 1 + s));
+    // extra flavor layers: night storm cracks, and a comedic splat on the throne
+    if (power && (round.skin === "night" || round.skin === "eve") && Math.random() < 0.4) sfxThunder(2 + Math.floor(Math.random() * 3));
+    if (round.key === "throne" && power && Math.random() < 0.5) sfxSplat();
 
-    if (kind === "ring") { setRings((v) => v + 1); }
+    if (kind === "ring") setRings((v) => v + 1);
+    else if (kind === "rock") setPanes((v) => v + 1);
     setStage((prev) => (prev === s ? prev : s));
     setBlood((prev) => (prev === bl ? prev : bl));
     setHeat(Math.min(1, p * 0.75 + (t % 12) / 60));
@@ -221,6 +241,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     if (r.prog >= round.taps && !doneRef.current) {
       doneRef.current = true;
       setHeat(1);
+      sfxCoin();               // round banked
       buzz([24, 48, 24]);
       // round clear: open line (if any), then advance
       if (round.openLine) {
@@ -262,13 +283,61 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, roundIdx]);
 
+  /* ── ambient loops + storm + idle-drain difficulty, per round ────────── */
+  useEffect(() => {
+    if (phase !== "round") return undefined;
+    const handles = [];
+    const skin = round.skin;
+    if (skin === "night" || skin === "eve") { const h = sfxRainLoop(); h.setLevel(skin === "night" ? 0.22 : 0.13); handles.push(h); }
+    if (skin === "gate") { const h = sfxWindLoop(); h.setLevel(0.16); handles.push(h); }
+    if (round.special === "chainsaw") { const h = sfxFireLoop(); h.setLevel(0.0001); handles.push(h); fireHandleRef.current = h; }
+
+    let thunderIv = null;
+    if (skin === "night" || skin === "eve") {
+      thunderIv = window.setInterval(() => {
+        if (!doneRef.current && Math.random() < 0.45) sfxThunder(2 + Math.floor(Math.random() * 3));
+      }, 3400);
+    }
+
+    // Idle-drain: slack off on a hard round and your progress bleeds back.
+    let drainIv = null;
+    if (round.drain && round.special !== "chainsaw") {
+      drainIv = window.setInterval(() => {
+        if (doneRef.current) return;
+        const r = roundRef.current;
+        if (r.prog > 0 && performance.now() - lastTapRef.current > 850) {
+          r.prog = Math.max(0, r.prog - round.taps * 0.011);
+          const p = r.prog / round.taps;
+          if (sceneRef.current) sceneRef.current.style.setProperty("--p", String(p));
+          const s = stageFor(p);
+          setStage((prev) => (prev === s ? prev : s));
+          setHeat(Math.min(1, p * 0.75));
+        }
+      }, 140);
+    }
+
+    return () => {
+      handles.forEach((h) => h.stop && h.stop());
+      fireHandleRef.current = null;
+      if (thunderIv) window.clearInterval(thunderIv);
+      if (drainIv) window.clearInterval(drainIv);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, roundIdx]);
+
   const revOn = () => {
     if (doneRef.current) return;
     revRef.current.held = true;
+    sfxMatchStrike(); sfxIgnite();                       // pull-cord spark → the saw catches
+    if (fireHandleRef.current) fireHandleRef.current.setLevel(0.32);
     if (round.chainsawLine) playVoiceLine(round.chainsawLine.id, { volume: 1 });
     setThemLine(round.them[Math.floor(Math.random() * round.them.length)].text);
   };
-  const revOff = () => { revRef.current.held = false; if (sceneRef.current) sceneRef.current.classList.remove("is-sawing"); };
+  const revOff = () => {
+    revRef.current.held = false;
+    if (fireHandleRef.current) fireHandleRef.current.setLevel(0.0001);
+    if (sceneRef.current) sceneRef.current.classList.remove("is-sawing");
+  };
 
   /* ── round / cine flow ───────────────────────────────────────────────── */
   const enterRound = (i) => {
@@ -282,6 +351,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     setHeat(0);
     setThemLine(null); setYouLine(null);
     setBursting(false);
+    lastTapRef.current = performance.now();
     if (sceneRef.current) sceneRef.current.style.setProperty("--p", "0");
     setPhase(level.rounds[i].cine ? "cine" : "round");
     if (!level.rounds[i].cine) sfxRoundBell();
@@ -307,6 +377,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     clearTimers();
     setThemLine(null); setYouLine(null);
     setSlapped(false); setCharge(0);
+    sfxHorn(1);                                    // the showdown horn
     const t = level.finale.type;
     setPhase("finale");
     if (t === "powerslap") setFinaleStage("slap");
@@ -344,7 +415,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     retrigger(flashRef.current, "is-live");
     buzz([30, 60, 30, 90]);
     if (finaleStage === "kick") {
-      sfxDoorBreak(); sfxImpact(8);
+      sfxHorn(1); sfxDoorBreak(); sfxImpact(8);
       setBursting(true);
       if (level.finale.kickLine) schedule(() => playVoiceLine(level.finale.kickLine.id, { volume: 1 }), 150);
       schedule(() => { setBursting(false); setSlapped(false); chargeRef.current.val = 0; setCharge(0); setFinaleStage("fight"); startFight(); }, 1700);
@@ -426,7 +497,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const duckOn = () => { if (f.current.over) return; f.current.ducking = true; setDucking(true); };
   const duckOff = () => { f.current.ducking = false; setDucking(false); };
   const playerKO = () => {
-    f.current.over = true; clearTimers(); setFightKo(true); setFightNote(null); sfxZap();
+    f.current.over = true; clearTimers(); setFightKo(true); setFightNote(null); sfxZap(); sfxBuzzer();
     if (fightThem[0]) playVoiceLine(fightThem[0].id, { volume: 1 });
   };
   const himKO = () => {
@@ -458,7 +529,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     });
   };
 
-  const restart = () => { clearTimers(); stopVoiceLine(); knocksRef.current = 0; setNos(0); setRings(0); setBlood(0); enterRound(0); };
+  const restart = () => { clearTimers(); stopVoiceLine(); knocksRef.current = 0; setNos(0); setRings(0); setPanes(0); setBlood(0); enterRound(0); };
 
   const topBar = (extra) => (
     <div className="dg-top">
@@ -653,9 +724,9 @@ export default function DoorLevel({ level, onClose, onComplete }) {
         {round.skin === "gate" && <span className="dg-sign dg-sign--gate">NO<br />SOLICITING</span>}
         {round.special === "rocks" && (
           <div className="dg-windows" aria-hidden>
-            <span className={`dg-pane ${rings > 0 ? "is-broke" : ""}`} />
-            <span className={`dg-pane ${rings > 1 ? "is-broke" : ""}`} />
-            <span className={`dg-pane ${rings > 2 ? "is-broke" : ""}`} />
+            <span className={`dg-pane ${panes > 0 ? "is-broke" : ""}`} />
+            <span className={`dg-pane ${panes > 1 ? "is-broke" : ""}`} />
+            <span className={`dg-pane ${panes > 2 ? "is-broke" : ""}`} />
           </div>
         )}
 
