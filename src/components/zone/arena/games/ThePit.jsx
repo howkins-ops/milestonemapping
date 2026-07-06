@@ -5,10 +5,11 @@
 // miss so quitting keeps getting more expensive.
 //
 // Server-authoritative: every mutation flows through arenaService stake* RPCs
-// (create → referee verify kept/forfeit → settle). The client only reads what
-// those RPCs return; a small per-user cache keeps your own pending stakes on
-// screen between visits. Forfeits are NEUTRAL and one-tap recoverable — a lost
-// stake honored is its own kind of showing up, never a shame wall.
+// (create → referee verify kept/forfeit → settle) and the list is READ from
+// az_stake_list (owner + referee both see every stake they're party to — the
+// referee's verify buttons depend on this). A small per-user localStorage cache
+// only bridges the first paint / offline. Forfeits are NEUTRAL and one-tap
+// recoverable — a lost stake honored is its own kind of showing up, never shame.
 //
 // Ownership: this file + ThePit.css only. Data via arenaService.js; all
 // witness/notification copy via witnessLines.js.
@@ -18,6 +19,7 @@ import { useZoneCtx } from "../../../../hooks/useZone.js";
 import { useAppData } from "../../../../hooks/useAppData.js";
 import {
   stakeCreate,
+  stakeList,
   stakeVerify,
   stakeSettle,
   vowList,
@@ -61,6 +63,7 @@ function amountLabel(stake) {
 }
 
 // Tolerant read of a stake row (server shape) → the fields we render on.
+// az_stake_list rows carry ref_label + nested owner/referee identities.
 function normStake(row, fallbackLabel) {
   if (!row) return null;
   return {
@@ -74,6 +77,7 @@ function normStake(row, fallbackLabel) {
     ladder_level: Number(row.ladder_level) || 1,
     status: row.status || "pending",
     ref_label: row.ref_label || fallbackLabel || null,
+    owner_name: row.owner ? nameOf(row.owner) : row.owner_name || null,
   };
 }
 
@@ -113,6 +117,7 @@ export default function ThePit({ go }) {
   const [offline, setOffline] = useState(false);
   const [stakes, setStakes] = useState([]);
   const [busyId, setBusyId] = useState(null);
+  const [potKey, setPotKey] = useState(0); // keys the 3D ember-drop replay per lock-in
 
   // create form
   const [refKind, setRefKind] = useState("vow"); // 'vow' | 'challenge'
@@ -127,9 +132,25 @@ export default function ThePit({ go }) {
   const [challenges, setChallenges] = useState([]);
   const formRef = useRef(null);
 
-  /* ---------------- load tie targets + cached stakes ---------------------- */
+  /* ---------------- load stakes: cache paints first, server is truth ------- */
   useEffect(() => {
     setStakes(loadCache(userId));
+    if (!userId) return undefined;
+    let on = true;
+    (async () => {
+      try {
+        const rows = await stakeList();
+        if (!on || !Array.isArray(rows)) return; // offline / no data → keep cache
+        const server = rows.map((r) => normStake(r)).filter(Boolean);
+        setStakes(server);
+        saveCache(userId, server);
+      } catch {
+        /* server list unavailable — the cached view still renders */
+      }
+    })();
+    return () => {
+      on = false;
+    };
   }, [userId]);
 
   const loadTargets = useCallback(async () => {
@@ -215,6 +236,7 @@ export default function ThePit({ go }) {
         return;
       }
       sfxCoin(settings);
+      setPotKey((k) => k + 1); // re-drops the ember into the pot in 3D
       upsert(res, selectedTarget?.title || "your commitment");
       const line = witnessSay("stake_set", {
         name: nameOf(member),
@@ -319,7 +341,7 @@ export default function ThePit({ go }) {
   if (offline) {
     return (
       <div className="pit-wrap">
-        <PitHeader headRef={headRef} go={go} />
+        <PitHeader headRef={headRef} go={go} potKey={potKey} />
         <div className="zn-empty">
           <div className="zn-empty__icon" aria-hidden="true">🏛️</div>
           <p style={{ margin: 0 }}>
@@ -333,7 +355,7 @@ export default function ThePit({ go }) {
 
   return (
     <div className="pit-wrap">
-      <PitHeader headRef={headRef} go={go} />
+      <PitHeader headRef={headRef} go={go} potKey={potKey} />
 
       {!partnerActive ? (
         <div className="zn-empty pit-teaser">
@@ -543,10 +565,10 @@ export default function ThePit({ go }) {
 
 /* -------------------------------------------------------------------------- */
 
-function PitHeader({ headRef, go }) {
+function PitHeader({ headRef, go, potKey = 0 }) {
   return (
     <div className="pit-head arena-reveal" ref={headRef}>
-      <button type="button" className="zn-back" onClick={() => go("arena", null)}>
+      <button type="button" className="zn-back" onClick={() => go?.("arena", null)}>
         ← Arena
       </button>
       <span className="pit-badge">🏛️ The Pit — opt-in stakes</span>
@@ -557,8 +579,9 @@ function PitHeader({ headRef, go }) {
         each miss, so quitting keeps getting more expensive. Forfeit is
         settled clean and shame-free.
       </p>
-      <div className="pit-potrow" aria-hidden="true">
-        <span className="pit-pot">🔥</span>
+      <div className="pit-potrow a3d-stage" aria-hidden="true">
+        {/* every lock-in re-drops the ember into the pot in 3D */}
+        <span key={potKey} className={`pit-pot ${potKey > 0 ? "a3d-drop" : ""}`}>🔥</span>
         <span className="pit-potlabel">the pot · escrowed on your word</span>
       </div>
     </div>
@@ -572,8 +595,11 @@ function StakeCard({ stake, userId, refereeName, busy, onVerify, onSettle, onRes
   const statusLabel =
     stake.status === "kept" ? "Kept" : stake.status === "forfeit" ? "Forfeit" : "Pending";
 
+  // Verdict cards flip in 3D as they land (kept/forfeit); pending cards
+  // surface from depth. The class change on a live verify replays the flip.
+  const fx = stake.status === "pending" ? "a3d-deepin" : "a3d-flipY";
   return (
-    <div className={`pit-stake pit-stake--${stake.status}`}>
+    <div className={`pit-stake pit-stake--${stake.status} ${fx}`}>
       <div className="pit-stake__top">
         <span className="pit-stake__amt">
           {stake.amount} <span aria-hidden="true">{k.unit}</span>
@@ -595,7 +621,7 @@ function StakeCard({ stake, userId, refereeName, busy, onVerify, onSettle, onRes
 
       <div className="pit-stake__ref">
         {isReferee
-          ? `You're refereeing this one.`
+          ? `You're refereeing ${stake.owner_name || "this one"}${stake.owner_name ? "'s stake" : ""}.`
           : `${refereeName} is refereeing.`}
       </div>
 

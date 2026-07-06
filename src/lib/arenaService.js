@@ -84,6 +84,8 @@ export const stakeCreate = ({ refereeId, refKind, refId, stakeKind, amount, ladd
     p_ladder_level: ladderLevel,
   });
 
+export const stakeList = () => rpc("az_stake_list");
+
 export const stakeVerify = ({ stakeId, kept }) =>
   rpc("az_stake_verify", { p_stake: stakeId, p_kept: kept });
 

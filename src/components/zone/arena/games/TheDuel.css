@@ -87,6 +87,18 @@
   border-color: #3be0ff;
   box-shadow: 0 0 18px rgba(59, 224, 255, 0.35);
 }
+/* the leader physically steps toward the viewer (duel-face is the a3d-stage) */
+.duel-side--lead {
+  transform: translateZ(22px) scale(1.04);
+}
+.duel-side--lead:active {
+  transform: translateZ(22px) scale(0.99);
+}
+/* blade clash slams in, then hands transform back to the idle pulse */
+.duel-vs.duel-vs.a3d-slam {
+  animation: a3d-slam 0.6s var(--ease-out) both,
+    duel-pulse 2.4s ease-in-out 0.7s infinite;
+}
 .duel-sideavatar {
   flex-shrink: 0;
 }

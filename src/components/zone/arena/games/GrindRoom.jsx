@@ -202,8 +202,8 @@ export default function GrindRoom({ go }) {
 
   return (
     <div className="grind-wrap" ref={reveal}>
-      <button type="button" className="zn-back grind-back" onClick={() => go?.("squad")}>
-        ← Squad
+      <button type="button" className="zn-back grind-back" onClick={() => go?.("arena", null)}>
+        ← Arena
       </button>
 
       <header className="grind-head arena-reveal">
@@ -257,7 +257,7 @@ export default function GrindRoom({ go }) {
             <span className="grind-herodot" aria-hidden="true" />
             <span className="grind-heronum">{grinders.length}</span>
             <span className="grind-herolabel">
-              {grinders.length === 1 ? "in the room now" : "in the room now"}
+              {grinders.length === 1 ? "person in the room now" : "in the room now"}
             </span>
             {amGrinding && mySinceRef.current != null && (
               <span className="grind-heroclock">{fmtElapsed(mySinceRef.current, now)}</span>
@@ -282,14 +282,15 @@ export default function GrindRoom({ go }) {
                 others feel it when someone's already working.
               </div>
             ) : (
-              <ul className="grind-list">
-                {grinders.map((g) => {
+              <ul className="grind-list a3d-stage--deep">
+                {grinders.map((g, i) => {
                   const mine = g.user_id === String(userId);
                   const name = g.username || "grinder";
                   return (
                     <li
                       key={g.user_id}
-                      className={`grind-person ${mine ? "grind-person--me" : ""}`}
+                      style={{ "--i": i }}
+                      className={`grind-person a3d-deepin a3d-stagger ${mine ? "grind-person--me" : ""}`}
                     >
                       <span className="zn-avatar zn-avatar--sm grind-avatar">
                         {(name[0] || "?").toUpperCase()}

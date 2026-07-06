@@ -306,15 +306,9 @@ export default function ArenaHome({ go, gameKey }) {
 
   if (game) {
     const GameComponent = game.Component;
+    // Every game renders its own zn-back — no wrapper back here or we get two.
     return (
       <div className="ah-gameview">
-        <button
-          type="button"
-          className="zn-back ah-gameback"
-          onClick={() => go && go("arena", null)}
-        >
-          ← Arena
-        </button>
         <GameComponent go={go} />
       </div>
     );

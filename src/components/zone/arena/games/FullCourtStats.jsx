@@ -25,23 +25,23 @@ function pick(obj, ...keys) {
   return 0;
 }
 
-// Derive the season headline stats defensively (server may pre-compute or not).
+// Derive the season headline stats from the az_fullcourt_season_payload shape:
+// { games, best_points, totals:{points,doors,sales,…}, averages:{points,sales,…} }.
+// Ratios come from totals; per-game lines prefer the server averages.
 function seasonLine(s) {
   const games = num(pick(s, "games", "games_played"));
-  const doors = num(pick(s, "doors"));
-  const sales = num(pick(s, "sales"));
-  const points = num(pick(s, "points"));
-  const ppg = pick(s, "ppg", "points_per_game");
-  const spg = pick(s, "spg", "sales_per_game");
-  const closePct = pick(s, "close_pct", "closePct", "close_rate");
-  const doorsPerSale = pick(s, "doors_per_sale", "doorsPerSale");
+  const t = (s && s.totals) || {};
+  const a = (s && s.averages) || {};
+  const doors = num(t.doors != null ? t.doors : pick(s, "doors"));
+  const sales = num(t.sales != null ? t.sales : pick(s, "sales"));
+  const points = num(t.points != null ? t.points : pick(s, "points"));
   return {
     games,
     bestPoints: num(pick(s, "best_points", "bestPoints")),
-    ppg: ppg ? round1(ppg) : games ? round1(points / games) : 0,
-    spg: spg ? round1(spg) : games ? round1(sales / games) : 0,
-    closePct: closePct ? round1(closePct) : doors ? round1((sales / doors) * 100) : 0,
-    doorsPerSale: doorsPerSale ? round1(doorsPerSale) : sales ? round1(doors / sales) : 0,
+    ppg: a.points != null ? round1(a.points) : games ? round1(points / games) : 0,
+    spg: a.sales != null ? round1(a.sales) : games ? round1(sales / games) : 0,
+    closePct: doors ? round1((sales / doors) * 100) : 0,
+    doorsPerSale: sales ? round1(doors / sales) : 0,
     doors,
     sales,
   };
@@ -79,13 +79,15 @@ function StatTiles({ line }) {
 }
 
 // One row of the head-to-head sheet: label + my value vs their value.
+// Keys are seasonLine() fields — az_fullcourt_h2h returns a full season payload
+// per side ({me, them}), so both sides run through the same derivation.
 const H2H_ROWS = [
-  { key: "ppg", label: "Points / game", alts: ["points_per_game"] },
-  { key: "spg", label: "Sales / game", alts: ["sales_per_game"] },
-  { key: "close_pct", label: "Close rate", alts: ["closePct", "close_rate"], pct: true },
-  { key: "doors_per_sale", label: "Doors / sale", alts: ["doorsPerSale"] },
-  { key: "games", label: "Games played", alts: ["games_played"] },
-  { key: "best_points", label: "Career high", alts: ["bestPoints"] },
+  { key: "ppg", label: "Points / game" },
+  { key: "spg", label: "Sales / game" },
+  { key: "closePct", label: "Close rate", pct: true },
+  { key: "doorsPerSale", label: "Doors / sale" },
+  { key: "games", label: "Games played" },
+  { key: "bestPoints", label: "Career high" },
 ];
 
 export default function FullCourtStats({ go, onBack }) {
@@ -134,18 +136,22 @@ export default function FullCourtStats({ go, onBack }) {
     };
   }, [load]);
 
-  const back = () => (onBack ? onBack() : go?.("arena", "fullcourt"));
+  const back = () => (onBack ? onBack() : go?.("arena", "full_court"));
 
   const line = seasonLine(season);
   const noGames = status === "ready" && line.games === 0;
   const lastGames = Array.isArray(season?.last) ? season.last : [];
 
+  const h2hLines = {
+    me: h2h ? seasonLine(h2h.me) : null,
+    them: h2h ? seasonLine(h2h.them) : null,
+  };
   const h2hVal = (side, row) => {
-    const obj = h2h?.[side];
-    if (!obj) return "—";
-    const v = pick(obj, row.key, ...(row.alts || []));
+    const lineObj = h2hLines[side];
+    if (!lineObj) return "—";
+    const v = lineObj[row.key];
     if (v == null || v === "") return "—";
-    return row.pct ? `${round1(v)}%` : round1(v);
+    return row.pct ? `${v}%` : v;
   };
 
   return (

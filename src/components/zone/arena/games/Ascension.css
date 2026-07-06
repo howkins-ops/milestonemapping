@@ -53,6 +53,11 @@
   line-height: 1;
   animation: asc-flicker 2.6s ease-in-out infinite;
 }
+/* promotion medallion: full 3D flip first, then back to the idle flicker */
+.asc-divbadge.asc-divbadge.a3d-flipY {
+  animation: a3d-flipY 0.7s var(--ease-out) both,
+    asc-flicker 2.6s ease-in-out 0.8s infinite;
+}
 .asc-divmeta {
   flex: 1;
   min-width: 0;

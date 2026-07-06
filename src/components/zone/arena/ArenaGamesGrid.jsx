@@ -1,16 +1,18 @@
 // ArenaGamesGrid — the "choose your fighter" launcher for the Squad Arena.
 // Ports the concept's ROSTER select-screen feel (neon gradient-edge cards, a
-// glyph portrait with a breathing aura, scope tag, entrance stagger) but rebuilt
-// mobile-first and performance-lawful (§3): NO tilt-on-mousemove, NO custom
-// cursor, NO per-frame handlers — just CSS transform/opacity, an
-// IntersectionObserver reveal, and a tap-only spark burst.
+// glyph portrait with a breathing aura, scope tag, entrance stagger), now with
+// the full 3D treatment: perspective grid, 3D flip-in entrance, layered
+// translateZ depth, holographic sheen, and a DESKTOP-ONLY pointer tilt
+// (useCardTilt — Jon-approved §3 exception: rAF-throttled, transform-vars only,
+// never attached on touch, dead under reduced motion). Mobile keeps flip-in +
+// press depth only.
 //
 // Ownership: this file + ArenaHome.css (shared arn-/ah- prefixes) only.
 // Tapping a card routes via go('arena', <key>).
 
 import React, { useCallback } from "react";
 import { ARENA_GAMES } from "./arenaGames.js";
-import { useReveal, useArenaBurst } from "./useArenaFX.js";
+import { useReveal, useArenaBurst, useCardTilt } from "./useArenaFX.js";
 import { sfxPop } from "../../../lib/sfx.js";
 import "./ArenaHome.css";
 
@@ -23,6 +25,7 @@ const SCOPE_META = {
 
 function GameCard({ game, index, onPick }) {
   const meta = SCOPE_META[game.scope] || SCOPE_META.squad;
+  const tiltRef = useCardTilt({ max: 9 });
 
   const handleClick = useCallback(
     (e) => {
@@ -39,12 +42,20 @@ function GameCard({ game, index, onPick }) {
   return (
     <button
       type="button"
+      ref={tiltRef}
       className="arn-card"
       style={{ "--arn-c1": meta.c1, "--arn-c2": meta.c2, "--arn-i": index }}
       onClick={handleClick}
       aria-label={`${game.title} — ${game.tagline}`}
     >
+      {/* gradient ring — spins on hover (clipped inside its own layer) */}
+      <span className="arn-card__edge" aria-hidden="true" />
       <span className="arn-card__inner">
+        {/* clipped face: base surface + holographic sheen + pointer glare */}
+        <span className="arn-card__bg" aria-hidden="true">
+          <span className="arn-card__shine" />
+          <span className="arn-card__glare" />
+        </span>
         <span className="arn-card__num" aria-hidden="true">
           {index < 9 ? `0${index + 1}` : index + 1}
         </span>

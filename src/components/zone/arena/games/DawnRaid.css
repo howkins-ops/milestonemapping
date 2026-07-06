@@ -117,6 +117,34 @@
   );
 }
 
+/* ---------- 3D sunrise ----------
+   The hero is an a3d-stage; the sky tilts back into a horizon plane (origin at
+   the bottom edge so it recedes from the viewer) and the sun crests it once on
+   entry before handing off to the gentle dawn-rise bob. */
+.dawn-sky {
+  transform: rotateX(26deg) scale(1.18);
+  transform-origin: 50% 100%;
+}
+.dawn-sky .dawn-sun {
+  animation: dawn-crest 1.6s var(--ease-out) both,
+    dawn-rise 6s ease-in-out 1.6s infinite;
+}
+@keyframes dawn-crest {
+  from {
+    transform: translateX(-50%) translateY(72%) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 0.85;
+  }
+}
+/* first-strike crown: full 3D flip, then back to the idle bob */
+.dawn-heroicon.dawn-heroicon.a3d-flipY {
+  animation: a3d-flipY 0.7s var(--ease-out) both,
+    dawn-bob 3.2s ease-in-out 0.8s infinite;
+}
+
 .dawn-heroicon {
   position: relative;
   font-size: 34px;

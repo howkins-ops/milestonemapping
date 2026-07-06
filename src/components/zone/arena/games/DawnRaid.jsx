@@ -218,14 +218,18 @@ export default function DawnRaid({ go }) {
           {/* Hero — today's sunrise crown */}
           <button
             type="button"
-            className={`dawn-hero zn-card ${myWon ? "dawn-hero--mine" : ""} arena-reveal`}
+            className={`dawn-hero zn-card a3d-stage ${myWon ? "dawn-hero--mine" : ""} arena-reveal`}
             onClick={goProve}
             aria-label="Post today's proof"
           >
+            {/* the sky is a tilted 3D horizon plane; the sun crests it on entry */}
             <span className="dawn-sky" aria-hidden="true">
               <span className="dawn-sun" />
             </span>
-            <span className="dawn-heroicon" aria-hidden="true">
+            <span
+              className={`dawn-heroicon ${myWon ? "a3d-flipY" : ""}`}
+              aria-hidden="true"
+            >
               {myWon ? "👑" : claimed ? "🌅" : "🐸"}
             </span>
             <span className="zn-eyebrow dawn-herolabel">
@@ -274,16 +278,17 @@ export default function DawnRaid({ go }) {
           <div className="zn-card dawn-card dawn-board arena-reveal">
             <p className="zn-eyebrow">{squadName} · sunrise board</p>
             {board.length > 0 ? (
-              <ol className="dawn-list">
+              <ol className="dawn-list a3d-stage--deep">
                 {board.map((row, i) => {
                   const uname = row?.username || row?.name || "someone";
                   const isMe = myUsername && uname === myUsername;
                   const t = frogLabel(row?.frog_time ?? row?.time);
-                  const won = Boolean(row?.won ?? (i === 0 && t));
+                  const won = Boolean(row?.is_winner ?? row?.won ?? (i === 0 && t));
                   return (
                     <li
                       key={row?.user_id || uname || i}
-                      className={`dawn-row ${isMe ? "dawn-row--me" : ""} ${
+                      style={{ "--i": i }}
+                      className={`dawn-row a3d-deepin a3d-stagger ${isMe ? "dawn-row--me" : ""} ${
                         won ? "dawn-row--first" : ""
                       }`}
                     >

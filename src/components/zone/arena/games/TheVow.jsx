@@ -243,12 +243,13 @@ export default function TheVow({ go }) {
   };
 
   /* ---------------- defuse (post proof) ----------------------------------- */
-  const onProofDone = async () => {
+  const onProofDone = async (proofRes) => {
     const vow = defusing;
     setDefusing(null);
     if (!vow) return;
     try {
-      const res = await vowDefuse({ vowId: vow.id, proofId: null });
+      // Link the just-posted proof to the vow so the defuse carries its receipt.
+      const res = await vowDefuse({ vowId: vow.id, proofId: proofRes?.proof_id || null });
       if (res?.offline) return;
       sfxPhoenix(settings);
       const line = witnessSay("vow_defused", {
@@ -504,7 +505,7 @@ export default function TheVow({ go }) {
 function VowHeader({ headRef, go }) {
   return (
     <div className="vow-head arena-reveal" ref={headRef}>
-      <button type="button" className="zn-back" onClick={() => go("arena", null)}>
+      <button type="button" className="zn-back" onClick={() => go?.("arena", null)}>
         ← Arena
       </button>
       <span className="vow-badge">✦ The Vow — burning fuses</span>

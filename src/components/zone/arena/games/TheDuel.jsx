@@ -18,34 +18,24 @@ import "./TheDuel.css";
 
 const todaySeed = () => new Date().toISOString().slice(0, 10);
 
-// The RPC returns derived a/b scores + usernames per the data contract; be tolerant
-// of either explicit me/them fields or a_user/b_user pairs resolved against userId.
+// az_duel_bucket rows look like:
+//   { id, starts_on, ends_on, status, me_is_a, my_score, their_score,
+//     a: {user_id, username, display_name, avatar_url, score}, b: {…} }
+// Scores are server-derived proof counts; resolve my corner via me_is_a
+// (falling back to a user-id match) and read names off the nested players.
 function normalizeDuel(d, userId) {
   if (!d) return null;
   const num = (v) => Math.max(0, Number(v) || 0);
-  const isA = d.a_user != null && userId != null && d.a_user === userId;
 
-  let meScore = d.me_score;
-  let themScore = d.them_score;
-  let meName = d.me_username;
-  let themName = d.them_username;
+  const isA =
+    d.me_is_a != null
+      ? Boolean(d.me_is_a)
+      : d.a?.user_id != null && userId != null && String(d.a.user_id) === String(userId);
+  const mine = (isA ? d.a : d.b) || {};
+  const theirs = (isA ? d.b : d.a) || {};
 
-  if (meScore == null || themScore == null) {
-    if (isA) {
-      meScore = d.a_score;
-      themScore = d.b_score;
-      meName = meName || d.a_username;
-      themName = themName || d.b_username;
-    } else {
-      meScore = d.b_score;
-      themScore = d.a_score;
-      meName = meName || d.b_username;
-      themName = themName || d.a_username;
-    }
-  }
-
-  meScore = num(meScore);
-  themScore = num(themScore);
+  const meScore = num(d.my_score != null ? d.my_score : mine.score);
+  const themScore = num(d.their_score != null ? d.their_score : theirs.score);
 
   // Days left from ends_on (inclusive of the final day).
   let daysLeft = d.days_left;
@@ -55,16 +45,16 @@ function normalizeDuel(d, userId) {
   }
   daysLeft = Math.max(0, Number(daysLeft) || 0);
 
-  const status = d.status || (daysLeft > 0 ? "live" : "done");
-  const iWon = d.i_won != null ? Boolean(d.i_won) : meScore > themScore;
+  const status = d.status || (daysLeft > 0 ? "live" : "ended");
+  const iWon = meScore > themScore;
   const tied = meScore === themScore;
 
   return {
-    id: d.id || `${d.a_user}-${d.b_user}-${d.starts_on}`,
+    id: d.id || `${d.starts_on}-${d.ends_on}`,
     meScore,
     themScore,
-    meName: meName || "You",
-    themName: themName || "Partner",
+    meName: mine.username || mine.display_name || "You",
+    themName: theirs.username || theirs.display_name || "Partner",
     daysLeft,
     status,
     startsOn: d.starts_on || null,
@@ -227,7 +217,9 @@ export default function TheDuel({ go }) {
         : `${d.themName} leads by ${Math.abs(d.lead)} — close it.`;
 
     return (
-      <div key={d.id} className="zn-card zn-card--glow duel-arena arena-reveal">
+      // the whole versus card flips in like a fight poster; duel-face is the
+      // 3D stage so the sides can pop toward the viewer when they take the lead
+      <div key={d.id} className="zn-card zn-card--glow duel-arena arena-reveal a3d-flipY">
         <div className="duel-arenahead">
           <p className="zn-eyebrow">Live duel · 7 days</p>
           <span className="zn-chip duel-days">
@@ -237,7 +229,7 @@ export default function TheDuel({ go }) {
           </span>
         </div>
 
-        <div className="duel-face">
+        <div className="duel-face a3d-stage">
           <button
             type="button"
             className={`duel-side duel-side--me ${d.lead > 0 ? "duel-side--lead" : ""}`}
@@ -251,7 +243,7 @@ export default function TheDuel({ go }) {
             <span className="duel-sidescore">{d.meScore}</span>
           </button>
 
-          <span className="duel-vs" aria-hidden="true">
+          <span className="duel-vs a3d-slam" aria-hidden="true">
             ⚔️
           </span>
 
@@ -288,11 +280,12 @@ export default function TheDuel({ go }) {
   };
 
   /* ---------------- past duel row ---------------- */
-  const renderPast = (d) => {
+  const renderPast = (d, i) => {
     const cls = d.tied ? "duel-past--tie" : d.iWon ? "duel-past--won" : "duel-past--lost";
     const tag = d.tied ? "Tied" : d.iWon ? "Won" : "Close";
+    const fx = d.iWon && !d.tied ? "a3d-flipY a3d-stagger" : "a3d-deepin a3d-stagger";
     return (
-      <li key={d.id} className={`duel-past ${cls}`}>
+      <li key={d.id} style={{ "--i": i }} className={`duel-past ${cls} ${fx}`}>
         <span className="duel-pasttag">{tag}</span>
         <span className="duel-pastscore">
           {d.meScore}
@@ -397,7 +390,7 @@ export default function TheDuel({ go }) {
           {past.length > 0 && (
             <div className="zn-card duel-card duel-history arena-reveal">
               <p className="zn-eyebrow">Past duels</p>
-              <ul className="duel-pastlist">{past.map(renderPast)}</ul>
+              <ul className="duel-pastlist a3d-stage--deep">{past.map(renderPast)}</ul>
               {partnerActive && !activeWithPartner && (
                 <button
                   type="button"

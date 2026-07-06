@@ -182,6 +182,9 @@
 /* ================= the fuse ================= */
 .vow-fuse {
   margin-top: 14px;
+  /* the fuse is its own tight 3D scene — the crit flame looms toward the
+     viewer and the detonation blast punches out of the track */
+  perspective: 480px;
 }
 .vow-fuse__track {
   position: relative;
@@ -189,6 +192,7 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   overflow: visible;
+  transform-style: preserve-3d;
 }
 /* live (unburnt) portion sits on the right and shrinks toward the bomb as the
    fuse burns down; right-anchored scaleX keeps its left edge = the burn point. */
@@ -213,6 +217,7 @@
   right: 0;
   height: 100%;
   transform: translateX(0);
+  transform-style: preserve-3d;
   transition: transform 1s linear;
   will-change: transform;
   pointer-events: none;
@@ -248,6 +253,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: 10px;
+  transform-style: preserve-3d; /* lets the verdict text slam/fold in 3D */
 }
 .vow-count {
   font-family: var(--font-display);
@@ -275,6 +281,23 @@
   50% { opacity: 0.72; }
 }
 
+/* final hour: the flame looms out of the track toward the viewer */
+.vow-fuse--crit .vow-fuse__flame {
+  transform: translate(-50%, -50%) translateZ(26px) scale(1.3);
+  transition: transform 0.6s var(--ease-out);
+}
+
+/* detonation: the 💥 blasts toward the viewer at the burn point. Keyframes
+   carry the flame's own centering so the blast stays anchored. */
+.vow-fuse--detonated .vow-fuse__flame {
+  animation: vow-blast 0.75s cubic-bezier(0.2, 1.3, 0.3, 1) both;
+}
+@keyframes vow-blast {
+  0% { transform: translate(-50%, -50%) translateZ(0) scale(0.4); opacity: 0.4; }
+  45% { transform: translate(-50%, -50%) translateZ(95px) scale(2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translateZ(34px) scale(1.4); opacity: 1; }
+}
+
 /* frozen states: no motion, flat fill */
 .vow-fuse--defused .vow-fuse__live {
   background: linear-gradient(90deg, #00ffbf, var(--brand-cyan));
@@ -288,9 +311,12 @@
 /* ---------------- reduced motion ---------------- */
 @media (prefers-reduced-motion: reduce) {
   .vow-fuse__live,
-  .vow-fuse__flamewrap { transition: none; }
+  .vow-fuse__flamewrap,
+  .vow-fuse--crit .vow-fuse__flame { transition: none; }
   .vow-fuse__flame,
-  .vow-fuse--crit .vow-fuse__live { animation: none; }
+  .vow-fuse--crit .vow-fuse__live,
+  .vow-fuse--detonated .vow-fuse__flame { animation: none; }
+  .vow-fuse--crit .vow-fuse__flame { transform: translate(-50%, -50%); }
 }
 html[data-reduced-motion="true"] .vow-fuse__live,
 html[data-reduced-motion="true"] .vow-fuse__flamewrap { transition: none; }

@@ -109,7 +109,9 @@ export default function VowFuse({ createdAt, dueAt, status = "live", onExpire })
     phase === "defused" ? "✅" : phase === "detonated" ? "💥" : "🔥";
 
   return (
-    <div className={`vow-fuse vow-fuse--${phase}`}>
+    // detonation quakes the whole fuse block; the 💥 blast itself is a
+    // vow-blast 3D keyframe on the flame (see TheVow.css)
+    <div className={`vow-fuse vow-fuse--${phase} ${phase === "detonated" ? "a3d-quake" : ""}`}>
       <div className="vow-fuse__track" aria-hidden="true">
         <div
           ref={liveRef}
@@ -124,7 +126,11 @@ export default function VowFuse({ createdAt, dueAt, status = "live", onExpire })
         <span className="vow-fuse__bomb">🧨</span>
       </div>
       <div className="vow-fuse__foot">
-        <span className={`vow-count vow-count--${phase}`}>
+        <span
+          className={`vow-count vow-count--${phase} ${
+            phase === "defused" ? "a3d-flipX" : phase === "detonated" ? "a3d-slam" : ""
+          }`}
+        >
           {phase === "defused"
             ? "DEFUSED"
             : phase === "detonated"

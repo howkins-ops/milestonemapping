@@ -176,7 +176,7 @@ export default function Ascension({ go }) {
   );
 
   /* ---------- one standings row ---------- */
-  const renderRow = (r) => {
+  const renderRow = (r, i) => {
     const zone =
       canPromote && r.pos <= promoteCut
         ? "asc-row--promote"
@@ -186,7 +186,8 @@ export default function Ascension({ go }) {
     return (
       <li
         key={`${r.name}-${r.pos}`}
-        className={`asc-row ${zone} ${r.isMe ? "asc-row--me" : ""}`}
+        style={{ "--i": i }}
+        className={`asc-row a3d-deepin a3d-stagger ${zone} ${r.isMe ? "asc-row--me" : ""}`}
       >
         <span className="asc-rank">{r.pos}</span>
         <span className="asc-name">
@@ -268,10 +269,14 @@ export default function Ascension({ go }) {
 
       {status === "ready" && (
         <>
-          {/* Division banner — styled by fire tier */}
-          <div className="zn-card zn-card--glow asc-division arena-reveal">
+          {/* Division banner — styled by fire tier; the medallion does a full
+              3D flip while the squad is holding a promotion spot */}
+          <div className="zn-card zn-card--glow asc-division arena-reveal a3d-stage">
             <div className="asc-divtop">
-              <span className="asc-divbadge" aria-hidden="true">
+              <span
+                className={`asc-divbadge ${inPromote ? "a3d-flipY" : ""}`}
+                aria-hidden="true"
+              >
                 🔥
               </span>
               <div className="asc-divmeta">
@@ -330,7 +335,7 @@ export default function Ascension({ go }) {
             </div>
 
             {board.length > 0 ? (
-              <ol className="asc-board">{board.map(renderRow)}</ol>
+              <ol className="asc-board a3d-stage--deep">{board.map(renderRow)}</ol>
             ) : (
               <div className="zn-empty">
                 <div className="zn-empty__icon">📊</div>

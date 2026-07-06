@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import "../../styles/zone.css";
 import "../../styles/arena.css";
+import "../../styles/arena3d.css";
 import { supabase } from "../../lib/supabase.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { ZoneProvider, useZoneCtx } from "../../hooks/useZone.js";

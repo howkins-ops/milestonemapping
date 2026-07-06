@@ -56,6 +56,7 @@ export default function BossForge({ go }) {
   const [boss, setBoss] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | offline | nosquad | error
   const [timeLeft, setTimeLeft] = useState(weekTimeLeft());
+  const [hits, setHits] = useState(0); // poke counter — keys the 3D recoil replay
   const slainCelebrated = useRef(false);
   const aliveRef = useRef(true);
 
@@ -135,6 +136,7 @@ export default function BossForge({ go }) {
       const x = e?.clientX ?? window.innerWidth / 2;
       const y = e?.clientY ?? window.innerHeight / 2;
       burst(x, y, "#FF3B5C");
+      setHits((h) => h + 1); // remounts the face → replays the 3D recoil
     },
     [burst, isSlain]
   );
@@ -166,8 +168,8 @@ export default function BossForge({ go }) {
 
   return (
     <div className="boss-wrap" ref={reveal}>
-      <button type="button" className="zn-back boss-back" onClick={() => go?.("squad")}>
-        ← Squad
+      <button type="button" className="zn-back boss-back" onClick={() => go?.("arena", null)}>
+        ← Arena
       </button>
 
       <header className="boss-head arena-reveal">
@@ -227,16 +229,21 @@ export default function BossForge({ go }) {
       {status === "ready" && (
         <>
           <div className={`zn-card zn-card--glow boss-card ${isSlain ? "boss-card--slain" : ""}`}>
-            <div className="boss-stage">
+            {/* a3d-stage = perspective; the face recoils in real 3D on every
+                poke (key remount replays it) and collapses flat when slain */}
+            <div className="boss-stage a3d-stage">
               <button
                 type="button"
-                className={`boss-face ${isSlain ? "boss-face--slain" : ""}`}
+                key={isSlain ? "slain" : hits}
+                className={`boss-face ${
+                  isSlain ? "boss-face--slain a3d-collapse" : hits > 0 ? "a3d-recoil" : ""
+                }`}
                 onClick={pokeBoss}
                 aria-label={isSlain ? `${art.name} defeated` : `Provoke ${art.name}`}
               >
                 {isSlain ? "💥" : art.face}
               </button>
-              <div className="boss-idwrap">
+              <div className={`boss-idwrap ${!isSlain && hits > 0 ? "a3d-quake" : ""}`} key={`id-${hits}`}>
                 <span className="boss-name">{art.name}</span>
                 <span className="boss-week">{isSlain ? "Defeated" : timeLeft}</span>
               </div>
@@ -311,8 +318,8 @@ export default function BossForge({ go }) {
           {isSlain && (
             <div className="boss-cta">
               <div className="boss-slainbanner">🌋 {squadName} brought it down.</div>
-              <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go?.("squad")}>
-                Back to the squad
+              <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go?.("arena", null)}>
+                Back to the Arena
               </button>
             </div>
           )}

@@ -134,7 +134,9 @@
 }
 .arena-intro__dot { color: var(--brand-magenta); text-shadow: 0 0 14px rgba(209, 30, 255, 0.7); }
 
-.arena-intro__wordwrap { position: relative; display: inline-block; }
+/* perspective makes the per-letter rotateX drop (arena-drop) read as true 3D —
+   without it the letters flattened to a squash. */
+.arena-intro__wordwrap { position: relative; display: inline-block; perspective: 900px; }
 
 .arena-intro__zone {
   display: block;

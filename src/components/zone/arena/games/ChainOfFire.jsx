@@ -35,6 +35,7 @@ export default function ChainOfFire({ go }) {
   const [chain, setChain] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | offline | nosquad | error
   const [freezing, setFreezing] = useState(false);
+  const [frozeKey, setFrozeKey] = useState(0); // keys the 3D ice-drop replay per cast
   const extendedCelebrated = useRef(false);
   const aliveRef = useRef(true);
 
@@ -117,7 +118,10 @@ export default function ChainOfFire({ go }) {
           setStatus("offline");
           return;
         }
-        setChain(res || chain);
+        // az_arena_chain_freeze returns only the counters (no members/all_checked_in_today)
+        // — merge it so the "Today's links" roster doesn't blank out until reload.
+        if (res) setChain((prev) => ({ ...(prev || {}), ...res }));
+        setFrozeKey((k) => k + 1);
         const line = witnessSay("chain_frozen", {
           squad: squadName,
           streak: Number(res?.current_len ?? currentLen),
@@ -183,8 +187,8 @@ export default function ChainOfFire({ go }) {
 
   return (
     <div className="chain-wrap" ref={reveal}>
-      <button type="button" className="zn-back chain-back" onClick={() => go?.("squad")}>
-        ← Squad
+      <button type="button" className="zn-back chain-back" onClick={() => go?.("arena", null)}>
+        ← Arena
       </button>
 
       <header className="chain-head arena-reveal">
@@ -246,11 +250,15 @@ export default function ChainOfFire({ go }) {
         <>
           <button
             type="button"
-            className={`zn-card zn-card--glow chain-hero ${allIn ? "chain-hero--lit" : ""}`}
+            className={`zn-card zn-card--glow chain-hero a3d-stage ${allIn ? "chain-hero--lit" : ""}`}
             onClick={nudge}
             aria-label={`Chain at ${currentLen} days`}
           >
-            <span className="chain-heroicon" aria-hidden="true">
+            {/* the link forges into place in 3D the moment the squad holds the day */}
+            <span
+              className={`chain-heroicon ${allIn && currentLen > 0 ? "a3d-forge" : ""}`}
+              aria-hidden="true"
+            >
               {currentLen > 0 ? "🔗" : "✨"}
             </span>
             <span className="chain-heronum">{currentLen}</span>
@@ -289,7 +297,7 @@ export default function ChainOfFire({ go }) {
                 here.
               </div>
             ) : (
-              <ul className="chain-links">
+              <ul className="chain-links a3d-stage--deep">
                 {members.map((m, i) => {
                   const name = m.username || m.name || "Squadmate";
                   const done = Boolean(m.checked_in);
@@ -297,9 +305,10 @@ export default function ChainOfFire({ go }) {
                   return (
                     <li
                       key={m.user_id || m.username || i}
-                      className={`chain-link ${done ? "chain-link--done" : "chain-link--wait"} ${
-                        mine ? "chain-link--me" : ""
-                      }`}
+                      style={{ "--i": i }}
+                      className={`chain-link a3d-deepin a3d-stagger ${
+                        done ? "chain-link--done" : "chain-link--wait"
+                      } ${mine ? "chain-link--me" : ""}`}
                     >
                       <span className="zn-avatar zn-avatar--sm chain-linkavatar">
                         {(name[0] || "?").toUpperCase()}
@@ -308,7 +317,10 @@ export default function ChainOfFire({ go }) {
                         @{name}
                         {mine ? " · you" : ""}
                       </span>
-                      <span className="chain-linkstate" aria-hidden="true">
+                      <span
+                        className={`chain-linkstate ${done ? "a3d-flipY" : ""}`}
+                        aria-hidden="true"
+                      >
                         {done ? "🔗" : "⌛"}
                       </span>
                     </li>
@@ -320,8 +332,13 @@ export default function ChainOfFire({ go }) {
 
           {/* Ember Freeze — a shared grace, spent as a squad. Shame-free rescue. */}
           <div className="zn-card chain-freezecard arena-reveal">
-            <div className="chain-freezerow">
-              <span className="chain-freezeicon" aria-hidden="true">
+            <div className="chain-freezerow a3d-stage">
+              {/* each cast re-drops the cube into the row in 3D */}
+              <span
+                key={frozeKey}
+                className={`chain-freezeicon ${frozeKey > 0 ? "a3d-drop" : ""}`}
+                aria-hidden="true"
+              >
                 🧊
               </span>
               <div className="chain-freezemeta">
@@ -366,8 +383,8 @@ export default function ChainOfFire({ go }) {
           {allIn && (
             <div className="chain-cta">
               <div className="chain-heldbanner">🔥 {squadName} held the line today.</div>
-              <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go?.("squad")}>
-                Back to the squad
+              <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go?.("arena", null)}>
+                Back to the Arena
               </button>
             </div>
           )}

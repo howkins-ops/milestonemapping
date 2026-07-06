@@ -103,7 +103,8 @@ export default function PostProof({ onClose, onDone, challengeId = null }) {
         }, 3400);
       }
       await refreshState();
-      onDone();
+      // Pass the RPC result up — callers like The Vow link res.proof_id to a defuse.
+      onDone(res);
     } catch (err) {
       setError(zoneErrorMessage(err));
       setBusy(false);
