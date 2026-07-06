@@ -190,8 +190,9 @@ begin
   if not found then
     insert into public.arena_bosses (squad_id, week_start, boss_key, max_hp)
     values (p_squad, v_week,
-      (array['procrastination','the_slump','excuse_engine','comfort_zone','the_fog','resistance']
-        )[1 + (extract(week from v_week)::int % 6)],
+      -- keys must match BossForge.jsx BOSS_ART so the weekly boss art rotates
+      (array['procrastigon','doubt_wraith','excuse_hydra','comfort_blob','inner_tyrant']
+        )[1 + (extract(week from v_week)::int % 5)],
       greatest(70, v_members * 70))
     on conflict (squad_id, week_start) do update set week_start = excluded.week_start
     returning * into v_boss;

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title>Declare Mission</title>
+  <defs><linearGradient id="g" x1="20" x2="78" y1="76" y2="18"><stop stop-color="#00F0FF"/><stop offset=".5" stop-color="#FACC15"/><stop offset="1" stop-color="#FF7A1A"/></linearGradient></defs>
+  <rect width="96" height="96" rx="24" fill="#0B0210"/>
+  <circle cx="48" cy="48" r="35" fill="#D11EFF" opacity=".22"/>
+  <path d="M54 16 25 55h20l-5 25 31-43H51z" fill="url(#g)" stroke="#F8FDFF" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

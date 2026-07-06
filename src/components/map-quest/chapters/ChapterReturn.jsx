@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 20 — THE RETURN  ·  the Father's echo  (key: ch20-the-return)
+   CHAPTER 24 — THE RETURN  ·  the Father's echo  (key: ch20-the-return)
    Coelho beat: the treasure at the sycamore + the return — "home all along," but
    only the journey lets you see it; return with the elixir = transformed vision.
    Jon's testimony (T): "The Fisherman & the Businessman" + "rich without money"
@@ -23,7 +23,7 @@ const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(C.mint, 0.16)},
 
 const INTRO = [
   {
-    id: "legible", mood: C.cyan, backdrop: "starfield", kicker: "CHAPTER 20 · THE RETURN",
+    id: "legible", mood: C.cyan, backdrop: "starfield", kicker: "CHAPTER 24 · THE RETURN",
     cast: [{ id: "hero", node: <HeroSprite size={118} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "You walk back into the city you left. Same neon, same flat hum — and yet you can read it now.",

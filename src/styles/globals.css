@@ -1021,14 +1021,239 @@ button {
   backdrop-filter: blur(10px);
 }
 
-.dashboard-command-row {
-  display: flex;
-  gap: 10px;
+/* ============ COMMAND DECK (quiet utility row at the bottom of the dashboard) ============ */
+
+@property --cmdeck-angle {
+  syntax: "<angle>";
+  initial-value: 115deg;
+  inherits: false;
 }
 
-.dashboard-command-row__primary {
-  flex: 1;
+.cmdeck {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 22px;
 }
+
+/* hairline gradient divider that separates the deck from the cards above */
+.cmdeck::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.28) 32%, rgba(209, 30, 255, 0.28) 68%, transparent);
+}
+
+.cmdeck-btn {
+  position: relative;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 15px 16px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: rgba(242, 240, 244, 0.9);
+  cursor: pointer;
+  transition: transform 180ms var(--ease-out), box-shadow 260ms var(--ease-out),
+    color 200ms var(--ease-out), filter 260ms var(--ease-out);
+}
+
+/* hover sheen sweep */
+.cmdeck-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+  transform: skewX(-18deg);
+  transition: left 600ms var(--ease-out);
+  pointer-events: none;
+}
+.cmdeck-btn:hover::after { left: 130%; }
+
+.cmdeck-btn:active { transform: scale(0.98); }
+.cmdeck-btn:focus-visible { outline: 2px solid rgba(0, 240, 255, 0.8); outline-offset: 2px; }
+
+.cmdeck-btn__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+/* Chart New Map — glass panel with a slowly rotating neon gradient border */
+.cmdeck-btn--map {
+  background:
+    linear-gradient(rgba(9, 5, 18, 0.92), rgba(13, 6, 24, 0.92)) padding-box,
+    conic-gradient(from var(--cmdeck-angle),
+      rgba(0, 240, 255, 0.55), rgba(123, 44, 255, 0.32), rgba(255, 62, 219, 0.55),
+      rgba(123, 44, 255, 0.32), rgba(0, 240, 255, 0.55)) border-box;
+  animation: cmdeck-spin 9s linear infinite;
+}
+.cmdeck-btn--map .cmdeck-btn__icon { color: #00F0FF; }
+.cmdeck-btn--map:hover {
+  transform: translateY(-1px);
+  color: #F2F0F4;
+  box-shadow: 0 6px 24px -8px rgba(0, 240, 255, 0.4), 0 6px 28px -6px rgba(255, 62, 219, 0.32);
+}
+
+@keyframes cmdeck-spin {
+  to { --cmdeck-angle: 475deg; }
+}
+
+/* The Formula — quieter glass, faint gold edge */
+.cmdeck-btn--formula {
+  color: rgba(242, 240, 244, 0.76);
+  background:
+    linear-gradient(rgba(9, 5, 18, 0.88), rgba(13, 6, 24, 0.88)) padding-box,
+    linear-gradient(150deg, rgba(255, 209, 102, 0.32), rgba(255, 255, 255, 0.09) 45%, rgba(255, 176, 0, 0.26)) border-box;
+}
+.cmdeck-btn--formula .cmdeck-btn__icon { color: rgba(255, 209, 102, 0.85); }
+.cmdeck-btn--formula:hover {
+  transform: translateY(-1px);
+  color: #FFD166;
+  box-shadow: 0 6px 22px -8px rgba(255, 209, 102, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdeck-btn--map { animation: none; }
+}
+
+/* ============ MAP QUEST — Draw This Card (real button over the video) ============ */
+
+.mq-draw {
+  /* geometry measured against the button painted into alchemist-card.mp4 —
+     must fully cover it (incl. its glow edge) or slivers peek out */
+  position: absolute;
+  left: 8.4%;
+  top: 74.9%;
+  width: 84.5%;
+  height: 12.2%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(15px, 3.1vw, 20px);
+  letter-spacing: 0.02em;
+  color: #05000A;
+  background: linear-gradient(105deg, #00F0FF, #7B2CFF 48%, #FF3EDB) 0% 50% / 220% 100%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 22px rgba(0, 240, 255, 0.32),
+    0 8px 30px -6px rgba(255, 62, 219, 0.42);
+  animation: mq-draw-flow 7s ease-in-out infinite;
+  transition: transform 180ms var(--ease-out), box-shadow 260ms var(--ease-out), filter 260ms var(--ease-out);
+}
+
+/* the gradient slowly breathes across the pill */
+@keyframes mq-draw-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* periodic sheen sweep — rests, then glides across */
+.mq-draw::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -30%;
+  width: 24%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  animation: mq-draw-sheen 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes mq-draw-sheen {
+  0%, 58% { left: -30%; }
+  78%, 100% { left: 130%; }
+}
+
+.mq-draw__arrow { transition: transform 200ms var(--ease-out); }
+
+.mq-draw:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.15) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 0 30px rgba(0, 240, 255, 0.45),
+    0 10px 36px -6px rgba(255, 62, 219, 0.55);
+}
+.mq-draw:hover .mq-draw__arrow { transform: translateX(4px); }
+.mq-draw:active { transform: scale(0.985); }
+.mq-draw:focus-visible { outline: 2px solid #F2F0F4; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mq-draw { animation: none; }
+  .mq-draw::after { animation: none; }
+}
+
+/* What's inside — bigger, readable chip over the tiny painted-in text.
+   The translucent fill + blur is what hides the video text underneath. */
+.mq-inside {
+  position: absolute;
+  left: 31%;
+  top: 87.2%;
+  width: 38%;
+  height: 7.2%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0;
+  border: 1px solid rgba(197, 181, 253, 0.26);
+  border-radius: 999px;
+  background: rgba(8, 2, 18, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  color: rgba(242, 240, 244, 0.92);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(13px, 2.7vw, 17px);
+  letter-spacing: 0.02em;
+  transition: color 200ms var(--ease-out), border-color 200ms var(--ease-out),
+    box-shadow 240ms var(--ease-out), transform 180ms var(--ease-out);
+}
+
+.mq-inside__chev {
+  font-size: 0.8em;
+  transition: transform 220ms var(--ease-out);
+}
+
+.mq-inside:hover {
+  color: #fff;
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 16px rgba(123, 44, 255, 0.35);
+}
+.mq-inside:active { transform: scale(0.97); }
+.mq-inside:focus-visible { outline: 2px solid rgba(0, 240, 255, 0.8); outline-offset: 2px; }
+.mq-inside.is-open { border-color: rgba(0, 240, 255, 0.45); color: #fff; }
+.mq-inside.is-open .mq-inside__chev { transform: rotate(180deg); }
 
 /* ============ RITUAL TABS ============ */
 
@@ -5032,7 +5257,7 @@ button {
   .dashboard-action-grid { grid-template-columns: 1fr; }
   .dashboard-action-card { min-height: 121px; }
   .dashboard-action-card__description { max-width: 10.75rem; }
-  .dashboard-command-row { flex-direction: column; }
+  .cmdeck-btn { padding: 13px 12px; font-size: 13px; }
   .topbar { padding: 12px 16px; }
   .modal-overlay { padding: 0; align-items: flex-end; }
   .modal-sheet {
@@ -6735,10 +6960,10 @@ h4,
   inset: 6px;
   border-radius: 14px;
   background:
-    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 7px 7px,
+    url("/assets/vision/vision-board-preview.png") center / cover no-repeat,
     linear-gradient(160deg, rgba(60, 30, 12, 0.55), rgba(20, 8, 4, 0.6));
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.08);
 }
 .vision-feature__polaroid {
   position: absolute;
@@ -6772,17 +6997,17 @@ h4,
 .vision-feature__ghost-icon { font-size: 30px; opacity: 0.7; }
 .vision-feature__pin {
   position: absolute;
-  top: -7px;
+  top: -15px;
   left: 50%;
-  width: 15px;
-  height: 15px;
+  width: 30px;
+  height: 30px;
   transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff, var(--brand-pink) 48%, color-mix(in srgb, var(--brand-pink) 55%, #000));
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 0 12px color-mix(in srgb, var(--brand-pink) 60%, transparent);
+  z-index: 2;
+  background: url("/assets/vision/vision-pin-magenta.png") center / contain no-repeat;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 8px rgba(255, 62, 219, 0.62));
 }
-.vision-feature__polaroid--cyan .vision-feature__pin { background: radial-gradient(circle at 35% 30%, #fff, var(--brand-cyan) 48%, #036); box-shadow: 0 2px 5px rgba(0,0,0,0.55), 0 0 12px rgba(0,240,255,0.6); }
-.vision-feature__polaroid--purple .vision-feature__pin { background: radial-gradient(circle at 35% 30%, #fff, var(--brand-purple) 48%, #204); box-shadow: 0 2px 5px rgba(0,0,0,0.55), 0 0 12px rgba(123,44,255,0.6); }
+.vision-feature__polaroid--cyan .vision-feature__pin { filter: hue-rotate(124deg) drop-shadow(0 3px 5px rgba(0,0,0,0.58)) drop-shadow(0 0 10px rgba(0,240,255,0.58)); }
+.vision-feature__polaroid--purple .vision-feature__pin { filter: hue-rotate(36deg) drop-shadow(0 3px 5px rgba(0,0,0,0.58)) drop-shadow(0 0 10px rgba(123,44,255,0.58)); }
 
 @media (max-width: 620px) {
   .vision-feature { grid-template-columns: 1fr; }
@@ -6834,7 +7059,7 @@ h4,
   background:
     radial-gradient(120% 90% at 15% 10%, rgba(123, 44, 255, 0.1), transparent 45%),
     radial-gradient(120% 90% at 85% 90%, rgba(0, 240, 255, 0.07), transparent 45%),
-    radial-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px) 0 0 / 8px 8px,
+    url("/assets/vision/vision-board-preview.png") center / cover no-repeat,
     linear-gradient(160deg, #14082a, #0a0512 70%);
   box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
   transition: box-shadow 200ms var(--ease-out);
@@ -6943,27 +7168,16 @@ h4,
 /* The glowing push-pin bead */
 .cork-pin__pin {
   position: absolute;
-  top: -9px;
+  top: -19px;
   left: 50%;
-  width: 20px;
-  height: 20px;
+  width: 42px;
+  height: 42px;
   transform: translateX(-50%);
-  border-radius: 50%;
   z-index: 3;
-  background: radial-gradient(circle at 34% 28%, #fff 8%, var(--pin) 50%, color-mix(in srgb, var(--pin) 55%, #000) 100%);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.55), 0 0 16px color-mix(in srgb, var(--pin) 65%, transparent);
+  background: url("/assets/vision/vision-pin-magenta.png") center / contain no-repeat;
+  filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.56)) drop-shadow(0 0 14px color-mix(in srgb, var(--pin) 58%, transparent));
 }
-.cork-pin__pin::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 4px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  filter: blur(0.5px);
-}
+.cork-pin__pin::after { display: none; }
 .cork-pin__pin--cyan { --pin: var(--brand-cyan); }
 .cork-pin__pin--pink { --pin: var(--brand-pink); }
 .cork-pin__pin--purple { --pin: var(--brand-purple); }

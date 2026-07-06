@@ -12,7 +12,7 @@ const VALUE = [
   {
     icon: "❖",
     color: "#D11EFF",
-    title: "10+ years, distilled into 20 chapters",
+    title: "10+ years, distilled into 24 chapters",
     body: "A decade of coaching practice, training, and client breakthroughs — refined into a guided journey you walk at your own pace.",
   },
   {
@@ -32,7 +32,7 @@ const STEPS = [
   {
     n: "02",
     title: "Walk the chapters",
-    body: "Twenty levels. One honest piece of inner work each, woven with the Mentor's true story.",
+    body: "Twenty-four levels. One honest piece of inner work each, woven with the Mentor's true story.",
   },
   {
     n: "03",
@@ -80,42 +80,29 @@ export default function MapQuestHero({ onLaunch }) {
           <source src="/alchemist-card.mp4" type="video/mp4" />
         </video>
 
-        {/* HOTSPOT: Draw This Card → opens the quest */}
+        {/* Draw This Card — a real button laid exactly over the one painted
+            into the video, so it can breathe, sheen and react on hover. */}
         <button
+          type="button"
+          className="mq-draw"
           onClick={() => onLaunch()}
           aria-label="Draw this card — open The Inner Alchemist"
-          style={{
-            position: "absolute",
-            left: "12%",
-            top: "74%",
-            width: "76%",
-            height: "13%",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-            zIndex: 2,
-          }}
-        />
+        >
+          <span>Draw This Card</span>
+          <span className="mq-draw__arrow" aria-hidden="true">→</span>
+        </button>
 
-        {/* HOTSPOT: What's inside → toggles the details panel below */}
+        {/* What's inside — real chip covering the tiny text painted into the
+            video, so it can be bigger and react on hover/open. */}
         <button
+          type="button"
+          className={`mq-inside${showHow ? " is-open" : ""}`}
           onClick={() => setShowHow((s) => !s)}
           aria-expanded={showHow}
-          aria-label="What's inside"
-          style={{
-            position: "absolute",
-            left: "36%",
-            top: "87.5%",
-            width: "28%",
-            height: "6.5%",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-            zIndex: 2,
-          }}
-        />
+        >
+          <span>What&rsquo;s inside</span>
+          <span className="mq-inside__chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       {/* What's inside — value reveal + the path (real HTML, rendered below the video) */}

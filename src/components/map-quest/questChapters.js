@@ -1,4 +1,4 @@
-// The Inner Alchemist — the canonical 20-chapter spine (single source of truth).
+// The Inner Alchemist — the canonical 24-chapter spine (single source of truth).
 // Drives BOTH the Quest Book map (MapQuestMap) and the chapter router (RPGWorldPage).
 // Content source: alchemist/07_CHAPTER_DOSSIER.md. World/look: alchemist/06_WORLD_BIBLE.md.
 //
@@ -56,7 +56,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch05-v1",
   },
 
-  // ── ARC 2 · FIRST SHADOWS & THE TRADE (Ch 6–10) ──────────────────────────
+  // ── ARC 2 · THE FALL & THE CRYSTAL SHOP (Ch 6–10) ────────────────────────
   {
     key: "chapter-shadow", number: 6, title: "The Undercity of Lack",
     subtitle: "Meet the Broke King — the first mask walking beside you.",
@@ -67,17 +67,59 @@ export const QUEST_CHAPTERS = [
     component: "ChapterShadow", available: true, requires: "chapter-anchor",
     saveKey: "milestone-quest:shadow-v3",
   },
+
+  // ── The Crystal Shop sales-mastery arc (Ch 7–10) — the Merchant's four
+  // lessons × Jon's full sales curriculum (F$CK THE 9-5, Part Two).
+  // Content source: alchemist/07_CHAPTER_DOSSIER.md (Arc 2.5).
   {
-    key: "ch07-the-challenger", number: 7, title: "The Challenger",
+    key: "cr01-the-crystal-shop", number: 7, title: "The Crystal Shop",
+    subtitle: "Polish the glass before you ask for anything.",
+    world: "A dusty crystal shop on the hill; the Merchant.",
+    exercise: "Polish the Crystal", shadow: null, essence: null, consent: "Testimony",
+    reward: "The inner sale", type: "Story + sales training",
+    component: "ChapterCrystalShop", available: true, requires: "chapter-shadow",
+    saveKey: "milestone-quest:cr01-v1",
+  },
+  {
+    key: "cr02-the-display-case", number: 8, title: "The Display Case",
+    subtitle: "Run the numbers, not the fear.",
+    world: "A case at the foot of the hill; sales becomes a science.",
+    exercise: "Find Your Number", shadow: null, essence: null, consent: "Testimony",
+    reward: "Your closing number", type: "Story + sales training",
+    component: "ChapterDisplayCase", available: true, requires: "cr01-the-crystal-shop",
+    saveKey: "milestone-quest:cr02-v1",
+  },
+  {
+    key: "cr03-the-thirst", number: 9, title: "The Thirst",
+    subtitle: "Serve what they're actually thirsty for.",
+    world: "Mint tea in crystal glasses; the rock collection.",
+    exercise: "The Rock Collection", shadow: null, essence: null, consent: "Testimony",
+    reward: "Rapport", type: "Story + sales training",
+    component: "ChapterThirst", available: true, requires: "cr02-the-display-case",
+    saveKey: "milestone-quest:cr03-v1",
+  },
+  {
+    key: "cr04-the-merchants-dream", number: 10, title: "The Merchant's Dream",
+    subtitle: "He never went to Mecca. Close your own deal.",
+    world: "The Mecca confession; the funded exit refused.",
+    exercise: "Close Yourself", shadow: null, essence: null, consent: "Testimony",
+    reward: "The close", type: "Story + sales training",
+    component: "ChapterMerchantsDream", available: true, requires: "cr03-the-thirst",
+    saveKey: "milestone-quest:cr04-v1",
+  },
+
+  // ── ARC 3 · THE ROAD OF TRIALS (Ch 11–14) ────────────────────────────────
+  {
+    key: "ch07-the-challenger", number: 11, title: "The Challenger",
     subtitle: "A fixer who won't let you blame.",
     world: "The Challenger mentor; victim → at-cause.",
     exercise: "At Cause Reset", shadow: null, essence: null, consent: "Testimony",
     reward: "Challenger mentor", type: "Story + coaching",
-    component: "ChapterChallenger", available: true, requires: "chapter-shadow",
+    component: "ChapterChallenger", available: true, requires: "cr04-the-merchants-dream",
     saveKey: "milestone-quest:ch07-v1",
   },
   {
-    key: "ch08-the-forge", number: 8, title: "The Forge",
+    key: "ch08-the-forge", number: 12, title: "The Forge",
     subtitle: "Tools that run on kept promises.",
     world: "The grit forge; door-to-door fire.",
     exercise: "Promise Forge", shadow: null, essence: null, consent: "Testimony",
@@ -86,7 +128,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch08-v1",
   },
   {
-    key: "ch09-the-neon-chapel", number: 9, title: "The Neon Chapel",
+    key: "ch09-the-neon-chapel", number: 13, title: "The Neon Chapel",
     subtitle: "Meet the Addict Saint who numbs the ache.",
     world: "A chapel of beautiful escapes.",
     exercise: "Compassionate Interruption", shadow: "addict_saint", essence: "Love", consent: "Transmuted",
@@ -95,7 +137,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch09-v1",
   },
   {
-    key: "ch10-the-desert", number: 10, title: "The Dead-Server Desert",
+    key: "ch10-the-desert", number: 14, title: "The Dead-Server Desert",
     subtitle: "Broken clocks; patience is the crossing.",
     world: "A desert of dead servers and broken time.",
     exercise: "Time Integrity Reset", shadow: null, essence: null, consent: "Testimony",
@@ -104,9 +146,9 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch10-v1",
   },
 
-  // ── ARC 3 · DEEPER SHADOWS & BEING (Ch 11–16) ────────────────────────────
+  // ── ARC 4 · DEEPER SHADOWS & BEING (Ch 15–20) ────────────────────────────
   {
-    key: "ch11-the-data-spire", number: 11, title: "The Data-Spire",
+    key: "ch11-the-data-spire", number: 15, title: "The Data-Spire",
     subtitle: "Meet the Silent Prophet; find your voice.",
     world: "A spire of unsent messages and muted mics.",
     exercise: "Voice Gate", shadow: "silent_prophet", essence: "Radiance", consent: "Testimony",
@@ -115,7 +157,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch11-v1",
   },
   {
-    key: "ch12-the-recursion", number: 12, title: "The Recursion",
+    key: "ch12-the-recursion", number: 16, title: "The Recursion",
     subtitle: "Break the loop you keep repeating.",
     world: "A looping chamber; the Alchemist first appears.",
     exercise: "Loop Breaker", shadow: null, essence: null, consent: "Transmuted",
@@ -124,7 +166,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch12-v1",
   },
   {
-    key: "ch13-the-diagnostic", number: 13, title: "The Diagnostic",
+    key: "ch13-the-diagnostic", number: 17, title: "The Diagnostic",
     subtitle: "Name the piece that's actually missing.",
     world: "A compass of what's missing; sales-as-science.",
     exercise: "Missing-Piece Diagnostic", shadow: null, essence: null, consent: "Testimony",
@@ -133,7 +175,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch13-v1",
   },
   {
-    key: "ch14-the-ruins", number: 14, title: "The Ruins District",
+    key: "ch14-the-ruins", number: 18, title: "The Ruins District",
     subtitle: "Meet the Raging Victim; choose your story.",
     world: "The ruins of what happened.",
     exercise: "Throne of Responsibility", shadow: "raging_victim", essence: "Majesty", consent: "Transmuted",
@@ -142,7 +184,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch14-v1",
   },
   {
-    key: "ch15-the-garden", number: 15, title: "The Garden Server",
+    key: "ch15-the-garden", number: 19, title: "The Garden Server",
     subtitle: "Forgive yourself; learn to be.",
     world: "A hidden green node in the grid; the Heartkeeper.",
     exercise: "Being Mirror", shadow: null, essence: null, consent: "Testimony",
@@ -151,7 +193,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch15-v1",
   },
   {
-    key: "ch16-the-black-market", number: 16, title: "The Black Market",
+    key: "ch16-the-black-market", number: 20, title: "The Black Market",
     subtitle: "Meet the Naive Warrior; move clean.",
     world: "False upgrades, shortcuts, borrowed family.",
     exercise: "Clean Movement Check", shadow: "naive_warrior", essence: "Joy", consent: "Testimony",
@@ -160,9 +202,9 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch16-v1",
   },
 
-  // ── ARC 4 · CLIMAX & RETURN (Ch 17–20) ───────────────────────────────────
+  // ── ARC 5 · CLIMAX & RETURN (Ch 21–24) ───────────────────────────────────
   {
-    key: "ch17-the-citadel", number: 17, title: "The Citadel",
+    key: "ch17-the-citadel", number: 21, title: "The Citadel",
     subtitle: "All five shadows converge. Name them.",
     world: "The citadel where every shadow meets at once.",
     exercise: "Shadow Naming Ceremony", shadow: "all", essence: null, consent: "Transmuted",
@@ -171,7 +213,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch17-v1",
   },
   {
-    key: "ch18-becoming-the-signal", number: 18, title: "Becoming the Signal",
+    key: "ch18-becoming-the-signal", number: 22, title: "Becoming the Signal",
     subtitle: "Jack into the wind. Surrender.",
     world: "The storm; you become the signal.",
     exercise: "Essence Stand", shadow: null, essence: "all", consent: "Testimony",
@@ -180,7 +222,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch18-v1",
   },
   {
-    key: "ch19-the-vault", number: 19, title: "The Vault",
+    key: "ch19-the-vault", number: 23, title: "The Vault",
     subtitle: "It opens onto a mirror. The treasure was you.",
     world: "The vault opens onto a mirror — Day-One beside now.",
     exercise: "Life Purpose Reveal", shadow: null, essence: null, consent: "Testimony",
@@ -189,7 +231,7 @@ export const QUEST_CHAPTERS = [
     saveKey: "milestone-quest:ch19-v1",
   },
   {
-    key: "ch20-the-return", number: 20, title: "The Return",
+    key: "ch20-the-return", number: 24, title: "The Return",
     subtitle: "The city, now legible. Carry the elixir home.",
     world: "Home — now legible; the Phoenix rises.",
     exercise: "Return & Next Quest", shadow: null, essence: null, consent: "Testimony",

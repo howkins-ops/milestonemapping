@@ -12,6 +12,7 @@ import { playSound } from "../../../lib/sounds.js";
 import UserChip from "../shared/UserChip.jsx";
 import MediaImage from "../shared/MediaImage.jsx";
 import ReportButton from "../shared/ReportButton.jsx";
+import ZoneIcon from "../shared/ZoneIcon.jsx";
 import ReactionBar from "./ReactionBar.jsx";
 import { timeAgo } from "../home/ZoneHome.jsx";
 
@@ -154,7 +155,7 @@ export default function FeedCard({ event, onClose, onChanged }) {
               {xp != null && <span className="zn-chip">⭐ {xp} pts</span>}
               {cat && (
                 <span className="zn-chip">
-                  <span aria-hidden="true">{cat.icon}</span> {cat.label}
+                  <ZoneIcon src={cat.art} className="zn-chip__icon" /> {cat.label}
                 </span>
               )}
               {p.streak > 0 && <span className="zn-chip zn-chip--fire">🔥 {p.streak}</span>}
@@ -186,7 +187,9 @@ export default function FeedCard({ event, onClose, onChanged }) {
 
         {event.event_type === "declare" && (
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-            <div className="zn-row__thumb" aria-hidden="true">{getCategory(p.category).icon}</div>
+            <div className="zn-row__thumb zn-row__thumb--art" aria-hidden="true">
+              <ZoneIcon src={getCategory(p.category).art} />
+            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="zn-row__title" style={{ fontSize: 16, whiteSpace: "normal" }}>
                 {p.title || "Declared a mission"}
@@ -211,6 +214,28 @@ export default function FeedCard({ event, onClose, onChanged }) {
                 ? `A ${p.fallen_streak}-day fire turned to ash — and a new one just got lit. The comeback is the story.`
                 : "New fire, same soul. The comeback is the story."}
             </p>
+          </div>
+        )}
+
+        {event.event_type === "recommit" && (
+          <div>
+            <p className="zn-eyebrow" style={{ color: "#FF7A1A" }}>Recommit · back in integrity</p>
+            <div className="zn-recommit-card__pair">
+              <span className="zn-recommit-card__tag">The story I told</span>
+              <p className="zn-recommit-card__lie">{p.lie}</p>
+              <span className="zn-recommit-card__tag zn-recommit-card__tag--truth">The truth</span>
+              <p className="zn-recommit-card__truth">{p.truth}</p>
+            </div>
+            <p className="zn-recommit-card__declare">“{p.declaration}”</p>
+            <div className="zn-chipbar" style={{ marginBottom: 4 }}>
+              {p.proof && <span className="zn-chip zn-chip--fire">⚡ Proof within 24h: {p.proof}</span>}
+              {p.rose && (
+                <span className="zn-chip">
+                  🔥 {p.fallen_streak > 0 ? `Rose from a ${p.fallen_streak}-day fire's ashes` : "Rose from the ashes"}
+                </span>
+              )}
+              {xp != null && xp > 0 && <span className="zn-chip">⭐ {xp} pts</span>}
+            </div>
           </div>
         )}
 

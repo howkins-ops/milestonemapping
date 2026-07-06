@@ -10,6 +10,7 @@ const TYPE_ICON = {
   proof: "📸",
   declare: "⚡",
   rise: "🔥",
+  recommit: "🔥",
   eruption: "🌋",
   squad_join: "🛡️",
   challenge_join: "🏆",
@@ -17,13 +18,14 @@ const TYPE_ICON = {
   weekly_report: "📊",
 };
 
-const ACCENT_TYPES = new Set(["eruption", "rise", "challenge_complete", "weekly_report"]);
+const ACCENT_TYPES = new Set(["eruption", "rise", "recommit", "challenge_complete", "weekly_report"]);
 
 function eventLabel(ev) {
   switch (ev.event_type) {
     case "proof": return "Posted proof";
     case "declare": return "Declared a mission";
     case "rise": return "Rose from the ashes";
+    case "recommit": return ev.payload?.declaration || "Recommitted — back in integrity";
     case "eruption": return `${ev.payload?.squad_name || "Squad"} erupted!`;
     case "squad_join": return `Joined ${ev.payload?.squad_name || "a squad"}`;
     case "challenge_join": return `Joined ${ev.payload?.title || "a challenge"}`;

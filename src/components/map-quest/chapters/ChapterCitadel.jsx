@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 17 — THE CITADEL  ·  all five shadows converge  (key: ch17-the-citadel)
+   CHAPTER 21 — THE CITADEL  ·  all five shadows converge  (key: ch17-the-citadel)
    Coelho beat: captured; the alchemist stakes everything — "he will turn into
    the wind." Every prior power converges into one impossible reckoning.
    Jon's testimony — the Ayahuasca descent (the Ch17 anchor), rendered FULLY
@@ -33,7 +33,7 @@ const ringNode = (color, size = 60) => <CrownedSprite size={size} baseColor={col
 
 const INTRO = [
   {
-    id: "citadel", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 17 · THE CITADEL", stageH: 250,
+    id: "citadel", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 21 · THE CITADEL", stageH: 250,
     cast: ARCH.map((a) => ({ id: a.type, node: ringNode(a.color, 58), label: a.essence, labelColor: a.color })),
     lines: [
       "The road ends at a black citadel, and the doors lock behind you. You're captured — the Ordeal the whole journey was bending toward.",

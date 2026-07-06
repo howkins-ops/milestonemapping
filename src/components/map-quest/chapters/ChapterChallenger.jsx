@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 7 — THE CHALLENGER  ·  the Challenger mentor  (key: ch07-the-challenger)
+   CHAPTER 11 — THE CHALLENGER  ·  the Challenger mentor  (key: ch07-the-challenger)
    Coelho beat: Re-choosing the dream when you now have something to lose — the
    joy (and terror) of choosing your destiny AGAIN. The mentor who won't let you
    blame.
@@ -27,7 +27,7 @@ const chalNode = (size = 122) => <MentorSprite size={size} color={CHAL} />;
 
 const INTRO = [
   {
-    id: "block", mood: CHAL, backdrop: "forest", kicker: "CHAPTER 7 · THE CHALLENGER",
+    id: "block", mood: CHAL, backdrop: "forest", kicker: "CHAPTER 11 · THE CHALLENGER",
     cast: [
       { id: "hero", node: heroNode(102), label: "YOU" },
       { id: "chal", node: chalNode(126), label: "THE CHALLENGER", labelColor: CHAL },

@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 18 — BECOMING THE SIGNAL  ·  the Alchemist  (key: ch18-becoming-the-signal)
+   CHAPTER 22 — BECOMING THE SIGNAL  ·  the Alchemist  (key: ch18-becoming-the-signal)
    Coelho beat: turning into the wind — union with the Soul of the World; with
    purpose and no fear of failure you already hold every tool. Miracle as
    alignment, not domination.
@@ -42,7 +42,7 @@ function EssenceRing() {
 
 const INTRO = [
   {
-    id: "storm", mood: C.cyan, backdrop: "starfield", kicker: "CHAPTER 18 · BECOMING THE SIGNAL",
+    id: "storm", mood: C.cyan, backdrop: "starfield", kicker: "CHAPTER 22 · BECOMING THE SIGNAL",
     cast: [{ id: "hero", node: <HeroSprite size={120} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "Beyond the citadel there's only open storm — wind so loud it erases everything that isn't true.",

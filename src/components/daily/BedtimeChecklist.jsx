@@ -139,7 +139,7 @@ export default function BedtimeChecklist() {
   const tier = TIERS.find((t) => activeCount >= t.min) || null;
 
   return (
-    <section className="bedtime-section anim-fade-in">
+    <section className="bedtime-section night-image-card night-image-card--sleep-boosters anim-fade-in">
 
       <ScienceInfo ids={["sleep"]} />
 

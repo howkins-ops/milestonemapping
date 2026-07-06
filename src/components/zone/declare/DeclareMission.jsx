@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useZoneCtx } from "../../../hooks/useZone.js";
 import { useAppData } from "../../../hooks/useAppData.js";
 import { declareMission } from "../../../lib/zoneService.js";
-import { MISSION_CATEGORIES, zoneErrorMessage } from "../../../lib/zoneFire.js";
+import { MISSION_CATEGORIES, ZONE_ICONS, zoneErrorMessage } from "../../../lib/zoneFire.js";
 import { playSound } from "../../../lib/sounds.js";
+import ZoneIcon from "../shared/ZoneIcon.jsx";
 
 // Public declaration — the implementation intention that starts the loop.
 export default function DeclareMission({ onClose, onDone }) {
@@ -48,7 +49,10 @@ export default function DeclareMission({ onClose, onDone }) {
     <div className="zn-overlay" onClick={onClose}>
       <div className="zn-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Declare today's mission">
         <div className="zn-sheet__handle" aria-hidden="true" />
-        <h3 className="zn-sheet__title">⚡ Declare today's mission</h3>
+        <h3 className="zn-sheet__title">
+          <ZoneIcon src={ZONE_ICONS.declare} className="zn-sheet__title-icon" />
+          Declare today's mission
+        </h3>
 
         <div className="zn-cats" style={{ marginBottom: 16 }}>
           {MISSION_CATEGORIES.map((c) => (
@@ -58,7 +62,7 @@ export default function DeclareMission({ onClose, onDone }) {
               className={`zn-cat${category === c.key ? " zn-cat--active" : ""}`}
               onClick={() => pickCat(c)}
             >
-              <span className="zn-cat__icon" aria-hidden="true">{c.icon}</span>
+              <ZoneIcon src={c.art} className="zn-cat__icon" />
               {c.label}
             </button>
           ))}
@@ -89,7 +93,8 @@ export default function DeclareMission({ onClose, onDone }) {
 
         {error && <p className="zn-hint zn-hint--bad" role="alert">{error}</p>}
         <button type="button" className="zn-btn" onClick={submit} disabled={busy || !category || !title.trim()}>
-          {busy ? "Committing…" : todayMission ? "Update the board" : "Commit publicly 🔥"}
+          {!busy && !todayMission && <ZoneIcon src={ZONE_ICONS.fire} className="zn-btn__icon" />}
+          {busy ? "Committing…" : todayMission ? "Update the board" : "Commit publicly"}
         </button>
         <p style={{ fontSize: 11.5, color: "var(--text-soft)", textAlign: "center", marginTop: 10 }}>
           Friends and squad-mates will see this. That's the point.

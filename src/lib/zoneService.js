@@ -129,6 +129,17 @@ export const declareMission = ({ category, title, note }) =>
     p_note: note || null,
   });
 
+// Shift One ritual — the cost step is private and intentionally never sent.
+export const recommit = ({ lie, truth, declaration, proof, asMission }) =>
+  rpc("az_recommit", {
+    p_local_date: today(),
+    p_lie: lie,
+    p_truth: truth,
+    p_declaration: declaration,
+    p_proof: proof,
+    p_as_mission: !!asMission,
+  });
+
 export const postProof = ({ kind, caption, mediaPath, challengeId, durationMinutes, photoSource }) =>
   rpc("az_post_proof", {
     p_local_date: today(),

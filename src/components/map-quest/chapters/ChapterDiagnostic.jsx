@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 13 — THE DIAGNOSTIC  ·  the Business mentor returns  (key: ch13-the-diagnostic)
+   CHAPTER 17 — THE DIAGNOSTIC  ·  the Business mentor returns  (key: ch13-the-diagnostic)
    Coelho beat: listening to the heart / the Soul of the World — knowledge must
    become embodiment; a compass that scans for what's missing.
    Jon's testimony (T): the "Big Book Splat" — a manager drops Robbins's
@@ -28,7 +28,7 @@ const mentorNode = (size = 120) => <MentorSprite size={size} color={DIAG} />;
 
 const INTRO = [
   {
-    id: "compass", mood: DIAG, backdrop: "starfield", kicker: "CHAPTER 13 · THE DIAGNOSTIC",
+    id: "compass", mood: DIAG, backdrop: "starfield", kicker: "CHAPTER 17 · THE DIAGNOSTIC",
     cast: [{ id: "hero", node: heroNode(116), label: "YOU" }],
     lines: [
       "Deep in the Innermost Cave, a brass compass turns in your palm — but its needle doesn't point north. It points at what's missing.",

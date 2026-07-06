@@ -6,7 +6,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 11 — THE DATA-SPIRE  ·  Silent Prophet ↔ Radiance  (key: chapter-data-spire)
+   CHAPTER 15 — THE DATA-SPIRE  ·  Silent Prophet ↔ Radiance  (key: chapter-data-spire)
    Coelho beat: reading omens + finding the courage to SPEAK the warning (the
    hawks) — the outsider who says what insiders normalize.
    Jon's testimony (Tr → T triumph, fictionalized): a single installed LIE
@@ -24,7 +24,7 @@ const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(GOLD, 0.15)}, t
 
 const INTRO = [
   {
-    id: "spire", mood: GOLD, backdrop: "starfield", kicker: "CHAPTER 11 · THE DATA-SPIRE",
+    id: "spire", mood: GOLD, backdrop: "starfield", kicker: "CHAPTER 15 · THE DATA-SPIRE",
     cast: [{ id: "hero", node: <HeroSprite size={116} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "The path climbs a tower made of everything never said — the Data-Spire. Unsent messages drift up its sides like dead leaves of light. Mic icons, every one of them muted, blink in slow rows.",

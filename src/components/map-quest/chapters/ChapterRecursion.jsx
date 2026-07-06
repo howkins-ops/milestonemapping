@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 12 — THE RECURSION  ·  the Alchemist first appears  (key: ch12-the-recursion)
+   CHAPTER 16 — THE RECURSION  ·  the Alchemist first appears  (key: ch12-the-recursion)
    Coelho beat: acting on truth despite "common sense" — the looping chamber of
    the heart that fears, repeating the Seeker's own pattern back at him.
    Jon's testimony (T): the employee mindset smuggled into self-employment —
@@ -26,7 +26,7 @@ const alchemistNode = (size = 122) => <AlchemistSprite size={size} />;
 
 const INTRO = [
   {
-    id: "chamber", mood: ACCENT, backdrop: "starfield", kicker: "CHAPTER 12 · THE RECURSION",
+    id: "chamber", mood: ACCENT, backdrop: "starfield", kicker: "CHAPTER 16 · THE RECURSION",
     cast: [{ id: "hero", node: heroNode(116), label: "YOU" }],
     lines: [
       "The corridor folds you into a circular chamber, and the chamber is already living your life.",

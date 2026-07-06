@@ -167,14 +167,46 @@
 
 /* ── Hub entry: full-width SOS bar (mirrors .sx-gallerylink) ───────────────── */
 .wave-sosbar {
+  --shadow-sos-image: url("/assets/shadow/card-ride-wave.png");
   display: flex; align-items: center; gap: 14px; width: 100%; margin: 4px 0 18px;
   padding: 16px 18px; border-radius: 16px; cursor: pointer; text-align: left;
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(120deg, rgba(0, 240, 255, 0.12), rgba(123, 44, 255, 0.12));
   border: 1px solid rgba(0, 240, 255, 0.4);
   box-shadow: 0 0 24px rgba(0, 240, 255, 0.1);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
+.wave-sosbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--shadow-sos-image);
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  opacity: 0.62;
+  filter: saturate(1.14) contrast(1.08);
+}
+.wave-sosbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(3, 6, 18, 0.92), rgba(3, 6, 18, 0.64) 54%, rgba(3, 6, 18, 0.28)),
+    radial-gradient(circle at 88% 14%, rgba(0, 240, 255, 0.16), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%, rgba(3, 6, 18, 0.58));
+}
+.wave-sosbar > * {
+  position: relative;
+  z-index: 1;
+}
 .wave-sosbar:hover { border-color: rgba(0, 240, 255, 0.7); transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
+.sos-duo .wave-sosbar__icon { display: none; }
 .wave-sosbar__icon { font-size: 30px; filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5)); animation: waveBob 4s ease-in-out infinite; }
 .wave-sosbar__txt { flex: 1; display: flex; flex-direction: column; }
 .wave-sosbar__kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-cyan); }
@@ -192,9 +224,16 @@
 
 /* Molten mirror of the wave bar — same anatomy, fire palette */
 .anger-gymbar {
+  --shadow-sos-image: url("/assets/shadow/card-anger-gym.png");
   background: linear-gradient(120deg, rgba(255, 176, 0, 0.14), rgba(255, 59, 92, 0.12));
   border-color: rgba(255, 176, 0, 0.45);
   box-shadow: 0 0 24px rgba(255, 120, 30, 0.12);
+}
+.anger-gymbar::after {
+  background:
+    linear-gradient(90deg, rgba(16, 6, 4, 0.92), rgba(16, 6, 4, 0.62) 54%, rgba(16, 6, 4, 0.24)),
+    radial-gradient(circle at 88% 18%, rgba(255, 176, 0, 0.2), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%, rgba(16, 6, 4, 0.56));
 }
 .anger-gymbar:hover {
   border-color: rgba(255, 176, 0, 0.75);

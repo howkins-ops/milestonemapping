@@ -6,7 +6,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 8 — THE FORGE  ·  (key: ch08-the-forge)
+   CHAPTER 12 — THE FORGE  ·  (key: ch08-the-forge)
    Coelho beat: the caravan & the Englishman — lived knowledge vs book knowledge;
    the alchemist's tools that only run on kept promises.
    Jon's testimony (T): THE POOL JUMP — he tells the team he'll jump in the pool
@@ -28,7 +28,7 @@ const smithNode = (size = 124) => <MentorSprite size={size} color={FORGE} />;
 
 const INTRO = [
   {
-    id: "forge", mood: FORGE, backdrop: "embers", kicker: "CHAPTER 8 · THE FORGE",
+    id: "forge", mood: FORGE, backdrop: "embers", kicker: "CHAPTER 12 · THE FORGE",
     cast: [
       { id: "hero", node: heroNode(100), label: "YOU" },
       { id: "smith", node: smithNode(126), label: "THE FORGER", labelColor: FORGE },

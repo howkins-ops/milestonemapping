@@ -39,20 +39,32 @@ export function getNextPhoenixStage(longestStreak = 0) {
   return PHOENIX_STAGES.find((s) => s.min > longestStreak) || null;
 }
 
-// Mission categories for Declare. Icons are emoji by design (no asset deps).
+export const ZONE_ICONS = {
+  declare: "/assets/zone/icons/declare.svg",
+  proof: "/assets/zone/icons/proof.svg",
+  challenge: "/assets/zone/icons/challenge.svg",
+  friends: "/assets/zone/icons/friends.svg",
+  fire: "/assets/zone/icons/fire.svg",
+  eruption: "/assets/zone/icons/eruption.svg",
+  shield: "/assets/zone/icons/shield.svg",
+  partner: "/assets/zone/icons/partner.svg",
+  ash: "/assets/zone/icons/ash.svg",
+};
+
+// Mission categories for Declare. Each category has a branded image for UI use.
 export const MISSION_CATEGORIES = [
-  { key: "gym",        label: "Train",         icon: "🏋️" },
-  { key: "walk",       label: "Walk / Run",    icon: "👟" },
-  { key: "read",       label: "Read",          icon: "📖" },
-  { key: "journal",    label: "Journal",       icon: "✍️" },
-  { key: "meditate",   label: "Meditate",      icon: "🧘" },
-  { key: "prayer",     label: "Prayer",        icon: "🙏" },
-  { key: "deep_work",  label: "Deep Work",     icon: "🎯" },
-  { key: "sales",      label: "Sales Calls",   icon: "📞" },
-  { key: "cold",       label: "Cold Shower",   icon: "🧊" },
-  { key: "no_scroll",  label: "No Scrolling",  icon: "📵" },
-  { key: "stretch",    label: "Stretch",       icon: "🤸" },
-  { key: "custom",     label: "Custom",        icon: "⚡" },
+  { key: "gym",        label: "Train",         icon: "🏋️", art: "/assets/zone/icons/mission-train.svg" },
+  { key: "walk",       label: "Walk / Run",    icon: "👟", art: "/assets/zone/icons/mission-walk.svg" },
+  { key: "read",       label: "Read",          icon: "📖", art: "/assets/zone/icons/mission-read.svg" },
+  { key: "journal",    label: "Journal",       icon: "✍️", art: "/assets/zone/icons/mission-journal.svg" },
+  { key: "meditate",   label: "Meditate",      icon: "🧘", art: "/assets/zone/icons/mission-meditate.svg" },
+  { key: "prayer",     label: "Prayer",        icon: "🙏", art: "/assets/zone/icons/mission-prayer.svg" },
+  { key: "deep_work",  label: "Deep Work",     icon: "🎯", art: "/assets/zone/icons/mission-deep-work.svg" },
+  { key: "sales",      label: "Sales Calls",   icon: "📞", art: "/assets/zone/icons/mission-sales.svg" },
+  { key: "cold",       label: "Cold Shower",   icon: "🧊", art: "/assets/zone/icons/mission-cold.svg" },
+  { key: "no_scroll",  label: "No Scrolling",  icon: "📵", art: "/assets/zone/icons/mission-no-scroll.svg" },
+  { key: "stretch",    label: "Stretch",       icon: "🤸", art: "/assets/zone/icons/mission-stretch.svg" },
+  { key: "custom",     label: "Custom",        icon: "⚡", art: "/assets/zone/icons/mission-custom.svg" },
 ];
 
 export function getCategory(key) {

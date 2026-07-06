@@ -33,7 +33,8 @@ export default function MorningStandPanel() {
   return (
     <>
       {existing ? (
-        <section className="morning-stand-cta morning-stand-cta--set anim-fade-in">
+        <section className="morning-stand-cta morning-stand-cta--set ritual-image-card ritual-image-card--stand anim-fade-in">
+          <div className="morning-stand-card__art" aria-hidden="true" />
           <ScienceInfo ids={["affirmations", "identity"]} />
           <div className="make-stand-locked">
             <div className="make-stand-locked-bar" />
@@ -59,7 +60,8 @@ export default function MorningStandPanel() {
           </div>
         </section>
       ) : (
-        <section className="morning-stand-cta anim-fade-in">
+        <section className="morning-stand-cta ritual-image-card ritual-image-card--stand anim-fade-in">
+          <div className="morning-stand-card__art" aria-hidden="true" />
           <ScienceInfo ids={["affirmations", "identity"]} />
           <span className="morning-stand-eyebrow">MORNING STAND</span>
           <h2 className="morning-stand-headline">Take your stand for today.</h2>

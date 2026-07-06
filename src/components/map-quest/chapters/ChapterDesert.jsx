@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 10 — THE DEAD-SERVER DESERT  ·  Jon's testimony  (key: ch10-the-desert)
+   CHAPTER 14 — THE DEAD-SERVER DESERT  ·  Jon's testimony  (key: ch10-the-desert)
    Coelho beat: The desert crossing — the long, monotonous middle won by
    presence and patience.
    Jon's testimony (T): the 10,000-hour rule / Picasso's napkin ("it took me my
@@ -59,7 +59,7 @@ const clockField = () => (
 
 const INTRO = [
   {
-    id: "wasteland", mood: DESERT, backdrop: "starfield", kicker: "CHAPTER 10 · THE DEAD-SERVER DESERT",
+    id: "wasteland", mood: DESERT, backdrop: "starfield", kicker: "CHAPTER 14 · THE DEAD-SERVER DESERT",
     cast: [{ id: "clocks", node: clockField() }],
     lines: [
       "The signal goes flat. The city behind you thins to nothing, and ahead — a desert of dead servers, racks half-buried in dust, fans long stopped.",

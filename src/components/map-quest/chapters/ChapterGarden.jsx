@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 15 — THE GARDEN SERVER  ·  the Heartkeeper mentor  (key: ch15-garden-server)
+   CHAPTER 19 — THE GARDEN SERVER  ·  the Heartkeeper mentor  (key: ch15-garden-server)
    Coelho beat: the oasis and meeting Fatima — love that frees rather than cages;
    legitimate rest, not final arrival.
    Jon's testimony (T): FORGIVE YOURSELF — the coaching breakdown→breakthrough where
@@ -28,7 +28,7 @@ const keeperNode = (size = 120) => <MentorSprite size={size} color={GARDEN} />;
 
 const INTRO = [
   {
-    id: "node", mood: GARDEN, backdrop: "forest", kicker: "CHAPTER 15 · THE GARDEN SERVER",
+    id: "node", mood: GARDEN, backdrop: "forest", kicker: "CHAPTER 19 · THE GARDEN SERVER",
     cast: [{ id: "hero", node: heroNode(116), label: "YOU" }],
     lines: [
       "Days of grey grid. Then the map blinks — a node nobody charted, glowing soft green where everything else runs cold and chrome.",

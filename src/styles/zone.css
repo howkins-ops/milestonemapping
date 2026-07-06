@@ -239,6 +239,20 @@
   background: var(--zfire-soft); border: 1px solid var(--zn-border);
   display: flex; align-items: center; justify-content: center; font-size: 19px;
 }
+.zn-row__thumb--art {
+  background: radial-gradient(circle at 35% 25%, rgba(0, 240, 255, 0.20), rgba(209, 30, 255, 0.12) 48%, rgba(11, 2, 16, 0.9));
+  box-shadow: inset 0 0 18px rgba(0, 240, 255, 0.08), 0 0 14px -8px var(--zfire-glow);
+}
+.zn-icon-img {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px var(--zfire-glow));
+}
+.zn-row__thumb .zn-icon-img { width: 32px; height: 32px; }
 .zn-row__body { flex: 1; min-width: 0; }
 .zn-row__title { font-weight: 700; font-size: 14px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .zn-row__meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-soft); margin-top: 2px; }
@@ -253,6 +267,7 @@
   background: rgba(255, 255, 255, 0.03); font-size: 12px; font-weight: 700; color: var(--text-muted);
 }
 .zn-chip--fire { border-color: var(--zfire); color: var(--zfire); background: var(--zfire-soft); }
+.zn-chip__icon { width: 16px; height: 16px; }
 
 /* ---------- buttons ---------- */
 .zn-btn {
@@ -274,6 +289,7 @@
 .zn-btn--ghost:hover { border-color: var(--zfire); color: var(--text-main); }
 .zn-btn--small { width: auto; padding: 8px 14px; font-size: 12.5px; border-radius: 12px; }
 .zn-btn--danger { background: transparent; border: 1px solid rgba(255, 59, 92, 0.4); color: var(--brand-red); box-shadow: none; }
+.zn-btn__icon { width: 20px; height: 20px; }
 
 /* ---------- forms ---------- */
 .zn-field { margin-bottom: 14px; }
@@ -312,7 +328,7 @@
   color: var(--text-muted); font-family: var(--font-body); font-size: 12px; font-weight: 700;
   transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), transform 150ms var(--ease-out);
 }
-.zn-cat__icon { font-size: 22px; }
+.zn-cat__icon { width: 38px; height: 38px; border-radius: 12px; }
 .zn-cat:hover { transform: translateY(-2px); }
 .zn-cat--active { border-color: var(--zfire); background: var(--zfire-soft); color: var(--text-main); box-shadow: 0 0 16px -6px var(--zfire-glow); }
 .zn-cat:focus-visible { outline: 2px solid var(--zfire); outline-offset: 2px; }
@@ -331,7 +347,8 @@
   animation: zn-rise 260ms var(--ease-out);
 }
 .zn-sheet__handle { width: 42px; height: 4px; border-radius: 2px; background: var(--zn-border); margin: 4px auto 14px; }
-.zn-sheet__title { font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0 0 14px; }
+.zn-sheet__title { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0 0 14px; }
+.zn-sheet__title-icon { width: 22px; height: 22px; }
 .zn-overlay--center { align-items: center; padding: 18px; }
 .zn-overlay--center .zn-sheet { border-radius: 24px; border-bottom: 1px solid var(--zn-border); animation: zn-pop 240ms var(--ease-out); }
 
@@ -400,6 +417,7 @@
 /* ---------- phoenix / ash ---------- */
 .zn-phoenix { text-align: center; padding: 6px 0 2px; }
 .zn-phoenix__icon { font-size: 46px; line-height: 1; filter: drop-shadow(0 0 16px var(--zfire-glow)); }
+.zn-phoenix__icon .zn-icon-img { width: 64px; height: 64px; }
 .zn-phoenix__stage { font-family: var(--font-display); font-size: 13px; font-weight: 800; letter-spacing: 1px; color: var(--zfire); margin-top: 6px; text-transform: uppercase; }
 .zn-phoenix__next { font-size: 11.5px; color: var(--text-soft); margin-top: 3px; }
 .zn-ash { filter: grayscale(1) brightness(0.75); }
@@ -504,4 +522,38 @@ html[data-reduced-motion="true"] .zn-sheet { animation: none !important; transit
 }
 @media (min-width: 760px) {
   .zone-root { padding-top: 20px; }
+}
+
+/* ---------- The Recommit (Shift One ritual) ---------- */
+.zn-recommit-door { width: 100%; margin-bottom: 12px; color: var(--text-soft); }
+.zn-recommit__intro { font-size: 13.5px; color: var(--text-soft); line-height: 1.55; margin: 0 0 14px; }
+.zn-recommit__steps { display: flex; gap: 6px; margin-bottom: 16px; }
+.zn-recommit__steps span {
+  height: 4px; flex: 1; border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08); transition: background 240ms var(--ease-out);
+}
+.zn-recommit__steps span.on { background: #FF7A1A; box-shadow: 0 0 10px rgba(255, 122, 26, 0.45); }
+.zn-recommit__mission {
+  display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text-main);
+  padding: 10px 2px 2px; cursor: pointer; user-select: none;
+}
+.zn-recommit__mission input { width: 18px; height: 18px; accent-color: #FF7A1A; flex-shrink: 0; }
+
+/* Feed card rendering */
+.zn-recommit-card__pair { margin: 4px 0 10px; }
+.zn-recommit-card__tag {
+  display: block; font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-soft); margin-bottom: 2px;
+}
+.zn-recommit-card__tag--truth { color: var(--brand-green); margin-top: 8px; }
+.zn-recommit-card__lie {
+  font-size: 14px; color: var(--text-soft); text-decoration: line-through;
+  text-decoration-color: rgba(255, 59, 92, 0.55); margin: 0; line-height: 1.5;
+}
+.zn-recommit-card__truth { font-size: 14.5px; color: var(--text-main); margin: 0; line-height: 1.5; }
+.zn-recommit-card__declare {
+  font-family: var(--font-display); font-size: 17px; font-weight: 800; line-height: 1.35;
+  color: var(--text-main); margin: 0 0 12px;
+  padding: 10px 14px; border-left: 3px solid #FF7A1A; border-radius: 0 10px 10px 0;
+  background: rgba(255, 122, 26, 0.08);
 }

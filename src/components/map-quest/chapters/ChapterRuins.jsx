@@ -6,7 +6,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 14 — THE RUINS DISTRICT  ·  Raging Victim ↔ Majesty  (key: chapter-ruins)
+   CHAPTER 18 — THE RUINS DISTRICT  ·  Raging Victim ↔ Majesty  (key: chapter-ruins)
    Coelho beat: the alchemist's COURAGE TEST (the sword) — fearlessness is the
    entry fee to wisdom. To pass through the ruins you must lower your guard, not
    raise your fists.
@@ -27,7 +27,7 @@ const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(VIOLET, 0.15)},
 
 const INTRO = [
   {
-    id: "ruins", mood: VIOLET, backdrop: "starfield", kicker: "CHAPTER 14 · THE RUINS DISTRICT",
+    id: "ruins", mood: VIOLET, backdrop: "starfield", kicker: "CHAPTER 18 · THE RUINS DISTRICT",
     cast: [{ id: "hero", node: <HeroSprite size={112} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "The road delivers you into a district that used to be a home. Whole blocks stand gutted — a tower with its lights torn out, an empty house rendered as broken architecture, its rooms open to the sky.",

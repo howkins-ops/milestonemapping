@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useZoneCtx } from "../../../hooks/useZone.js";
 import { fetchFeed } from "../../../lib/zoneService.js";
-import { getCategory } from "../../../lib/zoneFire.js";
+import { getCategory, ZONE_ICONS } from "../../../lib/zoneFire.js";
 import Witness from "../witness/Witness.jsx";
+import Recommit from "../recommit/Recommit.jsx";
 import FireDial from "./FireDial.jsx";
 import PhoenixStage from "./PhoenixStage.jsx";
 import SquadFireMeter from "./SquadFireMeter.jsx";
 import UserChip from "../shared/UserChip.jsx";
+import ZoneIcon from "../shared/ZoneIcon.jsx";
 
 // Zone Home: the Witness, today's mission, the two big CTAs, fire + phoenix,
 // squad momentum, partner strip, and a live feed preview.
 export default function ZoneHome({ go, openDeclare, openProof }) {
   const { member, todayMission, todayProofCount, partner, lastNotification } = useZoneCtx();
   const [preview, setPreview] = useState([]);
+  const [recommitOpen, setRecommitOpen] = useState(false);
+  const [feedBump, setFeedBump] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -22,7 +26,7 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
     return () => {
       alive = false;
     };
-  }, [todayProofCount, lastNotification]);
+  }, [todayProofCount, lastNotification, feedBump]);
 
   const cat = todayMission ? getCategory(todayMission.category) : null;
   const missionDone = todayMission?.status === "done" || todayProofCount > 0;
@@ -36,7 +40,9 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
         <p className="zn-eyebrow">Today's mission</p>
         {todayMission ? (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div className="zn-row__thumb" aria-hidden="true">{cat.icon}</div>
+            <div className="zn-row__thumb zn-row__thumb--art" aria-hidden="true">
+              <ZoneIcon src={cat.art} />
+            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="zn-row__title" style={{ fontSize: 15.5 }}>{todayMission.title}</div>
               {todayMission.note && <div className="zn-row__meta">{todayMission.note}</div>}
@@ -55,18 +61,29 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
       {/* The two big CTAs */}
       <div className="zn-2col" style={{ marginBottom: 12 }}>
         <button type="button" className="zn-btn" onClick={openDeclare}>
-          ⚡ {todayMission ? "Edit Mission" : "Declare Mission"}
+          <ZoneIcon src={ZONE_ICONS.declare} className="zn-btn__icon" />
+          {todayMission ? "Edit Mission" : "Declare Mission"}
         </button>
         <button type="button" className="zn-btn" style={{ background: "linear-gradient(120deg, #FF7A1A, var(--brand-magenta))" }} onClick={() => openProof()}>
-          📸 Post Proof
+          <ZoneIcon src={ZONE_ICONS.proof} className="zn-btn__icon" />
+          Post Proof
         </button>
       </div>
+
+      {/* The quiet door back — Shift One */}
+      <button
+        type="button"
+        className="zn-btn zn-btn--ghost zn-btn--small zn-recommit-door"
+        onClick={() => setRecommitOpen(true)}
+      >
+        Broke your word somewhere? → Recommit
+      </button>
 
       {/* Fire + Phoenix */}
       <div className="zn-card">
         <div className="zn-2col" style={{ alignItems: "center" }}>
           <FireDial />
-          <PhoenixStage />
+          <PhoenixStage onRecommit={() => setRecommitOpen(true)} />
         </div>
       </div>
 
@@ -81,7 +98,7 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
               member={partner.partner}
               sub={
                 partner.partner_proved_today
-                  ? "🔥 Proved today — go celebrate them"
+                  ? "Proved today — go celebrate them"
                   : "Hasn't posted yet — a warm nudge goes far"
               }
             />
@@ -96,15 +113,22 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
           </button>
         ) : (
           <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("partner")}>
-            ⚭ Pair with a partner
+            <ZoneIcon src={ZONE_ICONS.partner} className="zn-btn__icon" />
+            Pair with a partner
           </button>
         )}
       </div>
 
       {/* Quick paths */}
       <div className="zn-2col" style={{ marginBottom: 12 }}>
-        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("challenges")}>🏆 Challenges</button>
-        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("friends")}>🤝 Friends</button>
+        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("challenges")}>
+          <ZoneIcon src={ZONE_ICONS.challenge} className="zn-btn__icon" />
+          Challenges
+        </button>
+        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("friends")}>
+          <ZoneIcon src={ZONE_ICONS.friends} className="zn-btn__icon" />
+          Friends
+        </button>
       </div>
 
       {/* Live feed preview */}
@@ -113,8 +137,8 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
           <p className="zn-eyebrow">The fire, live</p>
           {preview.map((ev) => (
             <button key={ev.id} type="button" className="zn-row" onClick={() => go("feed")}>
-              <div className="zn-row__thumb" aria-hidden="true">
-                {ev.event_type === "proof" ? "📸" : ev.event_type === "declare" ? "⚡" : ev.event_type === "rise" ? "🔥" : "🌋"}
+              <div className="zn-row__thumb zn-row__thumb--art" aria-hidden="true">
+                <ZoneIcon src={iconForEvent(ev.event_type)} />
               </div>
               <div className="zn-row__body">
                 <div className="zn-row__title">
@@ -130,8 +154,32 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
           </button>
         </div>
       )}
+
+      {recommitOpen && (
+        <Recommit
+          onClose={() => setRecommitOpen(false)}
+          onDone={() => {
+            setRecommitOpen(false);
+            setFeedBump((n) => n + 1);
+          }}
+        />
+      )}
     </div>
   );
+}
+
+function iconForEvent(type) {
+  switch (type) {
+    case "proof": return ZONE_ICONS.proof;
+    case "declare": return ZONE_ICONS.declare;
+    case "rise": return ZONE_ICONS.fire;
+    case "recommit": return ZONE_ICONS.fire;
+    case "eruption": return ZONE_ICONS.eruption;
+    case "challenge_join":
+    case "challenge_complete": return ZONE_ICONS.challenge;
+    case "squad_join": return ZONE_ICONS.shield;
+    default: return ZONE_ICONS.fire;
+  }
 }
 
 function labelFor(ev) {
@@ -139,6 +187,7 @@ function labelFor(ev) {
     case "proof": return "Posted proof";
     case "declare": return "Declared a mission";
     case "rise": return "Rose from the ashes";
+    case "recommit": return ev.payload?.declaration || "Recommitted — back in integrity";
     case "eruption": return `${ev.payload?.squad_name || "Squad"} erupted!`;
     case "squad_join": return `Joined ${ev.payload?.squad_name || "a squad"}`;
     case "challenge_join": return `Joined ${ev.payload?.title || "a challenge"}`;

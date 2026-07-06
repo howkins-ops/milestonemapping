@@ -5,7 +5,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 19 — THE VAULT  ·  THE CLIMAX  (key: ch19-the-vault)
+   CHAPTER 23 — THE VAULT  ·  THE CLIMAX  (key: ch19-the-vault)
    Coelho beat: the Pyramids + the robber's mirror dream — at the farthest point,
    the answer is HOME. The dream others abandoned points to your treasure; only
    the journey unlocks the meaning.
@@ -31,7 +31,7 @@ const ESSENCES = {
 
 const INTRO = [
   {
-    id: "open", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 19 · THE VAULT",
+    id: "open", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 23 · THE VAULT",
     cast: [{ id: "hero", node: <HeroSprite size={118} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "You reach it at last — the vault from the dream, your name burned into the door, the number you could never quite read.",

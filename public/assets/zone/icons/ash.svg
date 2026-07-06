@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title>Ash</title>
+  <defs>
+    <radialGradient id="bg" cx="32%" cy="22%" r="86%">
+      <stop offset="0" stop-color="#00F0FF"/>
+      <stop offset=".45" stop-color="#D11EFF"/>
+      <stop offset="1" stop-color="#0B0210"/>
+    </radialGradient>
+    <linearGradient id="ash" x1="22" x2="74" y1="72" y2="24">
+      <stop stop-color="#00F0FF"/>
+      <stop offset=".55" stop-color="#D11EFF"/>
+      <stop offset="1" stop-color="#FACC15"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="url(#bg)"/>
+  <circle cx="48" cy="48" r="34" fill="#0B0210" opacity=".68"/>
+  <path d="M63 24c-14 3-25 15-25 30 0 9 4 17 10 23-16-1-29-14-29-31 0-17 13-30 30-31 5 0 10 1 14 3Z" fill="none" stroke="url(#ash)" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M31 73h34M38 81h20" stroke="#FACC15" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+</svg>

@@ -93,7 +93,7 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
   /* ---------- done state ---------- */
   if (done) {
     return (
-      <div className="night-wizard-done anim-fade-in">
+      <div className="night-wizard-done night-image-card night-image-card--tomorrow anim-fade-in">
         <div className="night-wizard-done-glow" />
         <div className="night-wizard-done-icon">★</div>
         <h3 className="night-wizard-done-title">Top 5 Locked.</h3>
@@ -146,7 +146,7 @@ export default function TopFiveWizard({ mode = "plan", onDone }) {
   );
 
   return (
-    <div className="t5wz night-wizard anim-fade-in">
+    <div className="t5wz night-wizard night-image-card night-image-card--tomorrow anim-fade-in">
       {/* step indicator */}
       <div className="night-wizard-steps">
         <div className="night-wizard-track">

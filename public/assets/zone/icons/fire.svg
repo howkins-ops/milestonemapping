@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title>Fire</title>
+  <defs><linearGradient id="g" x1="31" x2="65" y1="78" y2="17"><stop stop-color="#00F0FF"/><stop offset=".4" stop-color="#FACC15"/><stop offset=".72" stop-color="#FF7A1A"/><stop offset="1" stop-color="#FF3B5C"/></linearGradient></defs>
+  <rect width="96" height="96" rx="24" fill="#0B0210"/>
+  <circle cx="48" cy="50" r="34" fill="#D11EFF" opacity=".18"/>
+  <path d="M50 17c7 15-4 20 8 31 4-6 5-11 5-16 11 9 17 20 17 32 0 15-12 25-31 25S18 79 18 64c0-13 9-24 23-36-1 12 2 19 9 20-5-11-3-20 0-31Z" fill="url(#g)"/>
+  <path d="M48 55c8 8 10 18 0 25-10-7-8-17 0-25Z" fill="#F8FDFF" opacity=".85"/>
+</svg>

@@ -89,6 +89,20 @@ export const WITNESS = {
     "Back in the fire. Day one, round two — the comeback is the story.",
   ],
 
+  // The Recommit — Shift One ritual: face the lie, feel the cost (private),
+  // declare + proof promise. Same laws: the admission is honored as courage,
+  // never named as failure, never rubbed in.
+  recommitIntro: [
+    "Integrity isn't never breaking your word — it's what you do the moment you notice. You're doing it.",
+    "Every recommit starts the same way: the truth, said plainly. I'm here for all of it.",
+    "This is the strongest move in the whole Zone. Say it real.",
+  ],
+  recommitCelebration: [
+    "WITNESSED. You called your own story and put your word back on the line. That's integrity. 🔥",
+    "The lie is named, the word is given. Now go make the proof — I'll be watching for it.",
+    "Back in integrity, declared in the open. That took more than any streak ever did.",
+  ],
+
   // Squad flavor.
   squadEruption: [
     "🌋 {squad} ERUPTED — enough of you showed up today to light the whole meter.",

@@ -7,7 +7,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 9 — THE NEON CHAPEL  ·  Addict Saint ↔ Love  (shadow: addict_saint)
+   CHAPTER 13 — THE NEON CHAPEL  ·  Addict Saint ↔ Love  (shadow: addict_saint)
    Coelho beat: the camel driver and the present moment — peace lives in NOW;
    anxiety lives in imagined futures; escape only replaces the feeling for a
    while, it never feeds it.
@@ -25,7 +25,7 @@ const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(PINK, 0.15)}, t
 
 const INTRO = [
   {
-    id: "chapel", mood: PINK, backdrop: "starfield", kicker: "CHAPTER 9 · THE NEON CHAPEL",
+    id: "chapel", mood: PINK, backdrop: "starfield", kicker: "CHAPTER 13 · THE NEON CHAPEL",
     cast: [{ id: "hero", node: <HeroSprite size={116} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "Past the forge, the road opens onto a chapel built of light — stained-glass made of screens, candles that are really little glowing bottles, incense that smells like every comfort you've ever reached for.",

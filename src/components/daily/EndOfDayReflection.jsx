@@ -53,7 +53,7 @@ export default function EndOfDayReflection() {
   return (
     <div className="night-debrief-section">
       {/* Execution report */}
-      <div className="night-execution-report">
+      <div className="night-execution-report night-image-card night-image-card--execution">
         <ScienceInfo ids={["reflection", "night_gratitude"]} />
         <div className="night-exec-header">
           <span className="night-exec-label">TODAY'S EXECUTION</span>
@@ -98,7 +98,7 @@ export default function EndOfDayReflection() {
       </div>
 
       {/* Reflection wizard launcher / locked recap */}
-      <Card variant="glass">
+      <Card variant="glass" className="night-reflection-card night-image-card night-image-card--reflection">
         {isClosed ? (
           <div className="ev-locked anim-fade-in">
             <div className="ev-locked-head">

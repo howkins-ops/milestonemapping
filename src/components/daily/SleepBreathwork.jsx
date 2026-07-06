@@ -109,7 +109,7 @@ export default function SleepBreathwork() {
 
   // ── Inline picker ──
   return (
-    <section className="sbw-section anim-fade-in">
+    <section className="sbw-section night-image-card night-image-card--sleep-lab anim-fade-in">
       <ScienceInfo ids={["breathwork"]} />
       <div className="sbw-head">
         <span className="sbw-badge">SLEEP LAB</span>

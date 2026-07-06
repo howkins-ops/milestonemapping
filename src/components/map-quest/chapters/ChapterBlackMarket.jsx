@@ -7,7 +7,7 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 16 — THE BLACK MARKET  ·  Naive Warrior ↔ Joy  (key: chapter-black-market)
+   CHAPTER 20 — THE BLACK MARKET  ·  Naive Warrior ↔ Joy  (key: chapter-black-market)
    Coelho beat: captured / the false path — the seductive shortcut, "false gold."
    Jon's testimony (Tr — TRANSMUTED, never raw): the "16 and in a gang" arc ships
    here ONLY as fiction — a neon Black Market of borrowed/false upgrades and a
@@ -24,7 +24,7 @@ const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(AMBER, 0.15)}, 
 
 const INTRO = [
   {
-    id: "market", mood: AMBER, backdrop: "embers", kicker: "CHAPTER 16 · THE BLACK MARKET",
+    id: "market", mood: AMBER, backdrop: "embers", kicker: "CHAPTER 20 · THE BLACK MARKET",
     cast: [{ id: "hero", node: <HeroSprite size={116} glow={C.cyan} />, label: "YOU" }],
     lines: [
       "The road forks into an underpass strung with counterfeit light — a Black Market that sells the journey instead of making you take it.",

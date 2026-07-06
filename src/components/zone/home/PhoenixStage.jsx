@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { useZoneCtx } from "../../../hooks/useZone.js";
 import { useAppData } from "../../../hooks/useAppData.js";
-import { getNextPhoenixStage } from "../../../lib/zoneFire.js";
+import { getNextPhoenixStage, ZONE_ICONS } from "../../../lib/zoneFire.js";
 import { riseAgain } from "../../../lib/zoneService.js";
 import { pickLine, WITNESS, fillTokens } from "../witness/witnessLines.js";
 import { playSound } from "../../../lib/sounds.js";
 import { getTodayKey } from "../../../lib/dates.js";
+import ZoneIcon from "../shared/ZoneIcon.jsx";
 
 // Phoenix evolution — and the single door out of ash: Rise Again.
-export default function PhoenixStage() {
+// onRecommit opens the same door with the full Shift One walk.
+export default function PhoenixStage({ onRecommit }) {
   const { member, phoenix, refreshState } = useZoneCtx();
   const { settings, celebrate } = useAppData();
   const [busy, setBusy] = useState(false);
@@ -34,14 +36,28 @@ export default function PhoenixStage() {
   if (inAsh) {
     return (
       <div className="zn-phoenix">
-        <div className="zn-phoenix__icon zn-ash" aria-hidden="true">🌑</div>
+        <div className="zn-phoenix__icon zn-ash" aria-hidden="true">
+          <ZoneIcon src={ZONE_ICONS.ash} />
+        </div>
         <div className="zn-phoenix__stage" style={{ color: "var(--text-soft)" }}>Ash</div>
         <div className="zn-phoenix__next">
           {member.fallen_streak > 0 ? `A ${member.fallen_streak}-day fire lives in these ashes.` : "The fire remembers you."}
         </div>
         <button type="button" className="zn-btn" style={{ marginTop: 12 }} onClick={rise} disabled={busy}>
-          {busy ? "Rising…" : "🔥 Rise Again"}
+          {!busy && <ZoneIcon src={ZONE_ICONS.fire} className="zn-btn__icon" />}
+          {busy ? "Rising…" : "Rise Again"}
         </button>
+        {onRecommit && (
+          <button
+            type="button"
+            className="zn-btn zn-btn--ghost zn-btn--small"
+            style={{ marginTop: 8 }}
+            onClick={onRecommit}
+            disabled={busy}
+          >
+            Rise with a full Recommit →
+          </button>
+        )}
       </div>
     );
   }

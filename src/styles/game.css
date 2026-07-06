@@ -1961,6 +1961,15 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
+.morning-stand-cta.ritual-image-card {
+  min-height: 150px;
+  padding: clamp(18px, 3.5vw, 24px);
+  border-color: rgba(255, 62, 219, 0.36);
+  background:
+    linear-gradient(135deg, rgba(18, 0, 24, 0.94), rgba(37, 0, 45, 0.72)),
+    rgba(0, 0, 0, 0.76);
+}
+
 .morning-stand-cta--set {
   gap: 12px;
 }
@@ -8123,31 +8132,55 @@
     rgba(0, 0, 0, 0.72);
 }
 
+.morning-stand-card__art,
 .gratitude-card__art,
 .daily-action-card__art {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url("/assets/daily/daily-ritual-cards.png");
+  background-image: var(--daily-card-image);
   background-repeat: no-repeat;
-  background-size: 300% 100%;
-  opacity: 0.2;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.34;
   filter: saturate(1.12) contrast(1.07);
   pointer-events: none;
 }
 
+.ritual-image-card--stand {
+  --daily-card-image: url("/assets/daily/daily-card-stand.png");
+}
+
+.ritual-image-card--gratitude {
+  --daily-card-image: url("/assets/daily/daily-card-gratitude.png");
+}
+
+.ritual-image-card--top-five {
+  --daily-card-image: url("/assets/daily/daily-card-top-five.png");
+}
+
+.morning-stand-card__art {
+  background-position: center right;
+  opacity: 0.42;
+}
+
 .gratitude-card__art {
-  background-position: left center;
+  background-position: center right;
+  opacity: 0.4;
 }
 
 .daily-action-card--top-five .daily-action-card__art {
-  background-position: center center;
+  background-position: center right;
+  opacity: 0.4;
 }
 
 .daily-action-card--battle .daily-action-card__art {
+  background-image: url("/assets/daily/daily-ritual-cards.png");
+  background-size: 300% 100%;
   background-position: right center;
 }
 
+.morning-stand-card__art::after,
 .gratitude-card__art::after,
 .daily-action-card__art::after {
   content: "";
@@ -8156,6 +8189,13 @@
   background:
     linear-gradient(90deg, rgba(4, 2, 8, 0.92), rgba(4, 2, 8, 0.48)),
     linear-gradient(180deg, rgba(4, 2, 8, 0.12), rgba(4, 2, 8, 0.9));
+}
+
+.ritual-image-card--stand .morning-stand-card__art::after {
+  background:
+    linear-gradient(90deg, rgba(11, 0, 16, 0.95), rgba(20, 0, 25, 0.58), rgba(20, 0, 25, 0.72)),
+    radial-gradient(circle at 78% 18%, rgba(255, 62, 219, 0.06), transparent 36%),
+    linear-gradient(180deg, rgba(11, 0, 16, 0.1), rgba(11, 0, 16, 0.9));
 }
 
 .gratitude-card__header,
@@ -9173,6 +9213,101 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* Night ritual generated image cards */
+.night-image-card {
+  --night-card-image: none;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.night-image-card--execution {
+  --night-card-image: url("/assets/daily/night-card-execution.png");
+}
+
+.night-image-card--reflection {
+  --night-card-image: url("/assets/daily/night-card-reflection.png");
+}
+
+.night-image-card--tomorrow {
+  --night-card-image: url("/assets/daily/night-card-tomorrow.png");
+}
+
+.night-image-card--sleep-lab {
+  --night-card-image: url("/assets/daily/night-card-sleep-lab.png");
+}
+
+.night-image-card--sleep-boosters {
+  --night-card-image: url("/assets/daily/night-card-sleep-boosters.png");
+}
+
+.night-image-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--night-card-image);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center right;
+  opacity: 0.42;
+  filter: saturate(1.12) contrast(1.08);
+}
+
+.night-image-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 0, 14, 0.96), rgba(4, 0, 14, 0.72) 52%, rgba(4, 0, 14, 0.58) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 34%, rgba(4, 0, 14, 0.9)),
+    radial-gradient(circle at 92% 12%, rgba(159, 208, 255, 0.14), transparent 32%);
+  opacity: 0.92;
+}
+
+.night-image-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.night-reflection-card {
+  min-height: 150px;
+  border-color: rgba(159, 208, 255, 0.24);
+  background:
+    linear-gradient(135deg, rgba(5, 0, 16, 0.94), rgba(8, 1, 22, 0.76)),
+    rgba(0, 0, 0, 0.72);
+  box-shadow:
+    0 18px 54px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(159, 208, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.night-wizard-done.night-image-card {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(0,255,191,0.18), transparent 46%),
+    linear-gradient(135deg, rgba(6,0,16,0.94), rgba(12,0,32,0.9));
+}
+
+.sbw-section.night-image-card {
+  margin-bottom: 18px;
+  padding: 22px 20px;
+  border: 1px solid rgba(159, 208, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(4, 0, 14, 0.94), rgba(7, 1, 24, 0.76)),
+    rgba(0, 0, 0, 0.72);
+  box-shadow:
+    0 18px 54px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(0, 240, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.sbw-section.night-image-card::before {
+  opacity: 0.36;
+}
+
 @media (max-width: 560px) {
   .sbw-grid { grid-template-columns: 1fr; }
 }
@@ -9370,6 +9505,11 @@
 .daily-ritual-toggle { margin-bottom: 18px; }
 
 .daily-action-card {
+  padding: clamp(15px, 3vw, 20px);
+  min-height: 150px;
+}
+
+.morning-stand-cta.ritual-image-card {
   padding: clamp(15px, 3vw, 20px);
   min-height: 150px;
 }

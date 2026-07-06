@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title>Train</title>
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="25%" r="80%">
+      <stop offset="0" stop-color="#00F0FF"/>
+      <stop offset="0.45" stop-color="#D11EFF"/>
+      <stop offset="1" stop-color="#0B0210"/>
+    </radialGradient>
+    <linearGradient id="hot" x1="18" x2="78" y1="66" y2="30">
+      <stop stop-color="#00F0FF"/>
+      <stop offset="0.55" stop-color="#FF7A1A"/>
+      <stop offset="1" stop-color="#D11EFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="url(#bg)"/>
+  <circle cx="48" cy="48" r="35" fill="#0B0210" opacity=".58"/>
+  <path d="M21 42h9v12h-9zm45 0h9v12h-9zM31 37h8v22h-8zm26 0h8v22h-8zM39 45h18v6H39z" fill="none" stroke="url(#hot)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30 70h36" stroke="#FACC15" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+</svg>
