@@ -1,9 +1,17 @@
-// FULL COURT — the flagship sales game. Play your day like a 4-quarter game:
-// tap-to-log every door, race the quarter buzzer, and let the Odds Engine prove
-// the sale is baked into the math (Law of Probability). The whole game runs
-// CLIENT-SIDE off the pure state machine in src/lib/fullCourtEngine.js — this
-// file owns the clock, sound, haptics and animation only. The finished box
-// score is the one thing that hits the DB, via arenaService.fullcourtLogGame.
+// FULL COURT — the flagship sales game. Play your day like a REAL 4-quarter
+// game: 2 HOURS per quarter on a wall-clock timer, tap-to-log every door, and
+// let the Odds Engine prove the sale is baked into the math (Law of
+// Probability). Quarters end on the clock only — hitting the door target early
+// is a TARGET SMASHED bonus, not an early buzzer. Between quarters: a huge
+// buzzer celebration, then a 60/120s locker-room break — RESET (calm guided
+// visualization) or HYPE ME UP (the coach), both tuned to the game's read of
+// your quarter (won / rough / the-court-saw-you-hiding via quarterEffort).
+//
+// The whole game runs CLIENT-SIDE off the pure state machine in
+// src/lib/fullCourtEngine.js — this file owns the clock, sound, haptics and
+// animation only. A live game persists to localStorage (a game spans a whole
+// workday) and offers a rejoin after refresh. The finished box score is the
+// one thing that hits the DB, via arenaService.fullcourtLogGame.
 //
 // Ownership: this file + FullCourt.css + FullCourtStats.jsx only. All game data
 // flows through arenaService.js; all witness/notification copy through
@@ -23,6 +31,7 @@ import {
   toGamePayload,
   quarterProgress,
   quarterLabel,
+  quarterEffort,
   currentDrive,
   LADDER,
   HEAT_ON,
@@ -36,7 +45,18 @@ import {
   sfxHorn,
   sfxWhoosh,
   sfxPhoenix,
+  sfxCrowdRoar,
+  sfxRoundBell,
+  sfxCalmPadLoop,
+  sfxCrowdLoop,
 } from "../../../../lib/sfx.js";
+import { createLineAudio, playLine, stopNarration } from "../../../../lib/voiceOver.js";
+import {
+  pickBreakTrack,
+  breakTrackAudio,
+  breakTrackSpokenText,
+  BREAK_BEDS,
+} from "../../../../data/fullCourtBreakScript.js";
 import FullCourtStats from "./FullCourtStats.jsx";
 import "./FullCourt.css";
 
@@ -46,10 +66,24 @@ const GOLD = "#FFD166";
 const today = () => new Date().toLocaleDateString("en-CA");
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-// Per-quarter clock (seconds). Later quarters carry more doors → more time.
-// OT periods have no door target — they end on the clock. setInterval(1000).
-const QSECS = { 1: 26, 2: 32, 3: 40, 4: 48 };
-const quarterSecs = (q) => (q > 4 ? 30 : QSECS[q] || 40);
+// GAME DAY clock — a quarter is 2 real hours; OT chases the record for 30 min.
+// `?fcdev` (or #fcdev) anywhere in the URL shrinks everything for testing.
+const DEV_FAST =
+  typeof window !== "undefined" && /[?&#]fcdev\b/.test(window.location.href);
+const Q_SECS = DEV_FAST ? 90 : 7200;
+const OT_SECS = DEV_FAST ? 45 : 1800;
+const BUZZER_WINDOW = DEV_FAST ? 10 : 60; // sale inside the final stretch = buzzer-beater
+const BREAK_LENS = DEV_FAST ? [15, 30] : [60, 120];
+const quarterSecs = (q) => (q > 4 ? OT_SECS : Q_SECS);
+
+// A live game survives refreshes/navigation — it spans a whole workday.
+const LIVE_KEY = "fullcourt_live_v1";
+const BREAK_LEN_KEY = "fullcourt_break_len";
+const LIVE_MAX_AGE_MS = 20 * 60 * 60 * 1000; // stale after 20h → fresh day
+
+// Streamed Pollinations fallbacks if a baked break mp3 is missing.
+const RESET_FALLBACK_VOICE = "shimmer";
+const HYPE_FALLBACK_VOICE = "onyx";
 
 // The 8 drives grouped into 4 quarters (2 each), from the Heat Ladder.
 const LADDER_GROUPS = [
@@ -77,6 +111,16 @@ const MODE_ACTIONS = {
   ],
 };
 
+// Sports-broadcast title per ended quarter.
+const QUARTER_ENDS = { 1: "END OF THE 1ST", 2: "HALFTIME", 3: "END OF THE 3RD" };
+
+// The game's read of a quarter → chip copy on the celebration screen.
+const READS = [
+  { key: "won", glyph: "🔥", label: "Won it", sub: "sale landed — quarter's yours" },
+  { key: "rough", glyph: "😤", label: "Fought hard", sub: "the doors fought back" },
+  { key: "slump", glyph: "🛋️", label: "Court saw you hiding", sub: "the numbers don't lie" },
+];
+
 // Map the DB season aggregate → the Odds-Engine "prior" funnel + best points.
 function seasonPrior(season) {
   if (!season || season.offline) return { prior: undefined, best: 0 };
@@ -94,14 +138,27 @@ function seasonPrior(season) {
 }
 
 function fmtClock(s) {
-  const m = Math.floor(s / 60);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
   const r = s % 60;
-  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+  const mm = String(m).padStart(2, "0");
+  const rr = String(r).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${rr}` : `${mm}:${rr}`;
+}
+
+function readBreakLenPref(isHalf) {
+  try {
+    const v = Number(localStorage.getItem(BREAK_LEN_KEY));
+    if (BREAK_LENS.includes(v)) return v;
+  } catch {
+    /* storage optional */
+  }
+  return isHalf ? BREAK_LENS[1] : BREAK_LENS[0]; // halftime defaults long
 }
 
 export default function FullCourt({ go }) {
   const { userId, member, fire, squads = [], partner } = useZoneCtx();
-  const { celebrate, pushToast } = useAppData();
+  const { celebrate, pushToast, settings } = useAppData();
   const reveal = useReveal();
   const burst = useArenaBurst();
 
@@ -122,18 +179,27 @@ export default function FullCourt({ go }) {
 
   // Live game state (null until tip-off) + UI phase.
   const [game, setGame] = useState(null);
-  const [phase, setPhase] = useState("idle"); // idle|playing|buzzer|over
-  const [clock, setClock] = useState(0);
-  const [buzz, setBuzz] = useState(null); // { label, isHalf, won }
+  const [phase, setPhase] = useState("idle"); // idle|playing|buzzer|break|over
+  const [endsAt, setEndsAt] = useState(0); // quarter deadline (epoch ms)
+  const [clock, setClock] = useState(0); // derived seconds remaining
+  const [buzz, setBuzz] = useState(null); // { label, ended, isHalf, read, breakLen }
+  const [brk, setBrk] = useState(null); // { flavor, secs, endsAt, track }
+  const [brkClock, setBrkClock] = useState(0);
   const [flies, setFlies] = useState([]);
   const [bumping, setBumping] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [rejoin, setRejoin] = useState(null); // saved live game found on mount
 
   // Persist bookkeeping.
   const [logging, setLogging] = useState(false);
   const [logged, setLogged] = useState(null); // null|'done'|'offline'
   const loggedRef = useRef(false);
   const aliveRef = useRef(true);
+
+  // Break audio handles (voice mp3 + music bed + WebAudio fallback loop).
+  const brkVoiceRef = useRef(null);
+  const brkBedRef = useRef(null);
+  const brkLoopRef = useRef(null);
 
   const loadSeason = useCallback(async () => {
     if (!userId) {
@@ -162,6 +228,49 @@ export default function FullCourt({ go }) {
     };
   }, [loadSeason]);
 
+  /* ---------------- live-game persistence ---------------- */
+
+  // Offer a rejoin if a live game was left behind (refresh, nav, tab death).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LIVE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved?.game || Date.now() - (saved.savedAt || 0) > LIVE_MAX_AGE_MS) {
+        localStorage.removeItem(LIVE_KEY);
+        return;
+      }
+      setRejoin(saved);
+    } catch {
+      /* corrupted save → fresh game */
+    }
+  }, []);
+
+  // Snapshot everything a rejoin needs, on every meaningful change.
+  useEffect(() => {
+    if (!game || phase === "idle") return;
+    try {
+      if (phase === "over" && logged === "done") {
+        localStorage.removeItem(LIVE_KEY);
+        return;
+      }
+      localStorage.setItem(
+        LIVE_KEY,
+        JSON.stringify({ game, phase, endsAt, mode, avgDollar, savedAt: Date.now() })
+      );
+    } catch {
+      /* storage full/blocked — game still plays */
+    }
+  }, [game, phase, endsAt, mode, avgDollar, logged]);
+
+  const clearLive = useCallback(() => {
+    try {
+      localStorage.removeItem(LIVE_KEY);
+    } catch {
+      /* silent */
+    }
+  }, []);
+
   /* ---------------- fx helpers ---------------- */
 
   const pushFly = useCallback((text, sale) => {
@@ -187,6 +296,7 @@ export default function FullCourt({ go }) {
       setPhase("over");
       try {
         sfxPhoenix();
+        sfxCrowdRoar();
       } catch {
         /* audio never blocks */
       }
@@ -215,49 +325,82 @@ export default function FullCourt({ go }) {
     [celebrate, pushToast, squadName]
   );
 
+  // The quarter buzzer — a full celebration takeover, then the locker room.
   const doBuzzer = useCallback(
-    (next) => {
+    (next, effort) => {
       try {
         sfxBuzzer();
+        sfxCrowdRoar();
       } catch {
         /* silent */
       }
       try {
-        if (navigator.vibrate) navigator.vibrate([40, 30, 140]);
+        if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 220]);
       } catch {
         /* haptics optional */
       }
-      const ended = next.quarterLog[next.quarterLog.length - 1];
       if (next.over) {
         finalize(next);
         return;
       }
-      setBuzz({ label: ended?.label || "Q", isHalf: ended?.label === "Q2", won: !!ended?.won });
+      const ended = next.quarterLog[next.quarterLog.length - 1];
+      const isHalf = ended?.label === "Q2";
+      // The game's read: a sale wins the quarter outright; otherwise the
+      // work-rate verdict decides whether you fought or hid.
+      const read = ended?.won ? "won" : effort === "slump" ? "slump" : "rough";
+      setBuzz({
+        label: QUARTER_ENDS[ended?.quarter] || `END OF ${ended?.label || "THE QUARTER"}`,
+        ended,
+        isHalf,
+        read,
+        breakLen: readBreakLenPref(isHalf),
+      });
       setPhase("buzzer");
+      try {
+        burst(window.innerWidth / 2, window.innerHeight * 0.35, GOLD);
+      } catch {
+        /* confetti optional */
+      }
     },
-    [finalize]
+    [finalize, burst]
   );
 
-  /* ---------------- clock ---------------- */
+  /* ---------------- clock (timestamp-based — survives throttled tabs) ---------------- */
 
   useEffect(() => {
-    if (phase !== "playing") return undefined;
-    const t = setInterval(() => {
-      setClock((c) => Math.max(0, c - 1));
-    }, 1000);
+    if (phase !== "playing" || !endsAt) return undefined;
+    const tick = () => setClock(Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)));
+    tick();
+    const t = setInterval(tick, 500);
     return () => clearInterval(t);
-  }, [phase, game?.quarter]);
+  }, [phase, endsAt]);
 
-  // Quarter timer expired → end the quarter by expiry (buzzer).
+  // Quarter clock hit zero → the buzzer. The ONLY way a quarter ends.
   useEffect(() => {
-    if (phase !== "playing" || clock !== 0 || !game || game.over) return;
+    if (phase !== "playing" || clock !== 0 || !game || game.over || !endsAt) return;
+    const effort = quarterEffort(game, 1); // full quarter elapsed
     const next = advanceDrive(game);
     if (next === game) return;
     setGame(next);
-    doBuzzer(next);
-  }, [clock, phase, game, doBuzzer]);
+    doBuzzer(next, effort);
+  }, [clock, phase, game, endsAt, doBuzzer]);
+
+  // Locker-room countdown.
+  useEffect(() => {
+    if (phase !== "break" || !brk?.endsAt) return undefined;
+    const tick = () => setBrkClock(Math.max(0, Math.ceil((brk.endsAt - Date.now()) / 1000)));
+    tick();
+    const t = setInterval(tick, 500);
+    return () => clearInterval(t);
+  }, [phase, brk]);
 
   /* ---------------- controls ---------------- */
+
+  const startQuarterClock = useCallback((q) => {
+    const secs = quarterSecs(q);
+    setEndsAt(Date.now() + secs * 1000);
+    setClock(secs);
+  }, []);
 
   const tipOff = useCallback(() => {
     const { prior, best } = seasonPrior(season);
@@ -269,27 +412,76 @@ export default function FullCourt({ go }) {
     });
     loggedRef.current = false;
     setLogged(null);
+    setRejoin(null);
     setGame(g);
     setPhase("playing");
-    setClock(quarterSecs(g.quarter));
+    startQuarterClock(g.quarter);
     setBuzz(null);
+    setBrk(null);
     setFlies([]);
     try {
       sfxWhoosh();
     } catch {
       /* silent */
     }
-  }, [season, mode, avgDollar]);
+  }, [season, mode, avgDollar, startQuarterClock]);
+
+  // Pick up a saved live game where it left off. An expired quarter clock
+  // simply buzzes on the next tick; a saved buzzer/break drops back to the
+  // celebration screen so the rep re-picks their locker room.
+  const resumeGame = useCallback(() => {
+    if (!rejoin?.game) return;
+    setMode(rejoin.mode === "pro" ? "pro" : "rookie");
+    if (Number(rejoin.avgDollar) > 0) setAvgDollar(rejoin.avgDollar);
+    loggedRef.current = false;
+    setLogged(null);
+    setGame(rejoin.game);
+    setRejoin(null);
+    setFlies([]);
+    if (rejoin.game.over) {
+      setPhase("over");
+      return;
+    }
+    if (rejoin.phase === "playing" && rejoin.endsAt) {
+      setEndsAt(rejoin.endsAt);
+      setClock(Math.max(0, Math.ceil((rejoin.endsAt - Date.now()) / 1000)));
+      setPhase("playing");
+    } else {
+      // buzzer/break snapshots resume at the celebration screen
+      const ended = rejoin.game.quarterLog[rejoin.game.quarterLog.length - 1];
+      const isHalf = ended?.label === "Q2";
+      setBuzz({
+        label: QUARTER_ENDS[ended?.quarter] || `END OF ${ended?.label || "THE QUARTER"}`,
+        ended,
+        isHalf,
+        read: ended?.won ? "won" : "rough",
+        breakLen: readBreakLenPref(isHalf),
+      });
+      setPhase("buzzer");
+    }
+    try {
+      sfxWhoosh();
+    } catch {
+      /* silent */
+    }
+  }, [rejoin]);
+
+  const abandonSave = useCallback(() => {
+    clearLive();
+    setRejoin(null);
+  }, [clearLive]);
 
   const doLog = useCallback(
     (outcome, e) => {
       if (!game || phase !== "playing") return;
-      const next = logDoor(game, outcome);
+      // A sale in the real clock's final stretch is the buzzer-beater.
+      const next = logDoor(game, outcome, { atBuzzer: clock > 0 && clock <= BUZZER_WINDOW });
       if (next === game) return; // unknown outcome / finished
       const ev = next.lastEvent;
       const isSale = !!ev?.isSale;
       try {
-        if (isSale) sfxHorn(1);
+        if (ev?.targetSmashed) sfxHorn(2);
+        else if (isSale) sfxHorn(1);
         else if (ev?.onFire) sfxCoin();
         else sfxPop();
       } catch {
@@ -297,21 +489,114 @@ export default function FullCourt({ go }) {
       }
       const x = e?.clientX ?? window.innerWidth / 2;
       const y = e?.clientY ?? window.innerHeight / 2;
-      if (isSale) burst(x, y, GOLD);
-      pushFly(ev?.tag || `+${ev?.points ?? 0}`, isSale);
+      if (isSale || ev?.targetSmashed) burst(x, y, GOLD);
+      pushFly(ev?.tag || `+${ev?.points ?? 0}`, isSale || ev?.targetSmashed);
       bump();
       setGame(next);
-      if (ev?.quarterEnded) doBuzzer(next);
     },
-    [game, phase, burst, pushFly, bump, doBuzzer]
+    [game, phase, clock, burst, pushFly, bump]
   );
 
+  /* ---------------- locker room (break) ---------------- */
+
+  const stopBreakAudio = useCallback(() => {
+    try {
+      stopNarration([brkVoiceRef.current]);
+    } catch {
+      /* silent */
+    }
+    brkVoiceRef.current = null;
+    try {
+      brkBedRef.current?.pause();
+    } catch {
+      /* silent */
+    }
+    brkBedRef.current = null;
+    try {
+      brkLoopRef.current?.stop();
+    } catch {
+      /* silent */
+    }
+    brkLoopRef.current = null;
+  }, []);
+
+  const setBreakLen = useCallback((len) => {
+    setBuzz((b) => (b ? { ...b, breakLen: len } : b));
+    try {
+      localStorage.setItem(BREAK_LEN_KEY, String(len));
+    } catch {
+      /* silent */
+    }
+  }, []);
+
+  const startBreak = useCallback(
+    (flavor) => {
+      if (!buzz) return;
+      const secs = buzz.breakLen || BREAK_LENS[0];
+      const track = pickBreakTrack(flavor, buzz.read, DEV_FAST ? (secs > 15 ? 120 : 60) : secs);
+      setBrk({ flavor, secs, endsAt: Date.now() + secs * 1000, track });
+      setBrkClock(secs);
+      setPhase("break");
+
+      // Music bed: baked Eleven Music mp3 first, WebAudio loop as fallback.
+      const startLoop = () => {
+        try {
+          brkLoopRef.current = flavor === "hype" ? sfxCrowdLoop(settings) : sfxCalmPadLoop(settings);
+        } catch {
+          /* silence is fine */
+        }
+      };
+      if (settings?.soundEnabled !== false) {
+        try {
+          const bed = new Audio(BREAK_BEDS[flavor]);
+          bed.loop = true;
+          bed.volume = flavor === "hype" ? 0.26 : 0.2;
+          bed.onerror = startLoop;
+          brkBedRef.current = bed;
+          bed.play().catch(startLoop);
+        } catch {
+          startLoop();
+        }
+      }
+
+      // Voice: baked ElevenLabs track → streamed voice → device synth.
+      if (track) {
+        const text = breakTrackSpokenText(track);
+        const fallbackVoice = flavor === "hype" ? HYPE_FALLBACK_VOICE : RESET_FALLBACK_VOICE;
+        const audio = createLineAudio(text, fallbackVoice, breakTrackAudio(track.id));
+        brkVoiceRef.current = audio;
+        setTimeout(() => {
+          if (aliveRef.current && brkVoiceRef.current === audio) playLine(audio, text, settings);
+        }, 700);
+      }
+    },
+    [buzz, settings]
+  );
+
+  // Back on the court — break finished (or skipped from the buzzer screen).
   const nextQuarter = useCallback(() => {
     if (!game) return;
+    stopBreakAudio();
     setBuzz(null);
+    setBrk(null);
     setPhase("playing");
-    setClock(quarterSecs(game.quarter)); // game.quarter already advanced by the engine
-  }, [game]);
+    startQuarterClock(game.quarter); // engine already advanced the quarter
+    try {
+      sfxRoundBell();
+      sfxWhoosh();
+    } catch {
+      /* silent */
+    }
+  }, [game, stopBreakAudio, startQuarterClock]);
+
+  // Break timer done → automatic tip-off.
+  useEffect(() => {
+    if (phase !== "break" || brkClock !== 0 || !brk) return;
+    nextQuarter();
+  }, [phase, brkClock, brk, nextQuarter]);
+
+  // Leaving the game mid-break (unmount) must never leave audio running.
+  useEffect(() => () => stopBreakAudio(), [stopBreakAudio]);
 
   const goOvertime = useCallback(() => {
     if (!game || loggedRef.current) return;
@@ -319,13 +604,13 @@ export default function FullCourt({ go }) {
     if (next === game) return;
     setGame(next);
     setPhase("playing");
-    setClock(quarterSecs(next.quarter));
+    startQuarterClock(next.quarter);
     try {
       sfxWhoosh();
     } catch {
       /* silent */
     }
-  }, [game]);
+  }, [game, startQuarterClock]);
 
   const logSeasonGame = useCallback(async () => {
     if (loggedRef.current || !game) return;
@@ -345,6 +630,7 @@ export default function FullCourt({ go }) {
         if (res?.season) setSeason(res.season);
         else loadSeason();
         setLogged("done");
+        clearLive();
         pushToast?.({
           type: "success",
           title: "Logged to season",
@@ -357,16 +643,19 @@ export default function FullCourt({ go }) {
     } finally {
       if (aliveRef.current) setLogging(false);
     }
-  }, [game, pushToast, loadSeason]);
+  }, [game, pushToast, loadSeason, clearLive]);
 
   const newGame = useCallback(() => {
+    stopBreakAudio();
+    clearLive();
     setGame(null);
     setPhase("idle");
     setBuzz(null);
+    setBrk(null);
     setFlies([]);
     setLogged(null);
     loggedRef.current = false;
-  }, []);
+  }, [stopBreakAudio, clearLive]);
 
   /* ---------------- stats sub-view ---------------- */
 
@@ -380,11 +669,24 @@ export default function FullCourt({ go }) {
   const qp = game ? quarterProgress(game) : null;
   const drv = game ? currentDrive(game).drive : -1;
   const onFire = !!game && game.heat >= HEAT_ON;
-  const lowClock = phase === "playing" && clock <= 5;
+  const lowClock = phase === "playing" && clock <= BUZZER_WINDOW;
   const actions = MODE_ACTIONS[mode] || MODE_ACTIONS.rookie;
   const canPlay = phase === "playing";
   const bx = game && phase === "over" ? boxScore(game) : null;
   const { best: seasonBest } = seasonPrior(season);
+
+  // Locker-room caption: the last cue whose timestamp has passed.
+  let brkCaption = null;
+  if (phase === "break" && brk?.track) {
+    const scale = brk.secs / brk.track.secs; // dev-fast breaks compress the cue times
+    const elapsed = brk.secs - brkClock;
+    const cues = brk.track.captions || [];
+    for (const c of cues) {
+      if (c.at * scale <= elapsed) brkCaption = c.text;
+      else break;
+    }
+  }
+  const brkFrac = phase === "break" && brk?.secs ? brkClock / brk.secs : 0;
 
   return (
     <div className="fc-wrap" ref={reveal}>
@@ -396,9 +698,10 @@ export default function FullCourt({ go }) {
         <p className="zn-eyebrow">Full Court · The Law of Probability</p>
         <h2 className="fc-title">Run your day like a 4-quarter game</h2>
         <p className="fc-sub">
-          Score on every door, race the quarter buzzer, and watch the Odds Engine prove the
-          sale is baked into the math. You're not hoping for a yes — you're running out the
-          clock until the numbers deliver it.
+          Four real quarters — two hours each, just like a game day. Score on every door,
+          smash the quarter's door target, and watch the Odds Engine prove the sale is baked
+          into the math. Between quarters you hit the locker room: reset or get hyped, then
+          back on the court.
         </p>
       </header>
 
@@ -472,49 +775,174 @@ export default function FullCourt({ go }) {
               <span className={qp.won ? "fc-obj" : "fc-obj fc-obj--miss"}>
                 {qp.won ? "✓ quarter won — sale landed" : "land a sale to win the quarter"}
               </span>
+              {qp.target > 0 && qp.doors >= qp.target && (
+                <span className="fc-obj"> · 🎯 target smashed — keep scoring</span>
+              )}
             </>
           ) : (
             <>Q1 target: <b>6 doors</b> · land a sale to win the quarter</>
           )}
         </div>
 
-        {/* action row */}
-        <div className={`fc-actions fc-actions--${actions.length}`}>
-          {actions.map((a) => (
-            <button
-              key={a.key}
-              type="button"
-              className={`fc-btn ${a.cls}`}
-              disabled={!canPlay}
-              onClick={(e) => doLog(a.key, e)}
-            >
-              <span className="fc-btn__glyph">{a.glyph}</span>
-              {a.label}
-              <small>{a.sub}</small>
-            </button>
-          ))}
-        </div>
-
-        {/* buzzer overlay */}
-        {phase === "buzzer" && buzz && (
-          <div className="fc-buzz">
-            <div className="fc-buzz__siren" aria-hidden="true">🚨</div>
-            <div className="fc-buzz__q">{buzz.isHalf ? "HALFTIME" : `END OF ${buzz.label}`}</div>
-            <div className="fc-buzz__s">
-              {buzz.isHalf
-                ? game && game.sales > 0
-                  ? "You're closing — keep the pace. Second half is yours."
-                  : "No sale yet — the math says it's coming. Ask sooner."
-                : buzz.won
-                ? "Quarter won. You're up " + (game ? game.points : 0) + "."
-                : "Quarter's up. Reset the streak — next one's fresh."}
-            </div>
-            <button type="button" className="zn-btn fc-buzz__btn" onClick={nextQuarter}>
-              {buzz.isHalf ? "Start the second half →" : "Next quarter →"}
-            </button>
+        {/* action row — until tip-off the door buttons are inert, so show a loud
+            TIP OFF CTA right here instead of dead-looking buttons. Live buttons
+            appear the instant the game starts. */}
+        {phase === "idle" ? (
+          <div className="fc-actions fc-actions--tip">
+            {rejoin?.game ? (
+              <>
+                <button type="button" className="zn-btn fc-tipnow" onClick={resumeGame}>
+                  ▶ REJOIN YOUR GAME — {rejoin.game.quarter > 4 ? "OT" : `Q${rejoin.game.quarter}`}
+                  {rejoin.phase === "playing" && rejoin.endsAt
+                    ? ` · ${fmtClock(Math.max(0, Math.ceil((rejoin.endsAt - Date.now()) / 1000)))} left`
+                    : " · at the buzzer"}
+                </button>
+                <p className="zn-hint fc-tiphint">
+                  {rejoin.game.points} points on the board already — the day isn't over.{" "}
+                  <button type="button" className="fc-linkbtn" onClick={abandonSave}>
+                    Abandon that game
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                <button type="button" className="zn-btn fc-tipnow" onClick={tipOff}>
+                  ▶ TIP OFF — start your game day
+                </button>
+                <p className="zn-hint fc-tiphint">
+                  Four 2-hour quarters with a locker-room break between each. Log every door —
+                  NO · PITCH · SALE — and watch the points climb. Pick Rookie/Pro or set your
+                  commission below first if you like.
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className={`fc-actions fc-actions--${actions.length}`}>
+            {actions.map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                className={`fc-btn ${a.cls}`}
+                disabled={!canPlay}
+                onClick={(e) => doLog(a.key, e)}
+              >
+                <span className="fc-btn__glyph">{a.glyph}</span>
+                {a.label}
+                <small>{a.sub}</small>
+              </button>
+            ))}
           </div>
         )}
       </div>
+
+      {/* ---------------- QUARTER-END CELEBRATION (broadcast takeover) ---------------- */}
+      {phase === "buzzer" && buzz && game && (
+        <div className="fc-cine" role="dialog" aria-modal="true" aria-label="End of quarter">
+          <div className="fc-cine__glow" aria-hidden="true" />
+          <div className="fc-cine__inner">
+            <div className="fc-cine__siren" aria-hidden="true">🚨</div>
+            <div className="fc-cine__label">{buzz.label}</div>
+            <div className="fc-cine__score">{game.points}</div>
+            <div className="fc-cine__stat">
+              {buzz.ended?.doors ?? 0} doors · {buzz.ended?.sales ?? 0}{" "}
+              {(buzz.ended?.sales ?? 0) === 1 ? "sale" : "sales"} this quarter
+              {buzz.ended?.won && <span className="fc-cine__won"> · ✓ QUARTER WON</span>}
+            </div>
+
+            <div className="fc-cine__readlbl">The game's read — tap to correct it:</div>
+            <div className="fc-cine__reads">
+              {READS.map((r) => (
+                <button
+                  key={r.key}
+                  type="button"
+                  className={`fc-read ${buzz.read === r.key ? "fc-read--on" : ""}`}
+                  onClick={() => setBuzz((b) => (b ? { ...b, read: r.key } : b))}
+                >
+                  <span className="fc-read__glyph">{r.glyph}</span>
+                  {r.label}
+                  <small>{r.sub}</small>
+                </button>
+              ))}
+            </div>
+
+            <div className="fc-cine__lenrow">
+              <span className="fc-cine__lenlbl">Locker room:</span>
+              {BREAK_LENS.map((len) => (
+                <button
+                  key={len}
+                  type="button"
+                  className={`fc-len ${buzz.breakLen === len ? "fc-len--on" : ""}`}
+                  onClick={() => setBreakLen(len)}
+                >
+                  {fmtClock(len)}
+                </button>
+              ))}
+            </div>
+
+            <div className="fc-cine__flavors">
+              <button type="button" className="fc-flavor fc-flavor--reset" onClick={() => startBreak("reset")}>
+                <span className="fc-flavor__glyph">🧘</span>
+                RESET
+                <small>guided visualization · calm voice</small>
+              </button>
+              <button type="button" className="fc-flavor fc-flavor--hype" onClick={() => startBreak("hype")}>
+                <span className="fc-flavor__glyph">📣</span>
+                HYPE ME UP
+                <small>the coach has words for you</small>
+              </button>
+            </div>
+
+            <button type="button" className="fc-cine__skip" onClick={nextQuarter}>
+              Skip the break — straight back on the court →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- LOCKER ROOM (break) ---------------- */}
+      {phase === "break" && brk && (
+        <div
+          className={`fc-locker fc-locker--${brk.flavor}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Locker room break"
+        >
+          <div className="fc-locker__inner">
+            <p className="fc-locker__eyebrow">
+              {buzz?.isHalf ? "HALFTIME" : "TIMEOUT"} ·{" "}
+              {brk.flavor === "hype" ? "the coach is talking" : "locker room reset"}
+            </p>
+
+            <div className="fc-locker__ringwrap" aria-hidden="true">
+              <svg className="fc-locker__ring" viewBox="0 0 120 120">
+                <circle className="fc-locker__ringbg" cx="60" cy="60" r="54" />
+                <circle
+                  className="fc-locker__ringfg"
+                  cx="60"
+                  cy="60"
+                  r="54"
+                  strokeDasharray={`${Math.max(0, brkFrac) * 339.3} 339.3`}
+                />
+              </svg>
+              {brk.flavor === "reset" ? (
+                <div className="fc-locker__orb" aria-hidden="true" />
+              ) : (
+                <div className="fc-locker__pulse" aria-hidden="true">📣</div>
+              )}
+              <div className="fc-locker__count">{fmtClock(brkClock)}</div>
+            </div>
+
+            <p key={brkCaption || "•"} className="fc-locker__caption">
+              {brkCaption || (brk.flavor === "hype" ? "Coach is coming in…" : "Settle in…")}
+            </p>
+
+            <button type="button" className="fc-locker__skip" onClick={nextQuarter}>
+              Back on the court →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ---------------- ODDS ENGINE ---------------- */}
       <div className="fc-odds">
@@ -705,9 +1133,9 @@ export default function FullCourt({ go }) {
         </div>
       )}
 
-      {(phase === "playing" || phase === "buzzer") && (
+      {(phase === "playing" || phase === "buzzer" || phase === "break") && (
         <p className="fc-realnote">
-          Every tap is a real door. When the buzzer's done, log the box score — that's what
+          Every tap is a real door. When the final buzzer's done, log the box score — that's what
           feeds your season and pings {partnerActive ? `@${partnerActive.username}` : "your squad"}.
         </p>
       )}

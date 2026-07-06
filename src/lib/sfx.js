@@ -655,6 +655,128 @@ export function sfxDrainLoop(settings) {
   }
 }
 
+// Stadium crowd roar — the quarter-buzzer celebration. A big noise swell that
+// blooms and slowly settles, with a couple of shrill whistle blips on top.
+export function sfxCrowdRoar(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const bp = c.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(700, t);
+    bp.frequency.exponentialRampToValueAtTime(1400, t + 0.4); // roar brightens as it blooms
+    bp.Q.value = 0.5;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.18, t + 1.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
+    src.connect(bp).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 3.4);
+    // ref whistles cutting through the roar
+    blip(c, { from: 2800, to: 2400, duration: 0.28, type: "square", gain: 0.05, start: 0.5 });
+    blip(c, { from: 2800, to: 2500, duration: 0.2, type: "square", gain: 0.04, start: 0.82 });
+  } catch { /* silent */ }
+}
+
+// Calm ambient pad — the RESET locker-room bed. Warm detuned oscillators under
+// a slow lowpass swell (~55bpm breathing pace). Sits far below the voice.
+export function sfxCalmPadLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const h = makeLoop(c, (cc, master) => {
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 640;
+      lp.connect(master);
+      // A2 + E3 + A3, each a hair detuned so the chord shimmers instead of beats.
+      const oscs = [110, 110.4, 164.8, 220, 220.7].map((f, i) => {
+        const o = cc.createOscillator();
+        o.type = i < 2 ? "sine" : "triangle";
+        o.frequency.value = f;
+        const og = cc.createGain();
+        og.gain.value = i < 2 ? 0.4 : 0.16;
+        o.connect(og).connect(lp);
+        o.start();
+        return o;
+      });
+      // Slow swell on the filter — one rise-and-fall ≈ a relaxed breath cycle.
+      const lfo = cc.createOscillator();
+      lfo.frequency.value = 0.09;
+      const lfoGain = cc.createGain();
+      lfoGain.gain.value = 220;
+      lfo.connect(lfoGain).connect(lp.frequency);
+      lfo.start();
+      // Soft "air" so the pad doesn't feel synthetic-dry.
+      const air = noise(cc);
+      const airBp = cc.createBiquadFilter();
+      airBp.type = "bandpass";
+      airBp.frequency.value = 3200;
+      airBp.Q.value = 0.4;
+      const airG = cc.createGain();
+      airG.gain.value = 0.015;
+      air.connect(airBp).connect(airG).connect(master);
+      air.start();
+      return { nodes: [...oscs, lfo, air] };
+    });
+    h.setLevel(0.08);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+// Stadium murmur + heartbeat pulse — the HYPE locker-room bed. Low crowd wash
+// with a slow sub-thump, like the arena breathing on the other side of the wall.
+export function sfxCrowdLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const h = makeLoop(c, (cc, master) => {
+      const src = noise(cc);
+      const bp = cc.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = 500;
+      bp.Q.value = 0.4;
+      const lfo = cc.createOscillator(); // crowd wash slowly rises and falls
+      lfo.frequency.value = 0.13;
+      const lfoGain = cc.createGain();
+      lfoGain.gain.value = 180;
+      lfo.connect(lfoGain).connect(bp.frequency);
+      src.connect(bp).connect(master);
+      src.start();
+      lfo.start();
+      let beat = 0;
+      const tick = () => {
+        // lub-dub: strong thump, then a softer one close behind
+        const t = cc.currentTime;
+        const strong = beat % 2 === 0;
+        beat += 1;
+        const o = cc.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(strong ? 62 : 54, t);
+        o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+        const g = cc.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(strong ? 0.5 : 0.28, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g).connect(master);
+        o.start(t);
+        o.stop(t + 0.3);
+      };
+      return { nodes: [src, lfo], tick, tickMs: 430 };
+    });
+    h.setLevel(0.1);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
 // ---------- baked voice lines ----------
 
 let currentVoice = null;

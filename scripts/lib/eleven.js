@@ -28,6 +28,12 @@ export const VOICES = {
   harry:  'SOYHLrjzK2X1ezoPC6cr', // Fierce warrior
   sarah:  'EXAVITQu4vr4xnSDxMaL', // Reassuring female
   liam:   'TX3LPaxmHKxFdv7VOQHJ', // Energetic social-media creator — cocky teenage-punk Door rep
+  // Full Court locker-room candidates (research 2026-07-06). All PREMADE —
+  // free-tier safe. Library meditation voices (Brittney, Erin) need adding to
+  // the account's voice lab first; drop their voice_id in here to audition.
+  rachel:  '21m00Tcm4TlvDq8ikWAM', // Calm American female — canonical narration default
+  matilda: 'XrExE9yKIg1WjnnlVkGX', // Warm pleasing alto — reads soothing slowed down
+  jessica: 'cgSgspJ2msm6clMCkdW9', // Young warm expressive female
   // The Door level ladder — new aggressive customers (L2 & L4). These point at
   // proven premade voices for a guaranteed bake; swap the id to any ElevenLabs
   // library voice you prefer and re-run the audition/bake.

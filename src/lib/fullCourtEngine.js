@@ -10,6 +10,12 @@
 // target ramps 6 → 10 → 14 → 18 and the cumulative buzzer checkpoints land at
 // [6,16,30,48]. Score every door, race the quarter buzzer, and let the Odds
 // Engine prove the sale is baked into the math.
+//
+// GAME DAY rules (2026-07-06): quarters end on the CLOCK ONLY, like real
+// basketball — advanceDrive is the one way a quarter closes. Hitting the door
+// target early awards a one-time TARGET SMASHED bonus and play continues;
+// extra doors keep scoring. Buzzer-beaters come from the real clock (the UI
+// passes opts.atBuzzer in the final stretch), never inferred from the target.
 
 /* ------------------------------------------------------------------ *
  * Constants                                                          *
@@ -24,6 +30,7 @@ export const QUARTER_CHECKPOINTS = [6, 16, 30, 48];
 export const GAME_DOORS = 48; // regulation door target
 export const HEAT_ON = 2;     // consecutive good actions before "on fire"
 export const BUZZER_BONUS = 5; // buzzer-beater sale bonus
+export const TARGET_BONUS = 5; // TARGET SMASHED — quarter door target hit early
 
 const DEFAULT_AVG_DOLLAR = 250;
 
@@ -177,9 +184,9 @@ function closeQuarter(next, reason) {
  * logDoor — score one door and advance the machine. Pure: returns a NEW state.
  * @param {object} state
  * @param {string} outcome  mode-specific outcome key (see outcome tables / aliases)
- * @param {object} opts     { atBuzzer } optionally force buzzer-beater (real clock).
- *                          When omitted, a sale on the door that completes the
- *                          quarter's target counts as the buzzer-beater.
+ * @param {object} opts     { atBuzzer } true when the real clock is in its final
+ *                          stretch — a sale then is a buzzer-beater. The target
+ *                          never infers one (clock-only rules).
  * @returns new state (input untouched). Unknown outcome / finished game → input.
  */
 export function logDoor(state, outcome, opts = {}) {
@@ -197,9 +204,11 @@ export function logDoor(state, outcome, opts = {}) {
   if (spec.pitch) next.pitches += 1;
   if (spec.objection) next.objections += 1;
 
-  // Did this door complete the quarter's door target?
+  // TARGET SMASHED — this door is exactly the one that reaches the quarter's
+  // target. quarterDoors climbs by 1 per door, so this fires once per quarter.
+  // Clock-only rules: the quarter does NOT end — the bonus lands, play rolls on.
   const target = quarterTargetFor(next.quarter);
-  const hitsTarget = target != null && next.quarterDoors >= target;
+  const targetSmashed = target != null && next.quarterDoors === target;
 
   let points = spec.points;
   let buzzerBeater = false;
@@ -207,13 +216,14 @@ export function logDoor(state, outcome, opts = {}) {
     next.sales += 1;
     next.salesThisQ += 1;
     next.doorsSinceSale = 0;
-    // Buzzer-beater: a sale in the final beat of the quarter.
-    buzzerBeater = opts.atBuzzer === true || (opts.atBuzzer !== false && hitsTarget);
+    // Buzzer-beater: a sale in the final stretch of the real clock.
+    buzzerBeater = opts.atBuzzer === true;
     if (buzzerBeater) {
       points += BUZZER_BONUS;
       next.buzzerBeaters += 1;
     }
   }
+  if (targetSmashed) points += TARGET_BONUS;
 
   // Heat / streak.
   if (spec.resetsHeat) {
@@ -226,17 +236,11 @@ export function logDoor(state, outcome, opts = {}) {
   next.points += points;
 
   const isRecord = next.points > next.seasonBest;
-  const tag = buzzerBeater
+  const tag = targetSmashed
+    ? "TARGET SMASHED +" + points
+    : buzzerBeater
     ? "BUZZER BEATER +" + points
     : "+" + points;
-
-  // End the quarter if the door target was reached (auto-buzzer).
-  let quarterEnded = false;
-  let quarterWon = false;
-  if (hitsTarget) {
-    quarterWon = closeQuarter(next, "target");
-    quarterEnded = true;
-  }
 
   next.lastEvent = {
     outcome: key,
@@ -244,10 +248,11 @@ export function logDoor(state, outcome, opts = {}) {
     tag,
     isSale: spec.sale,
     buzzerBeater,
+    targetSmashed,
     onFire: next.heat >= HEAT_ON,
     isRecord,
-    quarterEnded,
-    quarterWon,
+    quarterEnded: false, // quarters end on the clock only (advanceDrive)
+    quarterWon: false,
     gameOver: next.over,
   };
   return next;
@@ -267,6 +272,7 @@ export function advanceDrive(state) {
     tag: null,
     isSale: false,
     buzzerBeater: false,
+    targetSmashed: false,
     onFire: next.heat >= HEAT_ON,
     isRecord: next.points > next.seasonBest,
     quarterEnded: true,
@@ -396,7 +402,9 @@ export function toGamePayload(state) {
     pitches: state.pitches,
     sales: state.sales,
     q_won: state.qWon,
-    ot: state.ot,
+    // state.ot counts OT periods, but the column (and the RPC's cast) is boolean —
+    // an int like 2 would blow up the ::boolean cast and the log would never land.
+    ot: state.ot > 0,
     avg_dollar: state.avgDollar,
   };
 }
@@ -417,6 +425,27 @@ export function quarterProgress(state) {
     salesThisQ: state.salesThisQ,
     won: state.salesThisQ >= 1, // objective: land a sale to win the quarter
   };
+}
+
+/**
+ * quarterEffort — the game's read on how hard you're working THIS quarter.
+ * Compares doors logged against the pace the quarter's target implies at this
+ * point of the clock. Pure — the caller passes elapsedFrac (0..1 of the
+ * quarter's clock) since the engine never touches the wall clock.
+ *
+ *   'hot'   — at or ahead of target pace
+ *   'grind' — behind pace but clearly working (or too early to judge)
+ *   'slump' — under ~40% of expected pace past the first quarter-hour of play;
+ *             the court saw you hiding. Feeds the coach's tough-love speech.
+ */
+export function quarterEffort(state, elapsedFrac) {
+  const target = quarterTargetFor(state.quarter) || QUARTER_TARGETS[3];
+  const frac = Math.max(0, Math.min(1, Number(elapsedFrac) || 0));
+  if (frac < 0.25) return "grind"; // too early to call anyone lazy
+  const expected = target * frac;
+  if (state.quarterDoors >= expected) return "hot";
+  if (state.quarterDoors >= expected * 0.4) return "grind";
+  return "slump";
 }
 
 /** Which drive (0..7) is currently in play, from cumulative doors. */
