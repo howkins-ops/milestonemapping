@@ -6,6 +6,19 @@ import { createMaskFX } from "./MaskFX.js";
 import { getBoss, XP_PER_BOSS, XP_PER_WILD } from "./maskBosses.js";
 import { getCritic } from "./wildCritics.js";
 import { ESSENCES, getEssence } from "./essences.js";
+import {
+  sfxMaskAmbush,
+  sfxNamingStrike,
+  sfxCritStrike,
+  sfxBossKneel,
+  sfxBreathTone,
+  sfxEvolveSweep,
+  sfxEvolveReveal,
+  sfxShatter,
+  sfxImpact,
+  sfxBlock,
+  sfxThunder,
+} from "../../../lib/sfx.js";
 import "../../../styles/maskCourt.css";
 
 // ════════════════════════════════════════════════════════════════════════
@@ -185,6 +198,8 @@ export default function MaskBattle({
             beam.classList.add("fire");
           }
         }
+        if (power >= 1.5) sfxCritStrike();
+        else sfxNamingStrike();
         await wait(320);
         flash(false);
         shakeFx("shake");
@@ -208,9 +223,11 @@ export default function MaskBattle({
       (async () => {
         setBreath({ phase: "in", mantra });
         setPanel("breath");
+        if (!rm) sfxBreathTone(true);
         await wait(rm ? 300 : 4000);
         if (!alive.current) return;
         setBreath({ phase: "out", mantra });
+        if (!rm) sfxBreathTone(false);
         await wait(rm ? 300 : 5000);
         if (!alive.current) return;
         setPanel(null);
@@ -232,6 +249,7 @@ export default function MaskBattle({
     if (!alive.current) return;
     flash(true);
     shakeFx("shake");
+    sfxImpact(2);
     const attacks = boss.attacks;
     setAttack({ text: attacks[roundRef.current], on: true });
     anim(playerRef.current, "stagger");

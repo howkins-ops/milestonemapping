@@ -755,6 +755,127 @@ export function sfxMagnetClack(settings) {
   } catch { /* silent */ }
 }
 
+// ---------- Mask Court (inner-critic battles) ----------
+
+// Fog surge → the critic slams in: dark riser into a chest thud.
+export function sfxMaskAmbush(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(65, t);
+    o.frequency.exponentialRampToValueAtTime(210, t + 0.5);
+    const g = env(c, { gain: 0.1, attack: 0.06, duration: 0.55 });
+    o.connect(g).connect(bus);
+    o.start(t);
+    o.stop(t + 0.6);
+    crack(c, { hp: 180, lp: 2200, duration: 0.28, gain: 0.2, start: 0.48 });
+    subDrop(c, { from: 150, to: 38, duration: 0.34, gain: 0.5, start: 0.5 });
+  } catch { /* silent */ }
+}
+
+// Naming Strike — the truth beam: bright zap + landing crack.
+export function sfxNamingStrike(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 500, to: 1600, duration: 0.16, type: "square", gain: 0.08 });
+    blip(c, { from: 900, to: 2600, duration: 0.12, type: "sine", gain: 0.07, start: 0.04 });
+    crack(c, { hp: 900, lp: 6500, duration: 0.14, gain: 0.24, start: 0.2 });
+    subDrop(c, { from: 110, to: 44, duration: 0.2, gain: 0.32, start: 0.2 });
+  } catch { /* silent */ }
+}
+
+// CRITICAL naming — same strike, doubled and heavier.
+export function sfxCritStrike(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 400, to: 2200, duration: 0.2, type: "square", gain: 0.11 });
+    blip(c, { from: 800, to: 3200, duration: 0.16, type: "sine", gain: 0.09, start: 0.05 });
+    crack(c, { hp: 700, lp: 8000, duration: 0.2, gain: 0.3, start: 0.2 });
+    subDrop(c, { from: 140, to: 34, duration: 0.32, gain: 0.55, start: 0.2 });
+    crack(c, { hp: 300, lp: 3000, duration: 0.3, gain: 0.14, start: 0.34 });
+  } catch { /* silent */ }
+}
+
+// The mask kneels — a slow, low settle. Not a defeat sound: a landing.
+export function sfxBossKneel(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 90, to: 30, duration: 0.7, gain: 0.4 });
+    crack(c, { hp: 90, lp: 700, duration: 0.5, gain: 0.14, start: 0.15 });
+    blip(c, { from: 320, to: 140, duration: 0.6, type: "sine", gain: 0.05, start: 0.1 });
+  } catch { /* silent */ }
+}
+
+// Soft breath cue — gentle sine swell; inhale rises, exhale falls.
+export function sfxBreathTone(inhale = true, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = "sine";
+    if (inhale) {
+      o.frequency.setValueAtTime(220, t);
+      o.frequency.linearRampToValueAtTime(330, t + 3.6);
+    } else {
+      o.frequency.setValueAtTime(330, t);
+      o.frequency.linearRampToValueAtTime(196, t + 4.6);
+    }
+    const g = c.createGain();
+    const dur = inhale ? 3.8 : 4.8;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.035, t + 0.8);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(bus);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  } catch { /* silent */ }
+}
+
+// Evolution strobe — rising sweep that keeps climbing until the reveal.
+export function sfxEvolveSweep(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(110, t);
+    o.frequency.exponentialRampToValueAtTime(880, t + 2.4);
+    const lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(600, t);
+    lp.frequency.exponentialRampToValueAtTime(5200, t + 2.4);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
+    o.connect(lp).connect(g).connect(bus);
+    o.start(t);
+    o.stop(t + 2.7);
+  } catch { /* silent */ }
+}
+
+// Evolution reveal — the big hit + shimmer when the evolved form lands.
+export function sfxEvolveReveal(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 180, to: 36, duration: 0.4, gain: 0.6 });
+    crack(c, { hp: 500, lp: 9000, duration: 0.25, gain: 0.3 });
+    // shimmer — a little major arpeggio riding the impact
+    [523, 659, 784, 1047].forEach((f, i) => {
+      blip(c, { from: f, to: f * 1.01, duration: 0.5, type: "sine", gain: 0.05, start: 0.12 + i * 0.09 });
+    });
+  } catch { /* silent */ }
+}
+
 // ---------- loops (return a handle: { stop(), setLevel(0..1) }) ----------
 
 const NO_LOOP = { stop() {}, setLevel() {} };
