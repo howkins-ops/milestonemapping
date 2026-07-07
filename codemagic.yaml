@@ -1,0 +1,50 @@
+# Codemagic CI: build, sign, and upload the iOS app to TestFlight — no Mac needed.
+#
+# One-time setup in the Codemagic dashboard (codemagic.io, sign in with GitHub):
+#   1. Add this repository.
+#   2. Teams → Integrations → App Store Connect: upload the .p8 API key
+#      (App Store Connect → Users and Access → Integrations → Keys),
+#      enter Key ID + Issuer ID. Name the integration "appstore_credentials".
+#   3. Codemagic then creates/manages the distribution certificate and
+#      provisioning profile automatically (fetch-signing-files below).
+#   4. Create the app record in App Store Connect first (bundle ID
+#      com.milestonemapping.app) so TestFlight publishing has a target.
+
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: appstore_credentials
+    environment:
+      node: 22
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: com.milestonemapping.app
+        XCODE_SCHEME: App
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Build web app
+        script: npm run build
+      - name: Capacitor sync
+        script: npx cap sync ios
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE --create
+          xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --project ios/App/App.xcodeproj \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

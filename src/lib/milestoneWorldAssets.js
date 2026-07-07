@@ -107,7 +107,6 @@ export function getMilestoneBackground(index, isComplete) {
 export const appAssets = {
   dashboard: {
     heroBannerBg:   "/assets/dashboard/hero-banner-bg.png",
-    quoteScrollBg:  "/assets/dashboard/quote-scroll-bg.png",
   },
   daily: {
     morningBg:       "/assets/daily/daily-morning-bg.png",

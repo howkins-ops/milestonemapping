@@ -40,3 +40,6 @@ public/audio/tts-test.mp3
 
 # Uncompressed video originals (backups, not deployed)
 _video_originals/
+
+# Archived orphan assets & dev artifacts (originals already in git history)
+_archive/

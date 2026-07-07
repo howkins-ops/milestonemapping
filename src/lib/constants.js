@@ -14,6 +14,14 @@ export const STORAGE_KEYS = {
 export const APP_NAME = "Milestone Mapping";
 export const TAGLINE = "Map the mission. Execute the day. Unlock the reward.";
 
+// Published contact + legal (App Store 1.2 / 5.1.1 requirements).
+// Swap SUPPORT_EMAIL for a branded address when one exists.
+export const SUPPORT_EMAIL = "howkins.ops@gmail.com";
+export const PRIVACY_URL = "/legal/privacy.html";
+export const TERMS_URL = "/legal/terms.html";
+export const WELLNESS_DISCLAIMER =
+  "Milestone Mapping is a self-development tool, not medical care. It is not a substitute for advice, diagnosis, or treatment from a licensed physician or mental-health professional.";
+
 export const MOTIVATIONAL_COPY = [
   {
     text: "Small proof beats big promises. 138 studies agree.",

@@ -613,6 +613,41 @@ export function sfxHalo(settings) {
   } catch { /* silent */ }
 }
 
+// Iron plate racking — deep slam plus a bright metallic ring that decays.
+export function sfxPlateClank(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 140, to: 36, duration: 0.26, gain: 0.42 });
+    crack(c, { hp: 150, lp: 1400, duration: 0.1, gain: 0.26 });
+    crack(c, { hp: 2400, lp: 8000, duration: 0.07, gain: 0.14 });
+    // inharmonic partials — the ring of struck steel
+    [412, 1046, 1737, 2513].forEach((fr, i) => {
+      blip(c, { from: fr, to: fr * 0.995, duration: 0.55 - i * 0.09, type: "triangle", gain: 0.05 - i * 0.009, start: 0.015 });
+    });
+  } catch { /* silent */ }
+}
+
+// Chalk clap — a soft dry puff of dust. The Iron's page turn.
+export function sfxChalkPoof(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 0.9;
+    f.frequency.setValueAtTime(1600, t);
+    f.frequency.exponentialRampToValueAtTime(500, t + 0.22);
+    const g = env(c, { gain: 0.1, attack: 0.008, duration: 0.26 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.34);
+    crack(c, { hp: 240, lp: 900, duration: 0.06, gain: 0.09 });
+  } catch { /* silent */ }
+}
+
 // ---------- loops (return a handle: { stop(), setLevel(0..1) }) ----------
 
 const NO_LOOP = { stop() {}, setLevel() {} };

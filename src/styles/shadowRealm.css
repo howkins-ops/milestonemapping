@@ -595,8 +595,16 @@
   opacity: 0.72;
   transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
-.swr-chamber:hover .swr-plate__enter,
-.swr-chamber:focus-visible .swr-plate__enter {
+@media (hover: hover) {
+  .swr-chamber:hover .swr-plate__enter {
+    opacity: 1;
+    background: var(--ac);
+    border-color: var(--ac);
+    color: #000;
+  }
+}
+.swr-chamber:focus-visible .swr-plate__enter,
+.swr-chamber:active .swr-plate__enter {
   opacity: 1;
   background: var(--ac);
   border-color: var(--ac);

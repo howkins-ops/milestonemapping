@@ -32,7 +32,7 @@ export const echo = (v, fb) => (v && String(v).trim() ? String(v).trim() : fb);
 
 /* ---- the keyframes every chapter shares (inject once via <ChapterFrame>) -- */
 export const KEYFRAMES = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,600;9..144,0,700;9..144,1,500&family=Inter+Tight:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+/* Chapter fonts (Fraunces, Inter Tight, JetBrains Mono) are self-hosted via /fonts/fonts.css. */
 @keyframes sFade{from{opacity:0}to{opacity:1}}
 @keyframes sRise{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes sIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}

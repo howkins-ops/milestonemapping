@@ -1,3 +1,8 @@
+// ⚠️ APP STORE COMPLIANCE GUARD — read before adding content here.
+// This deck deliberately EXCLUDES the webinar's pitch slides (38-46): no CTA,
+// no price, no offer, no enrollment/booking links. Re-adding any of those (or
+// any external purchase link anywhere in the app) flips the App Store review
+// from "free educational content" to a 3.1.1/3.2 rejection. Teach, don't sell.
 export const SHIFTS = [
   {
     id: "intro",

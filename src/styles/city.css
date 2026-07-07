@@ -630,8 +630,14 @@
   z-index: 3;
 }
 
-.mqc-sc-b:hover .mqc-sc-b__name,
-.mqc-sc-b:focus-visible .mqc-sc-b__name {
+@media (hover: hover) {
+  .mqc-sc-b:hover .mqc-sc-b__name {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+.mqc-sc-b:focus-visible .mqc-sc-b__name,
+.mqc-sc-b:active .mqc-sc-b__name {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }

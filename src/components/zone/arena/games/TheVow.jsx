@@ -416,7 +416,7 @@ export default function TheVow({ go }) {
               className="zn-input"
               value={stake}
               onChange={(e) => setStake(e.target.value)}
-              placeholder="I owe the squad a coffee run · 50 cups"
+              placeholder="50 cups · a public shout-out · 20 push-ups on camera"
               maxLength={80}
             />
           </div>

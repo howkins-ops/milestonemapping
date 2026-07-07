@@ -3,6 +3,7 @@ import Modal from "./Modal.jsx";
 import { getResearchById } from "../../data/researchData.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { playSound } from "../../lib/sounds.js";
+import { openExternal } from "../../lib/openExternal.js";
 
 const ACCENT = {
   cyan:   { accent: "var(--brand-cyan)",   border: "rgba(0,240,255,0.28)",  bg: "rgba(0,240,255,0.05)" },
@@ -99,8 +100,10 @@ export default function ScienceInfo({
                   {card.sourceUrl && (
                     <a
                       href={card.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openExternal(card.sourceUrl);
+                      }}
                       style={{ color: c.accent, borderColor: c.border }}
                     >
                       View study ↗

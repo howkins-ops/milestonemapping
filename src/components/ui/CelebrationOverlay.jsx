@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import Button from "./Button.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
+import { buzzSuccess } from "../../lib/haptics.js";
 
 const VARIANT_BG = {
   milestone: "/assets/celebrations/celebrate-bg-milestone.png",
@@ -208,6 +209,7 @@ export default function CelebrationOverlay() {
 
   useEffect(() => {
     if (!current) return undefined;
+    buzzSuccess(); // native haptic on every celebration (milestones, wins, ranks)
     const onKey = (e) => {
       if (e.key === "Escape" || e.key === "Enter") dismissCelebration();
     };

@@ -75,11 +75,12 @@ export const DOOR_LEVELS = [
     when: "He moved to escape you",
     accent: "#66E0FF",
     customerVoice: "harry",
-    lesson: "A gate is a suggestion. A wall is a suggestion. There is no door persistence can't get through.",
+    lesson: "The steel door is the fear in your head. In this cartoon — and only in this cartoon — nothing stops the knock.",
     brief: {
       heading: "He moved.\nGated community. Steel door.",
       lead: "Harold moved across the whole city to get away from you — behind a wall, a gate, and a reinforced steel door that says SALES REPS FUCK OFF. You breached the gate anyway. Now pound the steel, rev the chainsaw, and finish it on the porch.",
       rounds: ["R1 · THE BREACH", "R2 · THE RING CAM", "R3 · SOLID STEEL", "R4 · THE CHAINSAW → BRAWL"],
+      disclaimer: "Cartoon revenge-comedy for rejection-proofing your nervous system. Fiction, obviously — never real-world doorstep advice.",
     },
     rounds: [
       {
@@ -114,7 +115,7 @@ export const DOOR_LEVELS = [
     finale: { type: "brawl", them: L3_FIGHT_THEM, you: L3_FIGHT_YOU, ko: L3_KO, themName: "HAROLD" },
     seal: {
       title: "Through the STEEL.",
-      line: "Wall, gate, reinforced door, and a man who did karate in 1987 — none of it stopped the close. There's no door persistence can't get through.",
+      line: "Wall, gate, reinforced door, and a man who did karate in 1987 — the cartoon threw everything at you and the knock kept coming. That's the muscle: no rejection in your head is thicker than that steel.",
     },
   },
 
@@ -128,11 +129,12 @@ export const DOOR_LEVELS = [
     when: "He said 'come back later'",
     accent: "#FF2D55",
     customerVoice: "deon",
-    lesson: "Never do call-backs. This is what a call-back becomes. Close it the FIRST time.",
+    lesson: "Ask for the close the FIRST time — so this cartoon never has to happen. That's the whole lesson.",
     brief: {
       heading: "He said the two\nfatal words.",
-      lead: "\"Come back later.\" So you come back. Morning, afternoon, dinner, and 11:59 PM with a fistful of rocks — four visits, escalating each time, until you kick the door clean off its hinges. The final. The bloodiest. The lesson written in windows.",
+      lead: "\"Come back later.\" So you come back. Morning, afternoon, dinner, and 11:59 PM with a fistful of rocks — four visits, escalating each time, until you kick the door clean off its hinges. The final. The bloodiest. A cautionary cartoon about what \"later\" costs everyone.",
       rounds: ["☀️ MORNING", "🌤️ AFTERNOON", "🌆 DINNER", "🌑 11:59 PM", "🌃 3 AM"],
+      disclaimer: "An absurdist cautionary cartoon — the point is to never need a call-back. Fiction only; never real-world advice.",
     },
     rounds: [
       {
@@ -159,7 +161,7 @@ export const DOOR_LEVELS = [
     finale: { type: "kickdown", kickLine: L4_KICK, them: L4_FIGHT_THEM, you: L4_FIGHT_YOU, ko: L4_KO, themName: "BUDDY" },
     seal: {
       title: "Closed. In BLOOD.",
-      line: "Four visits. A door off its hinges. He could've signed at 8 AM. Never do call-backs — close it the first time.",
+      line: "Four visits. A door off its hinges. He could've signed at 8 AM — that's the cautionary tale. Ask for the close the first time, and the cartoon stays a cartoon.",
     },
   },
 ];

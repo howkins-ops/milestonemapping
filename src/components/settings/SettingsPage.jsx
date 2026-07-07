@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import Card from "../ui/Card.jsx";
+import LegalModal from "../legal/LegalModal.jsx";
 import SectionHeader from "../ui/SectionHeader.jsx";
 import DataBackupPanel from "./DataBackupPanel.jsx";
 import ThemeSelector from "./ThemeSelector.jsx";
 import DangerZone from "./DangerZone.jsx";
+import ReportsInbox from "./ReportsInbox.jsx";
 import { useSettings } from "../../hooks/useSettings.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import Button from "../ui/Button.jsx";
+import { SUPPORT_EMAIL, WELLNESS_DISCLAIMER } from "../../lib/constants.js";
 
 function ToggleRow({ label, hint, checked, onChange }) {
   return (
@@ -55,6 +58,7 @@ function ToggleRow({ label, hint, checked, onChange }) {
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettings();
   const { loadSampleData } = useAppData();
+  const [legalDoc, setLegalDoc] = useState(null);
 
   return (
     <div className="anim-fade-in">
@@ -101,7 +105,38 @@ export default function SettingsPage() {
         </Button>
       </Card>
 
+      <SectionHeader title="Support & Legal" icon="🛟" />
+      <Card variant="glass">
+        <p style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 4 }}>Need help or want to report a problem?</p>
+        <p className="muted" style={{ fontSize: 13.5, marginBottom: 12 }}>
+          Reach us any time at{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: "var(--accent)" }}>{SUPPORT_EMAIL}</a>.
+          Reports of objectionable content are reviewed within 24 hours.
+        </p>
+        <div className="row" style={{ gap: 14, flexWrap: "wrap", marginBottom: 12 }}>
+          <button
+            type="button"
+            onClick={() => setLegalDoc("privacy")}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent)", fontSize: 13.5, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+          >
+            Privacy Policy
+          </button>
+          <button
+            type="button"
+            onClick={() => setLegalDoc("terms")}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent)", fontSize: 13.5, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+          >
+            Terms of Service
+          </button>
+        </div>
+        <p className="soft" style={{ fontSize: 12.5, lineHeight: 1.55 }}>{WELLNESS_DISCLAIMER}</p>
+      </Card>
+
+      <ReportsInbox />
+
       <DangerZone />
+
+      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
     </div>
   );
 }

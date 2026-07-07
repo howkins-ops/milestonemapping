@@ -30,7 +30,14 @@ export default function Witness() {
 
   return (
     <div className={`zn-card zn-card--glow zn-witness${state === "ash" ? " zn-witness--ash" : ""}`}>
-      <div className="zn-witness__orb" aria-hidden="true" />
+      <div className="zn-witness__orb" aria-hidden="true">
+        <span className="zwf-tongue zwf-tongue--l" />
+        <span className="zwf-tongue zwf-tongue--r" />
+        <span className="zwf-core" />
+        <span className="zwf-ember zwf-ember--1" />
+        <span className="zwf-ember zwf-ember--2" />
+        <span className="zwf-ember zwf-ember--3" />
+      </div>
       <div style={{ minWidth: 0 }}>
         <p className="zn-witness__name">The Witness</p>
         <p className="zn-witness__line">{say.line}</p>

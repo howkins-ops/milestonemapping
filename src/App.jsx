@@ -3,6 +3,7 @@ import AuthGate from "./components/auth/AuthGate.jsx";
 import AppShell from "./components/layout/AppShell.jsx";
 import BootSequence from "./components/layout/BootSequence.jsx";
 import ToastStack from "./components/ui/Toast.jsx";
+import ErrorBoundary from "./components/ui/ErrorBoundary.jsx";
 import CelebrationOverlay from "./components/ui/CelebrationOverlay.jsx";
 import AnxietySOS from "./components/ui/AnxietySOS.jsx";
 import DashboardPage from "./components/dashboard/DashboardPage.jsx";
@@ -34,6 +35,8 @@ import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
 import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
 
 const ZonePage = React.lazy(() => import("./components/zone/ZonePage.jsx"));
+const FieldJournalMode = React.lazy(() => import("./components/journal/FieldJournalMode.jsx"));
+const WorkoutMode = React.lazy(() => import("./components/workout/WorkoutMode.jsx"));
 
 const BOOT_SESSION_FLAG = "milestone_mapping_boot_shown";
 
@@ -45,6 +48,8 @@ function AppContent({ signOut }) {
   const [rpgWorldProjectId, setRpgWorldProjectId] = useState(null);
   const [rpgWorldInitialMode, setRpgWorldInitialMode] = useState(null);
   const [sosOpen, setSosOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
+  const [workoutOpen, setWorkoutOpen] = useState(false);
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
     try {
@@ -229,24 +234,46 @@ function AppContent({ signOut }) {
 
   return (
     <>
-      <AppShell currentPage={currentPage} onNavigate={navigate} onSignOut={signOut} onOpenSOS={() => setSosOpen(true)}>
-        {renderPage()}
+      <AppShell
+        currentPage={currentPage}
+        onNavigate={navigate}
+        onSignOut={signOut}
+        onOpenSOS={() => setSosOpen(true)}
+        onOpenJournal={() => setJournalOpen(true)}
+        onOpenWorkout={() => setWorkoutOpen(true)}
+      >
+        {/* Keyed by page: navigating away from a crashed page auto-recovers. */}
+        <ErrorBoundary key={currentPage} onReset={() => navigate("dashboard")}>
+          {renderPage()}
+        </ErrorBoundary>
       </AppShell>
       <ToastStack />
       <CelebrationOverlay />
       <AnxietySOS open={sosOpen} onClose={() => setSosOpen(false)} />
+      {journalOpen && (
+        <Suspense fallback={null}>
+          <FieldJournalMode open onClose={() => setJournalOpen(false)} />
+        </Suspense>
+      )}
+      {workoutOpen && (
+        <Suspense fallback={null}>
+          <WorkoutMode open onClose={() => setWorkoutOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
 
 export default function App() {
   return (
-    <AuthGate>
-      {(userId, userEmail, signOut) => (
-        <AppDataProvider userId={userId} userEmail={userEmail}>
-          <AppContent signOut={signOut} />
-        </AppDataProvider>
-      )}
-    </AuthGate>
+    <ErrorBoundary>
+      <AuthGate>
+        {(userId, userEmail, signOut) => (
+          <AppDataProvider userId={userId} userEmail={userEmail}>
+            <AppContent signOut={signOut} />
+          </AppDataProvider>
+        )}
+      </AuthGate>
+    </ErrorBoundary>
   );
 }

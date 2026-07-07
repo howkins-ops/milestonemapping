@@ -83,6 +83,45 @@ const GAMES = [
   },
 ];
 
+// One-time explicit-content confirmation before any RAW (18+) game mounts.
+// The "21+ RAW" badge is a promise — this is where the app actually keeps it.
+const RAW_ACK_KEY = "anger_raw_ack_v1";
+
+function RawGate({ onConfirm, onBack }) {
+  return (
+    <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+      <div style={{ maxWidth: 420, textAlign: "center", background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.35)", borderRadius: 16, padding: "34px 26px" }}>
+        <div style={{ fontSize: 40, marginBottom: 10 }} aria-hidden="true">🔞</div>
+        <h2 style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "0.04em" }}>RAW MODE AHEAD</h2>
+        <p style={{ margin: "0 0 8px", fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,255,255,0.75)" }}>
+          This training floor contains <strong>frequent explicit language</strong> and{" "}
+          <strong>cartoon violence</strong>, played loud. It's absurdist satire built to
+          rejection-proof your nervous system — never real-world advice.
+        </p>
+        <p style={{ margin: "0 0 22px", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+          You'll only see this once.
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={onConfirm}
+            style={{ padding: "12px 26px", borderRadius: 9, border: "none", background: "linear-gradient(135deg, #FF3B5C, #FF3EDB)", color: "#fff", fontWeight: 900, fontSize: 13, letterSpacing: "0.08em", cursor: "pointer" }}
+          >
+            I'M 18+ — LET ME IN
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            style={{ padding: "12px 22px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.25)", background: "none", color: "rgba(255,255,255,0.7)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+          >
+            NOT NOW
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function timeAgo(ts) {
   const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
   if (s < 60) return "just now";
@@ -98,6 +137,14 @@ export default function AngerGymPage() {
   const [view, setView] = useState(null); // null=hub | "forge"
   const [refresh, setRefresh] = useState(0);
   const { addXP, celebrate } = useAppData();
+  const [rawAck, setRawAck] = useState(() => {
+    try { return localStorage.getItem(RAW_ACK_KEY) === "1"; } catch { return false; }
+  });
+
+  const confirmRaw = () => {
+    try { localStorage.setItem(RAW_ACK_KEY, "1"); } catch { /* ignore */ }
+    setRawAck(true);
+  };
 
   const onForgeComplete = (payload) => {
     addXP(XP_FORGE, "Pressure forged");
@@ -166,6 +213,10 @@ export default function AngerGymPage() {
         onComplete={onStormComplete}
       />
     );
+  }
+
+  if ((view === "door" || view === "slam") && !rawAck) {
+    return <RawGate onConfirm={confirmRaw} onBack={() => setView(null)} />;
   }
 
   if (view === "door") {

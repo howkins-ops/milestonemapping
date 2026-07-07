@@ -10,6 +10,13 @@ import SquadFireMeter from "./SquadFireMeter.jsx";
 import UserChip from "../shared/UserChip.jsx";
 import ZoneIcon from "../shared/ZoneIcon.jsx";
 
+const ACTION_CARD_IMAGES = {
+  declare: "/assets/zone/action-cards/declare-mission.png",
+  proof: "/assets/zone/action-cards/post-proof.png",
+  challenges: "/assets/zone/action-cards/challenges.png",
+  friends: "/assets/zone/action-cards/friends.png",
+};
+
 // Zone Home: the Witness, today's mission, the two big CTAs, fire + phoenix,
 // squad momentum, partner strip, and a live feed preview.
 export default function ZoneHome({ go, openDeclare, openProof }) {
@@ -59,15 +66,19 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
       </div>
 
       {/* The two big CTAs */}
-      <div className="zn-2col" style={{ marginBottom: 12 }}>
-        <button type="button" className="zn-btn" onClick={openDeclare}>
-          <ZoneIcon src={ZONE_ICONS.declare} className="zn-btn__icon" />
-          {todayMission ? "Edit Mission" : "Declare Mission"}
-        </button>
-        <button type="button" className="zn-btn" style={{ background: "linear-gradient(120deg, #FF7A1A, var(--brand-magenta))" }} onClick={() => openProof()}>
-          <ZoneIcon src={ZONE_ICONS.proof} className="zn-btn__icon" />
-          Post Proof
-        </button>
+      <div className="zn-2col zn-action-grid zn-action-grid--primary">
+        <ActionCard
+          image={ACTION_CARD_IMAGES.declare}
+          icon={ZONE_ICONS.declare}
+          label={todayMission ? "Edit Mission" : "Declare Mission"}
+          onClick={openDeclare}
+        />
+        <ActionCard
+          image={ACTION_CARD_IMAGES.proof}
+          icon={ZONE_ICONS.proof}
+          label="Post Proof"
+          onClick={() => openProof()}
+        />
       </div>
 
       {/* The quiet door back — Shift One */}
@@ -120,15 +131,21 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
       </div>
 
       {/* Quick paths */}
-      <div className="zn-2col" style={{ marginBottom: 12 }}>
-        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("challenges")}>
-          <ZoneIcon src={ZONE_ICONS.challenge} className="zn-btn__icon" />
-          Challenges
-        </button>
-        <button type="button" className="zn-btn zn-btn--ghost" onClick={() => go("friends")}>
-          <ZoneIcon src={ZONE_ICONS.friends} className="zn-btn__icon" />
-          Friends
-        </button>
+      <div className="zn-2col zn-action-grid">
+        <ActionCard
+          image={ACTION_CARD_IMAGES.challenges}
+          icon={ZONE_ICONS.challenge}
+          label="Challenges"
+          onClick={() => go("challenges")}
+          compact
+        />
+        <ActionCard
+          image={ACTION_CARD_IMAGES.friends}
+          icon={ZONE_ICONS.friends}
+          label="Friends"
+          onClick={() => go("friends")}
+          compact
+        />
       </div>
 
       {/* Live feed preview */}
@@ -165,6 +182,23 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
         />
       )}
     </div>
+  );
+}
+
+function ActionCard({ image, icon, label, onClick, compact = false }) {
+  return (
+    <button
+      type="button"
+      className={`zn-action-card${compact ? " zn-action-card--compact" : ""}`}
+      style={{ "--zn-action-img": `url(${image})` }}
+      onClick={onClick}
+    >
+      <span className="zn-action-card__shine" aria-hidden="true" />
+      <span className="zn-action-card__label">
+        <ZoneIcon src={icon} className="zn-action-card__icon" />
+        <span>{label}</span>
+      </span>
+    </button>
   );
 }
 

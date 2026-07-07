@@ -14,17 +14,19 @@ import { useSpeechToText } from "../../hooks/useSpeechToText.js";
 // Teaches DEPTH over breadth: one vivid, specific moment beats a list of three —
 // that depth is where the drop in anxiety and depression actually comes from.
 
+// Stats are research findings from studies of gratitude practice, framed as
+// associations — never as a promised personal outcome (App Store 1.4.1).
 const IMPACT_STATS = [
-  { label: "Anxiety Levels",  value: "↓ 23%",  color: "#00FFBF", delay: 0,   icon: "/assets/daily/stat-calm-icon.png" },
-  { label: "Depression Risk", value: "↓ 25%",  color: "#00FFBF", delay: 120, icon: "/assets/daily/stat-heart-icon.png" },
-  { label: "XP Earned",       value: "+50 XP", color: "#FACC15", delay: 240, icon: "/assets/daily/stat-xp-icon.png" },
+  { label: "Anxiety (in studies)",    value: "↓ 23%",  color: "#00FFBF", delay: 0,   icon: "/assets/daily/stat-calm-icon.png" },
+  { label: "Depression (in studies)", value: "↓ 25%",  color: "#00FFBF", delay: 120, icon: "/assets/daily/stat-heart-icon.png" },
+  { label: "XP Earned",               value: "+50 XP", color: "#FACC15", delay: 240, icon: "/assets/daily/stat-xp-icon.png" },
 ];
 
 // Shown on the "go deeper" reminder — what depth actually buys you.
 const INTRO_STATS = [
-  { label: "Less anxiety",    value: "↓ 23%", color: "#00FFBF" },
-  { label: "Less depression", value: "↓ 25%", color: "#00FFBF" },
-  { label: "Calmer body",     value: "✓",     color: "#FACC15" },
+  { label: "Anxiety in studies",    value: "↓ 23%", color: "#00FFBF" },
+  { label: "Depression in studies", value: "↓ 25%", color: "#00FFBF" },
+  { label: "Calmer body",           value: "✓",     color: "#FACC15" },
 ];
 
 // Live "depth meter" — rewards specificity. Pure word-count heuristic, no blocking.
@@ -370,8 +372,9 @@ export default function GratitudeWizard({ onClose, onComplete, initial, soundEna
               </div>
 
               <p className="dsw-reveal-body">
-                You didn't list — you felt it. That depth is the whole point: morning gratitude
-                done this way drops anxiety 23% and depression risk 25%. You're already ahead of the day.
+                You didn't list — you felt it. That depth is the whole point: in research,
+                gratitude practice like this has been associated with 23% lower anxiety and 25%
+                lower depression scores. You're already ahead of the day.
               </p>
               <p className="dsw-reveal-source">{GRATITUDE_ATTRIBUTION}</p>
 

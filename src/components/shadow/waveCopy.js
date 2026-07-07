@@ -27,7 +27,7 @@ export const SAFETY = {
   body:
     "This tool is for anxiety regulation and emotional grounding. It is not medical care or a diagnosis. If you have new, severe, or unusual chest pain, fainting, severe shortness of breath, or symptoms that feel medically dangerous, seek emergency help.",
   crisis:
-    "If you are in immediate danger or may hurt yourself, contact emergency services or a crisis line now.",
+    "If you are in immediate danger or may hurt yourself, call or text 988 (Suicide & Crisis Lifeline, US/Canada) or your local emergency number (911) now.",
   accept: "I understand — begin",
 };
 

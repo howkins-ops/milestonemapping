@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { supabase } from "../../lib/supabase.js";
+import LegalModal from "../legal/LegalModal.jsx";
 
 const BRAND_LOGO_SRC = "/assets/brand/milestone-mapping-logo.png";
+
+// Auth emails must deep-link back into the native app, not strand users in Safari.
+const AUTH_REDIRECT = Capacitor.isNativePlatform()
+  ? "milestonemapping://auth-callback"
+  : window.location.origin;
+
+const GUEST_KEY = "mm_guest_mode";
 
 // ─── SVG icons ────────────────────────────────────────────────────────────────
 
@@ -164,6 +173,11 @@ export default function AuthGate({ children }) {
   const [isNarrow, setIsNarrow] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [agreed, setAgreed]     = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null);
+  const [guest, setGuest]       = useState(() => {
+    try { return localStorage.getItem(GUEST_KEY) === "1"; } catch { return false; }
+  });
 
   useEffect(() => {
     if (!supabase) { setSession(null); return; }
@@ -172,7 +186,13 @@ export default function AuthGate({ children }) {
       if (event === "PASSWORD_RECOVERY") setRecovery(true);
       setSession(s ?? null);
     });
-    return () => subscription.unsubscribe();
+    // Fired by deepLinks.js when a recovery email deep-links back into the native app.
+    const onNativeRecovery = () => setRecovery(true);
+    window.addEventListener("mm-password-recovery", onNativeRecovery);
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("mm-password-recovery", onNativeRecovery);
+    };
   }, []);
 
   useEffect(() => {
@@ -186,7 +206,7 @@ export default function AuthGate({ children }) {
   if (session === undefined) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020408" }}>
-        <p style={{ color: "#1de8ff", letterSpacing: "0.2em", fontFamily: "'JetBrains Mono',monospace", fontSize: "0.85rem" }}>
+        <p style={{ color: "#1de8ff", letterSpacing: "0.2em", fontFamily: "'Manrope','Segoe UI',sans-serif", fontSize: "0.85rem" }}>
           INITIALIZING SESSION...
         </p>
       </div>
@@ -227,6 +247,19 @@ export default function AuthGate({ children }) {
 
   if (session)   return children(session.user.id, session.user.email, () => supabase.auth.signOut());
   if (!supabase) return children(null, null, null);
+  // Guideline 5.1.1: milestones/daily/games are device-local and must work
+  // without an account. Only the Zone social layer requires signing in.
+  if (guest) {
+    return children(null, null, () => {
+      try { localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
+      setGuest(false);
+    });
+  }
+
+  function enterGuest() {
+    try { localStorage.setItem(GUEST_KEY, "1"); } catch { /* ignore */ }
+    setGuest(true);
+  }
 
   async function handleSetNewPassword(e) {
     e.preventDefault();
@@ -248,12 +281,17 @@ export default function AuthGate({ children }) {
     setError(""); setInfo(""); setBusy(true);
     try {
       if (mode === "signup") {
-        const { error: err } = await supabase.auth.signUp({ email, password });
+        if (!agreed) throw new Error("Please agree to the Terms of Service and Privacy Policy first.");
+        const { error: err } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: AUTH_REDIRECT },
+        });
         if (err) throw err;
         setInfo("Check your email to confirm your account, then sign in.");
         setMode("login");
       } else if (mode === "reset") {
-        const { error: err } = await supabase.auth.resetPasswordForEmail(email);
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: AUTH_REDIRECT });
         if (err) throw err;
         setInfo("Password reset link sent — check your email.");
         setMode("login");
@@ -269,7 +307,7 @@ export default function AuthGate({ children }) {
   }
 
   const loginTitle = mode === "signup" ? "CREATE ACCOUNT" : mode === "reset" ? "RESET PASSWORD" : "MISSION CONTROL";
-  const loginSub   = mode === "signup" ? "Map the mission. Save it forever." : mode === "reset" ? "Enter your email to receive a reset link." : "Sign in to sync your milestones across devices.";
+  const loginSub   = mode === "signup" ? "Map the mission. Save it forever." : mode === "reset" ? "Enter your email to receive a reset link." : "Sign in to join the Zone and keep your journal backed up.";
   const loginCTA   = mode === "signup" ? "CREATE ACCOUNT" : mode === "reset" ? "SEND RESET LINK" : "SIGN IN";
 
   return (
@@ -350,8 +388,8 @@ export default function AuthGate({ children }) {
 
           <div style={S.badges}>
             {[
-              { icon: "🛡️", label: "100% SECURE",       desc: "Your data is always protected." },
-              { icon: "☁️", label: "SYNC EVERYWHERE",   desc: "Access your map anytime, anywhere." },
+              { icon: "🛡️", label: "PRIVATE BY DESIGN", desc: "Your progress lives on your device." },
+              { icon: "🔥", label: "THE ZONE",          desc: "Squads, streaks, and accountability." },
               { icon: "⚡", label: "REAL-TIME PROGRESS", desc: "See your growth as it happens." },
               { icon: "👥", label: "BUILT FOR YOU",     desc: "Designed to help you win." },
             ].map(b => (
@@ -403,7 +441,27 @@ export default function AuthGate({ children }) {
                 />
               </label>
             )}
-            <button style={{ ...S.btn, opacity: busy ? 0.6 : 1 }} type="submit" disabled={busy}>
+            {mode === "signup" && (
+              <label style={S.agreeRow}>
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={e => setAgreed(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: "#1de8ff" }}
+                />
+                <span>
+                  I agree to the{" "}
+                  <button type="button" style={S.agreeLinkBtn} onClick={() => setLegalDoc("terms")}>Terms of Service</button>
+                  {" "}— including zero tolerance for objectionable content or abusive behavior — and the{" "}
+                  <button type="button" style={S.agreeLinkBtn} onClick={() => setLegalDoc("privacy")}>Privacy Policy</button>.
+                </span>
+              </label>
+            )}
+            <button
+              style={{ ...S.btn, opacity: busy || (mode === "signup" && !agreed) ? 0.6 : 1 }}
+              type="submit"
+              disabled={busy || (mode === "signup" && !agreed)}
+            >
               {busy ? "..." : loginCTA}
             </button>
           </form>
@@ -425,18 +483,27 @@ export default function AuthGate({ children }) {
               <button style={S.link} onClick={() => { setMode("login"); setError(""); setInfo(""); }}>Back to sign in</button>
             )}
           </div>
+
+          <button style={S.guestBtn} onClick={enterGuest}>
+            Continue without an account →
+          </button>
+          <p style={S.guestNote}>
+            Milestones, games, and daily tools work right on this device. You can join the Zone later.
+          </p>
         </div>
       </div>
 
       {/* Footer */}
       <footer style={{ ...S.footer, ...(isNarrow ? S.footerMobile : null) }}>
-        <span>© 2024 Milestone Mapping. All rights reserved.</span>
+        <span>© 2026 Milestone Mapping. All rights reserved.</span>
         <div style={{ display: "flex", gap: "1.2rem" }}>
-          <span style={S.footerLink}>Privacy Policy</span>
+          <button style={S.footerLinkBtn} onClick={() => setLegalDoc("privacy")}>Privacy Policy</button>
           <span style={{ color: "rgba(234,251,255,0.2)" }}>|</span>
-          <span style={S.footerLink}>Terms of Service</span>
+          <button style={S.footerLinkBtn} onClick={() => setLegalDoc("terms")}>Terms of Service</button>
         </div>
       </footer>
+
+      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
     </div>
   );
 }
@@ -704,6 +771,12 @@ const S = {
   },
 
   loginFooter: { marginTop: "0.95rem", display: "flex", gap: "0.4rem", justifyContent: "center", alignItems: "center", flexWrap: "wrap", width: "100%", maxWidth: "340px" },
+  agreeRow: { display: "flex", gap: "0.55rem", alignItems: "flex-start", width: "100%", maxWidth: "340px", fontSize: "0.68rem", color: "rgba(234,251,255,0.6)", lineHeight: 1.5, cursor: "pointer", textAlign: "left" },
+  agreeLink: { color: "rgba(29,232,255,0.85)", textDecoration: "underline", textUnderlineOffset: "2px" },
+  agreeLinkBtn: { background: "none", border: "none", padding: 0, font: "inherit", color: "rgba(29,232,255,0.85)", textDecoration: "underline", textUnderlineOffset: "2px", cursor: "pointer" },
+  guestBtn: { marginTop: "1.1rem", background: "none", border: "1px solid rgba(29,232,255,0.25)", borderRadius: "7px", padding: "0.5rem 1rem", color: "rgba(29,232,255,0.85)", fontSize: "0.7rem", letterSpacing: "0.06em", fontWeight: 700, cursor: "pointer" },
+  guestNote: { margin: "0.5rem 0 0", fontSize: "0.62rem", color: "rgba(234,251,255,0.38)", textAlign: "center", maxWidth: "340px", lineHeight: 1.5 },
+  footerLinkBtn: { background: "none", border: "none", padding: 0, color: "rgba(234,251,255,0.4)", fontSize: "0.65rem", cursor: "pointer" },
   link:    { background: "none", border: "none", color: "rgba(29,232,255,0.7)", fontSize: "0.66rem", cursor: "pointer", padding: 0, textDecoration: "underline", textUnderlineOffset: "2px" },
   divider: { color: "rgba(234,251,255,0.25)", fontSize: "0.75rem" },
 

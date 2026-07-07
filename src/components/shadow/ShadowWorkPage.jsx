@@ -459,6 +459,23 @@ function Hub({ open, onNavigate, brokeKingShadow, takeaways = [], essences = [],
           </ul>
         )}
       </div>
+
+      {/* ── Safety net — always visible at the bottom of the realm ── */}
+      <p
+        style={{
+          margin: "18px auto 8px",
+          maxWidth: 520,
+          textAlign: "center",
+          fontSize: 12.5,
+          lineHeight: 1.6,
+          color: "var(--text-soft, rgba(234,251,255,0.5))",
+        }}
+      >
+        This realm is deep practice, not therapy. If anything here feels like too much,
+        step out — and if you're in crisis, call or text <strong>988</strong> (Suicide &amp;
+        Crisis Lifeline, US/Canada) or your local emergency number. Reaching out is the
+        bravest descent there is.
+      </p>
     </div>
   );
 }

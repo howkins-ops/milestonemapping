@@ -1,11 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function ParticleCanvas({ theme, color }) {
   const canvasRef = useRef(null);
+  const [restart, setRestart] = useState(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // Honor reduced motion — skip the whole rAF loop, leave the canvas blank.
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const ctx = canvas.getContext("2d");
 
     let W = window.innerWidth;
@@ -306,11 +309,26 @@ export default function ParticleCanvas({ theme, color }) {
       draw(0);
     }
 
+    // Pause the rAF loop while the app is backgrounded (GPU/CPU on old devices).
+    let hidden = false;
+    const onVisibility = () => {
+      if (document.hidden) {
+        hidden = true;
+        cancelAnimationFrame(animId);
+      } else if (hidden) {
+        hidden = false;
+        // restart by re-running the effect
+        setRestart((n) => n + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [theme, color]);
+  }, [theme, color, restart]);
 
   return (
     <canvas

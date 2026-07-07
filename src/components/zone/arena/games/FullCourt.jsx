@@ -53,6 +53,7 @@ import {
   sfxBank,
   sfxDunk,
 } from "../../../../lib/sfx.js";
+import { slamHeavy } from "../../../../lib/haptics.js";
 import { createLineAudio, playLine, stopNarration } from "../../../../lib/voiceOver.js";
 import {
   pickBreakTrack,
@@ -341,6 +342,7 @@ export default function FullCourt({ go }) {
       } catch {
         /* silent */
       }
+      slamHeavy(); // native buzzer thump on iOS
       try {
         if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 220]);
       } catch {

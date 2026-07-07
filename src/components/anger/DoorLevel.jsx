@@ -8,6 +8,7 @@ import {
   sfxRainLoop, sfxWindLoop, sfxFireLoop,
   playVoiceLine, stopVoiceLine,
 } from "../../lib/sfx";
+import { tapLight, slamHeavy } from "../../lib/haptics.js";
 
 /* ════════════════════════════════════════════════════════════════════════
    DOOR LEVEL — the config-driven engine behind Levels 2-4 of The Door.
@@ -39,6 +40,9 @@ const GLASS_WORDS = ["CRASH!", "SMASH!", "SHATTER!", "TINKLE!"];
 const PUNCH_WORDS = ["POW!", "BIFF!", "SOCK!", "JAB!", "BAM!"];
 
 function buzz(pattern) {
+  // navigator.vibrate is a no-op on iOS — Capacitor haptics carries it there.
+  const heavy = Array.isArray(pattern);
+  if (heavy) slamHeavy(); else tapLight();
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* no haptics */ }
 }
 function stageFor(p) {
@@ -564,9 +568,14 @@ export default function DoorLevel({ level, onClose, onComplete }) {
             {level.brief.rounds.map((r) => <span key={r} className="dg-rounds__item">{r}</span>)}
           </div>
           <div className="dg-lesson"><span className="dg-lesson__tag">The lesson</span>{level.lesson}</div>
+          {level.brief.disclaimer && (
+            <p style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", margin: "10px 0 0", fontStyle: "italic" }}>
+              {level.brief.disclaimer}
+            </p>
+          )}
           <div className="dg-rated">
-            <span className="dg-rated__badge">21+</span>
-            RAW MODE — Bloody Knuckles, screamed banter, and a finale that ends in {level.finale.type === "powerslap" ? "a Will-Smith power slap" : "blood on the porch"}. Sound on.
+            <span className="dg-rated__badge">18+</span>
+            RAW MODE — Bloody Knuckles, screamed banter, and a finale that ends in {level.finale.type === "powerslap" ? "a cartoon power slap" : "blood on the porch"}. Sound on.
           </div>
           <button className="dg-primary" onClick={() => enterRound(0)}>Start knocking →</button>
         </div>

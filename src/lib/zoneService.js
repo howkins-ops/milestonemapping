@@ -2,6 +2,7 @@
 // RLS handles direct table reads. Guard: null supabase → { offline: true }.
 import { supabase } from "./supabase.js";
 import { getTodayKey } from "./dates.js";
+import { assertClean } from "./contentFilter.js";
 
 const OFFLINE = { offline: true };
 
@@ -35,6 +36,7 @@ export const riseAgain = () => rpc("az_rise_again", { p_local_date: today() });
 
 export async function updateZoneProfile(userId, patch) {
   if (!supabase || !userId) return OFFLINE;
+  assertClean(patch?.display_name, patch?.identity_title, patch?.bio, patch?.username);
   const { data, error } = await supabase
     .from("zone_members")
     .update(patch)
@@ -86,8 +88,10 @@ export async function reportContent({ targetUser, contentType, contentId, reason
 
 /* ---------------- squads ---------------- */
 
-export const createSquad = (name, emblem) =>
-  rpc("az_create_squad", { p_name: name, p_emblem: emblem || "🔥" });
+export const createSquad = (name, emblem) => {
+  assertClean(name);
+  return rpc("az_create_squad", { p_name: name, p_emblem: emblem || "🔥" });
+};
 export const joinSquadByCode = (code) => rpc("az_join_squad_by_code", { p_code: code });
 export const squadDetail = (squadId) => rpc("az_squad_detail", { p_squad: squadId });
 export const kickMember = (squadId, userId) =>
@@ -98,6 +102,7 @@ export const leaveSquad = (squadId) => rpc("az_leave_squad", { p_squad: squadId 
 
 export async function updateSquad(squadId, patch) {
   if (!supabase) return OFFLINE;
+  assertClean(patch?.name, patch?.motto, patch?.description);
   const { data, error } = await supabase
     .from("squads")
     .update(patch)
@@ -121,17 +126,20 @@ export const getPartnerState = () =>
 
 /* ---------------- missions / proofs ---------------- */
 
-export const declareMission = ({ category, title, note }) =>
-  rpc("az_declare_mission", {
+export const declareMission = ({ category, title, note }) => {
+  assertClean(title, note);
+  return rpc("az_declare_mission", {
     p_local_date: today(),
     p_category: category,
     p_title: title,
     p_note: note || null,
   });
+};
 
 // Shift One ritual — the cost step is private and intentionally never sent.
-export const recommit = ({ lie, truth, declaration, proof, asMission }) =>
-  rpc("az_recommit", {
+export const recommit = ({ lie, truth, declaration, proof, asMission }) => {
+  assertClean(lie, truth, declaration, proof);
+  return rpc("az_recommit", {
     p_local_date: today(),
     p_lie: lie,
     p_truth: truth,
@@ -139,9 +147,11 @@ export const recommit = ({ lie, truth, declaration, proof, asMission }) =>
     p_proof: proof,
     p_as_mission: !!asMission,
   });
+};
 
-export const postProof = ({ kind, caption, mediaPath, challengeId, durationMinutes, photoSource }) =>
-  rpc("az_post_proof", {
+export const postProof = ({ kind, caption, mediaPath, challengeId, durationMinutes, photoSource }) => {
+  assertClean(caption);
+  return rpc("az_post_proof", {
     p_local_date: today(),
     p_kind: kind,
     p_caption: caption || null,
@@ -151,6 +161,7 @@ export const postProof = ({ kind, caption, mediaPath, challengeId, durationMinut
     p_local_time: new Date().toTimeString().slice(0, 8),
     p_photo_source: photoSource || null,
   });
+};
 
 export async function listMyProofs(userId, limit = 60) {
   if (!supabase || !userId) return [];
@@ -229,6 +240,7 @@ export async function listComments(eventId) {
 
 export async function addComment(eventId, body, myId) {
   if (!supabase || !myId) return OFFLINE;
+  assertClean(body);
   const { data, error } = await supabase
     .from("comments")
     .insert({ event_id: eventId, body, user_id: myId })
@@ -265,8 +277,9 @@ export const getLeaderboard = (days = 7) =>
 
 /* ---------------- challenges ---------------- */
 
-export const createChallenge = ({ scope, squadId, templateKey, title, description, durationDays, startsOn }) =>
-  rpc("az_create_challenge", {
+export const createChallenge = ({ scope, squadId, templateKey, title, description, durationDays, startsOn }) => {
+  assertClean(title, description);
+  return rpc("az_create_challenge", {
     p_scope: scope,
     p_squad: squadId || null,
     p_template_key: templateKey || null,
@@ -275,6 +288,7 @@ export const createChallenge = ({ scope, squadId, templateKey, title, descriptio
     p_duration_days: durationDays,
     p_starts_on: startsOn || today(),
   });
+};
 
 export const joinChallenge = (challengeId) =>
   rpc("az_join_challenge", { p_challenge: challengeId });
@@ -305,6 +319,7 @@ export async function fetchMessages(conversationId, { before, limit = 40 } = {})
 
 export async function sendMessage(conversationId, body, myId) {
   if (!supabase || !myId) return OFFLINE;
+  assertClean(body);
   const { data, error } = await supabase
     .from("messages")
     .insert({ conversation_id: conversationId, body, sender: myId })

@@ -54,9 +54,21 @@ export default function useAutoPlayVideo() {
       document.addEventListener(evt, onGesture, gestureOpts)
     );
 
+    // Don't burn GPU while backgrounded — pause when the tab/app is hidden.
+    const onVisibility = () => {
+      if (document.hidden) {
+        el.pause();
+      } else {
+        done = false;
+        tryPlay();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       el.removeEventListener("loadeddata", tryPlay);
       el.removeEventListener("canplay", tryPlay);
+      document.removeEventListener("visibilitychange", onVisibility);
       GESTURES.forEach((evt) =>
         document.removeEventListener(evt, onGesture, gestureOpts)
       );

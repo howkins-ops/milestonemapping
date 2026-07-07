@@ -12,10 +12,13 @@ const X_RIGHT = 76;     // trail x for right nodes (0..100 space)
 
 function getChapterState(chapter, isChapterComplete) {
   if (!chapter.available) return "coming";
+  // Completion wins over the prereq check: when new chapters are inserted into
+  // the spine, older saves keep their later completions replayable instead of
+  // showing them locked behind the not-yet-played insert.
+  if (isChapterComplete(chapter.key)) return "complete";
   const prevKey = prevAvailableKey(chapter.key);
   const prereqComplete = !prevKey || isChapterComplete(prevKey);
   if (!prereqComplete) return "locked";
-  if (isChapterComplete(chapter.key)) return "complete";
   return "ready";
 }
 

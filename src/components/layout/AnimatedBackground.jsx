@@ -1,5 +1,11 @@
 import React from "react";
 import useAutoPlayVideo from "../../hooks/useAutoPlayVideo";
+import { useAppData } from "../../hooks/useAppData.js";
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Deterministic ember field — stable across re-renders, no layout thrash.
 // Warm phoenix embers low in the mix, cool cyan sparks as accents.
@@ -20,6 +26,25 @@ const EMBERS = [
 
 export default function AnimatedBackground() {
   const videoRef = useAutoPlayVideo();
+  const { settings } = useAppData();
+  const still = settings?.reducedMotion || prefersReducedMotion();
+
+  // Reduced motion: static poster, no looping video, no ember animation.
+  if (still) {
+    return (
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}
+        aria-hidden="true"
+      >
+        <img
+          src="/bg-loop-poster.jpg"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.75 }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+      </div>
+    );
+  }
 
   return (
     <div

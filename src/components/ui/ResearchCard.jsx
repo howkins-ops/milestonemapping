@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 import { playSound } from "../../lib/sounds.js";
+import { openExternal } from "../../lib/openExternal.js";
 
 function useCountUp(target, duration = 1400, enabled = true) {
   const [count, setCount] = useState(0);
@@ -216,9 +217,11 @@ export default function ResearchCard({ card, variant = "inline", showCount = fal
           </p>
           <a
             href={card.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openExternal(card.sourceUrl);
+            }}
             style={{
               fontSize: 12,
               fontFamily: "var(--font-body)",

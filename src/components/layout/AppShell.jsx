@@ -26,7 +26,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, onOpenJournal, onOpenWorkout, children }) {
   const { profile, syncStatus } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -126,6 +126,32 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
+                {onOpenWorkout && (
+                  <button
+                    type="button"
+                    className="app-topbar__profile-btn app-topbar__workout"
+                    onClick={onOpenWorkout}
+                    aria-label="Open The Iron — workout mode"
+                  >
+                    <span className="iw-mini" aria-hidden="true">
+                      <span className="iw-mini-num">45</span>
+                    </span>
+                    <span className="app-topbar__btn-label">Iron</span>
+                  </button>
+                )}
+                {onOpenJournal && (
+                  <button
+                    type="button"
+                    className="app-topbar__profile-btn app-topbar__journal"
+                    onClick={onOpenJournal}
+                    aria-label="Open the Field Journal"
+                  >
+                    <span className="fj-mini" aria-hidden="true">
+                      <span className="fj-mini-fj">FJ</span>
+                    </span>
+                    <span className="app-topbar__btn-label">Journal</span>
+                  </button>
+                )}
                 {onOpenSOS && (
                   <button
                     type="button"

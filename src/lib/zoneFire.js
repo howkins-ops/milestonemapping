@@ -101,6 +101,7 @@ const ERROR_COPY = {
   not_allowed: "That action isn't available.",
   bad_date: "Date out of range — check your device clock.",
   offline: "The Zone needs a connection.",
+  content_blocked: "That can't be posted — the Zone has zero tolerance for hateful or abusive content.",
 };
 
 export function zoneErrorMessage(err) {

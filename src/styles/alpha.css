@@ -1,0 +1,326 @@
+/* ═══════════════════════════════════════════════════════════════
+   ALPHA MODE — campaign layer inside THE IRON
+   Prefix: iw-al-  ·  Inherits workout.css (iw- buttons, steppers,
+   eyebrows, cards). Base steel/chalk/ember; zone accents arrive via
+   --iw-al-accent. Sora/Manrope only.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── THE CALL ── */
+
+.iw-al-call {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 10px 10px;
+  position: relative;
+}
+
+.iw-al-ember {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 26px;
+}
+.iw-al-ember-core {
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffb347, #ff6a2b 60%, transparent 75%);
+  filter: blur(2px);
+  animation: iwAlCore 2.8s ease-in-out infinite;
+}
+@keyframes iwAlCore { 0%, 100% { transform: scale(0.85); opacity: 0.7; } 50% { transform: scale(1.12); opacity: 1; } }
+.iw-al-ember-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 106, 43, 0.45);
+  animation: iwAlRing 2.8s ease-out infinite;
+}
+.iw-al-ember-ring2 { animation-delay: 1.4s; }
+@keyframes iwAlRing {
+  0% { transform: scale(0.55); opacity: 0.9; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+.iw-al-call-eyebrow { letter-spacing: 0.34em; color: #ff8a4d; }
+
+.iw-al-call-lines { margin: 18px 0 8px; max-width: 46ch; }
+.iw-al-call-line {
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: #d8d3c7;
+  margin: 10px 0;
+  opacity: 0;
+  animation: iwAlLineIn 700ms ease forwards;
+}
+.iw-al-call-sig {
+  font-size: 13px;
+  font-weight: 700;
+  color: #837e72;
+  margin-top: 16px;
+  opacity: 0;
+  animation: iwAlLineIn 700ms ease forwards;
+}
+@keyframes iwAlLineIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.iw-al-answer { max-width: 340px; opacity: 0; pointer-events: none; transition: opacity 600ms ease; }
+.iw-al-answer-on { opacity: 1; pointer-events: auto; }
+
+.iw-al-disclaimer {
+  margin-top: 18px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #6d685d;
+  max-width: 40ch;
+}
+
+/* ── CHARACTER FORGE ── */
+
+.iw-al-forge { position: relative; padding-top: 8px; }
+.iw-al-forge-sub { color: #a8a396; max-width: 46ch; margin-bottom: 18px; }
+.iw-al-forge-steppers { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+
+.iw-al-forge-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 20px 14px;
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 16px;
+  background:
+    radial-gradient(80% 100% at 50% 0%, rgba(255, 106, 43, 0.07), transparent 70%),
+    rgba(232, 228, 218, 0.02);
+  margin-bottom: 18px;
+}
+.iw-al-forge-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.iw-al-forge-num {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 32px;
+  color: #e8e4da;
+  text-shadow: 0 0 22px rgba(255, 106, 43, 0.22);
+}
+.iw-al-forge-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #837e72;
+}
+.iw-al-forge-x {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  color: #ff8a4d;
+  font-size: 18px;
+}
+
+.iw-al-striking .iw-al-forge-preview { animation: iwAlQuake 900ms ease; }
+@keyframes iwAlQuake {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px) scale(1.01); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(2px, 1px); }
+}
+.iw-al-forge-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 170, 90, 0.5), transparent 55%);
+  animation: iwAlFlash 900ms ease forwards;
+}
+@keyframes iwAlFlash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ── CAMPAIGN HOME ── */
+
+.iw-al-sheet {
+  border: 1px solid rgba(232, 228, 218, 0.14);
+  border-top: 2px solid var(--iw-al-accent, #ff6a2b);
+  border-radius: 16px;
+  padding: 18px 14px;
+  background:
+    radial-gradient(90% 80% at 50% 0%, rgba(232, 228, 218, 0.05), transparent 70%),
+    linear-gradient(170deg, #17191c, #0f1012);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  margin-bottom: 12px;
+  animation: iwStampIn 420ms cubic-bezier(.2,1.2,.35,1) both;
+}
+.iw-al-sheet-row { display: flex; justify-content: space-around; gap: 10px; }
+.iw-al-sheet-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.iw-al-sheet-num {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 26px;
+  color: #e8e4da;
+}
+.iw-al-sheet-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #837e72;
+}
+
+.iw-al-card {
+  border: 1px solid rgba(232, 228, 218, 0.1);
+  border-radius: 14px;
+  padding: 15px 14px;
+  background: rgba(232, 228, 218, 0.03);
+  margin-bottom: 12px;
+}
+.iw-al-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.iw-al-card-title { display: block; margin-bottom: 12px; }
+
+.iw-al-macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.iw-al-macro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(232, 228, 218, 0.08);
+}
+.iw-al-macro-num {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 16px;
+  color: #e8e4da;
+}
+.iw-al-macro-label {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #837e72;
+}
+.iw-al-fastline { margin-top: 10px; font-size: 11px; color: #6d685d; font-weight: 600; }
+
+/* dials */
+.iw-al-dials { display: flex; flex-direction: column; gap: 9px; }
+.iw-al-dial-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.iw-al-dial-name { font-size: 11px; font-weight: 800; color: #b5b0a3; }
+.iw-al-dial-val {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff8a4d;
+}
+.iw-al-dial-track {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(232, 228, 218, 0.08);
+  overflow: hidden;
+}
+.iw-al-dial-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #b4452f, #ff6a2b 60%, #ffb347);
+  transition: width 600ms cubic-bezier(.3,.9,.3,1);
+}
+
+/* the road */
+.iw-al-road { display: flex; flex-direction: column; gap: 2px; }
+.iw-al-stage {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 7px 4px;
+  opacity: 0.55;
+}
+.iw-al-stage-here { opacity: 1; }
+.iw-al-stage-done { opacity: 0.8; }
+.iw-al-stage-node {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  color: #b5b0a3;
+  border: 1px solid rgba(232, 228, 218, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+.iw-al-stage-here .iw-al-stage-node {
+  border-color: var(--iw-al-accent, #ff6a2b);
+  color: var(--iw-al-accent, #ff8a4d);
+  box-shadow: 0 0 14px rgba(255, 106, 43, 0.35);
+  animation: iwAlNodePulse 2.4s ease-in-out infinite;
+}
+@keyframes iwAlNodePulse { 0%, 100% { box-shadow: 0 0 8px rgba(255,106,43,0.25); } 50% { box-shadow: 0 0 18px rgba(255,106,43,0.5); } }
+.iw-al-stage-done .iw-al-stage-node { border-color: rgba(255, 138, 77, 0.5); color: #ff8a4d; }
+.iw-al-stage-text { display: flex; flex-direction: column; gap: 3px; padding-top: 4px; }
+.iw-al-stage-title { font-size: 12.5px; font-weight: 800; color: #c7c2b6; }
+.iw-al-stage-blurb { font-size: 11.5px; line-height: 1.5; color: #837e72; }
+
+.iw-al-gate {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px dashed rgba(255, 138, 77, 0.35);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #a8a396;
+}
+.iw-al-gate-glyph { color: #ff8a4d; font-size: 15px; }
+
+/* first scroll */
+.iw-al-scroll {
+  border: 1px solid rgba(233, 196, 106, 0.25);
+  border-radius: 14px;
+  padding: 16px 14px;
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgba(233, 196, 106, 0.06), transparent 70%),
+    rgba(232, 228, 218, 0.02);
+  margin-bottom: 12px;
+  animation: iwPageIn 500ms 150ms ease both;
+}
+.iw-al-scroll-line {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e9c46a;
+  margin: 8px 0 4px;
+}
+.iw-al-scroll-voice { font-size: 11px; font-weight: 700; color: #837e72; }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .iw-al-call *, .iw-al-forge *, .iw-al-sheet, .iw-al-stage-node {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .iw-al-answer { opacity: 1; pointer-events: auto; transition: none; }
+}
+[data-reduced-motion="true"] .iw-al-call *,
+[data-reduced-motion="true"] .iw-al-forge *,
+[data-reduced-motion="true"] .iw-al-answer {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+[data-reduced-motion="true"] .iw-al-answer { opacity: 1; pointer-events: auto; }
