@@ -7524,3 +7524,39 @@ body.iw-mode-on .app-shell {
   .app-topbar__workout .iw-mini::after { animation: none; }
   body.iw-mode-on .app-shell { transform: none; filter: brightness(0.5); }
 }
+
+/* ============================================================
+   ALPHA MODE — Sunday Review → Stockpile link card
+   (lives in globals because WeeklyReviewPage ships in the main
+   bundle; the Stockpile itself is inside the lazy IRON chunk)
+   ============================================================ */
+.wr-stockpile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(95, 184, 201, 0.35);
+  background: linear-gradient(150deg, #14202a, #0c141c 60%, #080e14);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.wr-stockpile-card:hover {
+  border-color: rgba(95, 184, 201, 0.7);
+  box-shadow: 0 0 26px rgba(95, 184, 201, 0.18);
+}
+.wr-stockpile-card:active { transform: scale(0.985); }
+.wr-stockpile-icon { font-size: 26px; }
+.wr-stockpile-text { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.wr-stockpile-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 16px;
+  color: #e8f4f8;
+}
+.wr-stockpile-sub { font-size: 12px; color: rgba(209, 231, 240, 0.65); line-height: 1.5; }
+.wr-stockpile-cta { font-size: 18px; color: #5FB8C9; font-weight: 800; }

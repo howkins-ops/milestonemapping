@@ -123,8 +123,9 @@ const fmtDur = (s) => {
 const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : Math.round(v).toLocaleString());
 const exKey = (name) => String(name || "").trim().toLowerCase();
 
-/* ── stepper: big thumb targets, no typing needed mid-set ── */
-function Stepper({ label, value, step = 1, min = 0, max = 2000, onChange, wide }) {
+/* ── stepper: big thumb targets, no typing needed mid-set ──
+   (exported for ALPHA MODE sessions, which share the control) */
+export function Stepper({ label, value, step = 1, min = 0, max = 2000, onChange, wide }) {
   const clamp = (n) => Math.min(max, Math.max(min, n));
   return (
     <div className={`iw-stepper ${wide ? "iw-stepper-wide" : ""}`}>
@@ -266,7 +267,14 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     addPlan, patchPlan, removePlan, addSession, addPR, markCreedSeen,
   } = useWorkout(userId);
 
-  const [view, setView] = useState({ name: "cover" }); // cover | creed | plans | plan | session | wall | log | session-detail
+  const [view, setView] = useState(() => {
+    // deep links (e.g. Sunday Review → Stockpile) skip the cover
+    try {
+      const hint = window.sessionStorage.getItem("iron_view");
+      if (hint && hint.startsWith("alpha")) return { name: "alpha" };
+    } catch { /* silent */ }
+    return { name: "cover" };
+  }); // cover | creed | plans | plan | session | alpha | wall | log | session-detail
   const [creedStep, setCreedStep] = useState(0);
   const [opening, setOpening] = useState(false);
   const [racked, setRacked] = useState(null); // {summary, after}
@@ -332,9 +340,10 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     }, 850);
   };
 
-  useEffect(() => {
-    if (startOpen) setView({ name: "cover" });
-  }, [startOpen]);
+  /* IronWorkout mounts fresh on every open (WorkoutMode conditional
+     render), so the initial view — cover, or a deep-link target — is
+     decided once in the useState initializer above. No reset effect:
+     it would race AlphaMode's consumption of the deep-link hint. */
 
   const finishCreed = () => {
     markCreedSeen();
@@ -598,7 +607,10 @@ export default function IronWorkout({ onExit, startOpen = false }) {
         {view.name === "plans" && renderPlans()}
         {view.name === "plan" && renderPlan()}
         {view.name === "session" && renderSession()}
-        {view.name === "alpha" && <AlphaMode key={`al${pageKey}`} />}
+        {view.name === "alpha" && (
+          <AlphaMode key={`al${pageKey}`}
+            workoutData={{ sessions, prs, addSession, addPR, bestPRs, lastWeights }} />
+        )}
         {view.name === "wall" && renderWall()}
         {view.name === "log" && renderLog()}
         {view.name === "session-detail" && renderSessionDetail()}

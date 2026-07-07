@@ -103,6 +103,7 @@ export function useWorkout(userId) {
       total_sets: session.total_sets ?? 0,
       exercises: session.exercises ?? [],
       note: session.note || null,
+      meta: session.meta ?? null,
       created_at: new Date().toISOString(),
     };
     commit((prev) => ({ ...prev, sessions: [row, ...prev.sessions] }));

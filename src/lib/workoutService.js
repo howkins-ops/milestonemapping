@@ -90,6 +90,7 @@ export async function createSession(userId, session) {
       total_sets: session.total_sets ?? 0,
       exercises: session.exercises ?? [],
       note: session.note || null,
+      meta: session.meta ?? null,
     })
     .select()
     .single();

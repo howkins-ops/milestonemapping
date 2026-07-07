@@ -648,6 +648,113 @@ export function sfxChalkPoof(settings) {
   } catch { /* silent */ }
 }
 
+// ═══════════ ALPHA MODE one-shots ═══════════
+
+// Anvil strike — the Character Forge seals two honest numbers.
+export function sfxForgeStrike(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 180, to: 40, duration: 0.3, gain: 0.5 });
+    crack(c, { hp: 200, lp: 2000, duration: 0.09, gain: 0.3 });
+    crack(c, { hp: 3000, lp: 9000, duration: 0.06, gain: 0.16 });
+    // long anvil ring
+    [523, 1244, 2093].forEach((fr, i) => {
+      blip(c, { from: fr, to: fr * 0.99, duration: 0.9 - i * 0.2, type: "triangle", gain: 0.05 - i * 0.012, start: 0.02 });
+    });
+  } catch { /* silent */ }
+}
+
+// Myth boss takes a hit — stone cracking under the truth.
+export function sfxBossHit(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 120, to: 45, duration: 0.18, gain: 0.3 });
+    crack(c, { hp: 400, lp: 3200, duration: 0.12, gain: 0.24 });
+    crack(c, { hp: 1500, lp: 5000, duration: 0.08, gain: 0.12, start: 0.05 });
+  } catch { /* silent */ }
+}
+
+// Myth boss shatters — the lie comes down.
+export function sfxBossDown(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 150, to: 30, duration: 0.4, gain: 0.5 });
+    crack(c, { hp: 300, lp: 4500, duration: 0.3, gain: 0.28 });
+    // debris scatter
+    for (let i = 0; i < 5; i++) {
+      crack(c, { hp: 1200 + i * 700, lp: 6500, duration: 0.07, gain: 0.08, start: 0.12 + i * 0.06 });
+    }
+    blip(c, { from: 220, to: 55, duration: 0.5, type: "square", gain: 0.05, start: 0.05 });
+  } catch { /* silent */ }
+}
+
+// Wisdom scroll unfurls — dry paper sweep with a gold shimmer.
+export function sfxScrollUnfurl(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(900, t);
+    f.frequency.exponentialRampToValueAtTime(3200, t + 0.35);
+    const g = env(c, { gain: 0.09, attack: 0.04, duration: 0.42 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.5);
+    blip(c, { from: 1568, to: 2093, duration: 0.4, type: "sine", gain: 0.04, start: 0.22 });
+  } catch { /* silent */ }
+}
+
+// Tempo tick — two pitches: low on the descent count, high on the drive.
+export function sfxTempoTick(up = false, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: up ? 880 : 330, to: up ? 780 : 300, duration: 0.05, type: "triangle", gain: up ? 0.09 : 0.06 });
+  } catch { /* silent */ }
+}
+
+// Benchmark rung up — two rising notes and a clank accent.
+export function sfxRungUp(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 523, to: 523, duration: 0.16, type: "triangle", gain: 0.1 });
+    blip(c, { from: 784, to: 784, duration: 0.3, type: "triangle", gain: 0.11, start: 0.14 });
+    crack(c, { hp: 2000, lp: 7000, duration: 0.05, gain: 0.1, start: 0.14 });
+    subDrop(c, { from: 110, to: 60, duration: 0.16, gain: 0.2, start: 0.12 });
+  } catch { /* silent */ }
+}
+
+// Fridge doors slam — the week locks in.
+export function sfxFridgeSlam(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 95, to: 34, duration: 0.24, gain: 0.42 });
+    crack(c, { hp: 120, lp: 900, duration: 0.13, gain: 0.24 });
+    crack(c, { hp: 800, lp: 2600, duration: 0.07, gain: 0.1, start: 0.03 });
+    // rubber-seal squish
+    blip(c, { from: 200, to: 90, duration: 0.12, type: "sine", gain: 0.06, start: 0.05 });
+  } catch { /* silent */ }
+}
+
+// Magnet clack — a photo pinned to the door.
+export function sfxMagnetClack(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 2500, lp: 8500, duration: 0.045, gain: 0.16 });
+    blip(c, { from: 1100, to: 900, duration: 0.07, type: "triangle", gain: 0.05 });
+  } catch { /* silent */ }
+}
+
 // ---------- loops (return a handle: { stop(), setLevel(0..1) }) ----------
 
 const NO_LOOP = { stop() {}, setLevel() {} };

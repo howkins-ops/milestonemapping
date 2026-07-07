@@ -45,6 +45,22 @@ export default function WeeklyReviewPage() {
         </span>
       </button>
 
+      {/* ── ALPHA MODE: Sunday Stockpile link ── */}
+      <button type="button" className="wr-stockpile-card"
+        onClick={() => {
+          try { window.sessionStorage.setItem("iron_view", "alpha:stockpile"); } catch { /* silent */ }
+          window.dispatchEvent(new Event("mm:open-iron"));
+        }}>
+        <span className="wr-stockpile-icon" aria-hidden="true">🧊</span>
+        <span className="wr-stockpile-text">
+          <span className="wr-stockpile-title">Fridge stocked for the week?</span>
+          <span className="wr-stockpile-sub">
+            The Stockpile — grocery raid list, prep guide, Fill Your Fridge. Sunday's first ✓.
+          </span>
+        </span>
+        <span className="wr-stockpile-cta">→</span>
+      </button>
+
       <div style={{ marginTop: 28 }}>
         <MilestoneReviewCards />
       </div>
