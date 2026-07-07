@@ -5,6 +5,7 @@ import React from "react";
 // Two visible arrow buttons in the bottom corners plus invisible hold
 // halves along the bottom of the scene. Pointer events only (same hold
 // pattern as RideTheWave): down = press, up/cancel/leave = release.
+// JUMP is a tap (no hold) above the right arrow — thumb reach on mobile.
 // Keyboard users never need these — the engine listens to the window.
 // ════════════════════════════════════════════════════════════════════════
 
@@ -58,6 +59,18 @@ export default function WorldControls({ controls, heldDir }) {
         {...bind(1)}
       >
         ▶
+      </button>
+      <button
+        type="button"
+        className="mqw-ctrl mqw-ctrl--jump"
+        aria-label="Jump"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          if (controls.jump) controls.jump();
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        ▲
       </button>
     </>
   );

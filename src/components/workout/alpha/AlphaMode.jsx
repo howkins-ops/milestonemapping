@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppData } from "../../../hooks/useAppData.js";
-import { useAlpha } from "./useAlpha.js";
 import AlphaCall from "./AlphaCall.jsx";
 import WorldMap from "./WorldMap.jsx";
 import ZoneGate from "./ZoneGate.jsx";
@@ -8,11 +7,7 @@ import MythBossFight from "./MythBossFight.jsx";
 import AlphaZone from "./AlphaZone.jsx";
 import AlphaSession from "./AlphaSession.jsx";
 import CheatDayEvent from "./CheatDayEvent.jsx";
-import StockpilePage from "./StockpilePage.jsx";
 import EatingCalculator from "./EatingCalculator.jsx";
-import ScrollShelf from "./WisdomScroll.jsx";
-import BenchmarkLadder from "./BenchmarkLadder.jsx";
-import TraitTree from "./TraitTree.jsx";
 import Apotheosis from "./Apotheosis.jsx";
 import { PHASES } from "./data/phases.js";
 import { MYTH_BOSSES } from "./data/mythBosses.js";
@@ -24,38 +19,23 @@ import { sfxPlateClank, sfxBossDown, sfxChalkPoof } from "../../../lib/sfx.js";
 import "../../../styles/alpha.css";
 
 /* ═══════════════════════════════════════════════════════════════
-   ALPHA MODE — the campaign conductor.
+   ALPHA MODE — the campaign conductor, mounted under the TODAY tab.
    Views: crossing · map · zone · gate · boss · session · cheat ·
-   stockpile · codex · apotheosis. Campaign sessions save through
-   the tracker (workoutData props from IronWorkout) so The Log and
-   the PR Wall stay the single history.
+   calculator · apotheosis. Alpha state (useAlpha) is owned by
+   IronWorkout and shared with the Program / Fridge / Book pages;
+   the Stockpile and Codex now live on those tabs. Campaign sessions
+   save through the tracker (workoutData props) so Records stays the
+   single history. `initialView` deep-enters a gate/boss/session;
+   `onImmersiveChange` hides the global nav during cinematic play.
    ═══════════════════════════════════════════════════════════════ */
 
-const CHIPS = [
-  { id: "map", label: "map", glyph: "🗺" },
-  { id: "zone", label: "zone", glyph: "⚡" },
-  { id: "stockpile", label: "stockpile", glyph: "🧊" },
-  { id: "codex", label: "codex", glyph: "❖" },
-];
-
-export default function AlphaMode({ workoutData }) {
-  const { userId, settings, addXP } = useAppData();
-  const alpha = useAlpha(userId);
+export default function AlphaMode({ alpha, workoutData, initialView = null, onImmersiveChange, onOpenFridge }) {
+  const { settings, addXP } = useAppData();
   const { state } = alpha;
 
-  const [view, setView] = useState(() => {
-    try {
-      const hint = window.sessionStorage.getItem("iron_view");
-      if (hint === "alpha:stockpile") {
-        window.sessionStorage.removeItem("iron_view");
-        return { name: "stockpile" };
-      }
-    } catch { /* silent */ }
-    return { name: "auto" };
-  });
+  const [view, setView] = useState(() => initialView || { name: "auto" });
   const [racked, setRacked] = useState(null); // {summary}
   const [banner, setBanner] = useState(null); // {title, sub}
-  const [codexTab, setCodexTab] = useState("myths");
 
   const go = (v) => { setView(v); sfxChalkPoof(settings); };
 
@@ -78,23 +58,26 @@ export default function AlphaMode({ workoutData }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alpha.loaded]);
 
-  /* ── trait levels from real behavior ── */
-  const traitLevels = useMemo(() => {
-    const ev = alpha.events;
-    const count = (k) => ev.filter((e) => e.kind === k).length;
-    const alphaSessions = (workoutData.sessions || []).filter((s) => s.meta?.alpha);
-    const lowersHonored = alphaSessions.filter((s) =>
-      (s.meta.alpha.verdicts || []).some((v) => v.verdict === "lower")).length;
-    return {
-      helpful: Math.min(5, Math.floor(count("fridge_stocked") / 2)),
-      confident: Math.min(5, Math.floor(alphaSessions.length / 5)),
-      vain: Math.min(5, Math.floor(count("cardio") / 3)),
-      prideful: Math.min(5, count("week_complete")),
-      humble: Math.min(5, lowersHonored),
-      tolerant: Math.min(5, Math.floor(count("fast_complete") / 5)),
-      dedicated: Math.min(5, count("phase_complete") * 2 + Math.floor(count("week_complete") / 4)),
-    };
-  }, [alpha.events, workoutData.sessions]);
+  /* ── routing state (computed before any return so hooks stay stable) ── */
+  const flags = state.flags;
+  const inCrossing = alpha.loaded && !flags.crossingDone;
+  const apotheosisNow = flags.apotheosisPending && !flags.apotheosisDone && view.name !== "apotheosis";
+  const resolved = view.name === "auto"
+    ? ((flags.zoneEntered || {})[state.phase] ? { name: "zone" } : { name: "map" })
+    : view;
+
+  /* full-bleed moments: the global nav steps out of the frame */
+  const immersiveNow = Boolean(
+    inCrossing || apotheosisNow ||
+    ["session", "boss", "cheat", "apotheosis"].includes(resolved.name)
+  );
+  useEffect(() => {
+    onImmersiveChange?.(immersiveNow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [immersiveNow]);
+  useEffect(() => () => onImmersiveChange?.(false),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []);
 
   /* ── the post-session pipeline ── */
   const rackAlphaSession = (result, workout) => {
@@ -157,11 +140,6 @@ export default function AlphaMode({ workoutData }) {
 
   if (!alpha.loaded) return <div className="iw-empty">opening the campaign…</div>;
 
-  /* ── routing ── */
-  const flags = state.flags;
-  const inCrossing = !flags.crossingDone;
-  const apotheosisNow = flags.apotheosisPending && !flags.apotheosisDone && view.name !== "apotheosis";
-
   if (inCrossing) {
     return <AlphaCall alpha={alpha} settings={settings} addXP={addXP}
       onDone={() => setView({ name: "map" })} />;
@@ -171,11 +149,6 @@ export default function AlphaMode({ workoutData }) {
       onClose={() => setView({ name: "zone" })} />;
   }
 
-  const resolved = view.name === "auto"
-    ? ((flags.zoneEntered || {})[state.phase] ? { name: "zone" } : { name: "map" })
-    : view;
-
-  const showChips = ["map", "zone", "stockpile", "codex"].includes(resolved.name);
   const boss = resolved.name === "boss" ? MYTH_BOSSES.find((b) => b.id === resolved.bossId) : null;
   const workout = resolved.name === "session" ? WORKOUTS[resolved.workoutId] : null;
   const phase = PHASES[state.phase];
@@ -183,18 +156,6 @@ export default function AlphaMode({ workoutData }) {
 
   return (
     <div className="iw-al-root">
-      {showChips && (
-        <div className="iw-al-chips">
-          {CHIPS.map((c) => (
-            <button key={c.id}
-              className={`iw-al-chip ${resolved.name === c.id ? "iw-al-chip-on" : ""}`}
-              onClick={() => go({ name: c.id })}>
-              <span aria-hidden="true">{c.glyph}</span> {c.label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {resolved.name === "map" && (
         <>
           <div className="iw-eyebrow" style={{ color: phase.accent }}>alpha mode · stage {state.stage} · {phase.name} w{state.week}</div>
@@ -227,7 +188,7 @@ export default function AlphaMode({ workoutData }) {
           onFight={(bossId) => go({ name: "boss", bossId, from: { name: "zone" } })}
           onOpenCheat={() => go({ name: "cheat" })}
           onOpenCalculator={() => go({ name: "calculator" })}
-          onOpenStockpile={() => go({ name: "stockpile" })} />
+          onOpenStockpile={() => (onOpenFridge ? onOpenFridge() : null)} />
       )}
 
       {resolved.name === "session" && workout && (
@@ -244,30 +205,9 @@ export default function AlphaMode({ workoutData }) {
           onClose={() => go({ name: "zone" })} />
       )}
 
-      {resolved.name === "stockpile" && (
-        <StockpilePage alpha={alpha} addXP={addXP} settings={settings}
-          onBack={() => go({ name: "zone" })} />
-      )}
-
       {resolved.name === "calculator" && (
         <EatingCalculator alpha={alpha} addXP={addXP} settings={settings}
           onBack={() => go({ name: "zone" })} />
-      )}
-
-      {resolved.name === "codex" && (
-        <div className="iw-al-codex">
-          <div className="iw-al-codextabs">
-            {[["myths", "myths"], ["scrolls", "scrolls"], ["ladders", "ladders"], ["traits", "traits"], ["equation", "food calc"]].map(([id, label]) => (
-              <button key={id} className={`iw-chip-btn ${codexTab === id ? "iw-chip-on" : ""}`}
-                onClick={() => setCodexTab(id)}>{label}</button>
-            ))}
-          </div>
-          {codexTab === "myths" && <MythCodex alpha={alpha} onFight={(bossId) => go({ name: "boss", bossId, from: { name: "codex" } })} />}
-          {codexTab === "scrolls" && <ScrollShelf alpha={alpha} />}
-          {codexTab === "ladders" && <BenchmarkLadder prs={workoutData.prs} />}
-          {codexTab === "traits" && <TraitTree traitLevels={traitLevels} />}
-          {codexTab === "equation" && <EatingCalculator alpha={alpha} addXP={addXP} settings={settings} onBack={null} />}
-        </div>
       )}
 
       {resolved.name === "apotheosis" && (
@@ -296,40 +236,6 @@ export default function AlphaMode({ workoutData }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ── busted-myth codex ── */
-function MythCodex({ alpha, onFight }) {
-  const defeated = new Set(alpha.state.flags.bossesDefeated || []);
-  const stage = alpha.state.stage;
-  return (
-    <div className="iw-al-mythcodex">
-      <div className="iw-eyebrow">reject this thought</div>
-      <h2 className="iw-display iw-page-title">Busted Myths</h2>
-      <div className="iw-al-shelf-count">{defeated.size} of {MYTH_BOSSES.length} broken</div>
-      <div className="iw-stack">
-        {MYTH_BOSSES.map((b) => {
-          const down = defeated.has(b.id);
-          const reachable = PHASES[b.gatePhase] && stage >= PHASES[b.gatePhase].stage;
-          return (
-            <div key={b.id} className={`iw-al-codexcard ${down ? "iw-al-codexcard-down" : ""}`}>
-              <div className="iw-al-card-head">
-                <span className="iw-al-challenge-name">{down ? "✓ " : ""}{b.name}</span>
-                <span className="iw-chip">{PHASES[b.gatePhase]?.name}</span>
-              </div>
-              {down ? (
-                <p className="iw-al-codextruth">{b.truth}</p>
-              ) : reachable ? (
-                <button className="iw-btn-ghost" onClick={() => onFight(b.id)}>⚔ face it</button>
-              ) : (
-                <p className="iw-al-dial-villain">still ahead on the road</p>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -364,6 +270,7 @@ function RackedVeil({ summary, accent, onDone }) {
           </>
         )}
       </div>
+      <div className="iw-racked-sub">workout saved to your log ✓</div>
     </div>
   );
 }

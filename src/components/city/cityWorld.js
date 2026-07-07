@@ -134,9 +134,36 @@ export function buildCityWorld(
   const arches = [];
   const buildings = [];
 
+  // Mask Encounters street layer (see masks/): fog banks = the tall grass,
+  // maskZones = the chapters (district ids + where each chapter's final
+  // boss looms once it materializes — beside the zone's end, never blocking).
+  const maskDens = [];
+  const maskZones = [];
+
+  // Street clowns — HATERS and NAYSAYERS waddling the road, one per zone,
+  // there to be jumped on. Alternating kinds, varied waddle speeds.
+  const enemies = [];
+  const addClown = (x, patrol = 80) => {
+    const i = enemies.length;
+    const kind = i % 2 === 0 ? "hater" : "naysayer";
+    enemies.push({
+      id: `${kind}-${i}`,
+      kind,
+      x: Math.round(x),
+      patrol,
+      dur: 4.2 + (i % 3) * 0.8,
+    });
+  };
+  addClown(752, 56); // first heckler on the walk from the Plaza to THE GRID
+
   let cursor = 830;
   for (const zone of STREET_ZONES) {
     cursor += zone.gapBefore || 0;
+    // a fog bank drifts on the approach to every chapter arch — the tall
+    // grass where wild critics ambush (none guards the Spire's approach)
+    if (zone.label !== "THE SPIRE") {
+      maskDens.push({ x: cursor - 280, w: 260 });
+    }
     arches.push({ x: cursor, w: ARCH_W, label: zone.label, accent: zone.accent });
     cursor += ARCH_W + ARCH_GAP;
 
@@ -177,6 +204,33 @@ export function buildCityWorld(
         });
       }
     }
+
+    // every zone gets a resident clown pacing its stretch of street —
+    // single-building zones (Vault, Spire) get a gatekeeper heckling the
+    // approach instead ("the last naysayer before the tower")
+    if (placed.length > 1) {
+      const last = placed[placed.length - 1];
+      addClown((placed[0].x + last.x + last.w) / 2);
+    } else if (placed.length === 1) {
+      addClown(placed[0].x - 96, 56);
+    }
+
+    // the chapter record: its districts + where its final boss materializes
+    // (just past the last door, beside the end of the chapter's stretch)
+    if (placed.length) {
+      maskZones.push({
+        label: zone.label,
+        ids: [...zone.ids],
+        accent: zone.accent,
+        lurkX: end - GAP + 36,
+      });
+      // THE ARCHIVE ROW has no boss — it's the wild-critic-densest stretch,
+      // so a second bank drifts over the row itself
+      if (zone.label === "THE ARCHIVE ROW") {
+        maskDens.push({ x: placed[0].x + 30, w: 280 });
+      }
+    }
+
     cursor = end - GAP + ZONE_GAP;
 
     // a street lamp between zones, tinted by the zone it closes
@@ -201,6 +255,9 @@ export function buildCityWorld(
     props,
     buildings,
     npcs,
+    enemies,
+    maskDens,
+    maskZones,
   };
 }
 

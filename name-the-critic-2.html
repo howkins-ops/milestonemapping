@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     NAME THE CRITIC 2.0 — THE MASK COURT (standalone concept, 2026-07-07)
+     This is the DESIGN REFERENCE for the in-app port. The canonical build
+     spec lives in MASK-ENCOUNTERS-BUILD-PROMPT.md (repo root) — mechanics,
+     copy tables, and integration plan. Unicode glyphs (emoji, dashes) were
+     restored after a transfer-encoding loss; every mechanic, timing, and
+     line of choreography below is original.
+     NOTE: fonts here (Anton/JetBrains Mono) are BANNED in-app — port to
+     Sora/Manrope per the font law.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NAME THE CRITIC 2.0 — THE MASK COURT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070a; --ember:#ff5a2d; --strike:#6fd2ff; --ally:#3f8cff; --mint:#3fe0b0;
+  --bone:#e9e6df; --mono-dim:#8a93a6; --card:#0d0d13; --line:#1c1c26;
+  --arena:#3a1010; --bglow:#ff5a2d;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--bone);font-family:'JetBrains Mono',monospace;overscroll-behavior:none}
+.display{font-family:'Anton',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:'JetBrains Mono',monospace}
+button:focus-visible,input:focus-visible{outline:2px solid var(--strike);outline-offset:3px}
+
+/* ---------- FX ---------- */
+#fx{position:fixed;inset:0;z-index:40;pointer-events:none}
+#flash{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;background:#fff}
+#flash.red{background:radial-gradient(circle at 50% 45%, rgba(255,60,30,.95), rgba(120,10,0,.85))}
+#flash.hit{animation:flashout .16s linear forwards}
+@keyframes flashout{0%{opacity:1}100%{opacity:0}}
+
+.fog{position:absolute;inset:-20%;pointer-events:none;opacity:.85;transition:opacity 3s ease;z-index:0}
+.fog::before,.fog::after{content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(60% 45% at 20% 85%, rgba(120,125,150,.10), transparent 70%),
+    radial-gradient(55% 40% at 80% 80%, rgba(120,125,150,.08), transparent 70%),
+    radial-gradient(70% 55% at 50% 100%, rgba(90,95,120,.13), transparent 75%);
+  animation:fogdrift 26s ease-in-out infinite alternate}
+.fog::after{animation-duration:37s;animation-direction:alternate-reverse;filter:blur(6px);opacity:.7}
+@keyframes fogdrift{from{transform:translateX(-3%) scale(1)}to{transform:translateX(3%) scale(1.06)}}
+body.settled .fog{opacity:.25}
+
+#shakewrap{position:fixed;inset:0;overflow:hidden}
+#shakewrap.shake{animation:shake .28s linear}
+@keyframes shake{0%{transform:translate(0,0)}12%{transform:translate(-11px,6px) rotate(-.5deg)}25%{transform:translate(10px,-8px) rotate(.5deg)}40%{transform:translate(-8px,-5px) rotate(-.4deg)}55%{transform:translate(7px,6px) rotate(.35deg)}70%{transform:translate(-5px,3px)}85%{transform:translate(3px,-2px)}100%{transform:translate(0,0)}}
+#shakewrap.rumble{animation:rumble .7s linear}
+@keyframes rumble{0%,100%{transform:translate(0,0)}10%,30%,50%,70%,90%{transform:translate(-3px,2px)}20%,40%,60%,80%{transform:translate(3px,-2px)}}
+#shakewrap.quake{animation:quake 1.1s linear}
+@keyframes quake{0%,100%{transform:translate(0,0)}8%,24%,40%,56%,72%,88%{transform:translate(-6px,4px) rotate(-.4deg)}16%,32%,48%,64%,80%{transform:translate(6px,-4px) rotate(.4deg)}}
+body.rm #shakewrap.shake,body.rm #shakewrap.rumble,body.rm #shakewrap.quake{animation:none}
+
+/* ---------- screens ---------- */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;z-index:1}
+.screen.on{display:flex}
+#rmtoggle{position:fixed;top:12px;right:12px;z-index:60;font-size:10px;letter-spacing:.12em;color:var(--mono-dim);
+  border:1px solid var(--line);padding:7px 10px;background:rgba(10,10,15,.7)}
+#rmtoggle.on{color:var(--strike);border-color:var(--strike)}
+
+/* ---------- TITLE ---------- */
+#s-title h1{font-size:clamp(46px,12vw,140px);line-height:.92;
+  background:linear-gradient(180deg,#f4f1ea 30%,#a8a49b 75%,#55524c);
+  -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 60px rgba(255,90,45,.12)}
+#s-title .v2{font-size:clamp(13px,3.4vw,20px);letter-spacing:.5em;color:var(--ember);margin-top:6px}
+#s-title .sub{margin-top:20px;font-size:clamp(9px,2.4vw,12px);letter-spacing:.26em;color:var(--mono-dim);line-height:2}
+.btn-primary{margin-top:42px;padding:18px 42px;font-family:'Anton',sans-serif;text-transform:uppercase;
+  font-size:clamp(15px,3.4vw,19px);letter-spacing:.18em;color:var(--bone);
+  border:1px solid rgba(255,90,45,.55);background:linear-gradient(180deg,rgba(255,90,45,.16),rgba(255,90,45,.04));
+  transition:transform .15s,box-shadow .2s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(255,90,45,.25)}
+
+/* ---------- GATE (boss select) ---------- */
+#s-gate{justify-content:flex-start;padding-top:64px;overflow-y:auto}
+.gate-head{font-size:11px;letter-spacing:.34em;color:var(--ember)}
+.gate-title{font-size:clamp(28px,7vw,54px);margin-top:6px}
+.gate-sub{font-size:10.5px;letter-spacing:.14em;color:var(--mono-dim);margin-top:10px;line-height:1.9;max-width:520px}
+#xp-hud{position:fixed;top:12px;left:12px;z-index:60;font-size:11px;letter-spacing:.18em;color:#ffd84d;
+  border:1px solid rgba(255,216,77,.35);padding:7px 12px;background:rgba(15,12,5,.75)}
+.gate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,190px));gap:14px;margin-top:30px;justify-content:center;width:min(1040px,94vw)}
+.gcard{border:1px solid var(--line);background:var(--card);padding:14px 10px 16px;position:relative;
+  transition:border-color .2s,transform .15s,box-shadow .2s;overflow:hidden}
+.gcard:not(.done):hover{transform:translateY(-4px);border-color:var(--bcol);box-shadow:0 0 30px color-mix(in srgb,var(--bcol) 25%, transparent)}
+.gcard svg{width:100%;height:130px;display:block}
+.gcard .gname{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.08em;margin-top:10px}
+.gcard .gdesc{font-size:9px;color:var(--mono-dim);margin-top:6px;line-height:1.55;letter-spacing:.03em;min-height:42px}
+.gcard .gstate{margin-top:10px;font-size:9px;letter-spacing:.24em;padding:7px 0;border:1px solid rgba(255,90,45,.45);color:#ffb49b}
+.gcard.done{border-color:rgba(63,140,255,.4);opacity:.92}
+.gcard.done .gstate{border-color:rgba(63,140,255,.55);color:#9fc4ff}
+.gcard.done svg .b-glow{fill:var(--ally)} .gcard.done svg .b-glow-s{stroke:var(--ally)}
+#btn-court{margin-top:32px;margin-bottom:40px;padding:16px 40px;font-family:'Anton',sans-serif;text-transform:uppercase;
+  letter-spacing:.22em;font-size:16px;color:#dfeaff;border:1px solid rgba(63,140,255,.65);
+  background:linear-gradient(180deg,rgba(63,140,255,.22),rgba(20,50,110,.15));box-shadow:0 0 40px rgba(63,140,255,.25)}
+#btn-court.locked{opacity:.3;pointer-events:none}
+
+/* ---------- ARENA ---------- */
+.arena{justify-content:flex-end;padding:0;overflow:hidden;
+  background:radial-gradient(90% 70% at 50% 110%, color-mix(in srgb, var(--arena) 55%, transparent), transparent 70%)}
+.arena-floor{position:absolute;bottom:0;left:0;right:0;height:26%;
+  background:radial-gradient(70% 120% at 50% 100%, rgba(50,52,70,.28), transparent 70%)}
+
+#healthbar{position:absolute;top:0;left:0;right:0;padding:52px 14px 0;display:flex;gap:6px;z-index:10;
+  transform:translateY(-120px);transition:transform 1s cubic-bezier(.2,.9,.25,1)}
+#healthbar.up{transform:translateY(0)}
+.hseg{flex:1;height:44px;position:relative;border:1px solid color-mix(in srgb,var(--bglow) 45%, transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--bglow) 26%, transparent),rgba(20,8,4,.3));overflow:hidden;transition:border-color .6s}
+.hseg .segtext{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:8.5px;letter-spacing:.05em;color:rgba(255,235,225,.8);padding:0 8px;text-align:center;line-height:1.3;overflow:hidden}
+.hseg .burn{position:absolute;inset:0;background:linear-gradient(90deg,transparent,#fff 45%,var(--strike) 60%,transparent);transform:translateX(-110%)}
+.hseg.shatter .burn{animation:burnsweep .6s ease forwards}
+@keyframes burnsweep{to{transform:translateX(110%)}}
+.hseg.done{background:rgba(13,16,24,.85);border-color:rgba(111,210,255,.35)}
+.hseg.done .segtext{color:var(--strike);font-size:9.5px;letter-spacing:.1em}
+#bossname-hud{position:absolute;top:20px;left:14px;right:14px;z-index:10;display:flex;justify-content:space-between;
+  font-size:11px;letter-spacing:.2em;color:var(--mono-dim);opacity:0;transition:opacity .8s}
+#bossname-hud.up{opacity:1}
+#bossname-hud .n{color:var(--bglow)}
+
+/* composure */
+#comp-hud{position:absolute;left:14px;bottom:calc(150px + env(safe-area-inset-bottom));z-index:12;width:min(200px,44vw);opacity:0;transition:opacity .8s}
+#comp-hud.up{opacity:1}
+#comp-hud .lbl{font-size:9px;letter-spacing:.26em;color:#8fd8c4;margin-bottom:5px}
+#comp-bar{height:9px;border:1px solid rgba(63,224,176,.4);background:rgba(10,20,18,.7)}
+#comp-fill{height:100%;width:100%;background:linear-gradient(90deg,#1d7a60,var(--mint));transition:width .5s ease;box-shadow:0 0 12px rgba(63,224,176,.5)}
+#comp-hud.low #comp-fill{background:linear-gradient(90deg,#7a1d1d,#ff6a4d)}
+#comp-hud.low .lbl{color:#ff9a80}
+
+/* boss */
+#boss-stage{position:absolute;bottom:9%;left:50%;width:min(46vh,78vw);z-index:5;transform:translateX(-50%);
+  transition:left 2.6s cubic-bezier(.4,0,.2,1),bottom 2.6s ease}
+#boss-rig{transition:transform 1.1s cubic-bezier(.3,.8,.3,1),filter 1.4s ease;transform-origin:50% 100%;
+  filter:drop-shadow(0 0 34px color-mix(in srgb,var(--bglow) 35%, transparent))}
+#boss-breathe{animation:breathe 4.2s ease-in-out infinite;transform-origin:50% 100%}
+body.rm #boss-breathe{animation:none}
+@keyframes breathe{0%,100%{transform:scaleY(1) rotate(-.5deg)}50%{transform:scaleY(1.024) rotate(.5deg)}}
+#boss-rig svg{width:100%;height:auto;display:block}
+.b-body{fill:#131018;transition:fill 2.4s ease}
+.b-shade{fill:#0b0910;transition:fill 2.4s ease}
+.b-glow{fill:var(--bglow);transition:fill 2.4s ease,opacity 1.2s ease}
+.b-glow-s{stroke:var(--bglow);transition:stroke 2.4s ease,opacity 1.2s ease;fill:none}
+.crack{stroke:var(--strike);stroke-width:1.6;fill:none;opacity:0;transition:opacity .9s ease;filter:drop-shadow(0 0 4px rgba(111,210,255,.9))}
+#boss-stage[data-phase="1"] .crack.c1{opacity:.95}
+#boss-stage[data-phase="1"] #boss-rig{transform:translateY(1.5%) rotate(1.4deg) scale(var(--grow,1))}
+#boss-stage[data-phase="1"] .b-glow{opacity:.72}
+#boss-stage[data-phase="2"] .crack.c1,#boss-stage[data-phase="2"] .crack.c2{opacity:.95}
+#boss-stage[data-phase="2"] #boss-rig{transform:translateY(3.5%) rotate(2.8deg) scale(calc(var(--grow,1) * .975));
+  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--bglow) 20%, transparent))}
+#boss-stage[data-phase="2"] .b-glow{opacity:.45}
+#boss-stage[data-phase="3"] .crack{opacity:.95}
+#boss-stage[data-phase="3"] .b-glow{opacity:.3}
+#boss-stage[data-phase="3"] #boss-rig{transform:translateY(5%) rotate(3.6deg) scale(calc(var(--grow,1) * .96))}
+#boss-stage.allied .b-glow{fill:var(--ally)} #boss-stage.allied .b-glow-s{stroke:var(--ally)}
+#boss-stage.allied .b-body{fill:#0e1320} #boss-stage.allied .b-shade{fill:#0a0e18}
+#boss-stage.allied #boss-rig{filter:drop-shadow(0 0 26px rgba(63,140,255,.35))}
+#boss-stage.allied .crack{stroke:var(--ally);opacity:.4}
+#boss-rig.kneel{transform:translateY(9%) rotate(7deg) scale(var(--grow,1)) !important;transition:transform 1.8s cubic-bezier(.3,.9,.3,1)}
+#boss-rig.shrunk{transform:translateY(0) rotate(0) scale(.4) !important;transition:transform 2.2s cubic-bezier(.4,0,.2,1)}
+#boss-rig.hit{animation:bosshit .35s ease}
+@keyframes bosshit{0%{filter:drop-shadow(0 0 34px rgba(255,255,255,.95)) brightness(3.4)}100%{filter:drop-shadow(0 0 34px rgba(255,90,45,.3)) brightness(1)}}
+#boss-rig.lunge{animation:lunge .5s cubic-bezier(.5,0,.3,1)}
+@keyframes lunge{0%{transform:scale(1)}30%{transform:scale(1.09) translateY(-2%)}100%{transform:scale(1)}}
+#boss-rig.stagger-boss{animation:bstagger 2.4s ease-in-out infinite}
+@keyframes bstagger{0%,100%{transform:translateY(4%) rotate(2deg)}50%{transform:translateY(5%) rotate(-1.6deg)}}
+body.rm #boss-rig.lunge,body.rm #boss-rig.hit,body.rm #boss-rig.stagger-boss{animation:none}
+
+/* player + allies */
+#player{position:absolute;bottom:8%;left:7%;width:min(11vh,72px);z-index:6}
+#player svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 10px rgba(111,210,255,.15))}
+#player.stagger{animation:stagger .5s ease}
+@keyframes stagger{0%{transform:translateX(0)}30%{transform:translateX(-14px) rotate(-7deg)}100%{transform:translateX(0)}}
+#player.swing{animation:swing .45s ease}
+@keyframes swing{0%{transform:rotate(0)}35%{transform:rotate(14deg) translateX(10px)}100%{transform:rotate(0)}}
+body.rm #player.stagger,body.rm #player.swing{animation:none}
+#allies{position:absolute;bottom:8%;left:calc(7% + min(11vh,72px) + 8px);display:flex;gap:4px;z-index:6;align-items:flex-end}
+#allies .ally-mini{width:min(6.5vh,42px);opacity:.85;filter:drop-shadow(0 0 8px rgba(63,140,255,.4))}
+#allies .ally-mini svg{width:100%;height:auto;display:block}
+#allies .ally-mini .b-glow{fill:var(--ally)} #allies .ally-mini .b-glow-s{stroke:var(--ally)}
+#allies .ally-mini .crack{opacity:0}
+
+/* attack text */
+#attacktext{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:20;padding:20px;pointer-events:none}
+#attacktext.on{display:flex}
+#attacktext .t{font-family:'Anton',sans-serif;text-transform:uppercase;text-align:center;
+  font-size:clamp(30px,8.5vw,100px);line-height:.97;color:#f4ede8;max-width:94vw;transform:skewX(-3deg);
+  text-shadow:3px 0 0 color-mix(in srgb,var(--bglow) 85%, transparent), -3px 0 0 rgba(111,210,255,.35), 0 0 50px color-mix(in srgb,var(--bglow) 40%, transparent);
+  animation:attackin .45s cubic-bezier(.2,1.4,.3,1)}
+@keyframes attackin{0%{transform:scale(2.4) skewX(-3deg);opacity:0}55%{transform:scale(.96) skewX(-3deg);opacity:1}75%{transform:translate(4px,-3px) skewX(-3deg)}88%{transform:translate(-3px,2px) skewX(-3deg)}100%{transform:scale(1) skewX(-3deg)}}
+body.rm #attacktext .t{animation:none}
+
+/* response dock — 3 moves */
+#respond{position:absolute;left:0;right:0;bottom:0;z-index:22;padding:14px 12px calc(18px + env(safe-area-inset-bottom));
+  display:none;flex-direction:column;gap:10px;align-items:center;
+  background:linear-gradient(180deg,transparent,rgba(5,5,9,.94) 40%)}
+#respond.on{display:flex}
+#sysmsg{min-height:16px;font-size:10.5px;letter-spacing:.18em;color:var(--mono-dim)}
+#sysmsg.err{color:#ff8a6b} #sysmsg.good{color:var(--mint)} #sysmsg.crit{color:#ffd84d}
+.moves{display:flex;gap:8px;width:min(520px,94vw)}
+.mbtn{flex:1;padding:15px 6px;font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+  font-size:clamp(12px,3.2vw,15px);transition:transform .12s;line-height:1.15}
+.mbtn small{display:block;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.16em;margin-top:5px;opacity:.75;text-transform:none}
+.mbtn:active{transform:scale(.96)}
+#btn-fight{color:#ffd9cd;border:1px solid rgba(255,60,30,.8);background:linear-gradient(180deg,rgba(255,60,30,.3),rgba(150,20,0,.25));box-shadow:0 0 30px rgba(255,60,30,.2)}
+#btn-breathe{color:#c9ffee;border:1px solid rgba(63,224,176,.6);background:linear-gradient(180deg,rgba(63,224,176,.16),rgba(15,80,60,.18))}
+#btn-name{color:#dff2ff;border:1px solid rgba(111,210,255,.6);background:linear-gradient(180deg,rgba(63,140,255,.2),rgba(20,50,110,.18))}
+
+/* naming panel */
+#namepanel{position:absolute;left:0;right:0;bottom:0;z-index:24;display:none;flex-direction:column;align-items:center;gap:13px;
+  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(6,8,14,.5),rgba(6,8,14,.97) 30%);border-top:1px solid rgba(111,210,255,.25)}
+#namepanel.on{display:flex}
+#namepanel .prompt{font-size:12px;line-height:1.6;letter-spacing:.05em;color:#c9d6e4;max-width:440px}
+#namepanel .prompt b{color:var(--strike)}
+#fearinput{width:min(440px,90vw);background:#0a0e16;border:1px solid rgba(111,210,255,.4);color:var(--bone);padding:13px 15px;font-size:16px;text-align:center}
+#fearinput:focus{outline:none;border-color:var(--strike)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{font-size:11px;letter-spacing:.06em;padding:9px 14px;border:1px solid rgba(111,210,255,.35);color:#9fd8f5;background:rgba(111,210,255,.06);transition:background .15s}
+.chip:hover{background:rgba(111,210,255,.16)}
+#btn-strike{width:min(440px,90vw);padding:15px;font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.2em;
+  font-size:16px;color:#041018;background:linear-gradient(180deg,#aee6ff,var(--strike));box-shadow:0 0 40px rgba(111,210,255,.35)}
+#btn-strike:disabled{opacity:.3}
+.backlink{font-size:10px;letter-spacing:.18em;color:var(--mono-dim);padding:6px}
+
+/* breath overlay */
+#breathov{position:absolute;inset:0;z-index:26;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:radial-gradient(circle at 50% 45%, rgba(10,30,26,.88), rgba(4,6,10,.96))}
+#breathov.on{display:flex}
+#borb{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--mint) 25%,#0d5a45 60%,#04120e 78%);
+  box-shadow:0 0 60px rgba(63,224,176,.6);transition:transform 4s ease-in-out}
+#borb.in{transform:scale(1.35)} #borb.out{transform:scale(.8);transition-duration:5s}
+#borb span{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.22em;color:#02110c}
+#breathov .bm{font-size:12px;letter-spacing:.2em;color:#aef0dc}
+body.rm #borb{transition:none}
+
+/* survival surge */
+#surge{position:absolute;inset:0;z-index:25;display:none;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:calc(30px + env(safe-area-inset-bottom));
+  background:radial-gradient(circle at 50% 40%, color-mix(in srgb,var(--bglow) 22%, transparent), rgba(6,4,6,.85) 75%)}
+#surge.on{display:flex;animation:surgepulse 1s ease-in-out infinite}
+@keyframes surgepulse{50%{background-color:rgba(40,5,5,.25)}}
+body.rm #surge.on{animation:none}
+#surge .warn{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:clamp(22px,6.5vw,44px);color:#ffb49b;
+  letter-spacing:.1em;text-shadow:0 0 30px color-mix(in srgb,var(--bglow) 60%, transparent);margin-bottom:8px}
+#surge .warnsub{font-size:10px;letter-spacing:.22em;color:#e0b0a0;margin-bottom:22px}
+#surgebarwrap{width:min(380px,84vw);height:10px;border:1px solid rgba(255,120,90,.55);margin-bottom:22px;background:rgba(30,8,4,.6)}
+#surgebar{height:100%;width:100%;background:linear-gradient(90deg,#ff8a5d,var(--bglow));transition:width .12s linear}
+#btn-surge-breathe{padding:18px 50px;font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.24em;font-size:19px;
+  color:#02110c;background:linear-gradient(180deg,#b8ffe8,var(--mint));box-shadow:0 0 50px rgba(63,224,176,.55)}
+
+/* essence phase */
+#essencephase{position:absolute;left:0;right:0;bottom:0;z-index:24;display:none;flex-direction:column;align-items:center;gap:14px;
+  padding:24px 14px calc(24px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(6,8,14,.4),rgba(6,8,14,.97) 26%);border-top:1px solid rgba(255,216,77,.3)}
+#essencephase.on{display:flex}
+#essencephase .ep-title{font-family:'Anton',sans-serif;font-size:clamp(17px,4.6vw,24px);letter-spacing:.14em;text-transform:uppercase;color:#ffd84d}
+#essencephase .ep-sub{font-size:10.5px;letter-spacing:.1em;color:var(--mono-dim);max-width:460px;line-height:1.7}
+.egrid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:640px}
+.ecard{width:104px;padding:12px 6px 10px;border:1px solid var(--line);background:var(--card);transition:transform .12s,border-color .2s}
+.ecard:hover{transform:translateY(-3px);border-color:var(--ecol)}
+.ecard .ee{font-size:26px}
+.ecard .en{font-family:'Anton',sans-serif;font-size:12px;letter-spacing:.1em;margin-top:6px;color:var(--ecol)}
+.ecard .ea{font-size:8px;color:var(--mono-dim);margin-top:5px;line-height:1.5;letter-spacing:.02em}
+.ecard.wrong{animation:shudder .4s ease;border-color:#ff5b3d}
+@keyframes shudder{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#epmsg{min-height:15px;font-size:10px;letter-spacing:.16em;color:#ff9a80}
+
+/* proof lock */
+#prooflock{position:absolute;left:0;right:0;bottom:0;z-index:24;display:none;flex-direction:column;align-items:center;gap:13px;
+  padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(6,8,14,.4),rgba(6,8,14,.97) 26%);border-top:1px solid rgba(63,224,176,.3)}
+#prooflock.on{display:flex}
+#prooflock .pl-title{font-family:'Anton',sans-serif;font-size:clamp(17px,4.6vw,24px);letter-spacing:.14em;text-transform:uppercase;color:var(--mint)}
+#prooflock .pl-sub{font-size:10.5px;letter-spacing:.08em;color:var(--mono-dim);max-width:440px;line-height:1.7}
+#proofinput{width:min(440px,90vw);background:#0a1410;border:1px solid rgba(63,224,176,.4);color:var(--bone);padding:13px 15px;font-size:15px;text-align:center}
+#proofinput:focus{outline:none;border-color:var(--mint)}
+.pchips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:560px}
+.pchip{font-size:10.5px;letter-spacing:.05em;padding:9px 13px;border:1px solid rgba(63,224,176,.35);color:#a8e8d2;background:rgba(63,224,176,.06)}
+.pchip:hover{background:rgba(63,224,176,.15)}
+#btn-lock{width:min(440px,90vw);padding:15px;font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.2em;font-size:16px;
+  color:#02110c;background:linear-gradient(180deg,#b8ffe8,var(--mint));box-shadow:0 0 40px rgba(63,224,176,.35)}
+#btn-lock:disabled{opacity:.3}
+
+/* beam */
+#beam{position:fixed;height:8px;z-index:30;pointer-events:none;transform-origin:0 50%;display:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#fff 18%,var(--beamcol,#6fd2ff) 55%,transparent);
+  box-shadow:0 0 28px 7px color-mix(in srgb,var(--beamcol,#6fd2ff) 80%, transparent);border-radius:4px}
+#beam.fire{display:block;animation:beamfire .38s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes beamfire{0%{transform:scaleX(0);opacity:1}60%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:0}}
+
+/* intro banner */
+#introbanner{position:absolute;inset:0;z-index:18;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+#introbanner.on{display:flex}
+#introbanner .bn{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:clamp(38px,10vw,110px);line-height:.95;color:var(--bone);
+  text-shadow:0 0 60px color-mix(in srgb,var(--bglow) 45%, transparent);animation:slamin .55s cubic-bezier(.2,1.3,.3,1)}
+#introbanner .bt{margin-top:12px;font-size:10.5px;letter-spacing:.38em;color:var(--bglow)}
+@keyframes slamin{0%{transform:scale(3.4);opacity:0}60%{transform:scale(.94);opacity:1}100%{transform:scale(1)}}
+body.rm #introbanner .bn{animation:none}
+
+/* kneel card */
+#kneelcard{position:absolute;inset:0;z-index:26;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:20px;text-align:center}
+#kneelcard.on{display:flex}
+#kneelcard .big{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:clamp(30px,8.5vw,88px);line-height:1;color:var(--bone);
+  text-shadow:0 0 50px rgba(63,140,255,.45);opacity:0;animation:fadeslam 1.1s ease .2s forwards}
+#kneelcard .small{margin-top:20px;font-size:10.5px;letter-spacing:.16em;line-height:2;color:#9db4d6;max-width:540px;opacity:0;animation:fadeup 1.4s ease 1.3s forwards}
+#kneelcard .xp{margin-top:22px;font-family:'Anton',sans-serif;font-size:clamp(20px,5vw,32px);color:#ffd84d;letter-spacing:.14em;
+  text-shadow:0 0 30px rgba(255,216,77,.5);opacity:0;animation:fadeup 1s ease 2.1s forwards}
+#kneelcard .cont{margin-top:34px;pointer-events:auto;opacity:0;animation:fadeup 1s ease 2.8s forwards;
+  padding:14px 34px;font-family:'Anton',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:14px;
+  border:1px solid rgba(63,140,255,.6);color:#dfeaff;background:rgba(63,140,255,.1)}
+@keyframes fadeslam{0%{opacity:0;transform:scale(1.6)}100%{opacity:1;transform:scale(1)}}
+@keyframes fadeup{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+
+/* survival mode overlay */
+#survmode{position:absolute;inset:0;z-index:28;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+  padding:24px;background:rgba(3,4,8,.93)}
+#survmode.on{display:flex}
+#survmode .sm-t{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:clamp(26px,7.5vw,54px);color:#93a0b8;letter-spacing:.1em}
+#survmode .sm-s{font-size:11px;letter-spacing:.14em;line-height:2;color:#7f8aa0;max-width:440px}
+#survmode .sm-s b{color:var(--mint)}
+
+/* ---------- COURT (final) ---------- */
+#s-court{justify-content:center}
+#court-lineup{display:flex;gap:10px;align-items:flex-end;justify-content:center;margin:26px 0 10px}
+#court-lineup .cl{width:min(9vh,58px)}
+#court-lineup .cl svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 12px rgba(63,140,255,.45))}
+#court-lineup .cl .b-glow{fill:var(--ally)} #court-lineup .cl .b-glow-s{stroke:var(--ally)} #court-lineup .cl .crack{opacity:0}
+#court-lineup .cl.you{width:min(11vh,70px)}
+#s-court h1{font-size:clamp(34px,9vw,88px);line-height:.95;color:var(--bone);text-shadow:0 0 60px rgba(63,140,255,.4)}
+#s-court .csub{margin-top:16px;font-size:11px;letter-spacing:.16em;line-height:2.1;color:#9db4d6;max-width:560px}
+#s-court .rank2{margin-top:26px;display:inline-block;border:1px solid rgba(255,216,77,.55);padding:12px 22px;
+  font-size:12px;letter-spacing:.26em;color:#ffe9a8;background:rgba(255,216,77,.07)}
+#s-court .courtbtns{display:flex;gap:12px;margin-top:36px;flex-wrap:wrap;justify-content:center}
+#s-court .courtbtns button{padding:15px 28px;font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.16em;font-size:14px}
+#btn-again{border:1px solid rgba(255,90,45,.6);color:#ffd9cd;background:rgba(255,90,45,.1)}
+#btn-title{border:1px solid var(--line);color:var(--mono-dim)}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="fog"></div>
+<div id="shakewrap">
+
+  <!-- TITLE -->
+  <section class="screen on" id="s-title">
+    <h1 class="display">Name<br>the Critic</h1>
+    <div class="v2 display">2.0 · THE MASK COURT</div>
+    <div class="sub">FIVE MASKS RUN YOUR LIFE FROM THE SHADOWS.<br>DRAG EACH ONE INTO THE ARENA. GIVE IT A JOB.</div>
+    <button class="btn-primary" id="btn-enter">Enter the Court</button>
+  </section>
+
+  <!-- GATE / BOSS SELECT -->
+  <section class="screen" id="s-gate">
+    <div class="gate-head">CHOOSE YOUR OPPONENT</div>
+    <div class="gate-title display">The Mask Court</div>
+    <div class="gate-sub">EACH MASK IS UNTRAINED PROTECTION.<br>DEFEAT IS NOT THE GOAL — INTEGRATION IS.</div>
+    <div class="gate-grid" id="gategrid"></div>
+    <button id="btn-court" class="locked display">⚖ Claim the Court ⚖</button>
+  </section>
+
+  <!-- ARENA -->
+  <section class="screen arena" id="s-arena">
+    <div class="arena-floor"></div>
+    <div id="bossname-hud"><span class="n" id="hud-name"></span><span id="hud-arch"></span></div>
+    <div id="healthbar"></div>
+    <div id="comp-hud"><div class="lbl">COMPOSURE</div><div id="comp-bar"><div id="comp-fill"></div></div></div>
+
+    <div id="boss-stage" data-phase="0" style="--grow:1">
+      <div id="boss-rig"><div id="boss-breathe"></div></div>
+    </div>
+
+    <div id="player">
+      <svg viewBox="0 0 60 150" aria-hidden="true">
+        <circle cx="30" cy="18" r="11" fill="#10131c"/>
+        <path d="M18 34 Q30 28 42 34 L44 86 Q30 92 16 86 Z" fill="#10131c"/>
+        <path d="M22 88 L20 142 L28 142 L30 100 L32 142 L40 142 L38 88 Z" fill="#0d1018"/>
+        <path d="M18 40 Q10 58 14 76" stroke="#10131c" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M42 40 Q52 56 48 74" stroke="#10131c" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M30 8 Q34 4 40 7" stroke="rgba(111,210,255,.5)" stroke-width="1.4" fill="none"/>
+      </svg>
+    </div>
+    <div id="allies"></div>
+
+    <div id="introbanner"><div class="bn" id="bn-name"></div><div class="bt" id="bn-arch"></div></div>
+    <div id="attacktext"><div class="t" id="attack-t"></div></div>
+
+    <div id="respond">
+      <div id="sysmsg"></div>
+      <div class="moves">
+        <button class="mbtn" id="btn-fight">Fight Back<small>rage · 0 dmg</small></button>
+        <button class="mbtn" id="btn-breathe">Breathe<small>+composure · crit next</small></button>
+        <button class="mbtn" id="btn-name">Name the Fear<small>the only real damage</small></button>
+      </div>
+    </div>
+
+    <div id="namepanel">
+      <div class="prompt">This attack is protection. <b>Bad protection.</b><br>What is this mask actually afraid of?</div>
+      <div class="chips" id="chips"></div>
+      <input id="fearinput" maxlength="60" placeholder="it's afraid of…" autocomplete="off" spellcheck="false">
+      <button id="btn-strike" class="display">Naming Strike</button>
+      <button class="backlink" id="btn-back">← BACK</button>
+    </div>
+
+    <div id="breathov">
+      <div id="borb"><span id="borb-t">INHALE</span></div>
+      <div class="bm" id="borb-m">I NOTICE THE MASK.</div>
+    </div>
+
+    <div id="surge">
+      <div class="warn" id="surge-t">SURVIVAL SURGE</div>
+      <div class="warnsub">THE MASK IS FLOODING YOUR NERVOUS SYSTEM — BREATHE THROUGH IT</div>
+      <div id="surgebarwrap"><div id="surgebar"></div></div>
+      <button id="btn-surge-breathe" class="display">Breathe</button>
+    </div>
+
+    <div id="essencephase">
+      <div class="ep-title">Finisher · Return the Essence</div>
+      <div class="ep-sub" id="ep-sub">The mask is staggered. It was starving for something it forgot how to ask for. Give it back the right Essence.</div>
+      <div class="egrid" id="egrid"></div>
+      <div id="epmsg"></div>
+    </div>
+
+    <div id="prooflock">
+      <div class="pl-title">Proof Lock</div>
+      <div class="pl-sub">Your brain does not believe affirmations. It believes proof.<br>Name ONE action you'll take today — the seal on this win.</div>
+      <div class="pchips" id="pchips"></div>
+      <input id="proofinput" maxlength="70" placeholder="or write your own…" autocomplete="off" spellcheck="false">
+      <button id="btn-lock" class="display" disabled>Lock It In</button>
+    </div>
+
+    <div id="kneelcard">
+      <div class="big" id="kneel-t">It works for you now.</div>
+      <div class="small" id="kneel-s"></div>
+      <div class="xp">+275 XP</div>
+      <button class="cont" id="btn-return">Return to the Court</button>
+    </div>
+
+    <div id="survmode">
+      <div class="sm-t">Survival Mode</div>
+      <div class="sm-s">You didn't lose. You left your body.<br>The mask can't be named from inside the flood.<br><b>One breath brings you back.</b></div>
+      <button id="btn-surv-breathe" class="display" style="padding:16px 44px;color:#02110c;background:linear-gradient(180deg,#b8ffe8,var(--mint));font-size:16px;letter-spacing:.22em;text-transform:uppercase;font-family:'Anton',sans-serif">Breathe Back In</button>
+    </div>
+  </section>
+
+  <!-- COURT FINALE -->
+  <section class="screen" id="s-court">
+    <div class="gate-head">ALL FIVE MASKS INTEGRATED</div>
+    <h1 class="display">The Court<br>Is Yours</h1>
+    <div id="court-lineup"></div>
+    <div class="csub">THE BROKE KING GUARDS YOUR STANDARD. THE SAINT GUARDS YOUR PEACE.<br>THE PROPHET CARRIES YOUR MESSAGE. THE VICTIM GUARDS YOUR HEART.<br>THE WARRIOR HOLDS YOUR LINE. NONE OF THEM LEAD. <b style="color:#ffd84d">YOU DO.</b></div>
+    <div class="rank2">RANK · CRITIC HANDLER → SOVEREIGN &nbsp;·&nbsp; <span id="court-xp"></span> XP</div>
+    <div class="courtbtns">
+      <button id="btn-again">Run the Court Again</button>
+      <button id="btn-title">Leave</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="beam"></div>
+<canvas id="fx"></canvas>
+<div id="flash"></div>
+<div id="xp-hud" class="hidden">XP 0</div>
+<button id="rmtoggle" aria-pressed="false">REDUCE MOTION</button>
+
+<script>
+"use strict";
+/* ============================================================
+   NAME THE CRITIC 2.0 — THE MASK COURT
+   5 mask bosses · composure · breath guard · survival surge
+   naming strikes · essence finisher · proof lock · integration
+   ============================================================ */
+const $ = s => document.querySelector(s);
+
+/* ---------- ESSENCES ---------- */
+const ESSENCES = [
+ {id:"radiance",name:"RADIANCE",emoji:"✨",color:"#FFD84D",beam:"#ffe9a0",aff:"I let my light be seen.",
+  proofs:["Record the content","Write the post","Share the message","Let yourself be seen"]},
+ {id:"love",name:"LOVE",emoji:"❤️",color:"#FF3EDB",beam:"#ff9ae8",aff:"I lead from an open heart, not defense.",
+  proofs:["Send the text","Pray","Forgive","Tell the truth kindly"]},
+ {id:"joy",name:"JOY",emoji:"😆",color:"#ffe44d",beam:"#fff2a0",aff:"I return to freedom, play, and aliveness.",
+  proofs:["Go for a walk","Move your body","Play music","One fun thing, zero guilt"]},
+ {id:"power",name:"POWER",emoji:"⚡",color:"#00F0FF",beam:"#9df4ff",aff:"I take responsibility and move with strength.",
+  proofs:["Make the call","Do the workout","Finish the task","Do the thing you're avoiding"]},
+ {id:"majesty",name:"MAJESTY",emoji:"👑",color:"#B06DFF",beam:"#d8b5ff",aff:"I walk with dignity, faith, and purpose.",
+  proofs:["Clean your environment","Dress like your future self","Raise the standard","Lead the room"]},
+];
+const E = id => ESSENCES.find(e=>e.id===id);
+
+/* ---------- MASK BOSSES ---------- */
+const BOSSES = [
+ {id:"broke-king", name:"THE BROKE KING", emoji:"👑", color:"#FFD84D", arena:"#3a2c05",
+  tag:"POWERFUL · GIFTED · LIVING BELOW THE STANDARD",
+  desc:"Dollar-store crown. Empty pockets. Still acting royal.",
+  attacks:["You know you're meant for more. So why is the account empty?",
+           "A king? Look at how you actually live.",
+           "All that potential. Still broke."],
+  chips:[["staying broke forever","wasting the gift","being ordinary"],
+         ["being seen as a fraud","losing respect","the gap being noticed"],
+         ["running out of time","dying with it inside","proving them right"]],
+  essences:["power","majesty"],
+  ally:"GUARDS YOUR STANDARD",
+  svg:svgKing},
+ {id:"addict-saint", name:"THE ADDICT SAINT", emoji:"😇", color:"#FF3EDB", arena:"#3a0a2c",
+  tag:"LOVES GOD · WANTS HEALING · STILL ESCAPES",
+  desc:"Halo flickering. Temptation behind his back.",
+  attacks:["One more time won't hurt. You've earned the escape.",
+           "You'll change tomorrow. You always say tomorrow.",
+           "God's tired of hearing the same apology."],
+  chips:[["facing the pressure sober","feeling it all","having no exit"],
+         ["never actually changing","being stuck forever","who I am without it"],
+         ["being unlovable","being given up on","being beyond grace"]],
+  essences:["love","power"],
+  ally:"GUARDS YOUR PEACE",
+  svg:svgSaint},
+ {id:"silent-prophet", name:"THE SILENT PROPHET", emoji:"🤐", color:"#00F0FF", arena:"#062e33",
+  tag:"HAS THE MESSAGE · STILL MUTED",
+  desc:"Glowing scroll. Unplugged mic. Legendary squeak.",
+  attacks:["You have the message. Nobody is listening.",
+           "Post it? They'll laugh you off the platform.",
+           "Your story doesn't matter yet. Wait."],
+  chips:[["not mattering","being invisible","dying unheard"],
+         ["being laughed at","public embarrassment","being exposed"],
+         ["never being ready","waiting forever","the message dying with me"]],
+  essences:["radiance","majesty"],
+  ally:"CARRIES YOUR MESSAGE",
+  svg:svgProphet},
+ {id:"raging-victim", name:"THE RAGING VICTIM", emoji:"😡", color:"#ff5b3d", arena:"#3a0e08",
+  tag:"USES THE PAIN AS PERMISSION",
+  desc:"Baby Hulk tantrum. Smashes first, cries immediately.",
+  attacks:["After what they did? You have every right.",
+           "Nobody knows what you survived. Nobody.",
+           "Calm down? They should apologize first."],
+  chips:[["being hurt again","dropping the shield","being blamed"],
+         ["the pain not counting","being dismissed","grieving it fully"],
+         ["letting them off the hook","losing the armor","feeling it instead"]],
+  essences:["love","power"],
+  ally:"GUARDS YOUR HEART",
+  svg:svgVictim},
+ {id:"naive-warrior", name:"THE NAIVE WARRIOR", emoji:"⚔️", color:"#00a6ff", arena:"#082238",
+  tag:"HUGE HEART · NO PLAN · PURE FORCE",
+  desc:"Epic armor. Rubber sword. Gives the shield to the villain.",
+  attacks:["Just push harder. Plans are for cowards.",
+           "You don't need help. You need effort.",
+           "Slow down and you die. Keep charging."],
+  chips:[["being seen as weak","stopping and feeling it","thinking too long"],
+         ["needing someone","owing anyone","being carried"],
+         ["stillness","what shows up in silence","not being enough"]],
+  essences:["joy","power","majesty"],
+  ally:"HOLDS YOUR LINE",
+  svg:svgWarrior},
+];
+
+/* ---------- BOSS SVGS ---------- */
+function svgKing(){return `<svg viewBox="0 0 200 260" aria-hidden="true">
+ <path class="b-shade" d="M100 40 C64 40 48 74 48 116 L40 236 Q100 258 160 236 L152 116 C152 74 136 40 100 40 Z"/>
+ <path class="b-body" d="M100 48 C70 48 56 78 56 116 L50 228 Q100 246 150 228 L144 116 C144 78 130 48 100 48 Z"/>
+ <path class="b-shade" d="M100 54 C80 54 70 72 70 92 Q100 106 130 92 C130 72 120 54 100 54 Z"/>
+ <path class="b-glow" d="M62 44 L74 18 L86 38 L100 12 L114 38 L126 18 L138 44 Q100 58 62 44 Z" transform="rotate(-9 100 30)"/>
+ <path class="b-glow" d="M84 80 L96 78 L94 86 L86 86 Z"/>
+ <path class="b-glow" d="M104 78 L116 80 L114 86 L106 86 Z"/>
+ <path class="b-shade" d="M148 118 L176 150 L168 158 L142 132 Z"/>
+ <path class="b-glow-s" stroke-width="1.6" opacity=".6" d="M64 140 Q100 152 136 140 M70 178 Q100 188 130 178"/>
+ <path class="b-shade" d="M44 120 L28 200 L44 196 Z"/>
+ <path class="crack c1" d="M74 108 L86 134 L76 156"/>
+ <path class="crack c2" d="M126 116 L114 144 L126 168"/>
+ <path class="crack c3" d="M96 184 L106 208 L94 230"/></svg>`}
+function svgSaint(){return `<svg viewBox="0 0 200 260" aria-hidden="true">
+ <ellipse class="b-glow-s" cx="100" cy="26" rx="34" ry="10" stroke-width="4" opacity=".85" stroke-dasharray="14 9"/>
+ <path class="b-shade" d="M100 34 C62 34 46 70 46 112 L40 238 Q100 258 160 238 L154 112 C154 70 138 34 100 34 Z"/>
+ <path class="b-body" d="M100 42 C70 42 56 72 56 112 L52 230 Q100 246 148 230 L144 112 C144 72 130 42 100 42 Z"/>
+ <path class="b-shade" d="M100 48 C80 48 70 66 70 88 Q100 102 130 88 C130 66 120 48 100 48 Z"/>
+ <path class="b-glow" d="M84 74 L94 72 L92 80 L86 80 Z"/>
+ <path class="b-glow" d="M106 72 L116 74 L114 80 L108 80 Z"/>
+ <path class="b-shade" d="M56 120 Q40 150 52 182 L64 176 Q56 150 66 128 Z"/>
+ <path class="b-shade" d="M144 120 Q166 152 152 190 L140 182 Q150 152 136 128 Z"/>
+ <circle class="b-glow" cx="156" cy="196" r="9" opacity=".8"/>
+ <path class="b-glow-s" stroke-width="1.4" opacity=".5" d="M78 108 Q100 116 122 108"/>
+ <path class="crack c1" d="M76 104 L88 130 L78 152"/>
+ <path class="crack c2" d="M124 112 L112 140 L124 162"/>
+ <path class="crack c3" d="M96 180 L106 204 L94 228"/></svg>`}
+function svgProphet(){return `<svg viewBox="0 0 200 260" aria-hidden="true">
+ <path class="b-shade" d="M100 16 C62 16 46 54 46 98 L38 236 Q100 258 162 236 L154 98 C154 54 138 16 100 16 Z"/>
+ <path class="b-body" d="M100 24 C68 24 54 58 54 98 L48 228 Q100 246 152 228 L146 98 C146 58 132 24 100 24 Z"/>
+ <path class="b-shade" d="M100 30 C78 30 66 52 66 78 Q100 94 134 78 C134 52 122 30 100 30 Z"/>
+ <ellipse class="b-glow" cx="85" cy="62" rx="6.5" ry="8"/>
+ <ellipse class="b-glow" cx="115" cy="62" rx="6.5" ry="8"/>
+ <path class="b-glow-s" stroke-width="3" d="M88 86 L112 86" opacity=".9"/>
+ <path class="b-glow-s" stroke-width="2" d="M96 80 L104 92 M104 80 L96 92" opacity=".9"/>
+ <rect class="b-shade" x="120" y="130" width="44" height="56" rx="4" transform="rotate(10 142 158)"/>
+ <rect class="b-glow" x="125" y="138" width="34" height="3" opacity=".85" transform="rotate(10 142 158)"/>
+ <rect class="b-glow" x="125" y="147" width="26" height="2.4" opacity=".6" transform="rotate(10 142 158)"/>
+ <rect class="b-glow" x="125" y="156" width="30" height="2.4" opacity=".6" transform="rotate(10 142 158)"/>
+ <path class="crack c1" d="M72 106 L84 132 L74 154"/>
+ <path class="crack c2" d="M128 98 L116 126 L128 150"/>
+ <path class="crack c3" d="M96 178 L106 202 L94 226"/></svg>`}
+function svgVictim(){return `<svg viewBox="0 0 200 260" aria-hidden="true">
+ <path class="b-shade" d="M100 46 C52 46 30 88 34 138 L30 240 Q100 260 170 240 L166 138 C170 88 148 46 100 46 Z"/>
+ <path class="b-body" d="M100 54 C60 54 40 92 44 138 L42 232 Q100 250 158 232 L156 138 C160 92 140 54 100 54 Z"/>
+ <path class="b-shade" d="M100 40 C82 40 72 56 74 76 Q100 90 126 76 C128 56 118 40 100 40 Z"/>
+ <path class="b-glow" d="M80 62 L94 66 L90 74 L82 71 Z"/>
+ <path class="b-glow" d="M106 66 L120 62 L118 71 L110 74 Z"/>
+ <path class="b-shade" d="M44 130 Q20 160 30 196 L52 188 Q44 162 58 140 Z"/>
+ <path class="b-shade" d="M156 130 Q182 160 172 198 L150 190 Q158 162 144 140 Z"/>
+ <circle class="b-shade" cx="38" cy="200" r="16"/>
+ <circle class="b-shade" cx="164" cy="202" r="16"/>
+ <path class="b-glow-s" stroke-width="2" opacity=".7" d="M84 86 Q100 80 116 86"/>
+ <path class="crack c1" d="M70 110 L84 138 L72 162"/>
+ <path class="crack c2" d="M132 104 L118 134 L132 158"/>
+ <path class="crack c3" d="M96 184 L108 208 L94 232"/></svg>`}
+function svgWarrior(){return `<svg viewBox="0 0 200 260" aria-hidden="true">
+ <path class="b-shade" d="M100 34 C66 34 50 68 50 110 L42 238 Q100 258 158 238 L150 110 C150 68 134 34 100 34 Z"/>
+ <path class="b-body" d="M100 42 C72 42 58 72 58 110 L52 230 Q100 246 148 230 L142 110 C142 72 128 42 100 42 Z"/>
+ <path class="b-shade" d="M100 28 C82 28 72 44 72 66 L72 74 Q100 88 128 74 L128 66 C128 44 118 28 100 28 Z"/>
+ <path class="b-shade" d="M68 46 L132 46 L128 34 L72 34 Z"/>
+ <path class="b-glow" d="M82 62 L94 60 L92 68 L84 68 Z"/>
+ <path class="b-glow" d="M106 60 L118 62 L116 68 L108 68 Z"/>
+ <path class="b-body" d="M144 100 L182 46 L190 54 L152 110 Z"/>
+ <path class="b-glow-s" stroke-width="2.4" d="M176 40 L196 62" opacity=".85"/>
+ <path class="b-glow-s" stroke-width="1.6" opacity=".6" d="M64 130 Q100 142 136 130 M68 168 Q100 178 132 168"/>
+ <path class="b-shade" d="M54 118 Q34 140 40 172 L54 166 Q50 142 62 128 Z"/>
+ <path class="crack c1" d="M74 104 L86 132 L76 156"/>
+ <path class="crack c2" d="M126 110 L114 140 L126 164"/>
+ <path class="crack c3" d="M96 182 L106 206 L94 230"/></svg>`}
+
+/* ---------- STATE ---------- */
+const state = {
+  boss:null, round:0, grownOnce:false, busy:false, rm:false,
+  comp:100, nextCrit:false, fears:[], essence:null, proof:"",
+  xp:0, done:{}, entries:[], surgeFired:false, surgeTimer:null,
+};
+const XP_PER = 275;
+const wait = ms => new Promise(r=>setTimeout(r, state.rm ? Math.min(ms,220) : ms));
+
+/* ---------- PARTICLES ---------- */
+const cv=$("#fx"),ctx=cv.getContext("2d");let W,H,parts=[],emberOn=true;
+function resize(){W=cv.width=innerWidth*devicePixelRatio;H=cv.height=innerHeight*devicePixelRatio;
+  cv.style.width=innerWidth+"px";cv.style.height=innerHeight+"px"}
+addEventListener("resize",resize);resize();
+function hexRGB(h){const n=parseInt(h.slice(1),16);return `${n>>16&255},${n>>8&255},${n&255}`}
+function spawnEmber(){const c=state.boss?hexRGB(state.boss.color):"255,90,45";
+  parts.push({t:"e",x:Math.random()*W,y:H+10,vx:(Math.random()-.5)*.25*devicePixelRatio,
+  vy:-(.35+Math.random()*.8)*devicePixelRatio,r:(1+Math.random()*2.2)*devicePixelRatio,
+  life:1,decay:.0016+Math.random()*.002,c:Math.random()<.85?c:"255,220,180"})}
+function spawnShards(x,y,w,h,n=42){for(let i=0;i<n;i++){
+  parts.push({t:"s",x:(x+Math.random()*w)*devicePixelRatio,y:(y+Math.random()*h)*devicePixelRatio,
+  vx:(Math.random()-.5)*7*devicePixelRatio,vy:(-2-Math.random()*5)*devicePixelRatio,g:.22*devicePixelRatio,
+  r:(1.5+Math.random()*3.5)*devicePixelRatio,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,
+  life:1,decay:.012+Math.random()*.014,c:Math.random()<.7?"111,210,255":"235,250,255"})}}
+function spawnBurst(x,y,color,n=26,spd=5){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,
+  v=(1+Math.random()*spd)*devicePixelRatio;
+  parts.push({t:"e",x:x*devicePixelRatio,y:y*devicePixelRatio,vx:Math.cos(a)*v,vy:Math.sin(a)*v,
+  r:(1+Math.random()*2.5)*devicePixelRatio,life:1,decay:.02+Math.random()*.02,c:color})}}
+(function tick(){ctx.clearRect(0,0,W,H);
+  if(emberOn&&!state.rm&&Math.random()<.3)spawnEmber();
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=p.decay;
+    if(p.life<=0){parts.splice(i,1);continue}
+    p.x+=p.vx;p.y+=p.vy;if(p.t==="s"){p.vy+=p.g;p.rot+=p.vr}
+    ctx.globalAlpha=Math.max(0,p.life);
+    if(p.t==="s"){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=`rgb(${p.c})`;ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);ctx.restore()}
+    else{ctx.fillStyle=`rgb(${p.c})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}}
+  ctx.globalAlpha=1;requestAnimationFrame(tick)})();
+
+/* ---------- FX HELPERS ---------- */
+function flash(red=false){const f=$("#flash");f.classList.toggle("red",red);
+  f.classList.remove("hit");void f.offsetWidth;f.classList.add("hit")}
+function shake(kind="shake"){if(state.rm)return;const w=$("#shakewrap");
+  w.classList.remove("shake","rumble","quake");void w.offsetWidth;w.classList.add(kind)}
+function anim(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on")}
+function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function sys(msg,cls=""){const s=$("#sysmsg");s.className="";if(cls)s.classList.add(cls);s.textContent=msg}
+function setXP(v){state.xp=v;$("#xp-hud").textContent="XP "+v}
+function setComp(v){state.comp=Math.max(0,Math.min(100,v));
+  $("#comp-fill").style.width=state.comp+"%";
+  $("#comp-hud").classList.toggle("low",state.comp<=30);
+  if(state.comp<=0)survivalMode()}
+
+/* ---------- REDUCE MOTION ---------- */
+if(matchMedia("(prefers-reduced-motion: reduce)").matches)setRM(true);
+$("#rmtoggle").addEventListener("click",()=>setRM(!state.rm));
+function setRM(v){state.rm=v;document.body.classList.toggle("rm",v);
+  $("#rmtoggle").classList.toggle("on",v);$("#rmtoggle").setAttribute("aria-pressed",v)}
+
+/* ---------- TITLE → GATE ---------- */
+$("#btn-enter").addEventListener("click",()=>{buildGate();show("#s-gate");
+  $("#xp-hud").classList.remove("hidden")});
+
+/* ---------- GATE ---------- */
+function buildGate(){
+  const g=$("#gategrid");g.innerHTML="";
+  BOSSES.forEach(b=>{
+    const done=!!state.done[b.id];
+    const c=document.createElement("button");
+    c.className="gcard"+(done?" done":"");
+    c.style.setProperty("--bcol",b.color);
+    c.innerHTML=b.svg()+`<div class="gname display">${b.name}</div>
+      <div class="gdesc">${b.desc}</div>
+      <div class="gstate">${done?"✓ INTEGRATED · "+b.ally:"SEALED · FIGHT IT"}</div>`;
+    if(!done)c.addEventListener("click",()=>startBoss(b));
+    g.appendChild(c);
+  });
+  const all=BOSSES.every(b=>state.done[b.id]);
+  $("#btn-court").classList.toggle("locked",!all);
+}
+$("#btn-court").addEventListener("click",()=>{buildCourt();show("#s-court");
+  document.body.classList.add("settled")});
+
+/* ---------- BOSS SETUP ---------- */
+function applyBossTheme(b){
+  document.documentElement.style.setProperty("--bglow",b.color);
+  document.documentElement.style.setProperty("--arena",b.arena);
+}
+function buildAllies(){
+  const box=$("#allies");box.innerHTML="";
+  BOSSES.filter(b=>state.done[b.id]&&b.id!==state.boss.id).forEach(b=>{
+    const d=document.createElement("div");d.className="ally-mini";d.innerHTML=b.svg();box.appendChild(d);
+  });
+}
+function buildHealthbar(){
+  const hb=$("#healthbar");hb.innerHTML="";hb.classList.remove("up");
+  state.boss.attacks.forEach((a,i)=>{
+    const seg=document.createElement("div");seg.className="hseg";seg.dataset.i=i;
+    seg.innerHTML=`<div class="segtext">${escapeHTML(a)}</div><div class="burn"></div>`;
+    hb.appendChild(seg);
+  });
+  $("#hud-name").textContent=state.boss.name;
+  $("#hud-arch").textContent=state.boss.tag;
+}
+async function startBoss(b){
+  state.boss=b;state.round=0;state.grownOnce=false;state.busy=true;
+  state.nextCrit=false;state.fears=[];state.essence=null;state.proof="";
+  state.surgeFired=false;
+  setComp(100);
+  applyBossTheme(b);
+  show("#s-arena");emberOn=true;
+  document.body.classList.remove("settled");
+  $("#boss-breathe").innerHTML=b.svg();
+  const st=$("#boss-stage"),rig=$("#boss-rig");
+  st.dataset.phase="0";st.style.setProperty("--grow","1");
+  st.classList.remove("allied");st.style.left="50%";st.style.bottom="9%";
+  rig.className="";rig.style.opacity="0";
+  buildHealthbar();buildAllies();
+  ["#respond","#namepanel","#essencephase","#prooflock","#kneelcard","#surge","#breathov","#survmode"]
+    .forEach(x=>$(x).classList.remove("on"));
+  $("#bossname-hud").classList.remove("up");
+  /* intro cinematic */
+  await wait(500);
+  const r=st.getBoundingClientRect();
+  if(!state.rm){for(let k=0;k<5;k++){spawnBurst(r.left+r.width/2,r.top+r.height*.6,hexRGB(b.color),20,4);await wait(150)}}
+  rig.style.transition="opacity 1.2s ease, filter 1.2s ease";
+  rig.style.opacity="1";
+  await wait(900);
+  $("#bn-name").textContent=b.name;$("#bn-arch").textContent=b.tag;
+  $("#introbanner").classList.add("on");
+  flash(false);shake("shake");anim(rig,"lunge");
+  await wait(1900);
+  $("#introbanner").classList.remove("on");
+  $("#healthbar").classList.add("up");
+  $("#bossname-hud").classList.add("up");
+  $("#comp-hud").classList.add("up");
+  shake("rumble");
+  await wait(1100);
+  state.busy=false;
+  bossAttack();
+}
+
+/* ---------- FIGHT LOOP ---------- */
+async function bossAttack(){
+  if(state.busy)return;state.busy=true;
+  $("#respond").classList.remove("on");$("#namepanel").classList.remove("on");
+  const rig=$("#boss-rig");
+  await wait(600);
+  anim(rig,"lunge");
+  await wait(280);
+  flash(true);shake("shake");
+  $("#attack-t").textContent=state.boss.attacks[state.round];
+  $("#attacktext").classList.add("on");
+  anim($("#player"),"stagger");
+  setComp(state.comp-14);
+  if(state.comp<=0)return; /* survival mode took over */
+  await wait(1600);
+  sys("");
+  $("#respond").classList.add("on");
+  state.busy=false;
+}
+
+/* FIGHT BACK — the trap */
+$("#btn-fight").addEventListener("click",async()=>{
+  if(state.busy)return;state.busy=true;
+  const rig=$("#boss-rig"),st=$("#boss-stage");
+  anim($("#player"),"swing");
+  await wait(220);
+  const r=st.getBoundingClientRect();
+  spawnBurst(r.left+r.width/2,r.top+r.height*.55,hexRGB(state.boss.color),18,4);
+  shake("shake");
+  await wait(420);
+  setComp(state.comp-12);
+  if(state.comp<=0)return;
+  if(!state.grownOnce){
+    state.grownOnce=true;
+    sys("NO EFFECT. RAGE FEEDS IT.","err");
+    await wait(650);
+    st.style.setProperty("--grow","1.05");
+    anim(rig,"lunge");shake("rumble");
+    sys("NO EFFECT. RAGE FEEDS IT. — IT GREW.","err");
+  }else{
+    sys("NO EFFECT. RAGE FEEDS IT. −12 COMPOSURE.","err");
+  }
+  state.busy=false;
+});
+
+/* BREATHE — guard + crit setup */
+$("#btn-breathe").addEventListener("click",async()=>{
+  if(state.busy)return;state.busy=true;
+  $("#respond").classList.remove("on");$("#attacktext").classList.remove("on");
+  await breathCycle("I THANK IT FOR PROTECTING ME.");
+  setComp(state.comp+28);
+  state.nextCrit=true;
+  $("#attacktext").classList.add("on");
+  $("#respond").classList.add("on");
+  sys("BODY RECLAIMED. +28 COMPOSURE — NEXT NAMING STRIKE IS CRITICAL.","good");
+  state.busy=false;
+});
+function breathCycle(mantra){
+  return new Promise(async res=>{
+    const ov=$("#breathov"),orb=$("#borb"),t=$("#borb-t");
+    $("#borb-m").textContent=mantra;
+    ov.classList.add("on");
+    t.textContent="INHALE";orb.classList.remove("out");void orb.offsetWidth;orb.classList.add("in");
+    await wait(state.rm?300:4000);
+    t.textContent="EXHALE";orb.classList.remove("in");orb.classList.add("out");
+    await wait(state.rm?300:5000);
+    ov.classList.remove("on");orb.classList.remove("out");
+    res();
+  });
+}
+
+/* NAME THE FEAR */
+$("#btn-name").addEventListener("click",()=>{
+  if(state.busy)return;
+  $("#respond").classList.remove("on");
+  $("#attacktext").classList.remove("on");
+  openNamePanel();
+});
+$("#btn-back").addEventListener("click",()=>{
+  $("#namepanel").classList.remove("on");
+  $("#attacktext").classList.add("on");
+  $("#respond").classList.add("on");
+});
+function openNamePanel(){
+  const chips=state.boss.chips[state.round];
+  const box=$("#chips");box.innerHTML="";
+  chips.forEach(c=>{
+    const b=document.createElement("button");b.className="chip";b.textContent=c;
+    b.addEventListener("click",()=>{$("#fearinput").value=c;namingStrike()});
+    box.appendChild(b);
+  });
+  const fi=$("#fearinput");fi.value="";$("#btn-strike").disabled=true;
+  $("#namepanel").classList.add("on");fi.focus();
+}
+$("#fearinput").addEventListener("input",e=>{$("#btn-strike").disabled=!e.target.value.trim()});
+$("#fearinput").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.value.trim())namingStrike()});
+$("#btn-strike").addEventListener("click",namingStrike);
+
+async function namingStrike(){
+  if(state.busy)return;state.busy=true;
+  const fear=$("#fearinput").value.trim().toLowerCase();
+  state.fears[state.round]=fear;
+  $("#namepanel").classList.remove("on");
+  const crit=state.nextCrit;state.nextCrit=false;
+  await fireBeam("#6fd2ff", crit?1.6:1);
+  /* segment shatter */
+  const seg=document.querySelector(`.hseg[data-i="${state.round}"]`);
+  const sr=seg.getBoundingClientRect();
+  seg.classList.add("shatter");
+  spawnShards(sr.left,sr.top,sr.width,sr.height,crit?70:40);
+  if(crit){shake("quake");sys("CRITICAL NAMING.","crit")}
+  await wait(620);
+  seg.classList.add("done");
+  seg.querySelector(".segtext").textContent="AFRAID OF: "+fear.toUpperCase();
+  if(crit)setComp(state.comp+10);
+  state.round++;
+  $("#boss-stage").dataset.phase=String(state.round);
+  await wait(1100);
+  if(state.round>=state.boss.attacks.length){essencePhase()}
+  else if(state.round===2&&!state.surgeFired){state.surgeFired=true;state.busy=false;survivalSurge()}
+  else{state.busy=false;bossAttack()}
+}
+function fireBeam(color,power=1){
+  return new Promise(async res=>{
+    document.documentElement.style.setProperty("--beamcol",color);
+    const pr=$("#player").getBoundingClientRect();
+    const st=$("#boss-stage"),br=st.getBoundingClientRect();
+    const x1=pr.left+pr.width*.7,y1=pr.top+pr.height*.25;
+    const x2=br.left+br.width/2,y2=br.top+br.height*.5;
+    const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy),ang=Math.atan2(dy,dx);
+    const beam=$("#beam");
+    beam.style.left=x1+"px";beam.style.top=y1+"px";
+    beam.style.width=len+"px";beam.style.height=(8*power)+"px";
+    beam.style.transform=`rotate(${ang}rad)`;
+    anim($("#player"),"swing");
+    if(!state.rm){beam.classList.remove("fire");void beam.offsetWidth;beam.classList.add("fire")}
+    await wait(320);
+    flash(false);shake("shake");anim($("#boss-rig"),"hit");
+    spawnBurst(x2,y2,hexRGB(color.startsWith("#")?color:"#6fd2ff"),Math.round(34*power),6*power);
+    res();
+  });
+}
+
+/* ---------- SURVIVAL SURGE (boss special) ---------- */
+async function survivalSurge(){
+  if(state.busy)return;state.busy=true;
+  $("#respond").classList.remove("on");$("#attacktext").classList.remove("on");
+  const rig=$("#boss-rig");
+  anim(rig,"lunge");shake("quake");flash(true);
+  await wait(500);
+  $("#surge-t").textContent="SURVIVAL SURGE";
+  $("#surge").classList.add("on");
+  let pct=100;
+  $("#surgebar").style.width="100%";
+  state.surgeTimer=setInterval(()=>{
+    pct-=1.6;
+    $("#surgebar").style.width=Math.max(0,pct)+"%";
+    if(pct%12<1.6)setComp(state.comp-3);
+    if(pct<=0){clearInterval(state.surgeTimer);endSurge(false)}
+  },80);
+}
+$("#btn-surge-breathe").addEventListener("click",()=>{
+  clearInterval(state.surgeTimer);endSurge(true);
+});
+async function endSurge(braved){
+  $("#surge").classList.remove("on");
+  if(braved){
+    await breathCycle("I RELEASE THE OLD STRATEGY.");
+    setComp(state.comp+20);
+    state.nextCrit=true;
+    sys("SURGE WEATHERED. +20 COMPOSURE — CRIT ARMED.","good");
+  }else{
+    flash(true);shake("quake");
+    sys("THE FLOOD TOOK ITS TOLL.","err");
+    if(state.comp<=0)return;
+  }
+  state.busy=false;
+  bossAttack();
+}
+
+/* ---------- SURVIVAL MODE (composure 0) ---------- */
+async function survivalMode(){
+  clearInterval(state.surgeTimer);
+  ["#respond","#namepanel","#surge","#attacktext"].forEach(x=>$(x).classList.remove("on"));
+  document.body.classList.add("settled");
+  $("#survmode").classList.add("on");
+  state.busy=true;
+}
+$("#btn-surv-breathe").addEventListener("click",async()=>{
+  $("#survmode").classList.remove("on");
+  await breathCycle("I RETURN TO MY BODY.");
+  document.body.classList.remove("settled");
+  setComp(55);
+  sys("BACK IN THE BODY. THE MASK IS STILL HERE. SO ARE YOU.","good");
+  state.busy=false;
+  bossAttack();
+});
+
+/* ---------- ESSENCE PHASE (finisher) ---------- */
+async function essencePhase(){
+  const rig=$("#boss-rig");
+  rig.classList.add("stagger-boss");
+  $("#ep-sub").innerHTML=`${state.boss.name} is staggered. It attacked because it was starving.<br>Give it back what it forgot how to ask for.`;
+  const g=$("#egrid");g.innerHTML="";$("#epmsg").textContent="";
+  ESSENCES.forEach(e=>{
+    const c=document.createElement("button");c.className="ecard";
+    c.style.setProperty("--ecol",e.color);
+    c.innerHTML=`<div class="ee">${e.emoji}</div><div class="en">${e.name}</div><div class="ea">${e.aff}</div>`;
+    c.addEventListener("click",()=>tryEssence(e,c));
+    g.appendChild(c);
+  });
+  await wait(800);
+  $("#essencephase").classList.add("on");
+  state.busy=false;
+}
+async function tryEssence(e,card){
+  if(state.busy)return;
+  if(!state.boss.essences.includes(e.id)){
+    anim(card,"wrong");
+    setComp(state.comp-6);
+    $("#epmsg").textContent=`DEFLECTED — ${state.boss.name} ISN'T STARVING FOR ${e.name}. −6 COMPOSURE.`;
+    if(state.comp<=0)return;
+    return;
+  }
+  state.busy=true;state.essence=e;
+  $("#essencephase").classList.remove("on");
+  /* ESSENCE STRIKE — finisher */
+  await fireBeam(e.color,2);
+  shake("quake");
+  await wait(200);
+  await fireBeam(e.color,1.4);
+  const st=$("#boss-stage"),r=st.getBoundingClientRect();
+  spawnBurst(r.left+r.width/2,r.top+r.height*.5,hexRGB(e.color),60,7);
+  $("#boss-rig").classList.remove("stagger-boss");
+  sys("");
+  await wait(900);
+  proofLock();
+}
+
+/* ---------- PROOF LOCK ---------- */
+function proofLock(){
+  const box=$("#pchips");box.innerHTML="";
+  state.essence.proofs.forEach(p=>{
+    const b=document.createElement("button");b.className="pchip";b.textContent=p;
+    b.addEventListener("click",()=>{$("#proofinput").value=p;$("#btn-lock").disabled=false});
+    box.appendChild(b);
+  });
+  $("#proofinput").value="";$("#btn-lock").disabled=true;
+  $("#prooflock").classList.add("on");
+  state.busy=false;
+}
+$("#proofinput").addEventListener("input",e=>{$("#btn-lock").disabled=!e.target.value.trim()});
+$("#proofinput").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.value.trim())lockProof()});
+$("#btn-lock").addEventListener("click",lockProof);
+async function lockProof(){
+  if(state.busy)return;state.busy=true;
+  state.proof=$("#proofinput").value.trim();
+  $("#prooflock").classList.remove("on");
+  flash(false);shake("shake");
+  kneelSequence();
+}
+
+/* ---------- KNEELING / INTEGRATION ---------- */
+async function kneelSequence(){
+  emberOn=false;
+  const st=$("#boss-stage"),rig=$("#boss-rig");
+  await wait(700);
+  rig.classList.add("kneel");
+  document.body.classList.add("settled");
+  shake("rumble");
+  await wait(2200);
+  rig.classList.remove("kneel");
+  rig.classList.add("shrunk");
+  st.classList.add("allied");
+  const r=st.getBoundingClientRect();
+  spawnBurst(r.left+r.width/2,r.top+r.height*.6,"63,140,255",30,3);
+  await wait(2400);
+  st.style.left="26%";st.style.bottom="8%";
+  await wait(2600);
+  /* record the win */
+  state.done[state.boss.id]=true;
+  state.entries.push({boss:state.boss.id,essence:state.essence.id,proof:state.proof,
+    fears:[...state.fears],at:new Date().toISOString()});
+  setXP(state.xp+XP_PER);
+  $("#kneel-t").textContent="It works for you now.";
+  $("#kneel-s").innerHTML=`${state.boss.name} — INTEGRATED. IT NOW ${state.boss.ally}.<br>
+    ESSENCE RETURNED: ${state.essence.emoji} ${state.essence.name}.<br>
+    YOUR PROOF: ${escapeHTML(state.proof.toUpperCase())}.`;
+  $("#kneelcard").classList.add("on");
+  flash(false);
+}
+$("#btn-return").addEventListener("click",()=>{
+  $("#kneelcard").classList.remove("on");
+  document.body.classList.remove("settled");
+  emberOn=true;
+  buildGate();show("#s-gate");
+});
+
+/* ---------- COURT FINALE ---------- */
+function buildCourt(){
+  const box=$("#court-lineup");box.innerHTML="";
+  const you=document.createElement("div");you.className="cl you";
+  you.innerHTML=$("#player").innerHTML;box.appendChild(you);
+  BOSSES.forEach(b=>{const d=document.createElement("div");d.className="cl";d.innerHTML=b.svg();box.appendChild(d)});
+  $("#court-xp").textContent=state.xp;
+}
+$("#btn-again").addEventListener("click",()=>{
+  state.done={};state.entries=[];setXP(0);
+  document.body.classList.remove("settled");
+  buildGate();show("#s-gate");
+});
+$("#btn-title").addEventListener("click",()=>{
+  document.body.classList.remove("settled");
+  show("#s-title");
+});
+setXP(0);
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@ export default function MorningPlanRecap() {
             Win the morning.<br />Own the day.
           </h2>
           <p className="morning-activation__sub">
-            Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Four steps. Five minutes. Today is yours.
+            Your goals don't close themselves. <strong>Every move you make below gets you closer.</strong> Three steps. Five minutes. Today is yours.
           </p>
         </div>
 
@@ -34,10 +34,6 @@ export default function MorningPlanRecap() {
           <div className="morning-activation__step">
             <span className="morning-activation__step-num">03</span>
             <span><strong className="morning-activation__step-key">Your Top 5</strong> — the exact moves that push your biggest projects forward today</span>
-          </div>
-          <div className="morning-activation__step">
-            <span className="morning-activation__step-num">04</span>
-            <span><strong className="morning-activation__step-key">One battle</strong> — one decisive win that makes today a victory worth building on</span>
           </div>
         </div>
       </div>

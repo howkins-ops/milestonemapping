@@ -96,7 +96,7 @@ export default function ArenaGamesGrid({ go }) {
         <p className="zn-eyebrow arn-eyebrow">Choose your fighter</p>
         <h2 className="arn-title">The Roster</h2>
         <p className="arn-sub">
-          Nine arenas, nine ways to burn. Every game trains a different muscle of the fire.
+          Ten arenas, ten ways to burn. Every game trains a different muscle of the fire.
           Lock one in and step into the light.
         </p>
       </header>

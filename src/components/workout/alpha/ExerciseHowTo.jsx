@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import HL from "./HL.jsx";
+import ExerciseImg from "./ExerciseImg.jsx";
 import { exerciseInfo } from "./data/exercises.js";
 
 /* ALPHA MODE — the how-to panel.
@@ -27,10 +29,11 @@ export default function ExerciseHowTo({ name, title, meta, defaultOpen = false }
           {(title || meta) && (
             <div className="iw-howto-tags">{info.muscles} · {info.equipment}</div>
           )}
-          <p className="iw-howto-setup">{info.setup}</p>
+          <ExerciseImg name={name} className="iw-exi-howto" />
+          <p className="iw-howto-setup"><HL text={info.setup} /></p>
           <ol className="iw-howto-steps">
             {info.steps.map((s, i) => (
-              <li key={i}>{s}</li>
+              <li key={i}><HL text={s} /></li>
             ))}
           </ol>
         </div>

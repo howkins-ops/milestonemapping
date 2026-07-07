@@ -20,6 +20,12 @@
 //   buildings: [{ id, name, icon, color, glow, x:px, w:px, hPct,
 //                 glowState, locked, next }],      // door = building center
 //   npcs: [{ id, name, x:px, color, sprite:"guide" }],
+//   enemies: [{ id, kind:"hater"|"naysayer", x:px, patrol?:px, dur?:s }],
+//     // stompable street clowns — jump on them (optional, comedy only)
+//   maskDens: [{ x:px, w:px }],           // fog banks — wild-critic ambush
+//     // stretches (optional; see masks/useEncounterEngine.js)
+//   maskZones: [{ label, ids[], accent, lurkX:px }], // chapter records for
+//     // the mask-boss layer (optional; bosses loom at lurkX when ready)
 // }
 // ════════════════════════════════════════════════════════════════════════
 

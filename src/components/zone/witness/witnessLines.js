@@ -252,6 +252,18 @@ export const WITNESS = {
       "Dropped a tier. That's just the ladder breathing; {squad} has climbed before.",
       "Relegation's temporary. Rally the squad and the promotion's already in reach.",
     ],
+    // Eat the Frog — today's dreaded task, named out loud.
+    frog_declared: [
+      "Named. “{frog}” is on the plate — the dread starts shrinking the second you look at it.",
+      "That's the hardest thing on your list, out in the open. Everything after it is downhill.",
+      "The frog's declared, {name}. It only gets heavier sitting there — eat it early.",
+    ],
+    // Frog eaten — the hardest thing, done first.
+    frog_eaten: [
+      "EATEN. {name} did the hardest thing first — the rest of today is dessert. 🐸",
+      "Frog down. Day {streak} of doing the dreaded thing anyway. That's identity.",
+      "The thing you were dodging is behind you, {name}. Nothing else today hits that hard.",
+    ],
     // Squad grinding together in real time.
     grind_together: [
       "{squad} is in the fire together right now. This is the part nobody does alone. 🔥",

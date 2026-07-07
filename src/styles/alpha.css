@@ -209,7 +209,7 @@
   text-transform: uppercase;
   color: #837e72;
 }
-.iw-al-fastline { margin-top: 10px; font-size: 11px; color: #6d685d; font-weight: 600; }
+.iw-al-fastline { margin-top: 10px; font-size: 13px; line-height: 1.55; color: #a8a296; font-weight: 600; }
 
 /* dials */
 .iw-al-dials { display: flex; flex-direction: column; gap: 9px; }
@@ -1193,8 +1193,8 @@
 }
 .iw-al-grocery-text { display: flex; flex-direction: column; gap: 2px; }
 .iw-al-grocery-label { font-weight: 800; font-size: 13px; color: #e8e4da; }
-.iw-al-grocery-why { font-size: 11px; color: #9a948a; }
-.iw-al-grocery-picks { font-size: 10.5px; color: #6d685d; }
+.iw-al-grocery-why { font-size: 12px; color: #b5b0a3; }
+.iw-al-grocery-picks { font-size: 11.5px; color: #8f897d; }
 .iw-al-stock-footer { text-align: center; margin: 18px 0; }
 
 .iw-al-fridgewrap { margin: 4px 0 16px; }
@@ -1602,9 +1602,9 @@
 }
 .iw-howto-setup {
   margin: 8px 0 6px;
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #c7c2b6;
+  color: #ddd8cc;
   font-style: italic;
 }
 .iw-howto-steps {
@@ -1615,9 +1615,9 @@
   gap: 5px;
 }
 .iw-howto-steps li {
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #b5b0a3;
+  color: #c7c2b6;
 }
 .iw-howto-steps li::marker { color: var(--iw-al-accent, #ff8a4d); font-weight: 800; }
 
@@ -1674,16 +1674,16 @@
 /* next-up strip */
 .iw-al-nextup {
   margin-top: 12px;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border-radius: 10px;
-  border: 1px dashed rgba(232, 228, 218, 0.16);
-  font-size: 11px;
+  border: 1px dashed rgba(232, 228, 218, 0.2);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #837e72;
+  color: #a8a296;
   text-align: center;
 }
-.iw-al-nextup strong { color: #c7c2b6; }
+.iw-al-nextup strong { color: #e8e4da; }
 
 /* hold clock */
 .iw-al-holdring .iw-rest-unit { letter-spacing: 0.2em; text-transform: uppercase; }
@@ -1699,3 +1699,453 @@
   text-transform: uppercase;
   color: #9a948a;
 }
+
+/* ═══════════════ THE PROGRAM — phases console ═══════════════ */
+
+.iw-pc-section { margin: 22px 0; }
+.iw-pc-section-title { margin-bottom: 10px; }
+
+.iw-pc-today {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 10px 0 4px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 106, 43, 0.4);
+  background: linear-gradient(150deg, rgba(255, 106, 43, 0.12), rgba(255, 106, 43, 0.03));
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-pc-today-text { display: flex; flex-direction: column; gap: 3px; }
+.iw-pc-today-name {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 17px;
+  color: #f2eee4;
+}
+.iw-pc-today-go { flex: none; font-size: 12px; font-weight: 800; color: #ff8a4d; }
+
+/* phase cards */
+.iw-pc-phase {
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 16px;
+  background: linear-gradient(170deg, #16181b, #0e0f11);
+  overflow: hidden;
+}
+.iw-pc-phase-open { border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent); }
+.iw-pc-phasehead {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-pc-phase-n {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 24px;
+  width: 34px;
+  text-align: center;
+  flex: none;
+}
+.iw-pc-phase-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.iw-pc-phase-name {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  color: #f2eee4;
+}
+.iw-pc-phase-sub { font-size: 12px; font-weight: 600; color: #a8a296; }
+.iw-pc-phasebody { padding: 2px 14px 14px; border-top: 1px dashed rgba(232, 228, 218, 0.1); }
+.iw-pc-block { margin: 14px 0; }
+.iw-pc-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+
+/* eating rules table */
+.iw-pc-eatgrid { margin-top: 8px; border: 1px solid rgba(232, 228, 218, 0.1); border-radius: 11px; overflow: hidden; }
+.iw-pc-eatrow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 1.1fr 1.4fr;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #c7c2b6;
+}
+.iw-pc-eatrow + .iw-pc-eatrow { border-top: 1px dashed rgba(232, 228, 218, 0.08); }
+.iw-pc-eathead {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9a948a;
+  background: rgba(232, 228, 218, 0.03);
+}
+.iw-pc-eatday { font-weight: 800; color: #e8e4da; }
+
+/* rotation grid */
+.iw-pc-rotation { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.iw-pc-rotrow {
+  display: grid;
+  grid-template-columns: 26px repeat(7, 1fr);
+  gap: 4px;
+  align-items: center;
+}
+.iw-pc-rothead {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #837e72;
+  text-align: center;
+}
+.iw-pc-rothead span:first-child { text-align: left; }
+.iw-pc-rotwk { font-size: 11px; font-weight: 800; color: #9a948a; }
+.iw-pc-rotcell {
+  padding: 5px 0;
+  border-radius: 7px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: #6d685d;
+  background: rgba(232, 228, 218, 0.025);
+}
+.iw-pc-rot-lift { color: #f2eee4; background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 22%, transparent); }
+.iw-pc-rot-cardio { color: #c7c2b6; background: rgba(232, 228, 218, 0.09); }
+.iw-pc-rotnow .iw-pc-rotwk { color: var(--iw-al-accent, #ff8a4d); }
+.iw-pc-rotnow { outline: 1px dashed color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent); outline-offset: 2px; border-radius: 8px; }
+
+/* workout breakdown cards */
+.iw-pc-workout {
+  border: 1px solid rgba(232, 228, 218, 0.1);
+  border-radius: 13px;
+  background: rgba(232, 228, 218, 0.02);
+  overflow: hidden;
+}
+.iw-pc-workout-open { border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 40%, transparent); }
+.iw-pc-wohead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-pc-wobadge {
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--iw-al-accent, #ff8a4d);
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent);
+}
+.iw-pc-wotext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.iw-pc-woname { font-weight: 800; font-size: 14.5px; color: #f2eee4; }
+.iw-pc-wosub { font-size: 11.5px; font-weight: 600; color: #a8a296; }
+.iw-pc-wobody { padding: 4px 12px 12px; border-top: 1px dashed rgba(232, 228, 218, 0.08); display: flex; flex-direction: column; gap: 12px; }
+
+/* exercise library */
+.iw-pc-lib { display: flex; flex-direction: column; gap: 8px; }
+.iw-pc-libgroup {
+  border: 1px solid rgba(232, 228, 218, 0.1);
+  border-radius: 13px;
+  background: rgba(232, 228, 218, 0.02);
+  overflow: hidden;
+}
+.iw-pc-libhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 13px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-pc-libname {
+  flex: 1;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: #e8e4da;
+  text-transform: capitalize;
+}
+.iw-pc-libcount { font-size: 11px; font-weight: 700; color: #9a948a; }
+.iw-pc-libstack { padding: 0 12px 12px; }
+
+/* ═══════════════ THE BOOK OF IRON — depth chart ═══════════════ */
+
+.iw-bk-progress { margin: 6px 0 18px; }
+.iw-bk-progress .iw-al-fastline { display: block; margin-top: 7px; text-align: center; }
+
+.iw-bk-depth {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 18px;
+}
+.iw-bk-depth::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(255, 106, 43, 0.5), rgba(232, 228, 218, 0.08));
+  border-radius: 2px;
+}
+
+.iw-bk-chapter {
+  position: relative;
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 15px;
+  background: linear-gradient(170deg, #16181b, #0e0f11);
+  overflow: hidden;
+}
+.iw-bk-chapter::before {
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 24px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #837e72;
+  box-shadow: 0 0 0 3px rgba(232, 228, 218, 0.08);
+}
+.iw-bk-chapter-open { border-color: rgba(255, 106, 43, 0.4); }
+.iw-bk-chapter-open::before { background: #ff8a4d; box-shadow: 0 0 10px rgba(255, 106, 43, 0.6); }
+
+.iw-bk-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-bk-n {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 228, 218, 0.18);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 13px;
+  color: #e8e4da;
+}
+.iw-bk-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.iw-bk-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 15.5px;
+  color: #f2eee4;
+}
+.iw-bk-sub { font-size: 12px; font-weight: 600; color: #a8a296; }
+.iw-bk-status { flex: none; }
+.iw-bk-body { padding: 4px 14px 16px; border-top: 1px dashed rgba(232, 228, 218, 0.1); }
+.iw-bk-body .iw-page-title { font-size: 20px; }
+
+/* phases chapter rows */
+.iw-bk-phaserow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 30%, transparent);
+  background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 6%, transparent);
+}
+.iw-bk-phasen {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 19px;
+  width: 26px;
+  text-align: center;
+  flex: none;
+}
+.iw-bk-phasetext { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.iw-bk-phasename { font-weight: 800; letter-spacing: 0.08em; font-size: 14px; color: #f2eee4; }
+.iw-bk-phasesub { font-size: 11.5px; font-weight: 600; color: #a8a296; }
+
+/* glossary */
+.iw-bk-gloss {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 228, 218, 0.1);
+  background: rgba(232, 228, 218, 0.02);
+}
+.iw-bk-gloss-term {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 13.5px;
+  color: #ff8a4d;
+  margin-bottom: 4px;
+}
+.iw-bk-gloss-plain { margin: 0; font-size: 13.5px; line-height: 1.6; color: #c7c2b6; }
+
+/* ═══════════════ THE FRIDGE — today's plate rail ═══════════════ */
+
+.iw-mt-ledger { margin-bottom: 16px; }
+
+.iw-mt-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 4px;
+}
+.iw-mt-rail::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(232, 228, 218, 0.06), rgba(255, 106, 43, 0.4), rgba(232, 228, 218, 0.06));
+  border-radius: 2px;
+}
+
+.iw-mt-slot { display: flex; gap: 12px; align-items: flex-start; }
+.iw-mt-time {
+  flex: none;
+  width: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  z-index: 1;
+}
+.iw-mt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 13px;
+  background: #16181b;
+  border: 1px solid rgba(232, 228, 218, 0.2);
+  box-shadow: 0 0 0 4px #0d0e10;
+}
+.iw-mt-slot-post .iw-mt-icon { border-color: rgba(255, 106, 43, 0.6); box-shadow: 0 0 0 4px #0d0e10, 0 0 12px rgba(255, 106, 43, 0.35); }
+.iw-mt-when {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a8a296;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.iw-mt-card {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 13px;
+  border-radius: 13px;
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  background: linear-gradient(170deg, #17191c, #0f1012);
+}
+.iw-mt-slot-post .iw-mt-card { border-color: rgba(255, 106, 43, 0.45); background: linear-gradient(170deg, rgba(255, 106, 43, 0.08), #0f1012); }
+.iw-mt-slot-fast .iw-mt-card, .iw-mt-slot-close .iw-mt-card { background: rgba(232, 228, 218, 0.02); }
+.iw-mt-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 14.5px;
+  color: #f2eee4;
+}
+.iw-mt-line { margin: 5px 0 0; font-size: 13px; line-height: 1.55; color: #b5b0a3; }
+
+.iw-mt-macros { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.iw-mt-macro {
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c7c2b6;
+  border: 1px solid rgba(232, 228, 218, 0.14);
+}
+.iw-mt-macro b { color: #f2eee4; font-weight: 800; }
+.iw-mt-macro-carb { border-color: rgba(255, 106, 43, 0.5); }
+.iw-mt-macro-carb b { color: #ff8a4d; }
+
+.iw-mt-picks { display: flex; gap: 8px; margin-top: 8px; align-items: baseline; }
+.iw-mt-shelf {
+  flex: none;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5fb8c9;
+}
+.iw-mt-items { font-size: 12px; line-height: 1.5; color: #9a948a; }
+.iw-mt-foot { text-align: center; margin: 16px 0; }
+
+/* ═══════════════ exercise demonstration images ═══════════════ */
+
+.iw-exi {
+  display: block;
+  width: 100%;
+  border-radius: 13px;
+  border: 1px solid rgba(232, 228, 218, 0.14);
+  background: #0f1012;
+  object-fit: cover;
+}
+.iw-exi-howto { max-height: 200px; margin: 8px 0 2px; }
+.iw-exi-live { max-height: 230px; margin: 10px 0 4px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); }
+
+/* session map — the shape of the day: A → B → C → D */
+.iw-al-sessionmap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 4px 0 14px;
+}
+.iw-al-sm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 35%, transparent);
+  background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 7%, transparent);
+}
+.iw-al-sm-key {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--iw-al-accent, #ff8a4d);
+}
+.iw-al-sm-glyph { font-size: 13px; color: #e8e4da; }
+.iw-al-sm-kind { font-size: 11.5px; font-weight: 700; color: #c7c2b6; }
+.iw-al-sm-arrow { color: #6d685d; font-weight: 800; }

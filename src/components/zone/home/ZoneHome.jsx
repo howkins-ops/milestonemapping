@@ -69,13 +69,11 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
       <div className="zn-2col zn-action-grid zn-action-grid--primary">
         <ActionCard
           image={ACTION_CARD_IMAGES.declare}
-          icon={ZONE_ICONS.declare}
           label={todayMission ? "Edit Mission" : "Declare Mission"}
           onClick={openDeclare}
         />
         <ActionCard
           image={ACTION_CARD_IMAGES.proof}
-          icon={ZONE_ICONS.proof}
           label="Post Proof"
           onClick={() => openProof()}
         />
@@ -134,14 +132,12 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
       <div className="zn-2col zn-action-grid">
         <ActionCard
           image={ACTION_CARD_IMAGES.challenges}
-          icon={ZONE_ICONS.challenge}
           label="Challenges"
           onClick={() => go("challenges")}
           compact
         />
         <ActionCard
           image={ACTION_CARD_IMAGES.friends}
-          icon={ZONE_ICONS.friends}
           label="Friends"
           onClick={() => go("friends")}
           compact
@@ -185,7 +181,7 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
   );
 }
 
-function ActionCard({ image, icon, label, onClick, compact = false }) {
+function ActionCard({ image, label, onClick, compact = false }) {
   return (
     <button
       type="button"
@@ -195,7 +191,6 @@ function ActionCard({ image, icon, label, onClick, compact = false }) {
     >
       <span className="zn-action-card__shine" aria-hidden="true" />
       <span className="zn-action-card__label">
-        <ZoneIcon src={icon} className="zn-action-card__icon" />
         <span>{label}</span>
       </span>
     </button>

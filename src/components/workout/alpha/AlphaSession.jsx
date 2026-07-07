@@ -5,6 +5,8 @@ import DensityMeter from "./DensityMeter.jsx";
 import TempoTimer from "./TempoTimer.jsx";
 import SegmentTracker from "./SegmentTracker.jsx";
 import ExerciseHowTo from "./ExerciseHowTo.jsx";
+import ExerciseImg from "./ExerciseImg.jsx";
+import HL from "./HL.jsx";
 import SessionBriefing, { blockTitle, protocolLine, KIND_BLURBS } from "./SessionBriefing.jsx";
 import { assessBlock, suggestWeight } from "./engine/autoDifficulty.js";
 import { blockVolume, workCapacity, bumpPrompt, beatsPrevious } from "./engine/densityEngine.js";
@@ -187,7 +189,7 @@ export default function AlphaSession({ workout, phase, bestPRs, lastWeights, set
 
       {briefed && anyLogged && !verdictCard && !intro && (
         <button className="iw-btn-ghost iw-btn-wide iw-al-rackearly" onClick={finishSession}>
-          ⬛ rack it — finish session
+          ■ FINISH &amp; SAVE WORKOUT
         </button>
       )}
 
@@ -202,11 +204,11 @@ export default function AlphaSession({ workout, phase, bestPRs, lastWeights, set
       {confirmAbort && (
         <div className="iw-modal-veil" onClick={() => setConfirmAbort(false)}>
           <div className="iw-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="iw-eyebrow">leave the session?</div>
-            <p className="iw-body">Nothing gets saved unless you rack it. Walk away, or finish what you started.</p>
+            <div className="iw-eyebrow">leave the workout?</div>
+            <p className="iw-body">Nothing gets saved unless you finish. Leave now, or keep training.</p>
             <div className="iw-modal-actions">
-              <button className="iw-btn-ghost" onClick={onAbort}>walk away</button>
-              <button className="iw-btn-ember" onClick={() => setConfirmAbort(false)}>stay under the bar</button>
+              <button className="iw-btn-ghost" onClick={onAbort}>leave — nothing saved</button>
+              <button className="iw-btn-ember" onClick={() => setConfirmAbort(false)}>keep training</button>
             </div>
           </div>
         </div>
@@ -221,14 +223,14 @@ function BlockIntroCard({ block, index, count, onBegin }) {
     <div className="iw-al-blockintro iw-drop-in">
       <div className="iw-eyebrow">block {block.key} · {index + 1} of {count}</div>
       <h2 className="iw-display iw-session-lift">{blockTitle(block)}</h2>
-      <div className="iw-al-brief-protocol">{protocolLine(block)}</div>
-      <p className="iw-body">{KIND_BLURBS[block.kind]}</p>
+      <div className="iw-al-brief-protocol"><HL text={protocolLine(block)} /></div>
+      <p className="iw-body"><HL text={KIND_BLURBS[block.kind]} /></p>
       <div className="iw-set-chips iw-al-intro-chips">
         {block.exercises.map((e, i) => (
           <span key={`${i}-${e.name}`} className="iw-set-chip">{e.name} · {e.reps}</span>
         ))}
       </div>
-      {block.note && <div className="iw-al-fastline">{block.note}</div>}
+      {block.note && <div className="iw-al-fastline"><HL text={block.note} /></div>}
       <button className="iw-btn-ember iw-btn-wide" onClick={onBegin}>▶ begin block {block.key}</button>
     </div>
   );
@@ -248,8 +250,7 @@ function VerdictCard({ card, onNext }) {
               {r.verdict.verdict === "lower" ? "TOO HEAVY" : r.verdict.verdict === "raise" ? "TOO LIGHT" : "FORGE ZONE"}
             </div>
             <p className="iw-body">
-              {r.verdict.line}
-              {next > 0 && next !== r.lastWeight ? ` Next time: ~${next} lbs.` : ""}
+              <HL text={`${r.verdict.line}${next > 0 && next !== r.lastWeight ? ` Next time: ~${next} lbs.` : ""}`} />
             </p>
           </div>
         );
@@ -385,9 +386,10 @@ function RoundsBlock({ block, phase, lastWeights, bestPRs, settings, aBlockMax, 
         {wall && <span className="iw-session-pr-hint"> · wall: {wall.weight} lbs</span>}
         {isCloser && aBlockMax > 0 && <span className="iw-session-pr-hint"> · {block.lightPctOfA?.[0]}–{block.lightPctOfA?.[1]}% of your bookend</span>}
       </div>
-      {move && <div className="iw-al-movecue">✦ signature move — {move.genericName}. {move.cue}</div>}
+      <ExerciseImg name={ex.name} className="iw-exi-live" />
+      {move && <div className="iw-al-movecue">✦ signature move — {move.genericName}. <HL text={move.cue} /></div>}
       <ExerciseHowTo key={`${ex.name}-${exIdx}-${round}`} name={ex.name} defaultOpen={neverLifted} />
-      {block.note && <div className="iw-al-fastline">{block.note}</div>}
+      {block.note && <div className="iw-al-fastline"><HL text={block.note} /></div>}
 
       {doneSets > 0 && (
         <div className="iw-set-chips">
@@ -431,7 +433,7 @@ function RoundsBlock({ block, phase, lastWeights, bestPRs, settings, aBlockMax, 
           </div>
           <button className={`iw-btn-ember iw-btn-wide iw-log-set-btn ${block.kind === "tempo" && !setLive ? "iw-btn-off" : ""}`}
             disabled={block.kind === "tempo" && !setLive} onClick={rack}>
-            ⬛ rack the set
+            ✓ LOG SET <span className="iw-btn-sub">· set done</span>
           </button>
         </>
       )}
@@ -465,6 +467,7 @@ function TotalRepsBlock({ block, lastWeights, settings, logSet, logged, onDone }
     <div className="iw-al-blockplay">
       <div className="iw-eyebrow">block {block.key} · the count</div>
       <h2 className="iw-display iw-session-lift">{ex.name}</h2>
+      <ExerciseImg name={ex.name} className="iw-exi-live" />
       <ExerciseHowTo name={ex.name} defaultOpen={neverLifted} />
       <div className="iw-al-totalreps">
         <span className="iw-al-tr-num">{done}</span>
@@ -476,7 +479,7 @@ function TotalRepsBlock({ block, lastWeights, settings, logSet, logged, onDone }
       <div className="iw-work-steppers">
         <Stepper label="reps this set" value={reps} min={1} max={50} onChange={setReps} wide />
       </div>
-      <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={rack}>⬛ rack the set</button>
+      <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={rack}>✓ LOG SET <span className="iw-btn-sub">· set done</span></button>
     </div>
   );
 }
@@ -526,7 +529,7 @@ function DensityBlock({ block, phase, lastWeights, settings, logSet, onDone }) {
       <div className="iw-al-blockplay">
         <div className="iw-eyebrow">block {block.key} · density · {block.minutes} minutes · load at {block.repMax}</div>
         <h2 className="iw-display iw-session-lift">Set the bar</h2>
-        <p className="iw-al-fastline">Alternate {block.exercises.map((e) => e.name).join(" ↔ ")} — {block.repsPerTurn} reps a turn, as many turns as the clock allows. The block runs TWICE.</p>
+        <p className="iw-al-fastline"><HL text={`Alternate ${block.exercises.map((e) => e.name).join(" ↔ ")} — ${block.repsPerTurn} reps a turn, as many turns as the clock allows. The block runs TWICE.`} /></p>
         {block.exercises.map((e) => (
           <div key={e.name} className="iw-al-density-setw">
             <Stepper label={`${e.name} (lbs)`} value={weights[e.name]} step={5} min={0} wide
@@ -553,7 +556,7 @@ function DensityBlock({ block, phase, lastWeights, settings, logSet, onDone }) {
           const p = bumpPrompt(block, weights[e.name]);
           return (
             <div key={e.name} className="iw-al-density-setw">
-              <div className="iw-al-fastline">{e.name}: {p.line}</div>
+              <div className="iw-al-fastline">{e.name}: <HL text={p.line} /></div>
               <Stepper label={`${e.name} (lbs)`} value={weights[e.name] === p.suggested ? p.suggested : weights[e.name]} step={5} min={0} wide
                 onChange={(v) => setWeights((w) => ({ ...w, [e.name]: v }))} />
               {p.suggested !== weights[e.name] && (
@@ -580,8 +583,7 @@ function DensityBlock({ block, phase, lastWeights, settings, logSet, onDone }) {
           {result.beat ? `GHOST BEATEN · +${result.marginPct}%` : "THE GHOST HOLDS"}
         </div>
         <p className="iw-body">
-          Run 1: {ghostFmt(blockVolume(turns[1]))} · Run 2: {ghostFmt(blockVolume(turns[2]))}.
-          {result.beat ? " Same clock, heavier bar, more iron moved — that's density." : " It happens. The ghost remembers; so will you."}
+          <HL text={`Run 1: ${ghostFmt(blockVolume(turns[1]))} · Run 2: ${ghostFmt(blockVolume(turns[2]))}.${result.beat ? " Same clock, heavier bar, more iron moved — that's density." : " It happens. The ghost remembers; so will you."}`} />
         </p>
         <button className="iw-btn-ember iw-btn-wide" onClick={onDone}>next block ❯</button>
       </div>
@@ -596,12 +598,13 @@ function DensityBlock({ block, phase, lastWeights, settings, logSet, onDone }) {
       <DensityMeter volume={vol} ghostVolume={ghost} capacity={capacity} run={run} />
       <h2 className="iw-display iw-session-lift">{ex.name}</h2>
       <div className="iw-session-target">{weights[ex.name] > 0 ? `${weights[ex.name]} lbs` : "bodyweight"} · {block.repsPerTurn} a turn</div>
+      <ExerciseImg name={ex.name} className="iw-exi-live" />
       <ExerciseHowTo key={ex.name} name={ex.name} />
       <div className="iw-work-steppers">
         <Stepper label="reps this turn" value={reps} min={1} max={12} onChange={setReps} wide />
       </div>
-      <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={rackTurn}>⬛ rack the turn</button>
-      <button className="iw-btn-ghost iw-btn-wide" onClick={runExpired}>call the run early</button>
+      <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={rackTurn}>✓ LOG TURN <span className="iw-btn-sub">· {block.repsPerTurn} reps done</span></button>
+      <button className="iw-btn-ghost iw-btn-wide" onClick={runExpired}>end the run early</button>
     </div>
   );
 }

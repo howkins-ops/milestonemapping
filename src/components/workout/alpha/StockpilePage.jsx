@@ -18,7 +18,7 @@ const mondayKey = (d = new Date()) => {
   return `${m.getFullYear()}-${p(m.getMonth() + 1)}-${p(m.getDate())}`;
 };
 
-export default function StockpilePage({ alpha, addXP, settings, onBack }) {
+export default function StockpilePage({ alpha, addXP, settings, onBack, embedded = false }) {
   const { userId } = useAppData();
   const { state } = alpha;
   const weekKey = mondayKey();
@@ -46,9 +46,14 @@ export default function StockpilePage({ alpha, addXP, settings, onBack }) {
 
   return (
     <div className="iw-al-stockpile">
-      <button className="iw-back" onClick={onBack}>❮ back</button>
-      <div className="iw-eyebrow">the sunday ritual</div>
-      <h2 className="iw-display iw-page-title">The Stockpile</h2>
+      {!embedded && (
+        <>
+          <button className="iw-back" onClick={onBack}>❮ back</button>
+          <div className="iw-eyebrow">the sunday ritual</div>
+          <h2 className="iw-display iw-page-title">The Stockpile</h2>
+        </>
+      )}
+      {embedded && <div className="iw-eyebrow iw-al-card-title">the sunday ritual</div>}
 
       {/* the week's ledger */}
       <div className="iw-al-card">

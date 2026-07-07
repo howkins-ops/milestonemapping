@@ -17,6 +17,7 @@ import FullCourt from "./games/FullCourt.jsx";
 import TheDuel from "./games/TheDuel.jsx";
 import Ascension from "./games/Ascension.jsx";
 import DawnRaid from "./games/DawnRaid.jsx";
+import EatTheFrog from "./games/EatTheFrog.jsx";
 import ThePit from "./games/ThePit.jsx";
 import GrindRoom from "./games/GrindRoom.jsx";
 
@@ -127,6 +128,19 @@ export const ARENA_GAMES = [
       "M4 18h16",
       "M7.5 18a4.5 4.5 0 0 1 9 0",
       "M12 6.5V4M5.5 9L4 7.5M18.5 9L20 7.5M3 13h1.5M19.5 13H21"
+    ),
+  },
+  {
+    key: "eat_the_frog",
+    title: "Eat the Frog",
+    tagline: "Name the task you're dreading most. Do it first — then swallow it whole.",
+    scope: "solo",
+    Component: EatTheFrog,
+    glyph: glyph(
+      circle(7.5, 7.5, 2.6),
+      circle(16.5, 7.5, 2.6),
+      "M3.5 12.5c0 4.3 3.8 7.5 8.5 7.5s8.5-3.2 8.5-7.5",
+      "M8.5 15.5c2.3 1.7 4.7 1.7 7 0"
     ),
   },
   {

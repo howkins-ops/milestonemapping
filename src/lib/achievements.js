@@ -208,6 +208,42 @@ export const ACHIEVEMENTS = [
     title: "The Oasis",
     description: "Five voices, one shape, all named. Fatima waits past the fifth city — and the treasure waits at home.",
     icon: "🌴"
+  },
+  {
+    id: "mask_evolved_broke-king",
+    title: "The Sovereign Rises",
+    description: "You named what the Broke King feared, returned what it was starving for — and it evolved. It guards your standard now.",
+    icon: "👑"
+  },
+  {
+    id: "mask_evolved_addict-saint",
+    title: "The Unshaken Saint",
+    description: "The escape lost its salesman. The Saint's halo holds steady, and its hidden hand is open and empty.",
+    icon: "😇"
+  },
+  {
+    id: "mask_evolved_silent-prophet",
+    title: "The Herald Speaks",
+    description: "The stitched mouth opened. The scroll burns high — your message has a carrier now.",
+    icon: "📜"
+  },
+  {
+    id: "mask_evolved_raging-victim",
+    title: "The Guardian Stands",
+    description: "The tantrum unclenched into open guarding palms. The pain counts — and it protects instead of permits.",
+    icon: "🛡️"
+  },
+  {
+    id: "mask_evolved_naive-warrior",
+    title: "The Commander's Line",
+    description: "The rubber sword is sheathed and a real plan glows in the off-hand. Charge when it's time. Hold when it's not.",
+    icon: "⚔️"
+  },
+  {
+    id: "mask_court_sovereign",
+    title: "The Court Is Yours",
+    description: "Five masks named, fed, and evolved. Five protectors walk at your back — and none of them lead. You do.",
+    icon: "🎭"
   }
 ];
 

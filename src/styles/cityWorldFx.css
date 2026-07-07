@@ -1,0 +1,304 @@
+/* ════════════════════════════════════════════════════════════════════════
+   MAPQUEST WORLD — LIVING CITY FX (mqfx-*)
+   New sheet for the AAA game-feel build. NEVER append to cityWorld.css —
+   this file is the concurrency firewall (the Mask session owns mqk-*).
+   Laws: transform/opacity only · no animated filter/box-shadow on layers ·
+   CSS clocks only (zero JS while idle) · everything dies under the three
+   reduced-motion gates at the bottom of this sheet.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ════════ PHASE 1 — THE JUICE CORE ══════════════════════════════════════ */
+
+/* ── FX layer + particle pool ───────────────────────────────────────────── */
+
+.mqfx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4; /* street plane — with the char, over buildings */
+}
+
+.mqfx-p {
+  position: absolute;
+  bottom: calc(12% + var(--fy, 0px));
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  opacity: 0; /* pooled + idle = invisible, zero animation */
+  will-change: transform, opacity;
+}
+
+.mqfx-p--dust {
+  background: rgba(190, 180, 200, 0.55);
+  animation: mqfx-p-dust 0.5s ease-out forwards;
+}
+
+.mqfx-p--spark {
+  width: 4px;
+  height: 4px;
+  background: var(--c, #00f0ff);
+  box-shadow: 0 0 6px var(--c, #00f0ff);
+  animation: mqfx-p-spark 0.55s ease-out forwards;
+}
+
+.mqfx-p--ember {
+  width: 3px;
+  height: 3px;
+  background: var(--c, #ff7a1a);
+  box-shadow: 0 0 5px rgba(255, 122, 26, 0.8);
+  animation: mqfx-p-ember 0.9s ease-out forwards;
+}
+
+.mqfx-p--confetti {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--c, #ff3edb);
+  animation: mqfx-p-confetti 0.75s ease-in forwards;
+}
+
+.mqfx-p--ripple {
+  width: 18px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--c, rgba(0, 240, 255, 0.6));
+  background: none;
+  animation: mqfx-p-ripple 0.6s ease-out forwards;
+}
+
+.mqfx-p--streak {
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--c, rgba(0, 240, 255, 0.7)));
+  animation: mqfx-p-streak 0.4s ease-out forwards;
+}
+
+@keyframes mqfx-p-dust {
+  0% { transform: translate(-50%, 0) scale(0.7); opacity: 0.9; }
+  100% { transform: translate(calc(-50% + var(--px, 10px)), calc(var(--py, -14px) * -0.6)) scale(1.5); opacity: 0; }
+}
+
+@keyframes mqfx-p-spark {
+  0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--px, 14px)), calc(var(--py, 20px) * -1)) scale(0.3); opacity: 0; }
+}
+
+@keyframes mqfx-p-ember {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--px, 8px) * 0.5), -46px); opacity: 0; }
+}
+
+@keyframes mqfx-p-confetti {
+  0% { transform: translate(-50%, 0) rotate(0deg); opacity: 1; }
+  60% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--px, 20px)), calc(var(--py, 24px) * -1.6 + 40px)) rotate(260deg); opacity: 0; }
+}
+
+@keyframes mqfx-p-ripple {
+  0% { transform: translate(-50%, 0) scale(0.4, 0.5); opacity: 0.8; }
+  100% { transform: translate(-50%, 0) scale(2.4, 1); opacity: 0; }
+}
+
+@keyframes mqfx-p-streak {
+  0% { transform: translate(-50%, calc(var(--py, 10px) * -1)) scaleX(1); opacity: 0.8; }
+  100% { transform: translate(calc(-50% - var(--px, 30px)), calc(var(--py, 10px) * -1)) scaleX(0.3); opacity: 0; }
+}
+
+/* ── Shockwave ring ─────────────────────────────────────────────────────── */
+
+.mqfx-ring {
+  position: absolute;
+  bottom: calc(12% + var(--fy, 0px));
+  left: 0;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  border-radius: 50%;
+  border: 2px solid var(--c, #00f0ff);
+  opacity: 0;
+  pointer-events: none;
+  animation: mqfx-ring 0.45s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes mqfx-ring {
+  0% { transform: scale(0.25); opacity: 0.95; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* ── Viewport shake (fallback path — the engine's layer shake is the
+      preferred source of truth once Camera II is live) ─────────────────── */
+
+.mqfx-shake {
+  animation: mqfx-shake-kf 0.22s linear;
+}
+
+@keyframes mqfx-shake-kf {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(calc(var(--mqfx-amp, 5px) * -1)); }
+  50% { transform: translateY(calc(var(--mqfx-amp, 5px) * 0.7)); }
+  75% { transform: translateY(calc(var(--mqfx-amp, 5px) * -0.4)); }
+}
+
+/* ── Impact flash ───────────────────────────────────────────────────────── */
+
+.mqfx-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: var(--c, #00f0ff);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mqfx-flash.is-on {
+  animation: mqfx-flash-kf var(--ms, 90ms) ease-out forwards;
+}
+
+@keyframes mqfx-flash-kf {
+  0% { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+
+/* ── Floating toast (combo pops, milestones, whispers) ──────────────────── */
+
+.mqfx-toast {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  z-index: 12;
+  max-width: 84%;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(5, 0, 10, 0.92);
+  border: 1px solid color-mix(in srgb, var(--c, #00f0ff) 60%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c, #00f0ff) 35%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c, #00f0ff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  animation: mqfx-toast-kf 1.3s ease-out forwards;
+}
+
+.mqfx-toast--big {
+  font-size: 14px;
+  padding: 9px 20px;
+  animation-duration: 1.7s;
+}
+
+.mqfx-toast.is-still {
+  animation: none;
+  transform: translateX(-50%);
+  opacity: 1;
+}
+
+@keyframes mqfx-toast-kf {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); }
+  12% { opacity: 1; transform: translate(-50%, -2px) scale(1.08); }
+  24% { transform: translate(-50%, -4px) scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -30px) scale(0.95); }
+}
+
+/* ── Character verb classes (engine/scene toggled) ──────────────────────── */
+
+/* takeoff anticipation crouch — 1 beat, then the rise owns the pose */
+.mqfx-char--coil .mqw-char__svg {
+  animation: none;
+  transform: scaleY(0.86) scaleX(1.08);
+  transform-origin: 50% 100%;
+}
+
+/* apex hang — subtle stretch right at the top of the arc */
+.mqw-char--apex .mqw-char__svg {
+  transform: scaleY(1.04);
+  transform-origin: 50% 100%;
+}
+
+/* falling — slight forward lean into the landing */
+.mqw-char--fall .mqw-char__svg {
+  transform: rotate(4deg);
+  transform-origin: 50% 88%;
+}
+
+/* landing squash, springs back on its own */
+.mqfx-char--land .mqw-char__svg {
+  animation: mqfx-land-kf 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  transform-origin: 50% 100%;
+}
+
+@keyframes mqfx-land-kf {
+  0% { transform: scale(1.18, 0.8); }
+  100% { transform: scale(1, 1); }
+}
+
+/* step dust — CSS-clocked wisp behind the trailing foot, walk state only */
+.mqw-char--walk .mqw-char__flip::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(190, 180, 200, 0.45);
+  animation: mqfx-stepdust 0.9s linear infinite;
+}
+
+@keyframes mqfx-stepdust {
+  0%, 74% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  78% { opacity: 0.7; transform: translate(-4px, 0) scale(0.8); }
+  100% { opacity: 0; transform: translate(-16px, -8px) scale(1.4); }
+}
+
+/* ── Door flare (entering a district) ───────────────────────────────────── */
+
+.mqfx-doorflare {
+  animation: mqfx-doorflare-kf 0.3s ease-out;
+}
+
+@keyframes mqfx-doorflare-kf {
+  0% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+  40% { opacity: 1; transform: translateX(-50%) scaleY(1.5); }
+  100% { opacity: 0.85; transform: translateX(-50%) scaleY(1); }
+}
+
+/* ── Power-on eruption (journey beat — the building performs) ───────────── */
+
+/* windows ramp floor-by-floor: a rising reveal wipe on the window grid */
+.mqfx-erupt .mqw-b__tower::before {
+  opacity: 0.75;
+  animation: mqfx-erupt-windows 1.2s cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+@keyframes mqfx-erupt-windows {
+  0% { clip-path: inset(100% 0 0 0); opacity: 0.2; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0.75; }
+}
+
+.mqfx-erupt .mqw-b__beacon {
+  opacity: 1;
+  animation: mqfx-erupt-beacon 1.4s ease-out;
+}
+
+@keyframes mqfx-erupt-beacon {
+  0%, 45% { transform: translateX(-50%) scaleY(0); opacity: 0; }
+  60% { transform: translateX(-50%) scaleY(1.3); opacity: 1; }
+  100% { transform: translateX(-50%) scaleY(1); opacity: 1; }
+}
+
+.mqfx-erupt .mqw-b__sign {
+  animation: mqfx-erupt-sign 1.4s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+@keyframes mqfx-erupt-sign {
+  0%, 50% { transform: translateX(-50%) scale(1); }
+  66% { transform: translateX(-50%) scale(1.45); }
+  100% { transform: translateX(-50%) scale(1); }
+}

@@ -497,6 +497,27 @@
   margin: 2px 0 0;
 }
 
+/* mid-game start-over — quiet ghost row until armed, then it reads as a warning */
+.fc-restart {
+  margin: 8px auto 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--zn-border);
+  background: none;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out),
+    background 150ms var(--ease-out);
+}
+.fc-restart--arm {
+  border-color: rgba(255, 59, 92, 0.55);
+  background: rgba(255, 59, 92, 0.1);
+  color: #ff8098;
+}
+
 /* ---------- box score ---------- */
 .fc-box {
   padding: 16px;

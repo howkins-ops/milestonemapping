@@ -28,6 +28,22 @@ import {
   hasVisitedAll,
   recordMentorLesson,
 } from "./cityStore.js";
+import MaskBattle from "./masks/MaskBattle.jsx";
+import MaskCodex from "./masks/MaskCodex.jsx";
+import MaskCourtFinale from "./masks/MaskCourtFinale.jsx";
+import useMasks from "./masks/useMasks.js";
+import useEncounterEngine from "./masks/useEncounterEngine.js";
+import StoryDialog from "./StoryDialog.jsx";
+import {
+  getBoss,
+  getBossForZone,
+  XP_PER_WILD,
+  XP_PER_BOSS,
+  XP_COURT,
+} from "./masks/maskBosses.js";
+import { getCritic } from "./masks/wildCritics.js";
+import { getEssence } from "./masks/essences.js";
+import { useDailyLog } from "../../hooks/useDailyLog.js";
 import "../../styles/city.css";
 
 // ════════════════════════════════════════════════════════════════════════
@@ -56,6 +72,24 @@ function loadSavedX() {
   }
 }
 
+// Dev fast-path into a mask fight: ?maskfight=broke-king | wild:snooze |
+// relapse:broke-king. Invalid ids are ignored.
+function parseDevFight() {
+  try {
+    const v = new URLSearchParams(window.location.search).get("maskfight");
+    if (!v) return null;
+    if (v.startsWith("wild:")) {
+      return getCritic(v.slice(5)) ? { type: "wild", id: v.slice(5) } : null;
+    }
+    if (v.startsWith("relapse:")) {
+      return getBoss(v.slice(8)) ? { type: "relapse", id: v.slice(8) } : null;
+    }
+    return getBoss(v) ? { type: "boss", id: v } : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function MapQuestCityPage({
   onNavigate,
   onOpenProject, // reserved for future district deep-links
@@ -71,12 +105,72 @@ export default function MapQuestCityPage({
   const [hallOpen, setHallOpen] = useState(false);
   const [lesson, setLesson] = useState(null); // { mentor, district }
   const [ignition, setIgnition] = useState(false); // GATE 2 cinematic
+  const [battle, setBattle] = useState(parseDevFight); // mask encounter overlay
+  const [framing, setFraming] = useState(null); // one-time Guide consent beat
+  const [streetToast, setStreetToast] = useState(null); // boss materialization
+  const [codexOpen, setCodexOpen] = useState(false); // the Mask Codex panel
+  const [courtFinale, setCourtFinale] = useState(false); // fifth evolution
+  const fxApi = useRef(null); // Living City — imperative scene FX handle
+
+  // ── The Mask Court (Pokémon encounter layer) ────────────────────────────
+  const masks = useMasks();
+  const evolvedAllies = Object.keys(masks.integrated).map((id) => {
+    const ess = getEssence(masks.integrated[id]?.essence);
+    return { bossId: id, essenceColor: ess ? ess.color : "#3f8cff" };
+  });
+  const battleAllies = evolvedAllies.filter((a) => !battle || a.bossId !== battle.id);
+
+  // Proof Lock → "make it today's mission" (Top Five has room for 5)
+  const { todayLog, addTopFiveTask } = useDailyLog();
+  const handleMakeMission = (proofText) => {
+    const text = String(proofText || "").trim();
+    const tasks = (todayLog && todayLog.topFive) || [];
+    if (!text || tasks.length >= 5) return false;
+    addTopFiveTask(text);
+    return true;
+  };
+
+  const handleBattleComplete = (result) => {
+    if (result.type === "wild") {
+      masks.recordWildWin(result.id, result.fear);
+      const critic = getCritic(result.id);
+      addXP(XP_PER_WILD, `Named ${critic ? critic.name : "a wild critic"}`);
+    } else if (result.type === "boss") {
+      const { firstEver, firstCourt } = masks.recordIntegration(result.id, {
+        essence: result.essenceId,
+        proof: result.proof,
+        fears: result.fears,
+      });
+      const b = getBoss(result.id);
+      if (firstEver && b) {
+        addXP(XP_PER_BOSS, `${b.evolved.name} joins your court`);
+        unlockAchievement(`mask_evolved_${result.id}`);
+      }
+      if (firstCourt) {
+        addXP(XP_COURT, "THE COURT IS YOURS");
+        unlockAchievement("mask_court_sovereign");
+        setCourtFinale(true);
+      }
+    } else if (result.type === "relapse") {
+      masks.recordRelapseWin(result.id, result.fear);
+      addXP(XP_PER_WILD, "Old voice re-named");
+    }
+    setBattle(null);
+    engine.clearEncounter();
+  };
+
+  const handleBattleWalkAway = () => {
+    masks.recordWalkAway();
+    setBattle(null);
+    engine.clearEncounter();
+  };
 
   // ── The journey — LIT tutorial chain (new citizens only) ────────────────
   const journey = useJourney(districts, {
     onPowerOn: (id) => {
       const d = DISTRICTS.find((x) => x.id === id);
       if (!d) return;
+      if (fxApi.current) fxApi.current.erupt(id); // the building performs
       celebrate({
         variant: "project",
         title: `${d.name.toUpperCase()} POWERS ON`,
@@ -87,6 +181,7 @@ export default function MapQuestCityPage({
     onLit: (id) => {
       const d = DISTRICTS.find((x) => x.id === id);
       if (!d) return;
+      if (fxApi.current) fxApi.current.erupt(id); // LIT — full eruption
       addXP(XP_VALUES.mentorLesson || 10, `${d.name} lit`);
       celebrate({
         variant: "project",
@@ -241,7 +336,80 @@ export default function MapQuestCityPage({
     mentors: doorMentors,
   });
   const [citySpawnX, setCitySpawnX] = useState(() => loadSavedX());
-  const scenePaused = Boolean(selected || hallOpen || lesson || ignition);
+  const scenePaused = Boolean(selected || hallOpen || lesson || ignition || battle || framing);
+
+  // ── Wild ambush engine (rides the walk loop's stride hook) ──────────────
+  const encounterEnabled =
+    journey.world === "city" &&
+    !scenePaused &&
+    !masks.encountersOff &&
+    !masks.isSessionSnoozed();
+
+  const engine = useEncounterEngine({
+    maskDens: world.maskDens || [],
+    spawnX: typeof citySpawnX === "number" ? citySpawnX : world.spawnX,
+    enabled: encounterEnabled,
+    isNight: timeOfDay.key === "night",
+    hasEverAmbushed: (masks.state.stats.ambushes || 0) > 0,
+    relapsePool: masks.relapseEligibleBossIds(),
+    onEncounter: (enc) => {
+      masks.recordAmbush();
+      if (!masks.firstFramingSeen) setFraming(enc);
+      else setBattle(enc);
+    },
+  });
+
+  // ── Boss stages materialize at their chapter's end (soft gate) ──────────
+  // Chapter complete (legacy users are past training — always complete)
+  // AND ≥1 wild fight won → the mask looms beside the arch + one toast, once.
+  useEffect(() => {
+    if (journey.world !== "city" || masks.wildWinCount < 1) return;
+    for (const z of world.maskZones || []) {
+      const b = getBossForZone(z.label);
+      if (!b || masks.isIntegrated(b.id) || masks.state.materialized[b.id]) continue;
+      const complete = journey.legacy ? true : z.ids.every((id) => journey.isLit(id));
+      if (!complete) continue;
+      const { firstTime } = masks.maybeMaterialize(b.id);
+      if (firstTime) {
+        setStreetToast({
+          key: Date.now(),
+          color: b.color,
+          text: `You leveled up. That's when it gets loud. ${b.name} is waiting at the end of the chapter.`,
+        });
+        break; // one materialization moment at a time
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journey.journey, masks.state, journey.world]);
+
+  useEffect(() => {
+    if (!streetToast) return undefined;
+    const t = setTimeout(() => setStreetToast(null), 6200);
+    return () => clearTimeout(t);
+  }, [streetToast]);
+
+  // Materialized, un-fought bosses loom on the street; evolved ones walk
+  // behind you instead.
+  const maskLurkers = (world.maskZones || [])
+    .map((z) => ({ z, b: getBossForZone(z.label) }))
+    .filter(({ b }) => b && masks.state.materialized[b.id] && !masks.isIntegrated(b.id))
+    .map(({ z, b }) => ({
+      bossId: b.id,
+      x: z.lurkX,
+      color: b.color,
+      name: b.name,
+      mutter: b.attacks[0],
+    }));
+
+  const handleFaceBoss = (bossId) => {
+    const b = getBoss(bossId);
+    if (!b || masks.isIntegrated(bossId)) return;
+    const zone = (world.maskZones || []).find((z) => {
+      const zb = getBossForZone(z.label);
+      return zb && zb.id === bossId;
+    });
+    setBattle({ type: "boss", id: bossId, zoneAccent: zone ? zone.accent : b.color });
+  };
 
   // ── Hometown ⇄ city transitions ─────────────────────────────────────────
   const handleHometownComplete = ({ firstEver }) => {
@@ -305,25 +473,41 @@ export default function MapQuestCityPage({
         )}
       </header>
 
-      <WorldScene
-        world={world}
-        stage={stage}
-        timeOfDay={timeOfDay}
-        spawnX={citySpawnX}
-        paused={scenePaused}
-        reducedMotion={reducedMotion}
-        persistKey={POSITION_KEY}
-        onEnterBuilding={openDistrictById}
-        onTalkNpc={(id) => {
-          if (id && id.startsWith("mentor:")) {
-            const district = journeyDistricts.find((d) => d.id === id.slice(7));
-            if (district) hearLesson(district);
-            return;
-          }
-          if (guideDistrict) openDistrict(guideDistrict);
-        }}
-        onExitEdge={handleCityExit}
-      />
+      <div className="mqk-scenewrap">
+        <WorldScene
+          world={world}
+          stage={stage}
+          timeOfDay={timeOfDay}
+          spawnX={citySpawnX}
+          paused={scenePaused}
+          reducedMotion={reducedMotion}
+          persistKey={POSITION_KEY}
+          fxApiRef={fxApi}
+          onStride={engine.onStride}
+          maskLurkers={maskLurkers}
+          streetAllies={evolvedAllies}
+          fogOpacity={masks.courtClaimed ? 0.5 : 1}
+          onFaceBoss={handleFaceBoss}
+          onEnterBuilding={openDistrictById}
+          onTalkNpc={(id) => {
+            if (id && id.startsWith("mentor:")) {
+              const district = journeyDistricts.find((d) => d.id === id.slice(7));
+              if (district) hearLesson(district);
+              return;
+            }
+            if (guideDistrict) openDistrict(guideDistrict);
+          }}
+          onExitEdge={handleCityExit}
+        />
+        <button
+          type="button"
+          className="mqk-hudchip"
+          onClick={() => setCodexOpen(true)}
+          aria-label={`Open the Mask Codex — ${masks.integratedCount} of 5 masks evolved`}
+        >
+          🎭 {masks.integratedCount}/5
+        </button>
+      </div>
 
       <button
         type="button"
@@ -428,6 +612,70 @@ export default function MapQuestCityPage({
           onFinishLesson={finishLesson}
           onEnterDistrict={enterDistrict}
         />
+      ) : null}
+
+      {framing ? (
+        <StoryDialog
+          scene={{
+            title: "THE FIRST AMBUSH",
+            color: THE_GUIDE.color,
+            sprite: "mentor",
+            speakerName: THE_GUIDE.name,
+            epithet: "The Guide",
+            beats: [
+              {
+                speaker: THE_GUIDE.name,
+                lines: [
+                  "That voice you just heard? It lives here too. It's not a monster — it's protection that never got trained.",
+                  "You can't outrun it, but you can NAME it. Naming is the only thing that lands. Ready?",
+                ],
+              },
+            ],
+            doneLabel: "FACE IT",
+            altLabel: "NOT NOW",
+          }}
+          onDone={() => {
+            masks.markFramingSeen();
+            const enc = framing;
+            setFraming(null);
+            setBattle(enc);
+          }}
+          onAlt={() => {
+            // free exit — quiet streets for the rest of the session
+            masks.markFramingSeen();
+            masks.snoozeSession();
+            engine.clearEncounter();
+            setFraming(null);
+          }}
+        />
+      ) : null}
+
+      {battle ? (
+        <MaskBattle
+          encounter={battle}
+          reducedMotion={reducedMotion}
+          allies={battleAllies}
+          onComplete={handleBattleComplete}
+          onWalkAway={handleBattleWalkAway}
+          onMakeMission={handleMakeMission}
+        />
+      ) : null}
+
+      {codexOpen ? <MaskCodex masks={masks} onClose={() => setCodexOpen(false)} /> : null}
+
+      {courtFinale ? (
+        <MaskCourtFinale masks={masks} onClose={() => setCourtFinale(false)} />
+      ) : null}
+
+      {streetToast ? (
+        <div
+          key={streetToast.key}
+          className="mqk-streettoast"
+          style={{ "--toast-color": streetToast.color }}
+          role="status"
+        >
+          {streetToast.text}
+        </div>
       ) : null}
 
       <PendantHUD />

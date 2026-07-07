@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import ExerciseHowTo from "./ExerciseHowTo.jsx";
+import HL from "./HL.jsx";
 import { exerciseInfo } from "./data/exercises.js";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -25,6 +26,14 @@ const KIND_TITLES = {
   totalreps: "The Count",
   density: "The Density Run",
   tempo: "The Cadence",
+};
+
+export const KIND_GLYPHS = {
+  circuit: "↻",
+  straight: "▬",
+  totalreps: "Σ",
+  density: "⏱",
+  tempo: "〜",
 };
 
 export function blockTitle(block) {
@@ -109,7 +118,21 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
         the briefing · {workout.styleLabel || `${workout.style} day`} · ~{mins} min
       </div>
       <h2 className="iw-display iw-session-lift">{workout.name}</h2>
-      <p className="iw-body iw-al-brief-why">{STYLE_EXPLAINERS[workout.style] || STYLE_EXPLAINERS.mrt}</p>
+      <p className="iw-body iw-al-brief-why"><HL text={STYLE_EXPLAINERS[workout.style] || STYLE_EXPLAINERS.mrt} /></p>
+
+      {/* the shape of the session, at a glance */}
+      <div className="iw-al-sessionmap" aria-label="session map">
+        {workout.blocks.map((b, i) => (
+          <React.Fragment key={`${b.key}-${i}`}>
+            {i > 0 && <span className="iw-al-sm-arrow" aria-hidden="true">→</span>}
+            <div className="iw-al-sm-chip">
+              <span className="iw-al-sm-key">{b.key}</span>
+              <span className="iw-al-sm-glyph" aria-hidden="true">{KIND_GLYPHS[b.kind]}</span>
+              <span className="iw-al-sm-kind">{blockTitle(b)}</span>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
 
       {equipment.length > 0 && (
         <div className="iw-al-brief-gear">
@@ -129,7 +152,7 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
               <span className="iw-al-brief-key">{b.key}</span>
               <span className="iw-al-brief-blocktitle">{blockTitle(b)}</span>
             </div>
-            <div className="iw-al-brief-protocol">{protocolLine(b)}</div>
+            <div className="iw-al-brief-protocol"><HL text={protocolLine(b)} /></div>
             <div className="iw-stack">
               {b.exercises.map((e, i) => (
                 <ExerciseHowTo key={`${b.key}-${i}-${e.name}`} name={e.name}
@@ -137,7 +160,7 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
                   defaultOpen={false} />
               ))}
             </div>
-            {b.note && <div className="iw-al-fastline">{b.note}</div>}
+            {b.note && <div className="iw-al-fastline"><HL text={b.note} /></div>}
           </div>
         ))}
       </div>
@@ -149,7 +172,7 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
       </div>
 
       <button className="iw-btn-ember iw-btn-wide" onClick={onStart}>
-        ▶ step under the bar
+        ▶ START WORKOUT <span className="iw-btn-sub">· step under the bar</span>
       </button>
     </div>
   );

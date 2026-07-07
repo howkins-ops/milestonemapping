@@ -719,6 +719,26 @@ export default function FullCourt({ go }) {
     loggedRef.current = false;
   }, [stopBreakAudio, clearLive]);
 
+  // Mid-game start-over — a live game spans a whole workday, so it needs an
+  // exit that doesn't require the final buzzer. Two taps: a stray thumb can't
+  // wipe 8 hours of doors.
+  const [resetArm, setResetArm] = useState(false);
+  const resetArmTimer = useRef(null);
+  const startOver = useCallback(() => {
+    if (!resetArm) {
+      setResetArm(true);
+      clearTimeout(resetArmTimer.current);
+      resetArmTimer.current = setTimeout(() => {
+        if (aliveRef.current) setResetArm(false);
+      }, 4000);
+      return;
+    }
+    clearTimeout(resetArmTimer.current);
+    setResetArm(false);
+    newGame();
+  }, [resetArm, newGame]);
+  useEffect(() => () => clearTimeout(resetArmTimer.current), []);
+
   /* ---------------- stats sub-view ---------------- */
 
   if (showStats) {
@@ -1230,6 +1250,18 @@ export default function FullCourt({ go }) {
           Every tap is a real door. When the final buzzer's done, log the box score — that's what
           feeds your season and pings {partnerActive ? `@${partnerActive.username}` : "your squad"}.
         </p>
+      )}
+
+      {phase === "playing" && (
+        <button
+          type="button"
+          className={`fc-restart ${resetArm ? "fc-restart--arm" : ""}`}
+          onClick={startOver}
+        >
+          {resetArm
+            ? "⚠ Tap again to confirm — this game is wiped, back to tip-off"
+            : "↻ Start over — scrap this game and set up a fresh one"}
+        </button>
       )}
     </div>
   );

@@ -111,7 +111,7 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
       </div>
 
       <EatingCard state={state} slot={slot} dayLabel={DAY_LABELS[todayIdx]}
-        onOpenCalculator={onOpenCalculator} />
+        onOpenCalculator={onOpenCalculator} onOpenFridge={onOpenStockpile} />
       <FastClock alpha={alpha} phase={phase} addXP={addXP} settings={settings} />
       <CarbRampMeter state={state} />
       <HormonePanel alpha={alpha} addXP={addXP} settings={settings} compact />

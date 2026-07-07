@@ -477,6 +477,27 @@ export const EXERCISES = [
   },
 ];
 
+/* ── movement families for the Program console library —
+      boundaries mirror the section comments above ── */
+const GROUP_BREAKS = [
+  ["Goblet Squat", "squats & lunges"],
+  ["Barbell Deadlift", "hinges & deadlifts"],
+  ["Glute Bridge", "glutes & core"],
+  ["Push-Up", "pushes"],
+  ["Chin-Up", "pulls"],
+  ["Biceps Curl", "arms & calves"],
+];
+export const EXERCISE_GROUPS = (() => {
+  const groups = [];
+  let current = null;
+  for (const e of EXERCISES) {
+    const brk = GROUP_BREAKS.find(([first]) => first === e.name);
+    if (brk) { current = { id: brk[1], label: brk[1], exercises: [] }; groups.push(current); }
+    if (current) current.exercises.push(e);
+  }
+  return groups;
+})();
+
 /* ── alias map: workout-definition names → canonical library entries ── */
 const ALIASES = {
   /* signature lore moves → generic entries */

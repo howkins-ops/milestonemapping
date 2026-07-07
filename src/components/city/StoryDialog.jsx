@@ -19,7 +19,9 @@ import "../../styles/cityMentors.css";
 //   speakerName, epithet?,        // identity block
 //   beats: [{ speaker, lines[] }],
 //   doneLabel?,                   // last beat's continue label
+//   altLabel?,                    // optional second action on the last beat
 // }
+// onAlt — fires when the altLabel button is pressed (e.g. "NOT NOW")
 // ════════════════════════════════════════════════════════════════════════
 
 const TYPE_MS = 18;
@@ -35,7 +37,7 @@ function motionOff() {
   }
 }
 
-export default function StoryDialog({ scene, onDone, onClose }) {
+export default function StoryDialog({ scene, onDone, onClose, onAlt }) {
   const beats = scene && Array.isArray(scene.beats) ? scene.beats : [];
   const [beatIndex, setBeatIndex] = useState(0);
   const [chars, setChars] = useState(0);
@@ -178,6 +180,19 @@ export default function StoryDialog({ scene, onDone, onClose }) {
             >
               {typing ? "…" : lastBeat ? scene.doneLabel || "Continue" : "Continue"}
             </button>
+
+            {lastBeat && !typing && scene.altLabel && onAlt ? (
+              <button
+                type="button"
+                className="mqc-m-continue mqk-story-alt"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAlt();
+                }}
+              >
+                {scene.altLabel}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

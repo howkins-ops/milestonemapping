@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 import { useWorkout } from "./useWorkout.js";
+import { useAlpha } from "./alpha/useAlpha.js";
 import AlphaMode from "./alpha/AlphaMode.jsx";
+import ProgramConsole from "./alpha/ProgramConsole.jsx";
+import BookOfIron from "./alpha/BookOfIron.jsx";
+import FridgePage from "./alpha/FridgePage.jsx";
 import ExerciseHowTo from "./alpha/ExerciseHowTo.jsx";
 import {
   sfxPlateClank,
@@ -14,14 +18,16 @@ import {
 /* ═══════════════════════════════════════════════════════════════
    THE IRON
    blackened steel · chalk dust · ember heat
-   spaces: cover → creed → plans → plan → session → wall → log
+   nav: today (campaign hub) · program (phases console) · fridge ·
+   book (all readable content) · records (PR wall + history).
+   cover → today; live custom sessions ride plan → session.
    Persisted to Supabase (workout_* tables) via useWorkout.
    ═══════════════════════════════════════════════════════════════ */
 
 const EMBER = "#FF6A2B";
 const CHALK = "#E8E4DA";
 
-const STEELS = [
+export const STEELS = [
   { id: "gunmetal", label: "gunmetal", css: "linear-gradient(150deg,#2e3238,#1a1d21 55%,#0d0e10)" },
   { id: "carbon", label: "carbon", css: "linear-gradient(150deg,#232323,#141414 55%,#0a0a0a)" },
   { id: "blued", label: "blued", css: "linear-gradient(150deg,#1f2a3d,#131a28 55%,#0a0d14)" },
@@ -79,7 +85,7 @@ const TEMPLATES = [
   },
 ];
 
-const CREED = [
+export const CREED = [
   {
     k: "iron", visual: "plate",
     title: "The Iron never lies.",
@@ -171,6 +177,7 @@ function RackedOverlay({ summary, onDone, settings }) {
           </>
         )}
       </div>
+      <div className="iw-racked-sub">workout saved to your log ✓</div>
     </div>
   );
 }
@@ -220,13 +227,13 @@ function RestTimer({ seconds, onDone, onSkip, settings }) {
         <span className="iw-rest-num">{left}</span>
         <span className="iw-rest-unit">rest</span>
       </div>
-      <button className="iw-btn-ghost" onClick={onSkip}>skip — back under the bar</button>
+      <button className="iw-btn-ghost" onClick={onSkip}>skip rest → next set</button>
     </div>
   );
 }
 
-/* ── creed visuals ── */
-function CreedVisual({ v }) {
+/* ── creed visuals (rendered by the Book of Iron's Creed chapter) ── */
+export function CreedVisual({ v }) {
   if (v === "plate") return (
     <div className="iw-cr-vis"><div className="iw-mini-plate-vis"><span>45</span></div></div>
   );
@@ -267,20 +274,30 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     plans, sessions, prs, creedSeen,
     addPlan, patchPlan, removePlan, addSession, addPR, markCreedSeen,
   } = useWorkout(userId);
+  const alpha = useAlpha(userId);
 
   const [view, setView] = useState(() => {
-    // deep links (e.g. Sunday Review → Stockpile) skip the cover
+    // deep links (e.g. Sunday Review → the fridge) skip the cover
     try {
       const hint = window.sessionStorage.getItem("iron_view");
-      if (hint && hint.startsWith("alpha")) return { name: "alpha" };
+      if (hint === "alpha:stockpile") {
+        window.sessionStorage.removeItem("iron_view");
+        return { name: "fridge" };
+      }
+      if (hint && hint.startsWith("alpha")) {
+        window.sessionStorage.removeItem("iron_view");
+        return { name: "today" };
+      }
     } catch { /* silent */ }
     return { name: "cover" };
-  }); // cover | creed | plans | plan | session | alpha | wall | log | session-detail
-  const [creedStep, setCreedStep] = useState(0);
+  }); // cover | today | program | fridge | book | records | plan | session | session-detail
   const [opening, setOpening] = useState(false);
   const [racked, setRacked] = useState(null); // {summary, after}
   const [pageKey, setPageKey] = useState(0);
   const [newPlanOpen, setNewPlanOpen] = useState(false);
+  const [recordsTab, setRecordsTab] = useState("prs"); // prs | history
+  const [alphaEntry, setAlphaEntry] = useState(null); // deep entry into the campaign (gate/boss/session)
+  const [alphaImmersive, setAlphaImmersive] = useState(false); // hide nav during crossing/session/boss
 
   const go = useCallback((v) => {
     setView(v);
@@ -331,25 +348,39 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     return map;
   }, [sessions]);
 
+  const workoutData = { sessions, prs, addSession, addPR, bestPRs, lastWeights };
+
+  /* trait levels from real behavior (Book of Iron · trait tree) */
+  const traitLevels = useMemo(() => {
+    const ev = alpha.events || [];
+    const count = (k) => ev.filter((e) => e.kind === k).length;
+    const alphaSessions = (sessions || []).filter((s) => s.meta?.alpha);
+    const lowersHonored = alphaSessions.filter((s) =>
+      (s.meta.alpha.verdicts || []).some((v) => v.verdict === "lower")).length;
+    return {
+      helpful: Math.min(5, Math.floor(count("fridge_stocked") / 2)),
+      confident: Math.min(5, Math.floor(alphaSessions.length / 5)),
+      vain: Math.min(5, Math.floor(count("cardio") / 3)),
+      prideful: Math.min(5, count("week_complete")),
+      humble: Math.min(5, lowersHonored),
+      tolerant: Math.min(5, Math.floor(count("fast_complete") / 5)),
+      dedicated: Math.min(5, count("phase_complete") * 2 + Math.floor(count("week_complete") / 4)),
+    };
+  }, [alpha.events, sessions]);
+
   const openBook = () => {
     setOpening(true);
     sfxPlateClank(settings);
     setTimeout(() => {
       setOpening(false);
-      go(creedSeen ? { name: "plans" } : { name: "creed" });
-      if (!creedSeen) setCreedStep(0);
+      go({ name: "today" });
     }, 850);
   };
 
   /* IronWorkout mounts fresh on every open (WorkoutMode conditional
      render), so the initial view — cover, or a deep-link target — is
      decided once in the useState initializer above. No reset effect:
-     it would race AlphaMode's consumption of the deep-link hint. */
-
-  const finishCreed = () => {
-    markCreedSeen();
-    go({ name: "plans" });
-  };
+     it would race the deep-link consumption. */
 
   /* save a finished session + its PRs, then slam the plate */
   const rackSession = (result) => {
@@ -359,7 +390,7 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     addXP(xp, "Iron session racked");
     setRacked({
       summary: { ...result.session, prCount: result.prs.length },
-      after: () => go({ name: "log" }),
+      after: () => { setRecordsTab("history"); go({ name: "records" }); },
     });
   };
 
@@ -395,87 +426,30 @@ export default function IronWorkout({ onExit, startOpen = false }) {
         <div className="iw-stat"><span className="iw-stat-num">{bestPRs.size}</span><span className="iw-stat-label">PRs on the wall</span></div>
       </div>
 
-      {plans.length > 0 && (
-        <button className="iw-btn-ember iw-btn-wide" onClick={() => go({ name: "plan", id: (lastSession && plans.find((p) => p.id === lastSession.plan_id)?.id) || plans[0].id })}>
+      {(alpha.state.flags.crossingDone || plans.length > 0) && (
+        <button className="iw-btn-ember iw-btn-wide" onClick={() => {
+          if (alpha.state.flags.crossingDone || plans.length === 0) go({ name: "today" });
+          else go({ name: "plan", id: (lastSession && plans.find((p) => p.id === lastSession.plan_id)?.id) || plans[0].id });
+        }}>
           ⚡ start today&apos;s workout
         </button>
       )}
 
       <button className="iw-exit-link" onClick={onExit}>
-        ✕ rack the plate — back to the map
+        ✕ exit THE IRON
       </button>
     </div>
   );
 
-  /* ── CREED ── */
-  const renderCreed = () => {
-    const s = CREED[creedStep];
-    const last = creedStep === CREED.length - 1;
-    return (
-      <div className="iw-page iw-page-in" key={`cr${creedStep}`}>
-        <div className="iw-cr-dots">
-          {CREED.map((_, i) => <span key={i} className={`iw-dot ${i <= creedStep ? "iw-dot-on" : ""}`} />)}
-        </div>
-        <div className="iw-cr-card">
-          <h2 className="iw-display iw-cr-title">{s.title}</h2>
-          <CreedVisual v={s.visual} />
-          <p className="iw-body iw-cr-body">{s.body}</p>
-        </div>
-        <div className="iw-cr-nav">
-          {!creedSeen && !last && (
-            <button className="iw-btn-ghost" onClick={finishCreed}>skip — I&apos;ll read later</button>
-          )}
-          {(creedSeen || last) && creedStep > 0 && (
-            <button className="iw-btn-ghost" onClick={() => setCreedStep(creedStep - 1)}>back</button>
-          )}
-          <button className="iw-btn-ember" onClick={() => (last ? finishCreed() : setCreedStep(creedStep + 1))}>
-            {last ? "open the rack" : "next plate"}
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  /* ── PLANS INDEX ── */
-  const renderPlans = () => (
-    <div className="iw-page iw-page-in" key={`pl${pageKey}`}>
-      <div className="iw-eyebrow">the rack</div>
-      <h2 className="iw-display iw-page-title">Your Plans</h2>
-      <div className="iw-stack">
-        {plans.map((p) => {
-          const lastRun = sessions.find((s) => s.plan_id === p.id);
-          return (
-            <button key={p.id} className="iw-plan-card" style={{ background: STEELS.find((x) => x.id === p.steel)?.css }}
-              onClick={() => go({ name: "plan", id: p.id })}>
-              <div className="iw-plan-emblem">{p.emblem}</div>
-              <div className="iw-plan-text">
-                <span className="iw-plan-name">{p.name}</span>
-                <span className="iw-plan-sub">
-                  {(p.exercises || []).length} lifts{p.focus ? ` · ${p.focus}` : ""}
-                </span>
-                <span className="iw-plan-last">{lastRun ? `last run ${relAge(lastRun.created_at)}` : "never run — first time under the bar"}</span>
-              </div>
-              <span className="iw-plan-go">❯</span>
-            </button>
-          );
-        })}
-      </div>
-      <button className="iw-newplan" onClick={() => setNewPlanOpen(true)}>＋ forge a new plan</button>
-      {plans.length === 0 && (
-        <div className="iw-empty">an empty rack is a loud invitation — forge your first plan</div>
-      )}
-    </div>
-  );
-
-  /* ── SINGLE PLAN (edit + launch) ── */
+  /* ── SINGLE PLAN (edit + launch) — reached from the Program console ── */
   const renderPlan = () => {
     const p = plans.find((x) => x.id === view.id);
     if (!p) return null;
     return (
       <PlanPage key={`p${p.id}${pageKey}`} plan={p} settings={settings}
-        onBack={() => go({ name: "plans" })}
+        onBack={() => go({ name: "program" })}
         onPatch={(patch) => patchPlan(p.id, patch)}
-        onDelete={() => { removePlan(p.id); go({ name: "plans" }); }}
+        onDelete={() => { removePlan(p.id); go({ name: "program" }); }}
         onStart={() => go({ name: "session", id: p.id })}
       />
     );
@@ -494,59 +468,61 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     );
   };
 
-  /* ── THE WALL (PRs) ── */
-  const renderWall = () => {
+  /* ── RECORDS — the PR wall + the history, one page ── */
+  const renderRecords = () => {
     const best = [...bestPRs.values()].sort((a, b) => b.weight - a.weight);
     return (
-      <div className="iw-page iw-page-in" key={`w${pageKey}`}>
-        <div className="iw-eyebrow">chalk on brick</div>
-        <h2 className="iw-display iw-page-title">The PR Wall</h2>
-        <div className="iw-wall">
-          {best.map((p) => (
-            <div key={p.id} className="iw-pr-card">
-              <div className="iw-pr-lift">{p.exercise}</div>
-              <div className="iw-pr-num">{p.weight}<span className="iw-pr-unit">lbs</span></div>
-              <div className="iw-pr-meta">× {p.reps} · {fmtDate(p.created_at)}</div>
-            </div>
-          ))}
-          {best.length === 0 && (
-            <div className="iw-empty">the wall is bare — your first PR is one honest set away</div>
-          )}
+      <div className="iw-page iw-page-in" key={`r${pageKey}`}>
+        <div className="iw-eyebrow">{recordsTab === "prs" ? "chalk on brick" : "every rep, in the book"}</div>
+        <h2 className="iw-display iw-page-title">Records</h2>
+        <div className="iw-rec-tabs">
+          <button className={`iw-chip-btn ${recordsTab === "prs" ? "iw-chip-on" : ""}`}
+            onClick={() => setRecordsTab("prs")}>✦ PR wall</button>
+          <button className={`iw-chip-btn ${recordsTab === "history" ? "iw-chip-on" : ""}`}
+            onClick={() => setRecordsTab("history")}>❒ history</button>
         </div>
+
+        {recordsTab === "prs" ? (
+          <div className="iw-wall">
+            {best.map((p) => (
+              <div key={p.id} className="iw-pr-card">
+                <div className="iw-pr-lift">{p.exercise}</div>
+                <div className="iw-pr-num">{p.weight}<span className="iw-pr-unit">lbs</span></div>
+                <div className="iw-pr-meta">× {p.reps} · {fmtDate(p.created_at)}</div>
+              </div>
+            ))}
+            {best.length === 0 && (
+              <div className="iw-empty">the wall is bare — your first PR is one honest set away</div>
+            )}
+          </div>
+        ) : (
+          <div className="iw-stack">
+            {sessions.map((s, i) => {
+              const prCount = prs.filter((p) => p.session_id === s.id).length;
+              return (
+                <button key={s.id} className="iw-log-card iw-drop-in" style={{ animationDelay: `${Math.min(i * 55, 550)}ms` }}
+                  onClick={() => go({ name: "session-detail", id: s.id })}>
+                  <div className="iw-log-top">
+                    <span className="iw-log-name">{s.plan_name || "freestyle"}</span>
+                    <span className="iw-log-date">{fmtDate(s.created_at)}</span>
+                  </div>
+                  <div className="iw-log-nums">
+                    <span>{fmtDur(s.duration_s)}</span>
+                    <span className="iw-cover-dot">·</span>
+                    <span>{fmtVol(s.total_volume)} lbs</span>
+                    <span className="iw-cover-dot">·</span>
+                    <span>{s.total_sets} sets</span>
+                    {prCount > 0 && <span className="iw-log-pr">✦ {prCount} PR{prCount > 1 ? "s" : ""}</span>}
+                  </div>
+                </button>
+              );
+            })}
+            {sessions.length === 0 && <div className="iw-empty">the book opens on a blank page — rack session one</div>}
+          </div>
+        )}
       </div>
     );
   };
-
-  /* ── THE LOG (history) ── */
-  const renderLog = () => (
-    <div className="iw-page iw-page-in" key={`l${pageKey}`}>
-      <div className="iw-eyebrow">the book</div>
-      <h2 className="iw-display iw-page-title">The Log</h2>
-      <div className="iw-stack">
-        {sessions.map((s, i) => {
-          const prCount = prs.filter((p) => p.session_id === s.id).length;
-          return (
-            <button key={s.id} className="iw-log-card iw-drop-in" style={{ animationDelay: `${Math.min(i * 55, 550)}ms` }}
-              onClick={() => go({ name: "session-detail", id: s.id })}>
-              <div className="iw-log-top">
-                <span className="iw-log-name">{s.plan_name || "freestyle"}</span>
-                <span className="iw-log-date">{fmtDate(s.created_at)}</span>
-              </div>
-              <div className="iw-log-nums">
-                <span>{fmtDur(s.duration_s)}</span>
-                <span className="iw-cover-dot">·</span>
-                <span>{fmtVol(s.total_volume)} lbs</span>
-                <span className="iw-cover-dot">·</span>
-                <span>{s.total_sets} sets</span>
-                {prCount > 0 && <span className="iw-log-pr">✦ {prCount} PR{prCount > 1 ? "s" : ""}</span>}
-              </div>
-            </button>
-          );
-        })}
-        {sessions.length === 0 && <div className="iw-empty">the book opens on a blank page — rack session one</div>}
-      </div>
-    </div>
-  );
 
   /* ── SESSION DETAIL ── */
   const renderSessionDetail = () => {
@@ -555,7 +531,7 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     const sessionPRs = prs.filter((p) => p.session_id === s.id);
     return (
       <div className="iw-page iw-page-in" key={`sd${s.id}`}>
-        <button className="iw-back" onClick={() => go({ name: "log" })}>❮ the log</button>
+        <button className="iw-back" onClick={() => { setRecordsTab("history"); go({ name: "records" }); }}>❮ records</button>
         <div className="iw-eyebrow">{fmtDate(s.created_at)}</div>
         <h2 className="iw-display iw-page-title">{s.plan_name || "freestyle"}</h2>
         <div className="iw-log-nums iw-detail-nums">
@@ -592,28 +568,53 @@ export default function IronWorkout({ onExit, startOpen = false }) {
 
   /* ── nav ── */
   const NAV = [
-    { id: "plans", label: "plans", glyph: "▦" },
-    { id: "alpha", label: "alpha", glyph: "⚡" },
-    { id: "wall", label: "the wall", glyph: "✦" },
-    { id: "log", label: "the log", glyph: "❒" },
+    { id: "today", label: "today", glyph: "⚡" },
+    { id: "program", label: "program", glyph: "▦" },
+    { id: "fridge", label: "fridge", glyph: "🧊" },
+    { id: "book", label: "book", glyph: "❖" },
+    { id: "records", label: "records", glyph: "✦" },
   ];
-  const showNav = !["cover", "session", "creed"].includes(view.name);
+  const navOn = (id) =>
+    view.name === id ||
+    (id === "program" && ["plan", "plans"].includes(view.name)) ||
+    (id === "records" && view.name === "session-detail");
+  const showNav = !["cover", "session"].includes(view.name) && !alphaImmersive;
+
+  const enterCampaign = (entry) => {
+    setAlphaEntry(entry || null);
+    go({ name: "today" });
+  };
 
   return (
     <div className="iw-root">
       <div className="iw-vignette" aria-hidden="true" />
       <div className="iw-frame">
         {view.name === "cover" && renderCover()}
-        {view.name === "creed" && renderCreed()}
-        {view.name === "plans" && renderPlans()}
+        {view.name === "today" && (
+          <AlphaMode key={`al${pageKey}`} alpha={alpha} workoutData={workoutData}
+            initialView={alphaEntry}
+            onImmersiveChange={setAlphaImmersive}
+            onOpenFridge={() => go({ name: "fridge" })} />
+        )}
+        {view.name === "program" && (
+          <ProgramConsole key={`pg${pageKey}`} alpha={alpha} sessions={sessions} plans={plans}
+            settings={settings}
+            onOpenPlan={(id) => go({ name: "plan", id })}
+            onNewPlan={() => setNewPlanOpen(true)}
+            onEnterCampaign={enterCampaign} />
+        )}
+        {view.name === "fridge" && (
+          <FridgePage key={`fr${pageKey}`} alpha={alpha} addXP={addXP} settings={settings} />
+        )}
+        {view.name === "book" && (
+          <BookOfIron key={`bk${pageKey}`} alpha={alpha} prs={prs} traitLevels={traitLevels}
+            creedSeen={creedSeen} markCreedSeen={markCreedSeen} addXP={addXP} settings={settings}
+            onOpenProgram={() => go({ name: "program" })}
+            onFight={(bossId) => enterCampaign({ name: "boss", bossId, from: { name: "zone" } })} />
+        )}
         {view.name === "plan" && renderPlan()}
         {view.name === "session" && renderSession()}
-        {view.name === "alpha" && (
-          <AlphaMode key={`al${pageKey}`}
-            workoutData={{ sessions, prs, addSession, addPR, bestPRs, lastWeights }} />
-        )}
-        {view.name === "wall" && renderWall()}
-        {view.name === "log" && renderLog()}
+        {view.name === "records" && renderRecords()}
         {view.name === "session-detail" && renderSessionDetail()}
       </div>
 
@@ -621,15 +622,12 @@ export default function IronWorkout({ onExit, startOpen = false }) {
         <nav className="iw-nav">
           {NAV.map((n) => (
             <button key={n.id}
-              className={`iw-nav-btn ${view.name === n.id || (n.id === "plans" && view.name === "plan") || (n.id === "log" && view.name === "session-detail") ? "iw-nav-on" : ""}`}
-              onClick={() => go({ name: n.id })}>
+              className={`iw-nav-btn ${navOn(n.id) ? "iw-nav-on" : ""}`}
+              onClick={() => { if (n.id === "today") setAlphaEntry(null); go({ name: n.id }); }}>
               <span className="iw-nav-glyph">{n.glyph}</span>
               <span>{n.label}</span>
             </button>
           ))}
-          <button className="iw-nav-btn" onClick={() => { setCreedStep(0); go({ name: "creed" }); }}>
-            <span className="iw-nav-glyph">▲</span><span>creed</span>
-          </button>
           <button className="iw-nav-btn" onClick={onExit}>
             <span className="iw-nav-glyph">✕</span><span>close</span>
           </button>
@@ -873,7 +871,7 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
             <Stepper label="reps" value={w.reps} min={1} max={100} onChange={(v) => setWorkAt({ reps: v })} />
           </div>
           <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={logSet}>
-            ⬛ rack the set
+            ✓ LOG SET <span className="iw-btn-sub">· set done</span>
           </button>
         </>
       )}
@@ -893,7 +891,7 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
         )}
         {anySetLogged && (
           <button className={`${isLastExercise && targetDone ? "iw-btn-ember" : "iw-btn-ghost"}`} onClick={finish}>
-            ⬛ rack it — finish session
+            ■ FINISH &amp; SAVE WORKOUT
           </button>
         )}
       </div>
@@ -903,11 +901,11 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
       {confirmAbort && (
         <div className="iw-modal-veil" onClick={() => setConfirmAbort(false)}>
           <div className="iw-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="iw-eyebrow">leave the session?</div>
-            <p className="iw-body">Nothing gets saved unless you rack it. Walk away, or finish what you started.</p>
+            <div className="iw-eyebrow">leave the workout?</div>
+            <p className="iw-body">Nothing gets saved unless you finish. Leave now, or keep training.</p>
             <div className="iw-modal-actions">
-              <button className="iw-btn-ghost" onClick={onAbort}>walk away</button>
-              <button className="iw-btn-ember" onClick={() => setConfirmAbort(false)}>stay under the bar</button>
+              <button className="iw-btn-ghost" onClick={onAbort}>leave — nothing saved</button>
+              <button className="iw-btn-ember" onClick={() => setConfirmAbort(false)}>keep training</button>
             </div>
           </div>
         </div>
