@@ -490,6 +490,129 @@ export function sfxPhoenix(settings) {
   } catch { /* silent */ }
 }
 
+// ---------- Field Journal (leather, parchment, gold, grace) ----------
+
+// A page turning — soft paper swish, airy and quick.
+export function sfxPageTurn(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.4;
+    f.frequency.setValueAtTime(900, t);
+    f.frequency.exponentialRampToValueAtTime(3400, t + 0.16);
+    f.frequency.exponentialRampToValueAtTime(1200, t + 0.3);
+    const g = env(c, { gain: 0.11, attack: 0.03, duration: 0.32 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.4);
+  } catch { /* silent */ }
+}
+
+// A heavy leather cover closing — muffled thump with a paper settle.
+export function sfxBookThump(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 105, to: 42, duration: 0.22, gain: 0.34 });
+    crack(c, { hp: 90, lp: 750, duration: 0.14, gain: 0.2 });
+    crack(c, { hp: 900, lp: 2600, duration: 0.2, gain: 0.05, start: 0.08 });
+  } catch { /* silent */ }
+}
+
+// Wax seal — soft molten press, a low squash, then a settling sizzle.
+export function sfxWaxSeal(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    subDrop(c, { from: 160, to: 55, duration: 0.3, gain: 0.24 });
+    crack(c, { hp: 120, lp: 620, duration: 0.16, gain: 0.14 });
+    // sizzle as the wax settles
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "highpass";
+    f.frequency.value = 3800;
+    const g = env(c, { gain: 0.05, attack: 0.05, duration: 0.55, start: 0.1 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t + 0.1);
+    src.stop(t + 0.8);
+    blip(c, { from: 660, to: 520, duration: 0.3, type: "sine", gain: 0.045, start: 0.16 });
+  } catch { /* silent */ }
+}
+
+// Quill on parchment — one short dry scratch. Throttle at the call site.
+export function sfxQuillScratch(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 3.5;
+    f.frequency.setValueAtTime(2600, t);
+    f.frequency.exponentialRampToValueAtTime(4200, t + 0.09);
+    const g = env(c, { gain: 0.035, attack: 0.01, duration: 0.12 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.18);
+  } catch { /* silent */ }
+}
+
+// Lifting a prayer — one soft, warm chapel bell with a long tail.
+export function sfxPrayerBell(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 523.25, to: 523.25, duration: 1.3, type: "triangle", gain: 0.14 });
+    blip(c, { from: 1046.5, to: 1046.5, duration: 0.9, type: "sine", gain: 0.05 });
+    blip(c, { from: 1568, to: 1568, duration: 0.5, type: "sine", gain: 0.02, start: 0.03 });
+  } catch { /* silent */ }
+}
+
+// An answered prayer — the halo. Slow angelic bloom: stacked detuned major
+// chord swelling in, a high sparkle cascade, and warm sub light underneath.
+export function sfxHalo(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    // choir-like swell: C major with gentle detune pairs
+    [261.63, 329.63, 392.0, 523.25].forEach((fr, i) => {
+      [0.997, 1.003].forEach((d) => {
+        const o = c.createOscillator();
+        o.type = "sine";
+        o.frequency.value = fr * d;
+        const g = env(c, { gain: 0.06, attack: 0.5, duration: 2.3, start: i * 0.09 });
+        o.connect(g).connect(bus);
+        o.start(t + i * 0.09);
+        o.stop(t + i * 0.09 + 2.5);
+      });
+    });
+    // sparkle cascade descending from on high
+    [2093, 1760, 1568, 1318.5, 1046.5].forEach((fr, i) => {
+      blip(c, { from: fr, to: fr, duration: 0.5, type: "sine", gain: 0.035, start: 0.55 + i * 0.14 });
+    });
+    // warm light under it all
+    subDrop(c, { from: 65, to: 130, duration: 1.6, gain: 0.1, start: 0.15 });
+    // breath of air rising
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 0.8;
+    f.frequency.setValueAtTime(600, t);
+    f.frequency.exponentialRampToValueAtTime(6800, t + 1.8);
+    const g = env(c, { gain: 0.06, attack: 0.6, duration: 2.1 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 2.3);
+  } catch { /* silent */ }
+}
+
 // ---------- loops (return a handle: { stop(), setLevel(0..1) }) ----------
 
 const NO_LOOP = { stop() {}, setLevel() {} };
@@ -775,6 +898,107 @@ export function sfxCrowdLoop(settings) {
   } catch {
     return NO_LOOP;
   }
+}
+
+// ---------- Full Court shot sounds (every door log = a basketball shot) ----------
+
+// The launch: one dribble thump off the hardwood + a rising throw whoosh.
+export function sfxBallThrow(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    // dribble bounce
+    subDrop(c, { from: 190, to: 70, duration: 0.09, gain: 0.28 });
+    crack(c, { hp: 500, lp: 2400, duration: 0.045, gain: 0.1 });
+    // throw whoosh rising away
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.1;
+    f.frequency.setValueAtTime(500, t + 0.05);
+    f.frequency.exponentialRampToValueAtTime(2600, t + 0.32);
+    const g = env(c, { gain: 0.08, attack: 0.06, duration: 0.3, start: 0.05 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t + 0.05);
+    src.stop(t + 0.45);
+  } catch { /* silent */ }
+}
+
+// Nothing-but-net SWISH — airy nylon whip, falling away.
+export function sfxSwish(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.6;
+    f.frequency.setValueAtTime(4200, t);
+    f.frequency.exponentialRampToValueAtTime(900, t + 0.22);
+    const g = env(c, { gain: 0.22, attack: 0.012, duration: 0.26 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.32);
+    // nylon threads settling
+    crack(c, { hp: 2600, lp: 7000, duration: 0.09, gain: 0.05, start: 0.16 });
+  } catch { /* silent */ }
+}
+
+// Bank shot — a thock off the glass, then the ball drops in with a soft swish.
+export function sfxBank(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    // backboard thock
+    crack(c, { hp: 300, lp: 1500, duration: 0.06, gain: 0.24 });
+    blip(c, { from: 340, to: 210, duration: 0.09, type: "triangle", gain: 0.12 });
+    // in off the glass
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.5;
+    f.frequency.setValueAtTime(3200, t + 0.12);
+    f.frequency.exponentialRampToValueAtTime(800, t + 0.3);
+    const g = env(c, { gain: 0.12, attack: 0.015, duration: 0.2, start: 0.12 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t + 0.12);
+    src.stop(t + 0.4);
+  } catch { /* silent */ }
+}
+
+// THE DUNK — rim slam, steel ring-out, glass rattle. Caller stacks the horn/roar.
+export function sfxDunk(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    // two-hand slam
+    subDrop(c, { from: 150, to: 34, duration: 0.3, gain: 0.6 });
+    crack(c, { hp: 200, lp: 3200, duration: 0.1, gain: 0.3 });
+    // steel rim ringing out (detuned pair, fast decay)
+    const t = c.currentTime;
+    [523, 782].forEach((hz, i) => {
+      const o = c.createOscillator();
+      o.type = "square";
+      o.frequency.setValueAtTime(hz, t + 0.02);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.09 - i * 0.03, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      const f = c.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.value = hz * 2;
+      f.Q.value = 8;
+      o.connect(f).connect(g).connect(bus);
+      o.start(t + 0.02);
+      o.stop(t + 0.55);
+    });
+    // backboard glass rattling
+    crack(c, { hp: 1800, lp: 6500, duration: 0.16, gain: 0.08, start: 0.06 });
+    crack(c, { hp: 1400, lp: 5200, duration: 0.12, gain: 0.05, start: 0.2 });
+  } catch { /* silent */ }
 }
 
 // ---------- baked voice lines ----------

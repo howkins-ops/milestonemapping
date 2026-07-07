@@ -41,7 +41,6 @@ import { witnessSay } from "../../witness/witnessLines.js";
 import {
   sfxBuzzer,
   sfxCoin,
-  sfxPop,
   sfxHorn,
   sfxWhoosh,
   sfxPhoenix,
@@ -49,6 +48,10 @@ import {
   sfxRoundBell,
   sfxCalmPadLoop,
   sfxCrowdLoop,
+  sfxBallThrow,
+  sfxSwish,
+  sfxBank,
+  sfxDunk,
 } from "../../../../lib/sfx.js";
 import { createLineAudio, playLine, stopNarration } from "../../../../lib/voiceOver.js";
 import {
@@ -96,18 +99,19 @@ const LADDER_GROUPS = [
 const DRIVE_CUM = [2, 6, 10, 16, 22, 30, 38, 48];
 
 // Tap buttons per mode — outcome keys match fullCourtEngine's outcome tables.
+// Every tap takes a SHOT — the sub-copy names the shot the ball will hit.
 const MODE_ACTIONS = {
   rookie: [
-    { key: "no", glyph: "🚪", label: "NO", sub: "+2 · a knock still scores", cls: "fc-btn--no" },
-    { key: "pitch", glyph: "🎤", label: "PITCH", sub: "+4 · value build", cls: "fc-btn--pitch" },
-    { key: "sale", glyph: "💰", label: "SALE", sub: "+10 · the dunk", cls: "fc-btn--sale" },
+    { key: "no", glyph: "🚪", label: "NO", sub: "+2 · bank shot — knocks score", cls: "fc-btn--no" },
+    { key: "pitch", glyph: "🎤", label: "PITCH", sub: "+4 · smooth jumper", cls: "fc-btn--pitch" },
+    { key: "sale", glyph: "💰", label: "SALE", sub: "+10 · THE DUNK", cls: "fc-btn--sale" },
   ],
   pro: [
-    { key: "knock", glyph: "🚪", label: "KNOCK", sub: "+2 · no answer", cls: "fc-btn--no" },
-    { key: "talked_to", glyph: "🗣️", label: "TALKED", sub: "+4 · contact", cls: "fc-btn--pitch" },
-    { key: "value_build", glyph: "📈", label: "VALUE", sub: "+6 · pitched", cls: "fc-btn--pitch" },
-    { key: "price_drop", glyph: "🏷️", label: "PRICE", sub: "+8 · objection", cls: "fc-btn--pitch" },
-    { key: "close", glyph: "💰", label: "CLOSE", sub: "+10 · the dunk", cls: "fc-btn--sale" },
+    { key: "knock", glyph: "🚪", label: "KNOCK", sub: "+2 · off the glass", cls: "fc-btn--no" },
+    { key: "talked_to", glyph: "🗣️", label: "TALKED", sub: "+4 · jumper", cls: "fc-btn--pitch" },
+    { key: "value_build", glyph: "📈", label: "VALUE", sub: "+6 · pull-up", cls: "fc-btn--pitch" },
+    { key: "price_drop", glyph: "🏷️", label: "PRICE", sub: "+8 · step-back three", cls: "fc-btn--pitch" },
+    { key: "close", glyph: "💰", label: "CLOSE", sub: "+10 · THE DUNK", cls: "fc-btn--sale" },
   ],
 };
 
@@ -186,6 +190,9 @@ export default function FullCourt({ go }) {
   const [brk, setBrk] = useState(null); // { flavor, secs, endsAt, track }
   const [brkClock, setBrkClock] = useState(0);
   const [flies, setFlies] = useState([]);
+  const [balls, setBalls] = useState([]); // 🏀 in flight: {id,sx,sy,py,tx,ty,kind}
+  const [hoopHit, setHoopHit] = useState(null); // 'swish'|'bank'|'dunk' → net/rim FX
+  const hoopRef = useRef(null);
   const [bumping, setBumping] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [rejoin, setRejoin] = useState(null); // saved live game found on mount
@@ -471,6 +478,62 @@ export default function FullCourt({ go }) {
     setRejoin(null);
   }, [clearLive]);
 
+  // Take the shot: ball arcs from the tapped button into the hoop; the result
+  // sound (swish / off-the-glass / DUNK) and the points fly-up land WITH the
+  // ball, ~half a second later. The score itself updates instantly — the
+  // flight is garnish, never a gate on fast tapping.
+  const shootBall = useCallback(
+    (x, y, ev) => {
+      const isSale = !!ev?.isSale;
+      const kind =
+        isSale ? "dunk" : ev?.outcome === "no" || ev?.outcome === "knock" ? "bank" : "swish";
+      try {
+        sfxBallThrow();
+      } catch {
+        /* silent */
+      }
+      let tx = window.innerWidth / 2;
+      let ty = 160;
+      try {
+        const r = hoopRef.current?.getBoundingClientRect();
+        if (r) {
+          tx = r.left + r.width / 2;
+          ty = r.top + r.height * 0.7;
+        }
+      } catch {
+        /* fallback target is fine */
+      }
+      const id = Math.random().toString(36).slice(2);
+      const py = Math.min(y, ty) - 120; // arc apex above start & rim
+      setBalls((b) => [...b.slice(-4), { id, sx: x, sy: y, tx, ty, py, kind }]);
+      setTimeout(() => {
+        if (!aliveRef.current) return;
+        setBalls((b) => b.filter((q) => q.id !== id));
+        try {
+          if (kind === "dunk") {
+            sfxDunk();
+            sfxHorn(1);
+            if (navigator.vibrate) navigator.vibrate(40);
+          } else if (kind === "bank") {
+            sfxBank();
+          } else {
+            sfxSwish();
+          }
+          if (ev?.onFire) sfxCoin();
+        } catch {
+          /* silent */
+        }
+        setHoopHit(kind);
+        setTimeout(() => {
+          if (aliveRef.current) setHoopHit(null);
+        }, 420);
+        pushFly(ev?.tag || `+${ev?.points ?? 0}`, isSale || ev?.targetSmashed);
+        if (isSale || ev?.targetSmashed) burst(tx, ty + 10, GOLD);
+      }, 520); // matches the CSS flight time
+    },
+    [pushFly, burst]
+  );
+
   const doLog = useCallback(
     (outcome, e) => {
       if (!game || phase !== "playing") return;
@@ -478,23 +541,20 @@ export default function FullCourt({ go }) {
       const next = logDoor(game, outcome, { atBuzzer: clock > 0 && clock <= BUZZER_WINDOW });
       if (next === game) return; // unknown outcome / finished
       const ev = next.lastEvent;
-      const isSale = !!ev?.isSale;
-      try {
-        if (ev?.targetSmashed) sfxHorn(2);
-        else if (isSale) sfxHorn(1);
-        else if (ev?.onFire) sfxCoin();
-        else sfxPop();
-      } catch {
-        /* silent */
+      if (ev?.targetSmashed) {
+        try {
+          sfxHorn(2);
+        } catch {
+          /* silent */
+        }
       }
       const x = e?.clientX ?? window.innerWidth / 2;
       const y = e?.clientY ?? window.innerHeight / 2;
-      if (isSale || ev?.targetSmashed) burst(x, y, GOLD);
-      pushFly(ev?.tag || `+${ev?.points ?? 0}`, isSale || ev?.targetSmashed);
+      shootBall(x, y, ev);
       bump();
       setGame(next);
     },
-    [game, phase, clock, burst, pushFly, bump]
+    [game, phase, clock, shootBall, bump]
   );
 
   /* ---------------- locker room (break) ---------------- */
@@ -690,6 +750,26 @@ export default function FullCourt({ go }) {
 
   return (
     <div className="fc-wrap" ref={reveal}>
+      {/* balls in flight — fixed layer so the arc runs from button to rim */}
+      {balls.length > 0 && (
+        <div className="fc-balls" aria-hidden="true">
+          {balls.map((b) => (
+            <span
+              key={b.id}
+              className="fc-ballx"
+              style={{ "--sx": `${b.sx}px`, "--tx": `${b.tx}px` }}
+            >
+              <span
+                className={`fc-bally ${b.kind === "dunk" ? "fc-bally--dunk" : ""}`}
+                style={{ "--sy": `${b.sy}px`, "--py": `${b.py}px`, "--ty": `${b.ty}px` }}
+              >
+                🏀
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+
       <button type="button" className="zn-back fc-back" onClick={() => go?.("arena")}>
         ← Arena
       </button>
@@ -723,6 +803,16 @@ export default function FullCourt({ go }) {
         </div>
 
         <div className="fc-scorewrap">
+          {/* the hoop — every logged door is a shot at this rim */}
+          <div
+            ref={hoopRef}
+            className={`fc-hoop ${hoopHit ? `fc-hoop--${hoopHit}` : ""}`}
+            aria-hidden="true"
+          >
+            <span className="fc-hoop__board" />
+            <span className="fc-hoop__rim" />
+            <span className="fc-hoop__net" />
+          </div>
           <div className="fc-flies" aria-hidden="true">
             {flies.map((f) => (
               <span key={f.id} className={`fc-fly ${f.sale ? "fc-fly--sale" : ""}`}>
