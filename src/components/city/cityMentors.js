@@ -932,3 +932,47 @@ export function getGreeting(mentor, date = new Date()) {
     return "";
   return mentor.greetings[dayOfYear(date) % mentor.greetings.length];
 }
+
+// ── The Spire closers — why the city teaches ALL of this ─────────────────
+// Every lesson ends by pointing at the tower: each district trains a
+// discipline the Alchemist Spire (and the crossing beyond it) will test.
+// Appended as a final beat at the call site (MapQuestCityPage.hearLesson),
+// so the verified lesson flows themselves stay untouched.
+const SPIRE_CLOSERS = {
+  "daily-nexus":
+    "One more thing. The tower past the Terminus tests whether your days keep promises. Every Top Five you close is a brick in the person who climbs it.",
+  "war-rooms":
+    "One more thing. Campaign-mapping is how the Spire will ask you to see your whole life — the seekers who climb it map first, then move.",
+  "war-council":
+    "One more thing. The weekly council is a rehearsal for the tower's mirrors. If you can review a week honestly, you can survive a chamber that reviews YOU.",
+  "identity-forge":
+    "One more thing. The Spire's first shadow attacks exactly what we forge here — who you decide you are. Hammer it now, cheap. Up there it costs more.",
+  "vision-tower":
+    "One more thing. In the tower they call it the Personal Legend. Here we just call it your vision. Same fire, same five words on the pendant.",
+  "the-academy":
+    "One more thing. The five shifts you learn here are the lenses that catch a shadow mid-sentence. The Spire assumes you have them. Don't make it wrong.",
+  "formula-athenaeum":
+    "One more thing. The formula is the desert-crossing of this city: method over mood. The Alchemist tests method on floor three. You'll thank this room.",
+  observatory:
+    "One more thing. Proof it's repeatable — that's what the observatory holds. The tower's fourth floor tries to convince you nothing ever changes. Bring your charts.",
+  "pressure-forge":
+    "One more thing. Anger into fuel is the Raging Victim's flip, practiced small. There's a whole ruined district in the Spire waiting for someone who trained here.",
+  "shadow-sanctum":
+    "One more thing. Everything in the Sanctum is a rehearsal for the tower's shadow chambers — same masks, lower stakes. Name them here first.",
+  "cup-springs":
+    "One more thing. The oasis past the fifth city only helps travelers who learned to be filled. Practice receiving here, or you'll walk right past it.",
+  "blaze-lab":
+    "One more thing. The crossing after the tower is long. Energy engineering is the difference between a seeker who arrives and one who's carried back.",
+  "guild-quarter":
+    "One more thing. Witnessed fire — the tower's declarations only count out loud. The guild is where your voice gets used to being heard.",
+  "hall-of-champions":
+    "One more thing. Every name on this wall climbed the same tower you're training for. The Hall isn't decoration. It's evidence.",
+  "the-vault":
+    "One more thing. The Vault at the top of the Spire opens onto a mirror, not a pile of gold. This vault is where you practice knowing the difference.",
+  "alchemist-spire":
+    "You already know why the city taught you everything it did. Now climb.",
+};
+
+export function getSpireCloser(districtId) {
+  return SPIRE_CLOSERS[districtId] || null;
+}

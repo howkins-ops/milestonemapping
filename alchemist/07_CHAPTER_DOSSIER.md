@@ -1,5 +1,18 @@
 # The Inner Alchemist — Chapter Dossier (the rich content source)
 
+> **2026-07-07 — THE GOLDEN ROAD (Acts 0–3) + new-canon alignment.** The quest now lives inside a
+> staged game: ACT 0 the Hometown (4 stations — the WHY, the anti-quit Letter → SOS, the Quit-Your-Job
+> mini-game, the Send-Off v2 with the father's WARNING + the five-word PENDANT) → GATE 1 → ACT 1 the
+> City as tutorial (every district LIT = mentor lesson + first real action; Spire moved LAST and SEALED)
+> → GATE 2 (15/15 lit, ignition cinematic; quest book gated everywhere for new users; legacy bypasses)
+> → ACT 2 the Spire (walkable 5-floor interior, WORLD ⇄ BOOK toggle) → ACT 3 THE CROSSING TO THE OASIS
+> (five-cities-oasis doc as 11 walkable worlds: 5 cities + roads w/ trailing Shadow + the Thanking +
+> Fatima's oasis). **Essence pairing aligned to codex v8 / four-turns canon:** Ch 6 Broke King ↔
+> **MAJESTY** (was Power) and Ch 18 Raging Victim ↔ **POWER** (was Majesty) — keys/saveKeys unchanged.
+> Ch 6 now teaches **THE FOUR TURNS** (Naming → Separating → Returning → Proving; the Identity Forge is
+> Turn Four), and the same ritual is the flip mechanic in every crossing city. Ch 1 carry-forwards the
+> hometown WHY (the Father echoes it instead of re-asking). Canon table: `src/components/map-quest/essencePairs.js`.
+
 > **2026-07-06 — 24-chapter spine.** The Crystal Shop sales-mastery arc (Ch 7–10, "the Merchant")
 > was inserted after Ch 6; every later chapter shifted +4. Keys/saveKeys in `questChapters.js`
 > never change — only display numbers did.

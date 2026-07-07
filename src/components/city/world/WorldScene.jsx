@@ -158,9 +158,11 @@ export default function WorldScene({
   if (nearTarget && !paused) {
     if (nearTarget.type === "door") {
       const b = nearTarget.building;
-      prompt = b.locked
-        ? { label: `${b.name} — powered down`, key: "⏻", color: "rgba(242,240,244,0.65)" }
-        : { label: `Enter — ${b.name}`, key: "⏎", color: b.color };
+      prompt = b.sealed
+        ? { label: `${b.name} — SEALED`, key: "◈", color: "#7B2CFF" }
+        : b.locked
+          ? { label: `${b.name} — powered down`, key: "⏻", color: "rgba(242,240,244,0.65)" }
+          : { label: `Enter — ${b.name}`, key: "⏎", color: b.color };
     } else if (nearTarget.type === "npc") {
       prompt = { label: `Talk — ${nearTarget.npc.name}`, key: "⏎", color: nearTarget.npc.color };
     } else if (nearTarget.type === "exit") {
@@ -268,7 +270,7 @@ export default function WorldScene({
           <button
             key={b.id}
             type="button"
-            className={`mqw-b is-${b.glowState || "dim"}${b.locked ? " is-locked" : ""}${b.next ? " is-next" : ""}`}
+            className={`mqw-b is-${b.glowState || "dim"}${b.locked ? " is-locked" : ""}${b.next ? " is-next" : ""}${b.sealed ? " is-sealed" : ""}`}
             style={{
               left: b.x,
               width: b.w,

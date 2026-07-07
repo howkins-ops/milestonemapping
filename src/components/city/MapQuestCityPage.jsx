@@ -3,10 +3,14 @@ import { useAppData } from "../../hooks/useAppData.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES, RANKS } from "../../lib/gamification.js";
 import { MentorSprite } from "../map-quest/kit.jsx";
+import PendantHUD from "../map-quest/PendantHUD.jsx";
+import WorldAtlas from "../map-quest/WorldAtlas.jsx";
 import WorldScene from "./world/WorldScene.jsx";
 import { buildCityWorld, STORY_ORDER } from "./cityWorld.js";
 import useJourney from "./useJourney.js";
 import HometownJourney from "./hometown/HometownJourney.jsx";
+import SpireIgnition from "./SpireIgnition.jsx";
+import { markIgnitionSeen } from "./journeyStore.js";
 import CitizenCard from "./CitizenCard.jsx";
 import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
@@ -16,7 +20,7 @@ import MentorDialog from "./MentorDialog.jsx";
 import useCityProgress from "./useCityProgress.js";
 import useCitySocial from "./useCitySocial.js";
 import { QUARTER_ORDER, QUARTER_META, DISTRICTS } from "./cityDistricts.js";
-import { MENTORS, THE_GUIDE, getDailyGuideLesson } from "./cityMentors.js";
+import { MENTORS, THE_GUIDE, getDailyGuideLesson, getSpireCloser } from "./cityMentors.js";
 import { getCityStage, getTimeOfDay } from "./cityAtmosphere.js";
 import {
   recordVisit,
@@ -66,8 +70,9 @@ export default function MapQuestCityPage({
   const [selected, setSelected] = useState(null); // district in the sheet
   const [hallOpen, setHallOpen] = useState(false);
   const [lesson, setLesson] = useState(null); // { mentor, district }
+  const [ignition, setIgnition] = useState(false); // GATE 2 cinematic
 
-  // ── The journey — story-order unlocks (new citizens only) ──────────────
+  // ── The journey — LIT tutorial chain (new citizens only) ────────────────
   const journey = useJourney(districts, {
     onPowerOn: (id) => {
       const d = DISTRICTS.find((x) => x.id === id);
@@ -79,12 +84,29 @@ export default function MapQuestCityPage({
         detail: "The city grows as you do.",
       });
     },
+    onLit: (id) => {
+      const d = DISTRICTS.find((x) => x.id === id);
+      if (!d) return;
+      addXP(XP_VALUES.mentorLesson || 10, `${d.name} lit`);
+      celebrate({
+        variant: "project",
+        title: `${d.name.toUpperCase()} — LIT`,
+        subtitle: "Lesson heard. First real move made.",
+        detail: "The Spire is watching the lights come on.",
+      });
+    },
+    onSpireOpen: () => {
+      addXP(XP_VALUES.cityFirstVisit || 25, "GATE 2 — the Spire opens");
+      unlockAchievement("spire_open");
+      setIgnition(true);
+    },
   });
 
   const journeyDistricts = districts.map((d) => ({
     ...d,
     locked: !journey.isUnlocked(d.id),
     next: journey.nextStopId === d.id,
+    sealed: d.id === "alchemist-spire" && !journey.spireOpen,
   }));
 
   const reducedMotion = useMemo(() => {
@@ -162,7 +184,24 @@ export default function MapQuestCityPage({
 
   const hearLesson = (district) => {
     const mentor = MENTORS[district && district.id];
-    if (mentor) setLesson({ mentor, district });
+    if (!mentor) return;
+    // Every lesson ends where the story begins: a closing beat that ties
+    // this feature to the Spire (see SPIRE_CLOSERS in cityMentors.js).
+    const closer = getSpireCloser(district.id);
+    const withCloser =
+      closer && mentor.lesson && Array.isArray(mentor.lesson.beats)
+        ? {
+            ...mentor,
+            lesson: {
+              ...mentor.lesson,
+              beats: [
+                ...mentor.lesson.beats,
+                { speaker: mentor.name, lines: [closer] },
+              ],
+            },
+          }
+        : mentor;
+    setLesson({ mentor: withCloser, district });
   };
 
   const finishLesson = (mentor) => {
@@ -174,6 +213,7 @@ export default function MapQuestCityPage({
     }
     if (firstEver) unlockAchievement("first_lesson");
     if (heardCount >= 8) unlockAchievement("city_scholar");
+    journey.refresh(); // the LIT engine sees the lesson immediately
   };
 
   // ── The Guide's daily pointer ───────────────────────────────────────────
@@ -189,12 +229,19 @@ export default function MapQuestCityPage({
       : null;
 
   // ── The walkable street ─────────────────────────────────────────────────
+  // Every district's Guide stands beside their door — the tutorial teachers.
+  const doorMentors = {};
+  for (const d of journeyDistricts) {
+    const m = MENTORS[d.id];
+    if (m) doorMentors[d.id] = { name: m.name, color: m.color };
+  }
   const world = buildCityWorld(journeyDistricts, {
     guideName: THE_GUIDE.name,
     guideColor: THE_GUIDE.color,
+    mentors: doorMentors,
   });
   const [citySpawnX, setCitySpawnX] = useState(() => loadSavedX());
-  const scenePaused = Boolean(selected || hallOpen || lesson);
+  const scenePaused = Boolean(selected || hallOpen || lesson || ignition);
 
   // ── Hometown ⇄ city transitions ─────────────────────────────────────────
   const handleHometownComplete = ({ firstEver }) => {
@@ -229,6 +276,7 @@ export default function MapQuestCityPage({
           reducedMotion={reducedMotion}
           onComplete={handleHometownComplete}
         />
+        <PendantHUD />
       </div>
     );
   }
@@ -240,11 +288,21 @@ export default function MapQuestCityPage({
           <h2 className="mqc-head__title">MAPQUEST CITY</h2>
           <p className="mqc-head__sub">{stage.blurb}</p>
         </div>
-        <span className="mqc-pulse" aria-label={`City pulse ${cityPulse} percent, ${litCount} districts lit`}>
-          <span className="mqc-pulse__dot" aria-hidden="true" />
-          Pulse {cityPulse}% · {litCount}/{districts.length} lit
-          {radiantCount > 0 ? ` · ${radiantCount} radiant` : ""}
-        </span>
+        {!journey.legacy && !journey.spireOpen ? (
+          <span
+            className="mqc-pulse"
+            aria-label={`Training: ${journey.litCount} of ${journey.litTotal} districts lit`}
+          >
+            <span className="mqc-pulse__dot" aria-hidden="true" />
+            TRAINING {journey.litCount}/{journey.litTotal} · THE SPIRE WATCHES
+          </span>
+        ) : (
+          <span className="mqc-pulse" aria-label={`City pulse ${cityPulse} percent, ${litCount} districts lit`}>
+            <span className="mqc-pulse__dot" aria-hidden="true" />
+            Pulse {cityPulse}% · {litCount}/{districts.length} lit
+            {radiantCount > 0 ? ` · ${radiantCount} radiant` : ""}
+          </span>
+        )}
       </header>
 
       <WorldScene
@@ -256,7 +314,14 @@ export default function MapQuestCityPage({
         reducedMotion={reducedMotion}
         persistKey={POSITION_KEY}
         onEnterBuilding={openDistrictById}
-        onTalkNpc={() => (guideDistrict ? openDistrict(guideDistrict) : null)}
+        onTalkNpc={(id) => {
+          if (id && id.startsWith("mentor:")) {
+            const district = journeyDistricts.find((d) => d.id === id.slice(7));
+            if (district) hearLesson(district);
+            return;
+          }
+          if (guideDistrict) openDistrict(guideDistrict);
+        }}
         onExitEdge={handleCityExit}
       />
 
@@ -310,6 +375,12 @@ export default function MapQuestCityPage({
         <DistrictSheet
           district={selected}
           locked={selectedLocked}
+          sealed={Boolean(selected.sealed)}
+          gateNote={
+            selected.sealed
+              ? `THE SPIRE IS SEALED — ${journey.litCount}/${journey.litTotal} districts lit. Hear each door's lesson and make one real move inside it; when the whole city is lit, the tower opens.`
+              : null
+          }
           prevDistrict={selectedPrev}
           onGoPrev={openDistrict}
           onClose={() => setSelected(null)}
@@ -322,6 +393,33 @@ export default function MapQuestCityPage({
         <HallOfChampions social={social} onClose={() => setHallOpen(false)} />
       ) : null}
 
+      <WorldAtlas
+        current="city"
+        onJump={(j) => {
+          if (j.type === "hometown") journey.setWorld("hometown");
+          else if ((j.type === "spire" || j.type === "crossing") && onOpenMapQuest) {
+            if (j.type === "spire") {
+              try { sessionStorage.setItem("mq_spire_floor_v1", String(j.idx || 0)); } catch { /* no-op */ }
+            }
+            onOpenMapQuest();
+          }
+        }}
+      />
+
+      {ignition ? (
+        <SpireIgnition
+          onClimb={() => {
+            markIgnitionSeen();
+            setIgnition(false);
+            if (onOpenMapQuest) onOpenMapQuest();
+          }}
+          onClose={() => {
+            markIgnitionSeen();
+            setIgnition(false);
+          }}
+        />
+      ) : null}
+
       {lesson ? (
         <MentorDialog
           mentor={lesson.mentor}
@@ -331,6 +429,8 @@ export default function MapQuestCityPage({
           onEnterDistrict={enterDistrict}
         />
       ) : null}
+
+      <PendantHUD />
     </div>
   );
 }

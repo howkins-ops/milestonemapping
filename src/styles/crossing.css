@@ -1,0 +1,350 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THE CROSSING TO THE OASIS — ACT 3 (crx- prefix + world themes)
+   Eleven walkable worlds: dust roads, five shadow cities, the quiet road,
+   the oasis. Themes ride the shared --mqc-* variables (cityWorld.css).
+   ══════════════════════════════════════════════════════════════════════ */
+
+.crx-root { position: relative; }
+
+.crx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.crx-back {
+  padding: 8px 14px;
+  border: 1px solid rgba(123, 44, 255, 0.4);
+  border-radius: 6px;
+  background: transparent;
+  color: #b9a3ff;
+  font-family: var(--font-mono, inherit);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+
+.crx-progress {
+  font-family: var(--font-mono, inherit);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #c99a5b;
+}
+
+/* ── overlays (near miss / thanking) ─────────────────────────────────── */
+
+.crx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 97;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 3, 8, 0.93);
+  backdrop-filter: blur(8px);
+  overflow-y: auto;
+}
+
+.crx-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(214, 83, 138, 0.4);
+  background: transparent;
+  color: #d6538a;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.crx-panel {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 28px 26px 24px;
+  border: 1px solid rgba(214, 83, 138, 0.4);
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(214, 83, 138, 0.1), transparent 60%),
+    linear-gradient(165deg, #120a10, #060308);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+}
+
+.crx-panel--quiet {
+  border-color: rgba(139, 146, 168, 0.4);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(139, 146, 168, 0.1), transparent 60%),
+    linear-gradient(165deg, #0d0d12, #050507);
+}
+
+.crx-kicker {
+  font-family: var(--font-mono, inherit);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: #d6538a;
+  margin-bottom: 12px;
+}
+
+.crx-panel--quiet .crx-kicker { color: #8b92a8; }
+
+.crx-lead {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgba(216, 220, 232, 0.85);
+  margin-bottom: 18px;
+}
+
+.crx-after {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #eef1fa;
+  animation: crxRise 0.5s ease both;
+}
+
+.crx-thanksline {
+  font-size: 15.5px;
+  font-style: italic;
+  line-height: 1.65;
+  color: #ffd76a;
+  padding: 14px 18px;
+  border-left: 2px solid rgba(239, 192, 59, 0.5);
+  background: rgba(239, 192, 59, 0.06);
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 18px;
+}
+
+.crx-counter {
+  text-align: center;
+  font-family: var(--font-mono, inherit);
+  font-size: 34px;
+  color: #efc03b;
+  text-shadow: 0 0 24px rgba(239, 192, 59, 0.5);
+  margin-bottom: 14px;
+}
+
+.crx-hold {
+  position: relative;
+  width: 100%;
+  padding: 18px 20px;
+  border: 1px solid rgba(214, 83, 138, 0.55);
+  border-radius: 10px;
+  background: transparent;
+  color: #eef1fa;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.crx-hold--gold { border-color: rgba(239, 192, 59, 0.6); }
+
+.crx-hold__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(214, 83, 138, 0.3);
+  transition: width 0.05s linear;
+}
+
+.crx-hold--gold .crx-hold__fill { background: rgba(239, 192, 59, 0.28); }
+
+.crx-hold__label {
+  position: relative;
+  font-family: var(--font-mono, inherit);
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+}
+
+.crx-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crx-wrong {
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgba(255, 122, 92, 0.9);
+  padding: 10px 14px;
+  border-left: 2px solid rgba(255, 122, 92, 0.5);
+  background: rgba(255, 122, 92, 0.06);
+  animation: crxRise 0.4s ease both;
+}
+
+.crx-choice {
+  padding: 15px 18px;
+  border: 1px solid rgba(139, 146, 168, 0.4);
+  border-radius: 10px;
+  background: rgba(139, 146, 168, 0.06);
+  color: #d8dce8;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.crx-choice--true {
+  border-color: rgba(0, 255, 191, 0.45);
+  background: rgba(0, 255, 191, 0.06);
+  color: #bfffe9;
+}
+
+.crx-taps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crx-tap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(196, 69, 28, 0.35);
+  border-radius: 8px;
+  background: rgba(196, 69, 28, 0.06);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.crx-tap.is-gone {
+  opacity: 0.35;
+  transform: translateX(6px);
+  border-color: rgba(139, 146, 168, 0.25);
+  background: transparent;
+}
+
+.crx-tap__txt {
+  flex: 1;
+  font-family: var(--font-mono, inherit);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: #d8dce8;
+}
+
+.crx-tap.is-gone .crx-tap__txt { text-decoration: line-through; color: #8b92a8; }
+
+.crx-tap__btn {
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 84, 60, 0.6);
+  border-radius: 5px;
+  background: rgba(255, 84, 60, 0.12);
+  color: #ff9c86;
+  font-family: var(--font-mono, inherit);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+
+.crx-tap__gone {
+  font-family: var(--font-mono, inherit);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: #8b92a8;
+}
+
+@keyframes crxRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── world themes ─────────────────────────────────────────────────────── */
+
+/* the dust roads between cities */
+.mqw-theme-road {
+  --mqc-sky-a: #14100a;
+  --mqc-sky-b: #2b2114;
+  --mqc-sky-glow: rgba(201, 154, 91, 0.2);
+  --mqc-tint: rgba(201, 154, 91, 0.06);
+  --mqc-stars: 1;
+  border-color: rgba(201, 154, 91, 0.3);
+}
+
+/* I · the Silent Spire — glass cyan, words on screens */
+.mqw-theme-cross1 {
+  --mqc-sky-a: #04141c;
+  --mqc-sky-b: #0a2836;
+  --mqc-sky-glow: rgba(63, 214, 199, 0.24);
+  --mqc-tint: rgba(63, 214, 199, 0.07);
+  --mqc-stars: 0.8;
+  border-color: rgba(63, 214, 199, 0.32);
+}
+
+/* II · the Feed — warm magenta softness */
+.mqw-theme-cross2 {
+  --mqc-sky-a: #170811;
+  --mqc-sky-b: #331226;
+  --mqc-sky-glow: rgba(214, 83, 138, 0.28);
+  --mqc-tint: rgba(214, 83, 138, 0.08);
+  --mqc-stars: 0.4;
+  border-color: rgba(214, 83, 138, 0.34);
+}
+
+/* III · the Tribunal — grievance ember */
+.mqw-theme-cross3 {
+  --mqc-sky-a: #150703;
+  --mqc-sky-b: #331107;
+  --mqc-sky-glow: rgba(196, 69, 28, 0.3);
+  --mqc-tint: rgba(196, 69, 28, 0.08);
+  --mqc-stars: 0.4;
+  border-color: rgba(196, 69, 28, 0.36);
+}
+
+/* IV · the Ledger — arithmetic gold */
+.mqw-theme-cross4 {
+  --mqc-sky-a: #141002;
+  --mqc-sky-b: #2e2508;
+  --mqc-sky-glow: rgba(239, 192, 59, 0.26);
+  --mqc-tint: rgba(239, 192, 59, 0.07);
+  --mqc-stars: 0.6;
+  border-color: rgba(239, 192, 59, 0.34);
+}
+
+/* V · the Carnival — ageless violet delight */
+.mqw-theme-cross5 {
+  --mqc-sky-a: #0e0618;
+  --mqc-sky-b: #221040;
+  --mqc-sky-glow: rgba(138, 107, 214, 0.3);
+  --mqc-tint: rgba(138, 107, 214, 0.09);
+  --mqc-stars: 1;
+  border-color: rgba(138, 107, 214, 0.38);
+}
+
+/* the quiet road — the first true quiet since home */
+.mqw-theme-quiet {
+  --mqc-sky-a: #0b0b10;
+  --mqc-sky-b: #17171f;
+  --mqc-sky-glow: rgba(139, 146, 168, 0.16);
+  --mqc-tint: rgba(139, 146, 168, 0.05);
+  --mqc-stars: 1;
+  border-color: rgba(139, 146, 168, 0.3);
+}
+
+/* the oasis — green water, date palms, the pack */
+.mqw-theme-oasis {
+  --mqc-sky-a: #041410;
+  --mqc-sky-b: #0a2c22;
+  --mqc-sky-glow: rgba(0, 255, 191, 0.22);
+  --mqc-tint: rgba(0, 255, 191, 0.06);
+  --mqc-stars: 1;
+  border-color: rgba(0, 255, 191, 0.32);
+}
+
+/* the crossing's far silhouettes soften into dunes on roads + quiet */
+.mqw-theme-road .mqw-fart,
+.mqw-theme-quiet .mqw-fart {
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(180deg, rgba(58, 46, 28, 0.9), rgba(20, 16, 10, 0.95));
+}
+
+.mqw-theme-oasis .mqw-fart {
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(180deg, rgba(10, 60, 44, 0.9), rgba(4, 20, 16, 0.95));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crx-after, .crx-wrong { animation: none; }
+}

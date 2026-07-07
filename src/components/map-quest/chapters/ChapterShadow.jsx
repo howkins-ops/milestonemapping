@@ -4,17 +4,22 @@ import {
   PhoenixSeal, EssenceBurst, AnswerJournal, Row, ForgeExercise,
   HeroSprite, CrownedSprite, AlchemistSprite, Starfield, Embers, fsWrap,
 } from "../kit.jsx";
+import FourTurnsRitual from "../FourTurnsRitual.jsx";
+import { PAIR_BY_SHADOW_KEY } from "../essencePairs.js";
 
 /* =============================================================================
-   CHAPTER 6 — THE UNDERCITY OF LACK  ·  Broke King ↔ Power  (key: chapter-shadow)
+   CHAPTER 6 — THE UNDERCITY OF LACK  ·  Broke King ↔ MAJESTY  (key: chapter-shadow)
    Coelho beat: robbed in Tangier — the first necessary humiliation; the quest
    begins after naïveté breaks.
    Jon's testimony (T / depth Tr): the "$4/hour first year" ($12k across 365
    days), childhood bankruptcy and the scarcity demon (the $5k gold chain to
    match the dealer friends). Loss became identity: "I AM behind."
-   Exercise: Money Mirror (money, fear, power) → the folded-in Identity Forge
-   reforge (melt, identity, proof) → Essence: POWER. shadow:"broke_king".
-   (Absorbs the retired chapter-alchemy reforge.) See 07_CHAPTER_DOSSIER.md.
+   NEW CANON (codex v8 / four-turns): Broke King ↔ Majesty — worth was never
+   the number; the dignity his father handed him before a coin was earned.
+   This is also where the FOUR TURNS are taught: the first shadow, the first
+   full ritual (the forge is Turn Four — Proving).
+   Exercise: Money Mirror → the Four Turns → Identity Forge reforge →
+   Essence: MAJESTY. shadow:"broke_king". See 07_CHAPTER_DOSSIER.md.
    ============================================================================= */
 
 const GOLD = C.gold;
@@ -90,9 +95,11 @@ const MIRROR_PROMPTS = [
     prompt: "Finish it honestly. To you, money means ______. (Safety? Proof? Freedom? A scoreboard?)" },
   { key: "fear", label: "THE FEAR UNDERNEATH", accent: C.danger,
     prompt: "When money gets tight, what's the fear that actually grips you? Say the real one." },
-  { key: "power", label: "POWER INSTEAD", accent: C.power,
-    prompt: "If money is just a tool — what would real Power do, with it or without it?" },
+  { key: "power", label: "MAJESTY INSTEAD", accent: GOLD,
+    prompt: "If the number was never you — what would Majesty do next, with money or without it?" },
 ];
+
+const MAJESTY_PAIR = PAIR_BY_SHADOW_KEY.broke_king;
 
 export default function ChapterShadow({ onComplete, quest }) {
   const [phase, setPhase] = useState("intro");
@@ -159,16 +166,30 @@ export default function ChapterShadow({ onComplete, quest }) {
             <p style={{ ...serif, fontStyle: "italic", fontSize: 16, lineHeight: 1.55, color: C.text, marginBottom: 10 }}>
               "You said money means <span style={{ color: GOLD }}>{echo(vals.money, "safety")}</span>, and the fear underneath is <span style={{ color: C.danger }}>{echo(vals.fear, "ending up with nothing")}</span>. He's still chasing {chasing} — and so are you."
             </p>
-            <div style={{ padding: "16px 16px", borderRadius: 16, background: `linear-gradient(160deg, ${hexA(C.power, .12)}, ${C.cardDeep})`, border: `1px solid ${hexA(C.power, .4)}`, marginBottom: 14 }}>
-              <p style={{ ...serif, fontSize: 18, lineHeight: 1.5, color: C.text, margin: "0 0 8px" }}>"You don't become a king by doing more. You <span style={{ color: C.power }}>are</span> the king first — and then you build."</p>
-              <p style={{ ...serif, fontSize: 16, lineHeight: 1.5, color: C.power, margin: 0, fontStyle: "italic" }}>"Power is not the gold. Power is who you are when the gold is gone."</p>
+            <div style={{ padding: "16px 16px", borderRadius: 16, background: `linear-gradient(160deg, ${hexA(GOLD, .12)}, ${C.cardDeep})`, border: `1px solid ${hexA(GOLD, .4)}`, marginBottom: 14 }}>
+              <p style={{ ...serif, fontSize: 18, lineHeight: 1.5, color: C.text, margin: "0 0 8px" }}>"You don't become a king by doing more. You <span style={{ color: GOLD }}>are</span> the king first — and then you build."</p>
+              <p style={{ ...serif, fontSize: 16, lineHeight: 1.5, color: GOLD, margin: 0, fontStyle: "italic" }}>"Majesty is not the gold. Majesty is the worth that was yours before either of you learned to count."</p>
             </div>
             <p style={{ fontSize: 13, color: C.textDim, fontStyle: "italic", marginBottom: 14, textAlign: "center" }}>
-              "The Broke King is a story you started believing on your worst night. Let's melt it down and forge a new one. Right now."
+              "Your father gave you five words for exactly this moment. This voice is aiming at one of them — <b style={{ color: GOLD }}>Majesty</b>. Take out the pendant. I'll walk you through the Four Turns, once. After this, you'll know the motion forever."
             </p>
-            <Btn full accent={GOLD} onClick={() => setPhase("forge")}>Step to the forge →</Btn>
+            <Btn full accent={GOLD} onClick={() => setPhase("turns")}>◈ Take out the pendant →</Btn>
           </div>
         </div>
+      </ChapterFrame>
+    );
+  }
+
+  if (phase === "turns") {
+    return (
+      <ChapterFrame>
+        <FourTurnsRitual
+          pair={MAJESTY_PAIR}
+          voiceLabel="a stranger's voice — for now"
+          shadowLine="This is what happens. This is what always happens to people like you. You were never going to be the kind of person gold finds."
+          skipProving
+          onComplete={() => setPhase("forge")}
+        />
       </ChapterFrame>
     );
   }
@@ -179,7 +200,7 @@ export default function ChapterShadow({ onComplete, quest }) {
         <div style={fsWrap(`radial-gradient(800px 600px at 50% 10%, ${hexA(GOLD, .14)}, ${C.night} 60%, ${C.black})`)}>
           <Embers on color={C.amber} count={16} />
           <div style={{ position: "relative", zIndex: 2, maxWidth: 520, margin: "0 auto", padding: "30px 22px 60px" }}>
-            <div style={{ fontSize: 11, letterSpacing: 3, color: GOLD, ...mono, marginBottom: 6, textAlign: "center" }}>THE IDENTITY FORGE</div>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: GOLD, ...mono, marginBottom: 6, textAlign: "center" }}>TURN FOUR · PROVING — THE IDENTITY FORGE</div>
             <h2 style={{ ...serif, fontSize: 25, textAlign: "center", margin: "0 0 4px", color: C.text }}>Melt the old story. Forge a new one.</h2>
             <p style={{ fontSize: 13, color: C.textDim, textAlign: "center", marginBottom: 20 }}>Three strikes of the hammer. The forge remembers.</p>
             <ForgeExercise
@@ -202,7 +223,7 @@ export default function ChapterShadow({ onComplete, quest }) {
   const finish = () => {
     quest?.updateDashboard?.({ stage: "Road of Trials", purpose: 5, faith: 3, fear: 7, courage: 5, trust: 4 });
     onComplete?.({
-      shadow: "broke_king", essence: "Power",
+      shadow: "broke_king", essence: "Majesty",
       money: vals.money.trim(), fear: vals.fear.trim(), power: vals.power.trim(),
       melt: forge.melt.trim(), identity: forge.identity.trim(), proof: forge.proof.trim(),
       reforged: "sovereign_builder",
@@ -221,7 +242,7 @@ export default function ChapterShadow({ onComplete, quest }) {
             <p style={{ ...serif, fontStyle: "italic", fontSize: 17, color: C.text, textAlign: "center", animation: "sFade .6s" }}>You speak the new story aloud. The cracked crown glows, splits… and reforges.</p>
           ) : (
             <div style={{ animation: "sRiseGlow .8s" }}>
-              <EssenceBurst color={C.power} glyph="⬢" name="POWER" line="Power is not the gold. Power is who you are when the gold is gone." />
+              <EssenceBurst color={GOLD} glyph="♛" name="MAJESTY" line="Your worth was never parked in that number — and it isn't parked in his voice either." />
               <p style={{ ...serif, fontSize: 16, color: C.text, textAlign: "center", margin: "4px 0 18px" }}>
                 The Broke King is gone. In his place stands <b style={{ color: C.mint }}>The Sovereign Builder</b> — and he wears your face.
               </p>
@@ -232,13 +253,13 @@ export default function ChapterShadow({ onComplete, quest }) {
                 { q: "The identity you chose", a: forge.identity },
                 { q: "Your proof action (next 24h)", a: forge.proof },
               ]} />
-              <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: hexA(C.power, .06), border: `1px solid ${hexA(C.power, .3)}` }}>
-                <Row label="Shadow" value="Broke King → Sovereign Builder" accent={C.power} />
-                <Row label="Essence returned" value="Power" accent={C.power} />
-                <Row label="Your move" value="Proof, not panic" accent={C.power} />
+              <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: hexA(GOLD, .06), border: `1px solid ${hexA(GOLD, .3)}` }}>
+                <Row label="Shadow" value="Broke King → Sovereign Builder" accent={GOLD} />
+                <Row label="Essence returned" value="Majesty" accent={GOLD} />
+                <Row label="The Four Turns" value="Named · Separated · Returned · Proven" accent={GOLD} />
               </div>
-              <PhoenixSeal color={C.phoenix} label="ESSENCE OF POWER · SEALED" />
-              <Btn full accent={C.mint} onClick={finish}>Carry Power forward →</Btn>
+              <PhoenixSeal color={C.phoenix} label="ESSENCE OF MAJESTY · SEALED" />
+              <Btn full accent={C.mint} onClick={finish}>Carry Majesty forward →</Btn>
             </div>
           )}
         </div>

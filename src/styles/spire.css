@@ -1,0 +1,108 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THE ALCHEMIST SPIRE — walkable interior (ACT 2 · WORLD mode)
+   Five floor themes on the shared world engine (--mqc-* variables from
+   cityWorld.css) + the floor bar. spw- prefix.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.spw-root {
+  position: relative;
+}
+
+.spw-floorbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.spw-floorchip {
+  flex: 1;
+  min-width: 72px;
+  padding: 8px 6px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--fc) 35%, transparent);
+  background: color-mix(in srgb, var(--fc) 6%, transparent);
+  color: color-mix(in srgb, var(--fc) 80%, #fff 10%);
+  font-family: var(--font-mono, inherit);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: 0.25s;
+}
+
+.spw-floorchip:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.spw-floorchip.is-now {
+  opacity: 1;
+  background: color-mix(in srgb, var(--fc) 16%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--fc) 30%, transparent);
+}
+
+.spw-floorchip.is-done:not(.is-now)::after {
+  content: " ✓";
+}
+
+/* ── Floor themes — the tower changes as the work deepens ────────────── */
+
+/* I · THE CALL — pre-dawn cyan, the dream still fresh */
+.mqw-theme-spire1 {
+  --mqc-sky-a: #04121a;
+  --mqc-sky-b: #0a2430;
+  --mqc-sky-glow: rgba(0, 240, 255, 0.22);
+  --mqc-tint: rgba(0, 240, 255, 0.06);
+  --mqc-stars: 1;
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* II · THE FALL & THE CRYSTAL SHOP — dusty gold, hill light */
+.mqw-theme-spire2 {
+  --mqc-sky-a: #171006;
+  --mqc-sky-b: #2e2410;
+  --mqc-sky-glow: rgba(255, 201, 77, 0.26);
+  --mqc-tint: rgba(255, 201, 77, 0.07);
+  --mqc-stars: 0.6;
+  border-color: rgba(255, 201, 77, 0.32);
+}
+
+/* III · THE ROAD OF TRIALS — ember heat, forge glow */
+.mqw-theme-spire3 {
+  --mqc-sky-a: #160804;
+  --mqc-sky-b: #33130a;
+  --mqc-sky-glow: rgba(196, 69, 28, 0.3);
+  --mqc-tint: rgba(196, 69, 28, 0.08);
+  --mqc-stars: 0.4;
+  border-color: rgba(196, 69, 28, 0.36);
+}
+
+/* IV · DEEPER SHADOWS & BEING — magenta dark, garden pulses */
+.mqw-theme-spire4 {
+  --mqc-sky-a: #12051a;
+  --mqc-sky-b: #260a30;
+  --mqc-sky-glow: rgba(255, 62, 219, 0.24);
+  --mqc-tint: rgba(255, 62, 219, 0.07);
+  --mqc-stars: 0.8;
+  border-color: rgba(255, 62, 219, 0.32);
+}
+
+/* V · CLIMAX & RETURN — phoenix violet, the top of the tower */
+.mqw-theme-spire5 {
+  --mqc-sky-a: #0a0518;
+  --mqc-sky-b: #1c0d38;
+  --mqc-sky-glow: rgba(123, 44, 255, 0.3);
+  --mqc-tint: rgba(123, 44, 255, 0.08);
+  --mqc-stars: 1;
+  border-color: rgba(123, 44, 255, 0.4);
+}
+
+/* Interior feel: chapter doors are chambers, not towers */
+.mqw-theme-spire1 .mqw-b__tower,
+.mqw-theme-spire2 .mqw-b__tower,
+.mqw-theme-spire3 .mqw-b__tower,
+.mqw-theme-spire4 .mqw-b__tower,
+.mqw-theme-spire5 .mqw-b__tower {
+  border-radius: 14px 14px 0 0;
+}

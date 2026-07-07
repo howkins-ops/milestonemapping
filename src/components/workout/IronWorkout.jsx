@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useAppData } from "../../hooks/useAppData.js";
 import { useWorkout } from "./useWorkout.js";
 import AlphaMode from "./alpha/AlphaMode.jsx";
+import ExerciseHowTo from "./alpha/ExerciseHowTo.jsx";
 import {
   sfxPlateClank,
   sfxChalkPoof,
@@ -848,6 +849,8 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
           <span className="iw-session-pr-hint"> · wall: {bestPRs.get(exKey(ex.name)).weight} lbs</span>
         )}
       </div>
+      <ExerciseHowTo key={exKey(ex.name)} name={ex.name}
+        defaultOpen={!lastWeights.has(exKey(ex.name)) && sets.length === 0} />
 
       <div className="iw-set-chips">
         {sets.map((s, i) => (

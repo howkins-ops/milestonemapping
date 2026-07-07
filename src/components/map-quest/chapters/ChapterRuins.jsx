@@ -6,7 +6,10 @@ import {
 } from "../kit.jsx";
 
 /* =============================================================================
-   CHAPTER 18 — THE RUINS DISTRICT  ·  Raging Victim ↔ Majesty  (key: chapter-ruins)
+   CHAPTER 18 — THE RUINS DISTRICT  ·  Raging Victim ↔ POWER  (key: chapter-ruins)
+   NEW CANON (codex v8 / four-turns): Raging Victim ↔ Power — the morning-after
+   choice, victim or adventurer, made with empty pockets and no proof. Power was
+   never about controlling the thief; it was the choice of which story to tell.
    Coelho beat: the alchemist's COURAGE TEST (the sword) — fearlessness is the
    entry fee to wisdom. To pass through the ruins you must lower your guard, not
    raise your fists.
@@ -19,7 +22,7 @@ import {
    "I've never been depressed and grateful at the same time." The story you tell
    decides who you become. Don't wear the wound as identity.
    Exercise: Throne of Responsibility (theStory, gratefulFor) → answer-fill mirror
-   → reforge → Essence: MAJESTY. shadow:"raging_victim". See 07_CHAPTER_DOSSIER.md.
+   → reforge → Essence: POWER. shadow:"raging_victim". See 07_CHAPTER_DOSSIER.md.
    ============================================================================= */
 
 const VIOLET = C.phoenix;
@@ -189,7 +192,7 @@ export default function ChapterRuins({ onComplete, quest }) {
   const finish = () => {
     quest?.updateDashboard?.({ stage: "Ordeal · Approach", purpose: 8, faith: 7, fear: 7, courage: 7, trust: 6 });
     onComplete?.({
-      shadow: "raging_victim", essence: "Majesty",
+      shadow: "raging_victim", essence: "Power",
       theStory: vals.theStory.trim(), gratefulFor: vals.gratefulFor.trim(),
       reforged: "sovereign",
     });
@@ -207,9 +210,9 @@ export default function ChapterRuins({ onComplete, quest }) {
             <p style={{ ...serif, fontStyle: "italic", fontSize: 17, color: C.text, textAlign: "center", animation: "sFade .6s" }}>You set the sword down. You speak the gratitude aloud. The scorched crown glows, settles… and reforges, level on his head.</p>
           ) : (
             <div style={{ animation: "sRiseGlow .8s" }}>
-              <EssenceBurst color={VIOLET} glyph="♛" name="MAJESTY" line="You don't wear the wound as a crown. You wear what it forged in you — and you wear it level." />
+              <EssenceBurst color={VIOLET} glyph="⬢" name="POWER" line="Power was never about controlling what happened. It was always the choice of which story to tell about it." />
               <p style={{ ...serif, fontSize: 16, color: C.text, textAlign: "center", margin: "4px 0 18px" }}>
-                The Raging Victim is gone. The ruins clear to reveal <b style={{ color: C.mint }}>The Sovereign</b> — at-cause, grateful, crowned — and he wears your face.
+                The Raging Victim is gone. The ruins clear to reveal <b style={{ color: C.mint }}>The Sovereign</b> — at-cause, grateful, moving — and he wears your face. Victim or adventurer: you chose with empty pockets and no proof. That's the cleanest flip there is.
               </p>
               <AnswerJournal title="WHAT YOU FORGED" accent={C.mint} entries={[
                 { q: "The story you kept retelling", a: vals.theStory },
@@ -217,11 +220,11 @@ export default function ChapterRuins({ onComplete, quest }) {
               ]} />
               <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: hexA(VIOLET, .06), border: `1px solid ${hexA(VIOLET, .3)}` }}>
                 <Row label="Shadow" value="Raging Victim → Sovereign" accent={VIOLET} />
-                <Row label="Essence returned" value="Majesty" accent={VIOLET} />
+                <Row label="Essence returned" value="Power" accent={VIOLET} />
                 <Row label="Your move" value="At-cause, not at-effect" accent={VIOLET} />
               </div>
-              <PhoenixSeal color={C.phoenix} label="ESSENCE OF MAJESTY · SEALED" />
-              <Btn full accent={C.mint} onClick={finish}>Carry Majesty forward →</Btn>
+              <PhoenixSeal color={C.phoenix} label="ESSENCE OF POWER · SEALED" />
+              <Btn full accent={C.mint} onClick={finish}>Carry Power forward →</Btn>
             </div>
           )}
         </div>

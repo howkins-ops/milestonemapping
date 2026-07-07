@@ -126,15 +126,13 @@ export const PHASES = {
       carbs: { type: "perLBM", workout: 1.0, rest: 0.25 },
     },
     nutritionDays: { cheat: 6, fullFast: null, cheatFromWeek: 1, epicCheat: true },
-    /* 4 styles rotate through the week; week-seed reorders them (fill —
-       bible gives the styles + "rotational", order synthesis is ours) */
+    /* 3 lifts a week, Mon/Wed/Fri — the book's Phase IV rotation table */
     rotation: [
-      ["w1", "w2", OFF, "w3", OFF, "w4", OFF],
-      ["w3", "w1", OFF, "w4", OFF, "w2", OFF],
-      ["w4", "w3", OFF, "w1", OFF, "w2", OFF],
-      ["w2", "w4", OFF, "w3", OFF, "w1", OFF],
+      ["w1", OFF, "w2", OFF, "w3", OFF, OFF],
+      ["w4", OFF, "w1", OFF, "w2", OFF, OFF],
+      ["w3", OFF, "w4", OFF, "w2", OFF, OFF],
+      ["w1", OFF, "w4", OFF, "w3", OFF, OFF],
     ],
-    rotationFill: true,
   },
 };
 
@@ -180,8 +178,8 @@ export const WORKOUTS = {
       {
         key: "A", kind: "circuit", rounds: 5, restBetweenEx: 30, restBetweenRounds: 180,
         exercises: [
-          { name: "DB Front Squat", reps: "10", fill: true },
-          { name: "Push-Up", reps: "12-15", fill: true },
+          { name: "DB Overhead Press", reps: "8" },
+          { name: "Barbell Romanian Deadlift", reps: "6" },
           { name: "Barbell Bent-Over Row", reps: "8" },
           { name: "Hanging Knee Raise", reps: "10" },
           { name: "Bulgarian Split Squat", reps: "8/leg" },
@@ -190,6 +188,14 @@ export const WORKOUTS = {
       {
         key: "B", kind: "straight", rounds: 3, restBetweenRounds: 120,
         exercises: [{ name: "Two-Arm KB Swing", reps: "30-45s" }],
+      },
+      {
+        key: "C", kind: "circuit", rounds: 2, restBetweenEx: 15, restBetweenRounds: 30,
+        exercises: [
+          { name: "Push-Up", reps: "12-15" },
+          { name: "Jump Squat", reps: "10" },
+          { name: "Plank", reps: "30s" },
+        ],
       },
     ],
   },
@@ -201,7 +207,7 @@ export const WORKOUTS = {
         exercises: [{ name: "Barbell Deadlift", reps: "6-8" }],
       },
       {
-        key: "B", kind: "circuit", rounds: 3, restBetweenEx: 30, restBetweenRounds: 120, roundsFill: true,
+        key: "B", kind: "circuit", rounds: 4, restBetweenEx: 30, restBetweenRounds: 90,
         exercises: [
           { name: "The Spearpoint", reps: "6-8", signature: true },
           { name: "Goblet Squat", reps: "10" },
@@ -210,11 +216,12 @@ export const WORKOUTS = {
         ],
       },
       {
-        key: "C", kind: "circuit", rounds: 2, restBetweenEx: 20, restBetweenRounds: 90,
+        key: "C", kind: "circuit", rounds: 1, restBetweenEx: 15, restBetweenRounds: 0,
+        note: "One round, everything on the table: hold the plank as long as you can, jacks for the full 45, chin-ups to empty.",
         exercises: [
-          { name: "Push-Up", reps: "12-15" },
-          { name: "Jump Squat", reps: "10" },
-          { name: "Plank", reps: "30s" },
+          { name: "Plank", reps: "max hold" },
+          { name: "Jumping Jack", reps: "45s" },
+          { name: "Chin-Up", reps: "AMRAP" },
         ],
       },
     ],
@@ -223,16 +230,16 @@ export const WORKOUTS = {
     id: "prime-w4", phase: "prime", n: 4, name: "The Front Gate", style: "mrt",
     blocks: [
       {
-        key: "A", kind: "circuit", rounds: 4, restBetweenEx: 0, restBetweenRounds: 90,
+        key: "A", kind: "circuit", rounds: 4, restBetweenEx: 30, restBetweenRounds: 90,
         exercises: [
           { name: "Barbell Front Squat", reps: "8" },
           { name: "Plank", reps: "30s" },
           { name: "The Spearpoint", reps: "10", signature: true },
-          { name: "Single-Arm DB Row", reps: "8/arm", fill: true },
+          { name: "Plank", reps: "30s" },
         ],
       },
       {
-        key: "B", kind: "circuit", rounds: 4, restBetweenEx: 0, restBetweenRounds: 90,
+        key: "B", kind: "circuit", rounds: 4, restBetweenEx: 30, restBetweenRounds: 90,
         exercises: [
           { name: "Barbell Glute Bridge", reps: "6-8" },
           { name: "Push-Up", reps: "AMRAP" },
@@ -380,18 +387,18 @@ export const WORKOUTS = {
         exercises: [{ name: "Squat", reps: "20" }],
       },
       {
-        key: "B", kind: "tempo", rounds: 3, tempo: [1, 0, 4], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "B", kind: "tempo", rounds: 3, tempo: [1, 0, 4], restBetweenEx: 20, restBetweenRounds: 90,
         exercises: [
-          { name: "Flat Chest Press", reps: "8-15" },
-          { name: "Bent-Over Row", reps: "8-15" },
-          { name: "Plank", reps: "30s" },
+          { name: "Flat Chest Press", reps: "10-12" },
+          { name: "Bent-Over Row", reps: "10-12" },
+          { name: "Plank", reps: "60s" },
         ],
       },
       {
-        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 10, restBetweenRounds: 90,
         exercises: [
-          { name: "Lateral Raise", reps: "8-15" },
-          { name: "DB Romanian Deadlift", reps: "8-15" },
+          { name: "Lateral Raise", reps: "8-12" },
+          { name: "DB Romanian Deadlift", reps: "8-12" },
         ],
       },
       {
@@ -408,18 +415,18 @@ export const WORKOUTS = {
         exercises: [{ name: "Trap Bar Deficit Deadlift", reps: "20" }],
       },
       {
-        key: "B", kind: "tempo", rounds: 3, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "B", kind: "tempo", rounds: 3, tempo: [1, 0, 4], restBetweenEx: 20, restBetweenRounds: 90,
         exercises: [
-          { name: "Pull-Up", reps: "8-15" },
-          { name: "The Crown Press", reps: "8-15", signature: true },
-          { name: "Feet-Elevated Plank", reps: "30s" },
+          { name: "Pull-Up", reps: "10" },
+          { name: "The Crown Press", reps: "10", signature: true },
+          { name: "Feet-Elevated Plank", reps: "45s" },
         ],
       },
       {
-        key: "C", kind: "tempo", rounds: 5, tempo: [3, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "C", kind: "tempo", rounds: 5, tempo: [3, 0, 1], restBetweenEx: 10, restBetweenRounds: 90,
         exercises: [
-          { name: "Push-Up", reps: "8-15" },
-          { name: "Barbell Curl", reps: "8-15" },
+          { name: "Push-Up", reps: "12-15" },
+          { name: "Barbell Curl", reps: "12-15" },
         ],
       },
       {
@@ -436,18 +443,18 @@ export const WORKOUTS = {
         exercises: [{ name: "Rack Pull from Knee", reps: "20" }],
       },
       {
-        key: "B", kind: "tempo", rounds: 3, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "B", kind: "tempo", rounds: 3, tempo: [1, 0, 4], restBetweenEx: 20, restBetweenRounds: 90,
         exercises: [
-          { name: "Incline DB Press", reps: "8-15" },
-          { name: "Seated Cable Row", reps: "8-15" },
-          { name: "Plank", reps: "30s" },
+          { name: "Incline DB Press", reps: "10-12" },
+          { name: "Seated Cable Row", reps: "10-12" },
+          { name: "Plank", reps: "60s" },
         ],
       },
       {
-        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 10, restBetweenRounds: 90,
         exercises: [
-          { name: "Lateral Raise", reps: "8-15" },
-          { name: "The Kingmaker", reps: "8-15", signature: true },
+          { name: "Lateral Raise", reps: "8-12" },
+          { name: "The Kingmaker", reps: "8-12", signature: true },
         ],
       },
       {
@@ -464,18 +471,19 @@ export const WORKOUTS = {
         exercises: [{ name: "The Kingmaker", reps: "20", signature: true }],
       },
       {
-        key: "B", kind: "tempo", rounds: 3, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "B", kind: "circuit", rounds: 4, restBetweenEx: 20, restBetweenRounds: 60,
+        note: "Steady tempo here — this block is volume, not lactic burn.",
         exercises: [
-          { name: "Bent-Over Row", reps: "8-15" },
-          { name: "Low-Incline DB Press", reps: "8-15" },
-          { name: "Feet-Elevated Plank", reps: "30s" },
+          { name: "Bent-Over Row", reps: "10" },
+          { name: "Low-Incline DB Press", reps: "10" },
+          { name: "Feet-Elevated Plank", reps: "45s" },
         ],
       },
       {
-        key: "C", kind: "tempo", rounds: 5, tempo: [3, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "C", kind: "tempo", rounds: 5, tempo: [3, 0, 1], restBetweenEx: 10, restBetweenRounds: 90,
         exercises: [
-          { name: "Rear Delt Fly", reps: "8-15" },
-          { name: "Bodyweight Glute Bridge", reps: "8-15" },
+          { name: "Rear Delt Fly", reps: "12-15" },
+          { name: "Bodyweight Glute Bridge", reps: "12-15" },
         ],
       },
       {
@@ -485,103 +493,110 @@ export const WORKOUTS = {
     ],
   },
 
-  /* ── COMPLETE · four styles, one week (day cards; structures reuse the
-        earlier phases' patterns — in-house synthesis, flagged fill) ── */
+  /* ── COMPLETE · one day each of the four systems, straight from the
+        book's Phase IV: GH/lactic · circuits · AMRAP density · 5×5 ── */
   "complete-w1": {
-    id: "complete-w1", phase: "complete", n: 1, name: "The Furnace", style: "mrt", styleLabel: "fat-loss day", fill: true,
+    id: "complete-w1", phase: "complete", n: 1, name: "The Furnace", style: "tempo", styleLabel: "GH / lactic day",
     blocks: [
       {
-        key: "A", kind: "circuit", rounds: 4, restBetweenEx: 30, restBetweenRounds: 180,
+        key: "A", kind: "straight", rounds: 1, restBetweenRounds: 150, bookend: true,
+        exercises: [{ name: "Rack Pull from Knee", reps: "20" }],
+      },
+      {
+        key: "B", kind: "tempo", rounds: 3, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 90,
         exercises: [
-          { name: "Goblet Squat", reps: "10-12" },
-          { name: "Push-Up", reps: "12-15" },
-          { name: "Single-Arm DB Row", reps: "8/arm" },
-          { name: "KB Swing", reps: "15" },
-          { name: "Plank", reps: "30s" },
+          { name: "Low-Incline DB Press", reps: "10-12" },
+          { name: "Seated Row", reps: "10-12" },
+          { name: "Plank", reps: "60s" },
         ],
       },
       {
-        key: "B", kind: "circuit", rounds: 3, restBetweenEx: 20, restBetweenRounds: 90,
+        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 10, restBetweenRounds: 90,
         exercises: [
-          { name: "Reverse Lunge", reps: "8/leg" },
-          { name: "Chin-Up", reps: "AMRAP" },
-          { name: "Mountain Climber", reps: "30s" },
+          { name: "Lateral Raise", reps: "8-12" },
+          { name: "DB Romanian Deadlift", reps: "8-12" },
         ],
+      },
+      {
+        key: "D", kind: "straight", rounds: 1, restBetweenRounds: 0, closer: true, lightPctOfA: [20, 30],
+        exercises: [{ name: "Rack Pull from Knee", reps: "25 (light)" }],
       },
     ],
   },
   "complete-w2": {
-    id: "complete-w2", phase: "complete", n: 2, name: "The Engine", style: "density", styleLabel: "density day", fill: true,
+    id: "complete-w2", phase: "complete", n: 2, name: "The Engine", style: "mrt", styleLabel: "circuit day",
     blocks: [
       {
-        key: "A", kind: "density", minutes: 5, repMax: "8-12RM", repsPerTurn: "4-6",
-        restAfter: 240, weightBumpPct: [5, 10],
+        key: "A", kind: "circuit", rounds: 5, restBetweenEx: 30, restBetweenRounds: 180,
         exercises: [
-          { name: "The Kingmaker", reps: "4-6", signature: true },
-          { name: "The Crown Press", reps: "4-6", signature: true },
+          { name: "The Crown Press", reps: "8", signature: true },
+          { name: "The Kingmaker", reps: "6", signature: true },
+          { name: "Barbell Bent-Over Row", reps: "8" },
+          { name: "Hanging Knee Raise", reps: "10" },
         ],
       },
       {
-        key: "B", kind: "density", minutes: 6, repMax: "10-15RM", repsPerTurn: "4-6",
-        restAfter: 240, weightBumpPct: [3, 5],
-        exercises: [
-          { name: "Pull-Up", reps: "4-6" },
-          { name: "Goblet Squat", reps: "4-6" },
-          { name: "Push-Up", reps: "4-6" },
-        ],
+        key: "B", kind: "straight", rounds: 3, restBetweenRounds: 120,
+        exercises: [{ name: "Two-Arm KB Swing", reps: "30-45s" }],
       },
       {
-        key: "C", kind: "density", minutes: 4, repMax: "10-15RM", repsPerTurn: "4-6",
-        restAfter: 120, weightBumpPct: [0, 0],
+        key: "C", kind: "circuit", rounds: 2, restBetweenEx: 15, restBetweenRounds: 30,
         exercises: [
-          { name: "Biceps Curl", reps: "4-6" },
-          { name: "Lateral Raise", reps: "4-6" },
+          { name: "Push-Up", reps: "12-15" },
+          { name: "Jump Squat", reps: "10" },
+          { name: "Plank", reps: "30s" },
         ],
       },
     ],
   },
   "complete-w3": {
-    id: "complete-w3", phase: "complete", n: 3, name: "The Forge", style: "tempo", styleLabel: "muscle day", fill: true,
+    id: "complete-w3", phase: "complete", n: 3, name: "The Ledger", style: "density", styleLabel: "density day",
     blocks: [
       {
-        key: "A", kind: "straight", rounds: 1, restBetweenRounds: 150, bookend: true,
-        exercises: [{ name: "Squat", reps: "20" }],
-      },
-      {
-        key: "B", kind: "tempo", rounds: 3, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "A", kind: "density", minutes: 5, repMax: "8-12RM", repsPerTurn: "6-8",
+        restAfter: 240, weightBumpPct: [5, 10],
         exercises: [
-          { name: "Incline DB Press", reps: "8-15" },
-          { name: "Seated Cable Row", reps: "8-15" },
-          { name: "Plank", reps: "30s" },
+          { name: "Trap Bar Deadlift", reps: "6-8" },
+          { name: "High Pull", reps: "6-8" },
         ],
       },
       {
-        key: "C", kind: "tempo", rounds: 4, tempo: [4, 0, 1], restBetweenEx: 20, restBetweenRounds: 75,
+        key: "B", kind: "density", minutes: 6, repMax: "12-15RM", repsPerTurn: "6-8",
+        restAfter: 240, weightBumpPct: [3, 5],
         exercises: [
-          { name: "Lateral Raise", reps: "8-15" },
-          { name: "DB Romanian Deadlift", reps: "8-15" },
+          { name: "Reverse Lunge", reps: "6-8" },
+          { name: "Face Pull", reps: "6-8" },
+          { name: "Standing DB Overhead Press", reps: "6-8" },
         ],
       },
       {
-        key: "D", kind: "straight", rounds: 1, restBetweenRounds: 0, closer: true, lightPctOfA: [20, 30],
-        exercises: [{ name: "Bodyweight Squat", reps: "25" }],
+        key: "C", kind: "density", minutes: 4, repMax: "8-12RM", repsPerTurn: "6-8",
+        restAfter: 120, weightBumpPct: [0, 0],
+        exercises: [
+          { name: "Rear Delt Fly", reps: "6-8" },
+          { name: "Reverse Curl", reps: "6-8" },
+        ],
       },
     ],
   },
   "complete-w4": {
-    id: "complete-w4", phase: "complete", n: 4, name: "The Summit", style: "strength", styleLabel: "strength day", fill: true,
+    id: "complete-w4", phase: "complete", n: 4, name: "The Summit", style: "strength", styleLabel: "strength day",
     blocks: [
       {
-        key: "A", kind: "straight", rounds: 5, restBetweenRounds: 180, warmup: true, ladder: true,
-        exercises: [{ name: "Squat", reps: "5" }],
+        key: "A", kind: "circuit", rounds: 5, restBetweenEx: 90, restBetweenRounds: 120, autoregulate: true,
+        note: "Pick a weight you get 5 with on set 1 — you're NOT supposed to hit 5 on all five sets. Rest until ready; the ring is a guide, not a whip.",
+        exercises: [
+          { name: "Barbell Front Squat", reps: "5" },
+          { name: "Weighted Chin-Up", reps: "5" },
+        ],
       },
       {
-        key: "B", kind: "straight", rounds: 5, restBetweenRounds: 180, ladder: true,
-        exercises: [{ name: "Bench Press", reps: "5" }],
-      },
-      {
-        key: "C", kind: "straight", rounds: 3, restBetweenRounds: 180, ladder: true,
-        exercises: [{ name: "The Kingmaker", reps: "5", signature: true }],
+        key: "B", kind: "circuit", rounds: 5, restBetweenEx: 90, restBetweenRounds: 120, autoregulate: true,
+        note: "Same rule as A: alternate the pair for 5 sets each, fully recovered between lifts.",
+        exercises: [
+          { name: "Bench Press", reps: "5" },
+          { name: "The Kingmaker", reps: "5", signature: true },
+        ],
       },
     ],
   },

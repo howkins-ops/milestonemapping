@@ -5,13 +5,22 @@ import MilestoneWorld from "../milestone-world/MilestoneWorld.jsx";
 import FinalGoalWorld from "./FinalGoalWorld.jsx";
 import WorldComplete from "./WorldComplete.jsx";
 import MapQuestMap from "../map-quest/MapQuestMap.jsx";
+import PendantHUD from "../map-quest/PendantHUD.jsx";
+import WorldAtlas from "../map-quest/WorldAtlas.jsx";
+import SpireJourney from "../map-quest/spire/SpireJourney.jsx";
+import CrossingJourney from "../map-quest/crossing/CrossingJourney.jsx";
 import { useMapQuestState } from "../map-quest/useMapQuestState.js";
 import { getChapterByKey } from "../map-quest/questChapters.js";
 import { CHAPTER_COMPONENTS } from "../map-quest/chapterRegistry.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { getProjectMilestones } from "../../lib/progress.js";
+import {
+  isSpireOpen,
+  spireLitCount,
+  TUTORIAL_DISTRICT_IDS,
+} from "../city/journeyStore.js";
 
-export default function RPGWorldPage({ projectId, initialMode = null, onExitWorld }) {
+export default function RPGWorldPage({ projectId, initialMode = null, onExitWorld, onGoToCity }) {
   const { projects, milestones, createMilestone, updateMilestone } = useAppData();
   const project = projects.find((p) => p.id === projectId);
   const quest = useMapQuestState();
@@ -28,6 +37,21 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
   const [activeChapterKey, setActiveChapterKey] = useState(null);
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState(false);
+
+  // WORLD ⇄ BOOK — the quest is walkable by default (the full video game),
+  // with the node-map book one toggle away. Persisted across sessions.
+  const [questView, setQuestViewState] = useState(() => {
+    try {
+      return localStorage.getItem("mq_quest_view_v1") === "book" ? "book" : "world";
+    } catch {
+      return "world";
+    }
+  });
+  const setQuestView = (v) => {
+    setQuestViewState(v);
+    try { localStorage.setItem("mq_quest_view_v1", v); } catch { /* no-op */ }
+  };
+  const [spireJumpTick, setSpireJumpTick] = useState(0); // remounts SpireJourney on Atlas jumps
 
   if (!project) {
     return (
@@ -50,7 +74,12 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
     setScreen("milestone-world");
   };
 
+  // GATE 2 — the quest book is sealed for new citizens until the whole city
+  // tutorial is lit (legacy users bypass inside isSpireOpen).
+  const spireOpen = isSpireOpen();
+
   const handleEnterChapter = (chapterKey) => {
+    if (!spireOpen) return;
     // "Replay" on a finished chapter: clear its save so it starts fresh instead
     // of reloading the terminal "handoff" state (which would instantly re-complete).
     if (isChapterComplete(chapterKey)) {
@@ -182,11 +211,66 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
       </header>
 
       {mode === "quest" ? (
-        <MapQuestMap
-          project={project}
-          isChapterComplete={isChapterComplete}
-          onEnterChapter={handleEnterChapter}
-        />
+        spireOpen ? (
+          <>
+            <div className="rpg-mode-toggle rpg-mode-toggle--view" role="tablist" aria-label="Quest view">
+              <button
+                type="button"
+                onClick={() => setQuestView("world")}
+                className={questView === "world" ? "is-active is-quest" : "is-quest"}
+                aria-selected={questView === "world"}
+              >
+                ◈ World
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuestView("book")}
+                className={questView === "book" ? "is-active is-quest" : "is-quest"}
+                aria-selected={questView === "book"}
+              >
+                ⬒ Book
+              </button>
+            </div>
+            {screen === "crossing" ? (
+              <CrossingJourney
+                onExitToSpire={() => setScreen("map")}
+                onEnterChapter={handleEnterChapter}
+              />
+            ) : questView === "world" ? (
+              <SpireJourney
+                key={spireJumpTick}
+                isChapterComplete={isChapterComplete}
+                onEnterChapter={handleEnterChapter}
+                onExitToStreets={onGoToCity}
+                onEnterCrossing={() => setScreen("crossing")}
+              />
+            ) : (
+              <MapQuestMap
+                project={project}
+                isChapterComplete={isChapterComplete}
+                onEnterChapter={handleEnterChapter}
+              />
+            )}
+          </>
+        ) : (
+          <div className="mq-sealed" role="status">
+            <span className="mq-sealed__glyph" aria-hidden="true">◈</span>
+            <h3 className="mq-sealed__title">THE SPIRE IS SEALED</h3>
+            <p className="mq-sealed__count">
+              {spireLitCount()}/{TUTORIAL_DISTRICT_IDS.length} districts lit
+            </p>
+            <p className="mq-sealed__copy">
+              The tower answers only to a trained citizen. Walk the city, hear each
+              door's lesson, and do one real thing inside it — every district you
+              light is a discipline the Spire will test.
+            </p>
+            {onGoToCity ? (
+              <button type="button" className="rpg-complete-btn" onClick={onGoToCity}>
+                Walk the city →
+              </button>
+            ) : null}
+          </div>
+        )
       ) : list.length === 0 ? (
         <div className="rpg-empty-map">
           <p>No milestones charted yet. Map your first coordinate to begin the trail.</p>
@@ -212,6 +296,27 @@ export default function RPGWorldPage({ projectId, initialMode = null, onExitWorl
           onUpdate={updateMilestone}
         />
       )}
+
+      {mode === "quest" ? <PendantHUD /> : null}
+      {mode === "quest" && spireOpen ? (
+        <WorldAtlas
+          current={screen === "crossing" ? "oasis" : "floor-1"}
+          onJump={(j) => {
+            if (j.type === "hometown" || j.type === "city") {
+              if (onGoToCity) onGoToCity();
+              return;
+            }
+            if (j.type === "spire") {
+              try { sessionStorage.setItem("mq_spire_floor_v1", String(j.idx || 0)); } catch { /* no-op */ }
+              setScreen("map");
+              setQuestView("world");
+              setSpireJumpTick((t) => t + 1);
+              return;
+            }
+            if (j.type === "crossing") setScreen("crossing");
+          }}
+        />
+      ) : null}
     </div>
   );
 }

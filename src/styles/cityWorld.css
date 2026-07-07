@@ -482,6 +482,36 @@
   animation: mqw-calling 2.2s ease-in-out infinite;
 }
 
+/* GATE 2 — the sealed Spire: dark glass, violet hum, no entry yet */
+.mqw-b.is-sealed .mqw-b__tower {
+  filter: brightness(0.4) saturate(1.3);
+  box-shadow:
+    inset 0 0 0 1px rgba(123, 44, 255, 0.4),
+    0 0 40px rgba(123, 44, 255, 0.18);
+  animation: mqw-sealedhum 4.4s ease-in-out infinite;
+}
+.mqw-b.is-sealed .mqw-b__door {
+  opacity: 0.25;
+  box-shadow: 0 0 16px rgba(123, 44, 255, 0.5);
+}
+.mqw-b.is-sealed .mqw-b__sign {
+  opacity: 0.9;
+  color: #7b2cff;
+  text-shadow: 0 0 18px rgba(123, 44, 255, 0.8);
+}
+.mqw-b.is-sealed .mqw-b__lock { display: none; }
+.mqw-b.is-sealed .mqw-b__beacon {
+  opacity: 0.7;
+  background: #7b2cff;
+  box-shadow: 0 0 18px rgba(123, 44, 255, 0.8);
+  animation: mqw-calling 3.4s ease-in-out infinite;
+}
+
+@keyframes mqw-sealedhum {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.4), 0 0 26px rgba(123, 44, 255, 0.12); }
+  50% { box-shadow: inset 0 0 0 1px rgba(123, 44, 255, 0.55), 0 0 54px rgba(123, 44, 255, 0.28); }
+}
+
 /* ── NPCs ───────────────────────────────────────────────────────────────── */
 
 .mqw-npc {
@@ -952,4 +982,112 @@ html[data-reduced-motion="true"] .mqw-viewport::after {
 .mqw-viewport--still::before,
 .mqw-viewport--still::after {
   animation: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   GATE 2 — SPIRE IGNITION cinematic (plays once at 15/15 lit)
+   ══════════════════════════════════════════════════════════════════════ */
+
+.spg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 24px;
+  background:
+    radial-gradient(80% 60% at 50% 100%, rgba(123, 44, 255, 0.18), transparent 70%),
+    rgba(3, 2, 8, 0.96);
+  backdrop-filter: blur(8px);
+}
+
+.spg-spire {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 7px;
+}
+
+.spg-floor {
+  width: 84px;
+  height: 34px;
+  border-radius: 3px;
+  border: 1px solid rgba(123, 44, 255, 0.4);
+  background: rgba(10, 6, 20, 0.9);
+  transition: box-shadow 0.9s ease, background 0.9s ease;
+}
+
+.spg-floor:nth-child(3) { width: 74px; }
+.spg-floor:nth-child(4) { width: 64px; }
+.spg-floor:nth-child(5) { width: 54px; }
+.spg-floor:nth-child(6) { width: 44px; }
+
+.spg-floor.is-lit {
+  background:
+    repeating-linear-gradient(90deg, rgba(123, 44, 255, 0.55) 0 6px, transparent 6px 12px),
+    rgba(24, 10, 44, 0.95);
+  box-shadow: 0 0 26px rgba(123, 44, 255, 0.5);
+}
+
+.spg-crown {
+  font-size: 30px;
+  color: rgba(123, 44, 255, 0.35);
+  transition: 0.9s ease;
+}
+
+.spg-crown.is-lit {
+  color: #efc03b;
+  text-shadow: 0 0 30px rgba(239, 192, 59, 0.9), 0 0 80px rgba(123, 44, 255, 0.7);
+}
+
+.spg-line {
+  max-width: 440px;
+  min-height: 52px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #eafbff;
+  animation: spgLine 0.6s ease both;
+}
+
+@keyframes spgLine {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.spg-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.spg-climb {
+  padding: 16px 34px;
+  border: 1px solid rgba(123, 44, 255, 0.7);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(123, 44, 255, 0.34), rgba(123, 44, 255, 0.1));
+  color: #eafbff;
+  font-family: var(--font-mono, inherit);
+  font-size: 13px;
+  letter-spacing: 0.26em;
+  cursor: pointer;
+  box-shadow: 0 0 34px rgba(123, 44, 255, 0.3);
+}
+
+.spg-later {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: rgba(234, 251, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spg-line { animation: none; }
 }

@@ -2,21 +2,22 @@ import { QUARTER_META } from "./cityDistricts.js";
 import { TIER_HEIGHT_PCT, layoutRow } from "./world/worldConfig.js";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — street geography + the story order
+// MAPQUEST CITY — street geography + the story order (ACT 1 · the training)
 // This file owns WHERE everything stands on the walkable street. The
 // district registry (cityDistricts.js) stays the single source of truth
 // for WHAT a district is; its old banner `position` field is simply
 // unused by the walkable scene.
 //
-// The street runs west → east in STORY_ORDER, so a new citizen powers the
-// city on left to right and the walk itself is the progress bar:
-//   Gates → Plaza (The Guide) → THE SPIRE → THE GRID → NEON HEIGHTS
-//   → THE ARCHIVE ROW → THE UNDERGLOW → THE COMMONS → THE TERMINUS (Vault)
+// The street runs west → east in STORY_ORDER, so a new citizen LIGHTS the
+// city left to right and the walk itself is the tutorial progress bar:
+//   Gates → Plaza (The Guide) → THE GRID → NEON HEIGHTS → THE ARCHIVE ROW
+//   → THE UNDERGLOW → THE COMMONS → THE TERMINUS (Vault) → THE SPIRE
+// GATE 2: the Alchemist Spire stands SEALED at the far east until every
+// training district is lit (Guide lesson heard + one real action).
 // ════════════════════════════════════════════════════════════════════════
 
-// The journey through the city — doors power on in this order (Phase B).
+// The journey through the city — doors light in this order; the Spire last.
 export const STORY_ORDER = [
-  "alchemist-spire", // meet your future self at the top of the Spire
   "daily-nexus", // first real-life win: today's Top Five
   "war-rooms", // map the campaign
   "war-council", // close the weekly loop
@@ -32,6 +33,7 @@ export const STORY_ORDER = [
   "guild-quarter", // take it public — witnessed fire
   "hall-of-champions", // your name on the wall
   "the-vault", // the terminus — collect what you earned
+  "alchemist-spire", // GATE 2 — the sealed tower; the whole city trains you for it
 ];
 
 /* ── Street constants (tune here) ─────────────────────────────────────── */
@@ -46,9 +48,9 @@ const ZONE_GAP = 72;
 const WIDTH_BY_ID = { "alchemist-spire": SPIRE_W };
 
 // Street zones west → east. Building order inside each zone follows
-// STORY_ORDER so the story walk never doubles back.
+// STORY_ORDER so the story walk never doubles back — and the sealed Spire
+// towers at the very end of the road, past the Terminus.
 const STREET_ZONES = [
-  { label: "THE SPIRE", accent: QUARTER_META.quest.accent, ids: ["alchemist-spire"] },
   {
     label: "THE GRID",
     accent: QUARTER_META.execution.accent,
@@ -75,6 +77,12 @@ const STREET_ZONES = [
     ids: ["guild-quarter", "hall-of-champions"],
   },
   { label: "THE TERMINUS", accent: "#FACC15", ids: ["the-vault"], gapBefore: 150 },
+  {
+    label: "THE SPIRE",
+    accent: QUARTER_META.quest.accent,
+    ids: ["alchemist-spire"],
+    gapBefore: 190,
+  },
 ];
 
 /* ── Backdrop silhouettes (deterministic, % of their parallax layer) ───── */
@@ -104,9 +112,14 @@ const MID = [
 /* ── Builder ───────────────────────────────────────────────────────────── */
 
 // districts: the decorated array from useCityProgress (id, name, icon,
-// color, glow, glowState, position). Optional per-district flags `locked`
-// and `next` are passed straight through to the scene (Phase B gating).
-export function buildCityWorld(districts, { guideName = "The Guide", guideColor = "#00F0FF" } = {}) {
+// color, glow, glowState, position). Optional per-district flags `locked`,
+// `next` and `sealed` are passed straight through to the scene, and
+// `mentors` ({ [districtId]: { name, color } }) places each district's
+// Guide NPC beside its door — the tutorial teacher you talk to first.
+export function buildCityWorld(
+  districts,
+  { guideName = "The Guide", guideColor = "#00F0FF", mentors = {} } = {}
+) {
   const byId = new Map((districts || []).map((d) => [d.id, d]));
 
   const props = [
@@ -147,7 +160,22 @@ export function buildCityWorld(districts, { guideName = "The Guide", guideColor 
         glowState: d.glowState || "dim",
         locked: Boolean(d.locked),
         next: Boolean(d.next),
+        sealed: Boolean(d.sealed),
       });
+
+      // The district's Guide stands just west of the door (not for the
+      // sealed Spire — the Alchemist waits inside, not on the street).
+      const m = mentors[d.id];
+      if (m && !d.sealed) {
+        npcs.push({
+          id: `mentor:${d.id}`,
+          name: m.name,
+          x: p.x - 34,
+          color: m.color,
+          sprite: "guide",
+          disabled: Boolean(d.locked),
+        });
+      }
     }
     cursor = end - GAP + ZONE_GAP;
 

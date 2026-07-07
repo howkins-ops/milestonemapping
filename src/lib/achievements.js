@@ -178,6 +178,36 @@ export const ACHIEVEMENTS = [
     title: "City Scholar",
     description: "Eight mentors have taught you their lesson. The city speaks to you by name now.",
     icon: "📜"
+  },
+  {
+    id: "spire_open",
+    title: "The Tower Answers",
+    description: "Fifteen districts lit — the sealed Spire woke floor by floor. Someone is waiting at the top.",
+    icon: "◈"
+  },
+  {
+    id: "crossing_begun",
+    title: "The Solo Crossing",
+    description: "Past the Spire, the road runs alone. Five cities wait, and something walks behind you.",
+    icon: "🏜️"
+  },
+  {
+    id: "city_flip",
+    title: "Correctly Named",
+    description: "You caught the flicker, spoke the true name, and a city's mask fell off the shadow.",
+    icon: "🎭"
+  },
+  {
+    id: "shadow_thanked",
+    title: "The Thanking",
+    description: "On the quiet road you thanked the old guard dog — and it fell in step beside you.",
+    icon: "🕯️"
+  },
+  {
+    id: "oasis_reached",
+    title: "The Oasis",
+    description: "Five voices, one shape, all named. Fatima waits past the fifth city — and the treasure waits at home.",
+    icon: "🌴"
   }
 ];
 

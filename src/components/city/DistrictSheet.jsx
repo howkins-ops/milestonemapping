@@ -23,6 +23,8 @@ function enterLabel(action) {
 export default function DistrictSheet({
   district,
   locked = false,
+  sealed = false, // GATE 2 — the Spire before the city is fully lit
+  gateNote = null,
   prevDistrict = null,
   onGoPrev,
   onClose,
@@ -59,7 +61,11 @@ export default function DistrictSheet({
       >
         <div className="mqc-sheet__handle" aria-hidden="true" />
 
-        {locked ? (
+        {sealed ? (
+          <p className="mqc-kicker mqc-d-sheet__quarter" style={{ color: "#7B2CFF" }}>
+            ◈ SEALED — GATE 2
+          </p>
+        ) : locked ? (
           <p className="mqc-kicker mqc-d-sheet__quarter mqc-d-sheet__quarter--locked">
             ⏻ POWERED DOWN
           </p>
@@ -102,11 +108,18 @@ export default function DistrictSheet({
           ) : null}
         </div>
 
-        {locked ? (
+        {sealed ? (
+          <div className="mqc-d-sheet__lockednote">
+            <p className="mqc-d-sheet__lockedline">
+              {gateNote ||
+                "The tower answers only to a trained citizen. Light every district and the Spire opens."}
+            </p>
+          </div>
+        ) : locked ? (
           <div className="mqc-d-sheet__lockednote">
             <p className="mqc-d-sheet__lockedline">
               {prevDistrict
-                ? `${(MENTORS[prevDistrict.id] && MENTORS[prevDistrict.id].name) || "The mentor"} of ${prevDistrict.name} holds the switch — hear their lesson to power this street.`
+                ? `${(MENTORS[prevDistrict.id] && MENTORS[prevDistrict.id].name) || "The mentor"} of ${prevDistrict.name} holds the switch — hear their lesson and make one real move there to light this street.`
                 : "This street hasn't been powered on yet."}
             </p>
           </div>
@@ -133,7 +146,15 @@ export default function DistrictSheet({
           </div>
         ) : null}
 
-        {locked && prevDistrict ? (
+        {sealed ? (
+          <button
+            type="button"
+            className="mqc-btn mqc-btn--primary mqc-d-sheet__enter"
+            onClick={onClose}
+          >
+            BACK TO TRAINING
+          </button>
+        ) : locked && prevDistrict ? (
           <button
             type="button"
             className="mqc-btn mqc-btn--primary mqc-d-sheet__enter"
@@ -151,7 +172,7 @@ export default function DistrictSheet({
           </button>
         )}
 
-        {locked ? (
+        {locked && !sealed ? (
           <button
             type="button"
             className="mqc-d-sheet__enteranyway"

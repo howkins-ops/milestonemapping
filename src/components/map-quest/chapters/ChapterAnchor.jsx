@@ -3,6 +3,7 @@ import {
   ChapterFrame, Cinematic, Btn, taStyle, C, hexA, mono, serif, echo,
   PhoenixSeal, HeroSprite, MentorSprite, Starfield, Embers, fsWrap,
 } from "../kit.jsx";
+import { getHometownOutputs } from "../../city/journeyStore.js";
 
 /* =============================================================================
    CHAPTER 1 — THE SEND-OFF  (key: chapter-anchor)
@@ -78,13 +79,28 @@ const PROMPTS = [
 export default function ChapterAnchor({ onComplete, quest }) {
   const [phase, setPhase] = useState("intro");
   const [step, setStep] = useState(0);
-  const [vals, setVals] = useState({ whyILeft: "", whoIAmNow: "", biggestFear: "" });
+  // Carry-forward: the hometown's Station I already captured the WHY — the
+  // Father reads those exact words back instead of asking again. Legacy users
+  // who skipped the hometown still get the prompts.
+  const [vals, setVals] = useState(() => {
+    const o = getHometownOutputs() || {};
+    return {
+      whyILeft: o.whyILeft || "",
+      whoIAmNow: o.whoIAmNow || "",
+      biggestFear: o.biggestFear || "",
+    };
+  });
+  const carried = Boolean(vals.whyILeft && vals.whoIAmNow && vals.biggestFear);
   const set = (k) => (e) => setVals((v) => ({ ...v, [k]: e.target.value }));
 
   if (phase === "intro") {
     return (
       <ChapterFrame>
-        <Cinematic shots={INTRO} accent={C.amber} onDone={() => setPhase("exercise")} />
+        <Cinematic
+          shots={INTRO}
+          accent={C.amber}
+          onDone={() => setPhase(carried ? "mirror" : "exercise")}
+        />
       </ChapterFrame>
     );
   }

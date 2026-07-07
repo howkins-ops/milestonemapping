@@ -27,6 +27,17 @@ function save(state) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
 }
 
+// Pure (no hooks) Day-One seeding — the hometown stations capture the WHY
+// before the quest ever mounts, and Ch1/Ch23 read it back from here.
+export function seedDayOneSnapshot(snap = {}) {
+  const clean = Object.fromEntries(
+    Object.entries(snap).filter(([, v]) => typeof v === "string" && v.trim())
+  );
+  if (!Object.keys(clean).length) return;
+  const state = load();
+  save({ ...state, dayOne: { ...state.dayOne, ...clean } });
+}
+
 export function useMapQuestState() {
   const [state, setState] = useState(load);
 

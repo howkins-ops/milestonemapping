@@ -29,6 +29,7 @@ import OpenWorldMap from "./components/game/OpenWorldMap.jsx";
 import MapQuestCityPage from "./components/city/MapQuestCityPage.jsx";
 import { CHAPTER_COMPONENTS } from "./components/map-quest/chapterRegistry.js";
 import { getChapterByKey } from "./components/map-quest/questChapters.js";
+import { isSpireOpen } from "./components/city/journeyStore.js";
 import TopFivePage from "./components/daily/TopFivePage.jsx";
 import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
 import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
@@ -154,6 +155,10 @@ function AppContent({ signOut }) {
           projectId={rpgWorldProjectId}
           initialMode={rpgWorldInitialMode}
           onExitWorld={closeRPGWorld}
+          onGoToCity={() => {
+            closeRPGWorld();
+            navigate("city");
+          }}
         />
       );
     }
@@ -244,6 +249,16 @@ function AppContent({ signOut }) {
         return <OpenWorldMap onNavigate={navigate} onOpenProject={openProject} />;
       case "chapter-anchor":
       case "chapter-shadow": {
+        // GATE 2 — legacy chapter deep-links respect the sealed Spire too.
+        if (!isSpireOpen()) {
+          return (
+            <MapQuestCityPage
+              onNavigate={navigate}
+              onOpenProject={openProject}
+              onOpenMapQuest={openMapQuest}
+            />
+          );
+        }
         const chapterDef = getChapterByKey(currentPage);
         const ChapterComponent = chapterDef && CHAPTER_COMPONENTS[chapterDef.component];
         return ChapterComponent ? (

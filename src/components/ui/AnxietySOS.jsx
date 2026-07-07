@@ -7,8 +7,10 @@ import Grounding from "../shadow/Grounding.jsx";
 import SelfCompassion from "../shadow/SelfCompassion.jsx";
 import DrainTheSwamp from "../shadow/swamp/DrainTheSwamp.jsx";
 import PressureChamber from "../shadow/swamp/PressureChamber.jsx";
+import { getHometownOutputs } from "../city/journeyStore.js";
 import "../../styles/wave.css";
 import "../../styles/swamp-valve.css"; // embedded swamp tools inherit .sv- styles
+import "../../styles/hometown.css"; // the Day-One letter reuses the hometown paper
 
 // ─────────────────────────────────────────────────────────────────────────
 // EMOTIONAL RESET HUB — the SOS overlay, reachable mid-panic from anywhere.
@@ -52,6 +54,29 @@ const DOORS = [
     sub: "When it's all too much and you're being hard on you.",
   },
 ];
+
+/* ── Letter from Day One: the hometown anti-quit letter, replayed ────────── */
+function LetterFromDayOne({ letter, onClose }) {
+  return (
+    <div className="sos-dayone">
+      <button className="sv-back" onClick={onClose}>← Back</button>
+      <div className="hmt-paper" style={{ margin: "0 auto" }}>
+        <p className="hmt-kicker">LETTER FROM DAY ONE</p>
+        <h3 className="hmt-title">You wrote this for exactly tonight.</h3>
+        <div className="hmt-letter__sheet">
+          <p className="hmt-letter__salutation">To the me who wants to quit —</p>
+          <p style={{ whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.7, color: "#F3ECDA" }}>
+            {letter}
+          </p>
+          <p className="hmt-letter__sign">— you, on the day you still remembered everything</p>
+        </div>
+        <button type="button" className="hmt-primary" onClick={onClose} style={{ marginTop: 16 }}>
+          Still walking →
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ── Box Breathing: 4-4-4-4, four cycles, one glowing square orb ─────────── */
 const BOX_PHASES = [
@@ -147,8 +172,13 @@ export default function AnxietySOS({ open, onClose }) {
 
   const toHub = () => setMode(null);
 
+  // The anti-quit letter written at the hometown desk (Act 0, Station II).
+  const dayOneLetter = (getHometownOutputs().antiQuitLetter || "").trim();
+
   const renderMode = () => {
     switch (mode) {
+      case "dayone":
+        return <LetterFromDayOne letter={dayOneLetter} onClose={toHub} />;
       case "wave":
         return <RideTheWave onClose={toHub} onFinish={finish} />;
       case "ground":
@@ -185,6 +215,21 @@ export default function AnxietySOS({ open, onClose }) {
                   <span className="sos-door__time">{d.time}</span>
                 </button>
               ))}
+              {dayOneLetter ? (
+                <button
+                  className="sos-door"
+                  style={{ "--sd": "#C9A15E", "--i": DOORS.length }}
+                  onClick={() => setMode("dayone")}
+                >
+                  <span className="sos-door__emoji" aria-hidden>✉</span>
+                  <span className="sos-door__label">Want to quit?</span>
+                  <span className="sos-door__title">Letter from Day One</span>
+                  <span className="sos-door__sub">
+                    You wrote yourself a rope before the road got loud. Read it back.
+                  </span>
+                  <span className="sos-door__time">~1 min</span>
+                </button>
+              ) : null}
             </div>
             <p className="sos-hub__foot">
               In immediate danger or thinking about harming yourself? Call or text <b>988</b> (Suicide &amp; Crisis

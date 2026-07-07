@@ -1534,3 +1534,168 @@
   transition-duration: 0.01ms !important;
 }
 [data-reduced-motion="true"] .iw-al-answer { opacity: 1; pointer-events: auto; }
+
+/* ═══════════════ SESSION WIZARD — briefing · intros · how-to · holds ═══════════════ */
+
+/* the how-to panel (shared with the custom tracker) */
+.iw-howto {
+  margin: 8px 0;
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 11px;
+  background: rgba(232, 228, 218, 0.02);
+  overflow: hidden;
+}
+.iw-howto-open { border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent); }
+.iw-howto-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 11px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.iw-howto-q {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 60%, transparent);
+  color: var(--iw-al-accent, #ff8a4d);
+  font-size: 10px;
+  font-weight: 800;
+}
+.iw-howto-title {
+  font-weight: 800;
+  font-size: 12px;
+  color: #e8e4da;
+  letter-spacing: 0.02em;
+}
+.iw-howto-meta {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #837e72;
+  text-align: right;
+}
+.iw-howto-caret { flex: none; color: #6d685d; font-size: 11px; }
+.iw-howto-body {
+  padding: 2px 12px 12px;
+  border-top: 1px dashed rgba(232, 228, 218, 0.1);
+  animation: iwPageIn 220ms ease both;
+}
+.iw-howto-tags {
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--iw-al-accent, #ff8a4d);
+}
+.iw-howto-setup {
+  margin: 8px 0 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #c7c2b6;
+  font-style: italic;
+}
+.iw-howto-steps {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.iw-howto-steps li {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b5b0a3;
+}
+.iw-howto-steps li::marker { color: var(--iw-al-accent, #ff8a4d); font-weight: 800; }
+
+/* mission briefing */
+.iw-al-briefing { animation: iwPageIn 320ms ease both; }
+.iw-al-brief-why { margin: 8px 0 14px; }
+.iw-al-brief-gear { margin: 12px 0; }
+.iw-al-gearchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.iw-al-brief-blocks { display: flex; flex-direction: column; gap: 12px; margin: 14px 0; }
+.iw-al-brief-block {
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: rgba(232, 228, 218, 0.02);
+}
+.iw-al-brief-blockhead { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.iw-al-brief-key {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 55%, transparent);
+  color: var(--iw-al-accent, #ff8a4d);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 12px;
+}
+.iw-al-brief-blocktitle {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 14px;
+  color: #e8e4da;
+}
+.iw-al-brief-protocol {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #9a948a;
+  margin-bottom: 8px;
+}
+
+/* block intro gate */
+.iw-al-blockintro {
+  border: 1px solid rgba(232, 228, 218, 0.14);
+  border-radius: 16px;
+  padding: 20px 16px;
+  background: linear-gradient(170deg, #17191c, #0f1012);
+}
+.iw-al-blockintro .iw-al-brief-protocol { margin-top: 6px; }
+.iw-al-intro-chips { margin: 10px 0; }
+
+/* next-up strip */
+.iw-al-nextup {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(232, 228, 218, 0.16);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #837e72;
+  text-align: center;
+}
+.iw-al-nextup strong { color: #c7c2b6; }
+
+/* hold clock */
+.iw-al-holdring .iw-rest-unit { letter-spacing: 0.2em; text-transform: uppercase; }
+
+/* multi-lift verdicts (the 5×5 pair) */
+.iw-al-verdict-row { padding: 8px 0 12px; }
+.iw-al-verdict-row + .iw-al-verdict-row { border-top: 1px dashed rgba(232, 228, 218, 0.12); }
+.iw-al-verdict-row .iw-al-verdict-word { font-size: 21px; margin: 6px 0 4px; }
+.iw-al-verdict-lift {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9a948a;
+}
