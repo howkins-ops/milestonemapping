@@ -263,6 +263,18 @@ export default function WorldScene({
       shake: (opts) => fx.shake(shakeTarget(), opts),
       burstAt: (x, y, kind, n, color) => fx.burst(fxLayerRef.current, x, y, kind, n, color),
       ringAt: (x, y, color) => fx.ring(fxLayerRef.current, x, y, color),
+      // Camera II — cinematic camera (input stays alive; walking cancels)
+      panTo: (x, opts) => (controls.panTo ? controls.panTo(x, opts) : Promise.resolve(false)),
+      setZoom: (z) => controls.setZoom && controls.setZoom(z),
+      jumpTo: (x) => controls.jumpTo(x),
+      letterbox: (on) => {
+        if (viewportRef.current) viewportRef.current.classList.toggle("mqfx-cine", Boolean(on));
+      },
+      buildingX: (id) => {
+        const b = (world.buildings || []).find((v) => v.id === id);
+        return b ? Math.round(b.x + b.w / 2) : null;
+      },
+      viewportEl: () => viewportRef.current,
       // POWER-ON — the building performs: windows ramp floor-by-floor, the
       // beacon ignites with a shockwave, sparks burst off the rooftop sign.
       erupt: (buildingId) => {
@@ -580,6 +592,10 @@ export default function WorldScene({
 
       <div className="mqw-haze" aria-hidden="true" />
       <div className="mqw-ground" aria-hidden="true" />
+
+      {/* cinematic letterbox bars — Camera II; Phase 7 drives them */}
+      <div className="mqfx-letterbox mqfx-letterbox--top" aria-hidden="true" />
+      <div className="mqfx-letterbox mqfx-letterbox--bottom" aria-hidden="true" />
 
       {prompt ? (
         <button

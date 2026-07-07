@@ -186,6 +186,19 @@ export default function useWorldEngine({
     }
   };
 
+  // The camera (or a shake/zoom/pan) still has work to do → keep the loop
+  // alive after input stops; it settles and the rAF dies within ~1s (idle
+  // law preserved).
+  const cameraBusy = (now) => {
+    const s = sim.current;
+    return (
+      Boolean(s.pan) ||
+      Math.abs(camGoal() - s.cam) > CAMERA.settleEps ||
+      (now && now < s.shakeUntil) ||
+      Math.abs(s.zoomTarget - s.zoom) > 0.002
+    );
+  };
+
   const frame = (now) => {
     const s = sim.current;
     const c = cfg.current;
@@ -200,6 +213,8 @@ export default function useWorldEngine({
         const prevX = s.x;
         s.x = Math.max(minX, Math.min(maxX, s.x + s.dir * c.speed * dt));
         if (c.onStride && s.x !== prevX) c.onStride(Math.abs(s.x - prevX));
+        // walking cancels a cinematic pan — real life first
+        if (s.pan && s.x !== prevX) cancelPan();
       }
       if (s.airborne) {
         s.vy -= GRAVITY * dt;
@@ -214,13 +229,40 @@ export default function useWorldEngine({
           if (c.onLand) c.onLand(impact, { fromBounce });
         }
       }
-      paint();
       checkProximity();
       checkEdges();
       if (s.airborne && c.onAirFrame) c.onAirFrame(s.y, s.vy);
     }
 
-    if ((s.dir !== 0 || s.airborne) && !c.paused && !document.hidden) {
+    // ── Camera sim (runs whenever the loop runs) ──────────────────────────
+    if (!c.paused || s.pan) {
+      // look-ahead anchor eases when the facing flips (~turnMs settle)
+      const anchorTarget = s.facing === 1 ? CAMERA.lookAhead : CAMERA.lookBehind;
+      s.anchor += (anchorTarget - s.anchor) * Math.min(1, dt * (2800 / CAMERA.turnMs));
+      const goal = camGoal();
+      if (s.pan) {
+        const rate = 3.5 / Math.max(0.12, s.pan.ms / 1000);
+        s.cam += (goal - s.cam) * Math.min(1, dt * rate);
+        if (Math.abs(goal - s.cam) < 2) {
+          if (!s.pan.holdUntil) s.pan.holdUntil = now + s.pan.hold;
+          else if (now >= s.pan.holdUntil) {
+            const done = s.pan.resolve;
+            s.pan = null;
+            if (done) done(true);
+          }
+        }
+      } else {
+        s.cam += (goal - s.cam) * Math.min(1, dt * CAMERA.lerp);
+        if (Math.abs(goal - s.cam) <= CAMERA.settleEps) s.cam = goal;
+      }
+      s.zoom += (s.zoomTarget - s.zoom) * Math.min(1, dt * 8);
+      if (Math.abs(s.zoomTarget - s.zoom) <= 0.002) s.zoom = s.zoomTarget;
+    }
+    paint(now);
+
+    const busy =
+      ((s.dir !== 0 || s.airborne) && !c.paused) || cameraBusy(now);
+    if (busy && !document.hidden) {
       s.raf = requestAnimationFrame(frame);
     } else {
       s.last = 0;
@@ -231,13 +273,22 @@ export default function useWorldEngine({
     const s = sim.current;
     if (
       !s.raf &&
-      (s.dir !== 0 || s.airborne) &&
-      !cfg.current.paused &&
+      (((s.dir !== 0 || s.airborne) && !cfg.current.paused) ||
+        cameraBusy(performance.now())) &&
       !document.hidden
     ) {
       s.last = 0;
       s.raf = requestAnimationFrame(frame);
     }
+  };
+
+  // Cinematic pan cancel — resolves the promise so callers never hang.
+  const cancelPan = () => {
+    const s = sim.current;
+    if (!s.pan) return;
+    const done = s.pan.resolve;
+    s.pan = null;
+    if (done) done(false);
   };
 
   // ── Controls ────────────────────────────────────────────────────────────
@@ -297,6 +348,7 @@ export default function useWorldEngine({
   const jumpTo = (x) => {
     const s = sim.current;
     s.x = Math.max(minX, Math.min(maxX, Number(x) || 0));
+    snapCam(); // teleports never drift-pan across the map
     paint();
     checkProximity();
     checkEdges();
@@ -304,10 +356,55 @@ export default function useWorldEngine({
 
   const getX = () => sim.current.x;
 
+  // ── Camera II controls ──────────────────────────────────────────────────
+
+  // Cinematic pan: ease the camera to center world-x, hold, resolve.
+  // Input stays alive — walking cancels the pan (the promise resolves
+  // false). Reduced motion = jump-cut, hold, resolve.
+  const panTo = (x, { ms = 900, hold = 600 } = {}) => {
+    const s = sim.current;
+    cancelPan();
+    const target = Math.max(
+      0,
+      Math.min((Number(x) || 0) - s.viewportW * 0.5, cfg.current.worldWidth - s.viewportW)
+    );
+    if (reducedMotion) {
+      s.cam = target;
+      paint();
+      return new Promise((resolve) => setTimeout(() => resolve(true), hold));
+    }
+    return new Promise((resolve) => {
+      s.pan = { x: target, ms, hold, holdUntil: 0, resolve };
+      ensureLoop();
+    });
+  };
+
+  // Zoom target (0.92–1.06 grammar): run = 0.97, cinematic = 1.04.
+  const setZoom = (z) => {
+    const s = sim.current;
+    if (reducedMotion) return;
+    s.zoomTarget = Math.max(0.92, Math.min(1.06, Number(z) || 1));
+    ensureLoop();
+  };
+
+  // Layer shake — one source of truth for screen shake (fx.shake routes
+  // here). Decays over ms; offsets ride the camera transform writes.
+  const addShake = (amp = 5, ms = 220) => {
+    const s = sim.current;
+    if (reducedMotion) return;
+    const now = performance.now();
+    const activeAmp = now < s.shakeUntil ? s.shakeAmp : 0;
+    s.shakeAmp = Math.max(activeAmp, Math.min(12, amp));
+    s.shakeMs = Math.max(1, ms);
+    s.shakeUntil = now + ms;
+    ensureLoop();
+  };
+
   // ── Mount: measure, spawn, listeners ────────────────────────────────────
   useEffect(() => {
     const s = sim.current;
     s.x = Math.max(minX, Math.min(maxX, spawnX));
+    s.camInit = false; // world changed — snap the camera to the new framing
 
     const measure = () => {
       if (viewportRef.current) {
@@ -394,7 +491,7 @@ export default function useWorldEngine({
   }, [targets]);
 
   const controls = useMemo(
-    () => ({ press, release, jumpTo, jump, bounce, freeze }),
+    () => ({ press, release, jumpTo, jump, bounce, freeze, panTo, setZoom, addShake }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -404,6 +501,7 @@ export default function useWorldEngine({
     layerRef,
     farRef,
     midRef,
+    nearRef,
     charRef,
     nearTarget,
     walking,

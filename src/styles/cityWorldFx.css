@@ -105,6 +105,45 @@
   100% { transform: translate(calc(-50% - var(--px, 30px)), calc(var(--py, 10px) * -1)) scaleX(0.3); opacity: 0; }
 }
 
+/* ════════ PHASE 2 — CAMERA II ═══════════════════════════════════════════ */
+
+/* zoom composes into the engine's translate3d writes — origin sits at the
+   street line so the world widens/pushes around the action, not the sky */
+.mqw-viewport .mqw-far,
+.mqw-viewport .mqw-mid,
+.mqw-viewport .mqw-main,
+.mqw-viewport .mqfx-near {
+  transform-origin: 50% 88%;
+}
+
+/* cinematic letterbox — bars translate in/out (Phase 7 drives this) */
+.mqfx-letterbox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9%;
+  min-height: 30px;
+  background: #020006;
+  z-index: 9;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+.mqfx-letterbox--top {
+  top: 0;
+  transform: translateY(-101%);
+}
+
+.mqfx-letterbox--bottom {
+  bottom: 0;
+  transform: translateY(101%);
+}
+
+.mqfx-cine .mqfx-letterbox--top,
+.mqfx-cine .mqfx-letterbox--bottom {
+  transform: translateY(0);
+}
+
 /* ── Shockwave ring ─────────────────────────────────────────────────────── */
 
 .mqfx-ring {
