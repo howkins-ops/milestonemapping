@@ -143,8 +143,16 @@ export default function FillYourFridge({ alpha, userId, plan, checks, weekKey, o
   return (
     <div className="iw-al-fridgewrap">
       <div className={`iw-al-fridge ${showClosed ? "iw-al-fridge-closed" : ""} ${slammed ? "iw-al-fridge-slamming" : ""}`}>
+        {/* chrome crown — always visible, sells "this is a fridge" */}
+        <div className="iw-al-fridge-top" aria-hidden="true">
+          <span className="iw-al-fridge-hinge" />
+          <span className="iw-al-fridge-brand">❄ THE COLDBOX</span>
+          <span className="iw-al-fridge-hinge" />
+        </div>
+
         {/* open interior */}
         <div className="iw-al-fridge-inside" aria-hidden={showClosed}>
+          <div className="iw-al-fridge-light" aria-hidden="true" />
           {SHELVES.map((s) => (
             <div key={s.id} className="iw-al-shelf">
               <span className="iw-al-shelf-label">{s.label}</span>
@@ -152,7 +160,7 @@ export default function FillYourFridge({ alpha, userId, plan, checks, weekKey, o
                 {shelfItems[s.id].map((item, i) => (
                   <span key={`${item}${i}`} className="iw-al-shelf-item">{item}</span>
                 ))}
-                {shelfItems[s.id].length === 0 && <span className="iw-al-shelf-empty">empty</span>}
+                {shelfItems[s.id].length === 0 && <span className="iw-al-shelf-empty">empty shelf</span>}
               </div>
             </div>
           ))}

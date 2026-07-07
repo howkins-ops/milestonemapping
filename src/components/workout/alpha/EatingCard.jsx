@@ -4,7 +4,7 @@ import { PHASES } from "./data/phases.js";
 
 /* ALPHA MODE — today's eating equation, phase/week/day aware. */
 
-export default function EatingCard({ state, slot, dayLabel }) {
+export default function EatingCard({ state, slot, dayLabel, onOpenCalculator }) {
   const phase = PHASES[state.phase];
   if (!phase || !state.bodyWeight) return null;
 
@@ -54,6 +54,11 @@ export default function EatingCard({ state, slot, dayLabel }) {
             ? "full-fast day — and the 400-cal dinner fallback ALWAYS counts if you need it"
             : `${m.maintenance - m.calories} under the line · carbs land late — post-workout, toward the night`}
       </div>
+      {onOpenCalculator && (
+        <button className="iw-al-calclink" onClick={onOpenCalculator}>
+          ⚖ open the food calculator — turn the dials
+        </button>
+      )}
     </div>
   );
 }

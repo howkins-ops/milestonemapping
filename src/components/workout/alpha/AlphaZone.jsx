@@ -19,7 +19,7 @@ import { sfxCoin } from "../../../lib/sfx.js";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export default function AlphaZone({ alpha, workoutData, addXP, settings, onStartWorkout, onFight, onOpenCheat, onOpenStockpile }) {
+export default function AlphaZone({ alpha, workoutData, addXP, settings, onStartWorkout, onFight, onOpenCheat, onOpenCalculator, onOpenStockpile }) {
   const { state } = alpha;
   const phase = PHASES[state.phase];
   const todayIdx = dayIdxFromDate();
@@ -110,7 +110,8 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
         )}
       </div>
 
-      <EatingCard state={state} slot={slot} dayLabel={DAY_LABELS[todayIdx]} />
+      <EatingCard state={state} slot={slot} dayLabel={DAY_LABELS[todayIdx]}
+        onOpenCalculator={onOpenCalculator} />
       <FastClock alpha={alpha} phase={phase} addXP={addXP} settings={settings} />
       <CarbRampMeter state={state} />
       <HormonePanel alpha={alpha} addXP={addXP} settings={settings} compact />

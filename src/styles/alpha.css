@@ -1207,11 +1207,48 @@
   min-height: 340px;
   overflow: hidden;
 }
+.iw-al-fridge-top {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, #3a4048, #23272d 70%, #1a1d21);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.iw-al-fridge-brand {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  color: #9fc7d1;
+  text-shadow: 0 0 10px rgba(95, 184, 201, 0.4);
+}
+.iw-al-fridge-hinge {
+  width: 22px;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #4a505a, #22262b);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.6);
+}
 .iw-al-fridge-inside {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px;
+  padding: 14px 34px; /* clears the ajar door slivers */
+}
+.iw-al-fridge-light {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 0;
+  height: 70px;
+  pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(180, 230, 240, 0.16), transparent 75%);
 }
 .iw-al-shelf {
   flex: 1;
@@ -1240,13 +1277,16 @@
   top: 0;
   bottom: 0;
   width: 50%;
+  z-index: 2;
   background: linear-gradient(150deg, #2b3138, #171b20 55%, #0e1114);
   border: 1px solid rgba(232, 228, 218, 0.12);
+  box-shadow: inset -6px 0 14px rgba(0, 0, 0, 0.5);
   transition: transform 600ms cubic-bezier(.6,.02,.35,1);
   pointer-events: none;
 }
-.iw-al-door-l { left: 0; transform: translateX(-101%); border-radius: 16px 0 0 16px; }
-.iw-al-door-r { right: 0; transform: translateX(101%); border-radius: 0 16px 16px 0; }
+/* open = ajar: steel slivers stay visible framing the shelves */
+.iw-al-door-l { left: 0; transform: translateX(-88%); border-radius: 16px 0 0 16px; }
+.iw-al-door-r { right: 0; transform: translateX(88%); border-radius: 0 16px 16px 0; }
 .iw-al-fridge-closed .iw-al-door-l, .iw-al-fridge-closed .iw-al-door-r { transform: translateX(0); }
 .iw-al-fridge-slamming { animation: iwAlFridgeShake 500ms 550ms ease; }
 @keyframes iwAlFridgeShake {
@@ -1268,7 +1308,7 @@
 .iw-al-doorface {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1398,6 +1438,82 @@
 }
 .iw-al-weekup-sub { font-size: 12px; color: #9a948a; margin-bottom: 8px; }
 .iw-al-chalk-ring { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+
+/* ── THE EATING EQUATION calculator ── */
+.iw-al-calc { animation: iwPageIn 380ms ease both; }
+.iw-al-calc-phases { margin: 4px 0 14px; display: flex; flex-direction: column; gap: 6px; }
+.iw-al-calc-panels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 14px 0 10px;
+}
+.iw-al-calc-panel {
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 40%, transparent);
+  border-radius: 14px;
+  padding: 14px;
+  background:
+    radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 10%, transparent), transparent 70%),
+    rgba(232, 228, 218, 0.02);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+}
+.iw-al-calc-panel-head { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.iw-al-calc-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--iw-al-accent, #ff6a2b);
+  box-shadow: 0 0 8px var(--iw-al-accent, #ff6a2b);
+}
+.iw-al-calc-panel-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--iw-al-accent, #ff8a4d);
+}
+.iw-al-calc-cals {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 28px;
+  color: #e8e4da;
+  margin-bottom: 8px;
+}
+.iw-al-calc-cals-unit { font-size: 11px; color: #837e72; margin-left: 5px; font-weight: 700; }
+.iw-al-calc-rows { display: flex; flex-direction: column; }
+.iw-al-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(232, 228, 218, 0.08);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #837e72;
+}
+.iw-al-calc-row strong {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 15px;
+  color: #e8e4da;
+}
+.iw-al-calc-tag { margin-top: 9px; font-size: 10.5px; line-height: 1.5; color: #9a948a; }
+.iw-al-calclink {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: none;
+  border: 1px dashed rgba(232, 228, 218, 0.22);
+  border-radius: 10px;
+  color: #b5b0a3;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.iw-al-calclink:hover { border-color: rgba(255, 138, 77, 0.5); color: #ff8a4d; }
 
 /* reduced motion — campaign layer */
 @media (prefers-reduced-motion: reduce) {

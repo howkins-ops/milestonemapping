@@ -9,6 +9,7 @@ import AlphaZone from "./AlphaZone.jsx";
 import AlphaSession from "./AlphaSession.jsx";
 import CheatDayEvent from "./CheatDayEvent.jsx";
 import StockpilePage from "./StockpilePage.jsx";
+import EatingCalculator from "./EatingCalculator.jsx";
 import ScrollShelf from "./WisdomScroll.jsx";
 import BenchmarkLadder from "./BenchmarkLadder.jsx";
 import TraitTree from "./TraitTree.jsx";
@@ -225,6 +226,7 @@ export default function AlphaMode({ workoutData }) {
           onStartWorkout={(workoutId) => go({ name: "session", workoutId })}
           onFight={(bossId) => go({ name: "boss", bossId, from: { name: "zone" } })}
           onOpenCheat={() => go({ name: "cheat" })}
+          onOpenCalculator={() => go({ name: "calculator" })}
           onOpenStockpile={() => go({ name: "stockpile" })} />
       )}
 
@@ -247,10 +249,15 @@ export default function AlphaMode({ workoutData }) {
           onBack={() => go({ name: "zone" })} />
       )}
 
+      {resolved.name === "calculator" && (
+        <EatingCalculator alpha={alpha} addXP={addXP} settings={settings}
+          onBack={() => go({ name: "zone" })} />
+      )}
+
       {resolved.name === "codex" && (
         <div className="iw-al-codex">
           <div className="iw-al-codextabs">
-            {[["myths", "myths"], ["scrolls", "scrolls"], ["ladders", "ladders"], ["traits", "traits"]].map(([id, label]) => (
+            {[["myths", "myths"], ["scrolls", "scrolls"], ["ladders", "ladders"], ["traits", "traits"], ["equation", "food calc"]].map(([id, label]) => (
               <button key={id} className={`iw-chip-btn ${codexTab === id ? "iw-chip-on" : ""}`}
                 onClick={() => setCodexTab(id)}>{label}</button>
             ))}
@@ -259,6 +266,7 @@ export default function AlphaMode({ workoutData }) {
           {codexTab === "scrolls" && <ScrollShelf alpha={alpha} />}
           {codexTab === "ladders" && <BenchmarkLadder prs={workoutData.prs} />}
           {codexTab === "traits" && <TraitTree traitLevels={traitLevels} />}
+          {codexTab === "equation" && <EatingCalculator alpha={alpha} addXP={addXP} settings={settings} onBack={null} />}
         </div>
       )}
 
