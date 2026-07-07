@@ -185,9 +185,9 @@ export const QUEST_CHAPTERS = [
   },
   {
     key: "ch15-the-garden", number: 19, title: "The Garden Server",
-    subtitle: "Forgive yourself; learn to be.",
-    world: "A hidden green node in the grid; the Heartkeeper.",
-    exercise: "Being Mirror", shadow: null, essence: null, consent: "Testimony",
+    subtitle: "Forgive yourself. Name how you leave.",
+    world: "A hidden green node in the grid; the Heartkeeper — and a door that was never locked.",
+    exercise: "Being Mirror + The Pattern in Love", shadow: null, essence: null, consent: "Testimony + Fiction (Wren)",
     reward: "Being over doing", type: "Story + exercise",
     component: "ChapterGarden", available: true, requires: "ch14-the-ruins",
     saveKey: "milestone-quest:ch15-v1",

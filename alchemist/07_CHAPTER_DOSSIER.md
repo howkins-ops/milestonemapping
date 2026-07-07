@@ -355,22 +355,43 @@
   rewrite the abandonment story toward gratitude. *Identity shift* — Raging Victim → Majesty/sovereign.
 - **Dashboard:** Ordeal-approach · Purpose 8 · Faith 7 · Fear 7 · Courage 7 · Trust 6 → Majesty +.
 
-### Ch 19 — The Garden Server · *(Heartkeeper / Fatima)* · (T)
-- **Coelho beat:** The oasis and meeting **Fatima** — love that frees rather than cages; legitimate rest, not
-  final arrival.
+### Ch 19 — The Garden Server · *(Heartkeeper / Fatima — the Wren thread)* · (T self-forgiveness · **F** love-story)
+- **Coelho beat:** The oasis and meeting **Fatima** — love that frees rather than cages; *"If you belong to
+  your Personal Legend, I'll be waiting."* Legitimate rest, not final arrival. Love never keeps a man from
+  his destiny — but the oasis is where most seekers quietly quit.
 - **Jon's testimony:** **Forgive yourself** — the coaching breakdown→breakthrough ("me not following my
   dreams was costing me everything; I needed to forgive myself"); and the **Cape Town garden built for a
   village of 50,000** who had nothing yet were the happiest people he'd met — "all they needed was each other."
-- **Bigger lesson(s):** Self-forgiveness is the gate to **being** (how you show up) over doing; love that
-  enlarges, not miniaturizes. *(Docs: Coaching From Being; Judgment vs Being; Listening Beyond Reaction;
-  Healthy Priorities.)*
-- **Scene mini-arc:** (1) A hidden green node in the grid (the Garden Server). (2) The Heartkeeper. (3) The
-  self-forgiveness mirror. (4) Rest that frees, then sends you on.
-- **Exercise — Being Mirror** → `judgeMyselfFor`, `forgive`.
-- **Framework:** *Lesson* — real love supports the journey. *Principle* — self-forgiveness unlocks being.
-  *Trap* — calling avoidance "love"; judging yourself. *Opportunity* — receive love that enlarges you.
-  *Action* — write the self-forgiveness line. *Identity shift* — self-judge → self-forgiving / being.
-- **Dashboard:** Reward/rest · Purpose 8 · Faith 8 · Fear 4 · Courage 8 · Trust 8.
+- **The Wren story (F — PURE FICTION, invented 2026-07-07 at Jon's direction; zero real biography):** Years
+  before the quest, dodging a patrol sweep, the Runner ducked through the wrong rooftop hatch and found the
+  last real soil in the city — a bootleg greenhouse — and **Wren**, its keeper. First thing she ever did was
+  press a seedling into his hands: *"Careful. It's alive."* The first thing anyone had trusted him with that
+  wasn't stolen. He kept coming back. She never asked where he ran at night; she saw the man under the
+  runner-jacket. And every time it got warm enough to matter, a score "that couldn't wait" appeared — two
+  weeks gone, credits sent instead of words. The Addict Saint called it *keeping it light*; the Raging
+  Victim called it *leaving first*. The last night, she caught his hand at the door: **"I never asked you to
+  stay. I asked you to stop leaving before you'd arrived."** He left anyway. The score didn't even pay out.
+  The Garden Server the Seeker stands in now is seeded from her greenhouse — and the door was never locked.
+- **Bigger lesson(s):** There are TWO ways to lose the treasure at the oasis: **stop walking and call it
+  love** (Santiago's temptation), or **keep walking so fast love can never board** (the Runner's way — the
+  wound's way). Love that frees says *go*; the wound says *run* — the whole work is telling them apart.
+  Self-forgiveness is the gate to receiving: you can't let love in while at war with yourself. Pays off the
+  AYAU ceremony line in Ch21 — *"you've had many chances to love."* *(Docs: Coaching From Being; Judgment vs
+  Being; Listening Beyond Reaction; Healthy Priorities; **Weekend 9 Relationships** — My Pattern in
+  Relationship, The Four Corners of Relationship.)*
+- **Scene mini-arc:** (1) A hidden green node in the grid — a greenhouse, impossibly alive; the Heartkeeper
+  tending it. (2) The self-forgiveness mirror. (3) The Wren memory — the seedling, the pattern, the doorway
+  line. (4) **The pattern-naming** — the player names how *they* leave. (5) Rest that frees, then sends you
+  on: *"The garden keeps growing either way. So should you."*
+- **Exercise — Being Mirror + The Pattern in Love** → `judgeMyselfFor`, `forgive` (unchanged, save-compat)
+  **+ new additive slots** `myPatternInLove` ("when love gets close, I ___") and `chanceILeft` (the door I
+  didn't walk through) → **harvested by Ch21's ceremony, echoed at Ch24's open door**.
+- **Framework:** *Lesson* — real love supports the journey; the quest is never the real reason we leave.
+  *Principle* — self-forgiveness unlocks being; love that frees says go. *Trap* — calling avoidance "love";
+  leaving before you've arrived. *Opportunity* — name the pattern and the door reopens. *Action* — write the
+  pattern + the chance you left. *Identity shift* — self-judge / pre-emptive leaver → self-forgiving, able
+  to stay.
+- **Dashboard:** Reward/rest · Purpose 8 · Faith 8 · Fear 4 · Courage 8 · Trust 8 → Love +.
 
 ### Ch 20 — The Black Market · **Naive Warrior ↔ Joy** · (Tr)
 - **Coelho beat:** Captured / the false path — the seductive shortcut, "false gold."
@@ -401,10 +422,14 @@
   to love"), the fire→ashes→phoenix. The structure (descent → purge → essence → reframe) is the usable gold;
   no literal biography.
 - **Bigger lesson(s):** At the bottom the dots connect; you face every shadow at once and **surrender**.
-  Harvest the player's own words from Ch6/13/15/18/20 and name all five shadows together. *(Docs: Self-Sabotage
-  and Integrity; Present Context; Re-Invention; Powerful Stands.)*
-- **Scene mini-arc:** (1) The Citadel where all five shadows converge. (2) The descent/purge (fictional). (3)
-  The **Shadow Naming Ceremony** — each shadow named with the player's earlier words. (4) Surrender.
+  Harvest the player's own words from Ch6/13/15/18/20 and name all five shadows together — **plus the Ch19
+  love-slots** (`myPatternInLove`, `chanceILeft`): among the veiled figures stands the greenhouse door and
+  Wren's silhouette, and the ceremony speaks the player's own words back — *"you've had many chances to
+  love — [chanceILeft]."* *(Docs: Self-Sabotage and Integrity; Present Context; Re-Invention; Powerful Stands.)*
+- **Scene mini-arc:** (1) The Citadel where all five shadows converge. (2) The descent/purge (fictional) —
+  among the visions, every doorway not walked through; the greenhouse door among them. (3) The **Shadow
+  Naming Ceremony** — each shadow named with the player's earlier words; the love-chances spoken back. (4)
+  Surrender.
 - **Exercise — Shadow Naming Ceremony** → reads `getAllShadows()`; player names each. Outputs feed **Ch23**.
 - **Framework:** *Lesson* — the decisive test is where the old identity has no answer. *Principle* — some
   breakthroughs only come under total pressure. *Trap* — retreating to technique when the issue is being.
@@ -455,7 +480,9 @@
 - **Bigger lesson(s):** Wealth was never the money — it's freedom, time, relationships, health, doing what you
   love. The return is to **re-invent and serve**. *(Docs: Re-Invention — Why/How/When.)*
 - **Scene mini-arc:** (1) The city, now legible. (2) The Father's voice echoes (the warning, now understood).
-  (3) The Phoenix seal over the whole map. (4) The next-quest seed.
+  (3) The Phoenix seal over the whole map. (4) The next-quest seed — and **one door stands open: the
+  greenhouse**, warm light inside (the return-to-Fatima echo; reads `chanceILeft` — the treasure was never
+  *instead of* the garden; whether he walks in is left to the player's imagination).
 - **Exercise — Return & Next Quest** → `nextQuest`.
 - **Framework:** *Lesson* — return isn't regression when you've been transformed. *Principle* — wealth is the
   life that makes you free. *Trap* — hearing the ending as permission to skip the journey. *Opportunity* —
@@ -485,3 +512,8 @@ Transmuted, fictionalized as shadow-trials only: childhood molestation / self-ha
 (Ch18), the ayahuasca descent (Ch21). Testimony beats (shippable in Jon's voice): the $4/hour year, the pool
 jump, the crutches/grit, lost-a-million as the literal fall, the eviction-candle surrender, the Mexico-beach
 "to inspire," the Tijuana bathroom moment, the phoenix tattoo, the sales curriculum.
+
+**The Wren love thread (Ch19 → Ch21 → Ch24) is PURE FICTION** — invented 2026-07-07 at Jon's explicit
+direction ("make one up") after he chose NOT to include his real love history. Tag = **F** (fiction). Wren is
+a Fatima-analog who carries the AYAU ceremony's lesson ("you've had many chances to love") with zero real
+biography. Do not mine, ask about, or attach Jon's actual relationships to this thread.

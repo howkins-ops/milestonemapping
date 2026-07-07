@@ -13,9 +13,12 @@ import {
    abandonment re-staged ("you've had many chances to love"), fire → ashes →
    phoenix. The usable gold is the STRUCTURE (descent → purge → name → surrender),
    never literal biography.
+   The Wren payoff: the descent reads Ch19's Pattern-in-Love answers
+   (ch15-the-garden → myPatternInLove, chanceILeft) and the veiled figures speak
+   the player's OWN words back — "you've had many chances to love."
    Exercise: Shadow Naming Ceremony — reads quest.getAllShadows() and prefills the
    player's OWN earlier words; they name each shadow; then surrender.
-   See alchemist/07_CHAPTER_DOSSIER.md (Ch17).
+   See alchemist/07_CHAPTER_DOSSIER.md (Ch21).
    ============================================================================= */
 
 const SCENE_BG = `radial-gradient(900px 800px at 50% 6%, ${hexA(C.phoenix, 0.24)}, ${C.night} 55%, ${C.black})`;
@@ -31,27 +34,37 @@ const ARCH = [
 
 const ringNode = (color, size = 60) => <CrownedSprite size={size} baseColor={color} revealed healed healedColor={color} />;
 
-const INTRO = [
-  {
-    id: "citadel", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 21 · THE CITADEL", stageH: 250,
-    cast: ARCH.map((a) => ({ id: a.type, node: ringNode(a.color, 58), label: a.essence, labelColor: a.color })),
-    lines: [
-      "The road ends at a black citadel, and the doors lock behind you. You're captured — the Ordeal the whole journey was bending toward.",
-      "All five of them are here at once. The Broke King. The Addict Saint. The Silent Prophet. The Raging Victim. The Naive Warrior. Every mask you've worn, standing in a ring.",
-      "The Alchemist's voice cuts through: \"To pass, he stakes everything. He turns into the wind. But first — you face all of it. Together. Now.\"",
-    ],
-    speaker: C.phoenix, cta: "Go down →",
-  },
-  {
-    id: "descent", mood: C.danger, backdrop: "embers",
-    cast: [{ id: "hero", node: <HeroSprite size={120} glow={C.cyan} />, label: "YOU" }],
-    lines: [
-      "The floor opens and you fall — not down, but inward. Heat. The taste of every swallowed thing rising at once. A purge with no body, only truth.",
-      "Veiled figures circle in the dark. One leans close, neither cruel nor kind: \"You've had so many chances to love. To stay. To be seen. And you ran from every one.\"",
-      "There's nowhere left to run to. So — for the first time — you stop running.",
-    ],
-    speaker: C.danger, cta: "Stay in it →",
-  },
+const makeIntro = (garden) => {
+  const pattern = String(garden?.myPatternInLove || "").trim();
+  const door = String(garden?.chanceILeft || "").trim();
+  const descentLines = [
+    "The floor opens and you fall — not down, but inward. Heat. The taste of every swallowed thing rising at once. A purge with no body, only truth.",
+    "Veiled figures circle in the dark. One leans close, neither cruel nor kind: \"You've had so many chances to love. To stay. To be seen. And you ran from every one.\"",
+  ];
+  if (door) {
+    descentLines.push(`Another figure steps out of the dark wearing warm light like a doorway — the greenhouse door, still unlocked — and it speaks your own words back: “${door}.”`);
+  }
+  if (pattern) {
+    descentLines.push(`“And you told us yourself what you do when it starts to matter,” it says. “${pattern}.” The figures don't accuse. They just hold your words up like a mirror.`);
+  }
+  descentLines.push("There's nowhere left to run to. So — for the first time — you stop running.");
+  return [
+    {
+      id: "citadel", mood: C.phoenix, backdrop: "starfield", kicker: "CHAPTER 21 · THE CITADEL", stageH: 250,
+      cast: ARCH.map((a) => ({ id: a.type, node: ringNode(a.color, 58), label: a.essence, labelColor: a.color })),
+      lines: [
+        "The road ends at a black citadel, and the doors lock behind you. You're captured — the Ordeal the whole journey was bending toward.",
+        "All five of them are here at once. The Broke King. The Addict Saint. The Silent Prophet. The Raging Victim. The Naive Warrior. Every mask you've worn, standing in a ring.",
+        "The Alchemist's voice cuts through: \"To pass, he stakes everything. He turns into the wind. But first — you face all of it. Together. Now.\"",
+      ],
+      speaker: C.phoenix, cta: "Go down →",
+    },
+    {
+      id: "descent", mood: C.danger, backdrop: "embers",
+      cast: [{ id: "hero", node: <HeroSprite size={120} glow={C.cyan} />, label: "YOU" }],
+      lines: descentLines,
+      speaker: C.danger, cta: "Stay in it →",
+    },
   {
     id: "phoenix", mood: C.phoenix, backdrop: "embers",
     cast: [{ id: "hero", node: <HeroSprite size={124} glow={C.phoenix} />, label: "YOU" }],
@@ -62,11 +75,16 @@ const INTRO = [
     ],
     speaker: C.phoenix, cta: "Begin the naming →",
   },
-];
+  ];
+};
 
 export default function ChapterCitadel({ onComplete, quest }) {
   const [phase, setPhase] = useState("intro");
   const [idx, setIdx] = useState(0);
+
+  // the Wren payoff — the descent speaks the player's Ch19 love-answers back
+  const gardenSave = quest?.getAllOutputs?.()?.["ch15-the-garden"] || {};
+  const INTRO = makeIntro(gardenSave);
 
   // harvest the player's own earlier words from each shadow chapter
   const shadows = (quest?.getAllShadows?.()) || [];

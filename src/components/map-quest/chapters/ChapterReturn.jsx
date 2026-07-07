@@ -14,14 +14,28 @@ import {
    the purpose.
    Lesson: wealth was never the money — it's freedom, time, relationships,
    health, doing what you love. Return = re-invent and serve.
+   The Wren echo (return-to-Fatima beat): one door stands open — the greenhouse.
+   Reads Ch19's chanceILeft; whether the Runner walks in is left to the player.
+   The treasure was never *instead of* the garden.
    Exercise: Return & Next Quest → nextQuest.
-   See alchemist/07_CHAPTER_DOSSIER.md (Ch20).
+   See alchemist/07_CHAPTER_DOSSIER.md (Ch24).
    ============================================================================= */
 
 const FATHER = C.amber;
+const WREN = C.hotPink;
 const SCENE_BG = `radial-gradient(900px 700px at 50% 12%, ${hexA(C.mint, 0.16)}, transparent), ${C.black}`;
 
-const INTRO = [
+const makeIntro = (garden) => {
+  const door = String(garden?.chanceILeft || "").trim();
+  const doorLines = [
+    "One last detour before the book closes. Your feet know the way before you do — a rooftop hatch in the Undercity, years older than this journey.",
+    "The greenhouse door stands open. Warm light inside. Real soil, still breathing. The garden kept growing either way — gardens do.",
+    door
+      ? `You remember the door you once named — “${door}” — and what you know now that you didn't then: the treasure was never instead of the garden.`
+      : "And you know now what you didn't then: the treasure was never instead of the garden.",
+    "Whether you walk in — that page is yours to write. But you're not the one who leaves before arriving anymore. You proved that the whole way home.",
+  ];
+  return [
   {
     id: "legible", mood: C.cyan, backdrop: "starfield", kicker: "CHAPTER 24 · THE RETURN",
     cast: [{ id: "hero", node: <HeroSprite size={118} glow={C.cyan} />, label: "YOU" }],
@@ -52,15 +66,24 @@ const INTRO = [
       "Wealth was never the money. It's freedom, time, the people you love, your health, doing what's yours to do. You carried the elixir all the way home.",
       "And the road doesn't end at the treasure. It turns back toward the ones still in the grid. You're the Alchemist now. Someone out there is on Chapter One.",
     ],
-    speaker: C.phoenix, cta: "Name your next quest →",
+    speaker: C.phoenix, cta: "One more door →",
   },
-];
+  {
+    id: "greenhouse", mood: WREN, backdrop: "embers",
+    cast: [{ id: "hero", node: <HeroSprite size={112} glow={WREN} />, label: "YOU" }],
+    lines: doorLines,
+    speaker: WREN, cta: "Name your next quest →",
+  },
+  ];
+};
 
 export default function ChapterReturn({ onComplete, quest }) {
   const [phase, setPhase] = useState("intro");
   const [nextQuest, setNextQuest] = useState("");
 
-  const lifePurpose = echo((quest?.getAllOutputs?.()?.["ch19-the-vault"]?.lifePurpose), "to inspire");
+  const allOutputs = quest?.getAllOutputs?.() || {};
+  const lifePurpose = echo(allOutputs["ch19-the-vault"]?.lifePurpose, "to inspire");
+  const INTRO = makeIntro(allOutputs["ch15-the-garden"] || {});
 
   if (phase === "intro") {
     return (
