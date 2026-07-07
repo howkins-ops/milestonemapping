@@ -36,6 +36,12 @@ export const ACHIEVEMENTS = [
     icon: "🧬"
   },
   {
+    id: "day_one_vow",
+    title: "The Vow",
+    description: "Crossed over. Sealed it in flame.",
+    icon: "🔥"
+  },
+  {
     id: "science_believer",
     title: "Science Believer",
     description: "You looked behind the curtain. Every feature has receipts.",

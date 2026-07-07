@@ -5,11 +5,16 @@ import MapQuestHero from "../projects/MapQuestHero.jsx";
 import CityHeroCard from "./CityHeroCard.jsx";
 import ZoneHeroCard from "./ZoneHeroCard.jsx";
 import VisionFeatureCard from "../vision/VisionFeatureCard.jsx";
+import FirstHoursCard from "../onboarding/FirstHoursCard.jsx";
 
-export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest }) {
+export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest, onOpenWorkout }) {
   return (
     <div className="command-center-page">
       <MissionHero />
+
+      {/* THE FIRST 24 HOURS — the Crossing's torch checklist. Self-gates:
+          renders null for legacy users, skippers, done lists, or after 7 days. */}
+      <FirstHoursCard onNavigate={onNavigate} onOpenWorkout={onOpenWorkout} />
 
       {/* On Sundays this jumps to the very top of the cards (self-gates via
           isSunday — renders null every other day, so order is unchanged then). */}

@@ -22,10 +22,12 @@ export async function upsertProfile(userId, updates) {
   return { data, error };
 }
 
+// Returns { profile, created } — `created` is the app's "first login ever"
+// signal (a missing profiles row), used by The Crossing to classify new users.
 export async function createProfileIfMissing(userId, email) {
-  if (!supabase || !userId) return;
+  if (!supabase || !userId) return { profile: null, created: false };
   const { data: existing } = await getProfile(userId);
-  if (existing) return existing;
+  if (existing) return { profile: existing, created: false };
   const { data, error } = await supabase
     .from("profiles")
     .insert({ id: userId, email: email ?? "" })
@@ -39,5 +41,10 @@ export async function createProfileIfMissing(userId, email) {
     .from("user_stats")
     .insert({ user_id: userId })
     .then(() => {});
-  return data;
+  if (error && error.code === "23505") {
+    // Row appeared between check and insert — it existed after all.
+    const { data: refetched } = await getProfile(userId);
+    return { profile: refetched, created: false };
+  }
+  return { profile: data || null, created: !error && Boolean(data) };
 }

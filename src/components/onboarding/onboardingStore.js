@@ -143,7 +143,9 @@ export function sealVow(vow, now = new Date()) {
 
 export function markComplete(via = "crossed", now = new Date()) {
   const state = loadCrossing();
-  const firstEver = !state.completed;
+  // Anchor on completedAt so a replay run can never rewrite history
+  // (a replay sets completed=false but keeps the original completedAt/via).
+  const firstEver = !state.completedAt;
   state.completed = true;
   state.replay = false;
   if (firstEver) {

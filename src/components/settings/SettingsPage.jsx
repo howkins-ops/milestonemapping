@@ -10,6 +10,7 @@ import { useSettings } from "../../hooks/useSettings.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import Button from "../ui/Button.jsx";
 import { SUPPORT_EMAIL, WELLNESS_DISCLAIMER } from "../../lib/constants.js";
+import { beginReplay } from "../onboarding/onboardingStore.js";
 
 function ToggleRow({ label, hint, checked, onChange }) {
   return (
@@ -102,6 +103,24 @@ export default function SettingsPage() {
         </p>
         <Button variant="neon" size="sm" onClick={loadSampleData}>
           Load Example Mission Map
+        </Button>
+      </Card>
+
+      <SectionHeader title="The Crossing" icon="🔥" />
+      <Card variant="glass">
+        <p style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 4 }}>Walk the crossing again</p>
+        <p className="muted" style={{ fontSize: 13.5, marginBottom: 12 }}>
+          Replay the opening story. Your answers and sealed vow are kept — nothing is re-awarded.
+        </p>
+        <Button
+          variant="neon"
+          size="sm"
+          onClick={() => {
+            beginReplay();
+            window.location.reload();
+          }}
+        >
+          Replay The Crossing
         </Button>
       </Card>
 

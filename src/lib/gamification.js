@@ -18,6 +18,8 @@ export const XP_VALUES = {
   shadowIntegration: 40,
   bufcaBurn: 50,
   waveRidden: 20,
+  // The Crossing — one-time onboarding vow seal
+  crossingComplete: 150,
   // MapQuest City
   cityFirstVisit: 50,
   cityDailySweep: 15,

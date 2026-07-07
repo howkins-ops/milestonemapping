@@ -55,6 +55,7 @@ import { setSfxEnabled } from "../lib/sfx.js";
 import { buildSampleData } from "../lib/sampleData.js";
 import { supabase } from "../lib/supabase.js";
 import { getProfile, createProfileIfMissing } from "../lib/profileService.js";
+import { hasCrossing, loadCrossing, importCrossing } from "../components/onboarding/onboardingStore.js";
 import { upsertGratitudeEntry } from "../lib/gratitudeService.js";
 import { upsertPriorities } from "../lib/dailyPriorityService.js";
 import { createProof } from "../lib/dailyProofService.js";
@@ -96,6 +97,13 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
   // Sync status for UI feedback
   const [syncStatus, setSyncStatus] = useState("idle"); // 'idle'|'saving'|'saved'|'offline'|'error'
 
+  // The Crossing gate signals: has the initial cloud pull settled, and did a
+  // user_data row already exist for this account? (Any prior app usage creates
+  // one — profiles can't be the signal, a DB trigger makes that row at signup.)
+  const [cloudPulled, setCloudPulled] = useState(false);
+  const [cloudHadData, setCloudHadData] = useState(null);
+  const [profileWasCreated, setProfileWasCreated] = useState(null);
+
   // ── Supabase cloud sync ─────────────────────────────────────────────────────
   const cloudReady = useRef(false);
   const syncTimer = useRef(null);
@@ -104,6 +112,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
   useEffect(() => {
     if (!supabase || !userId) {
       cloudReady.current = true;
+      setCloudPulled(true);
       return;
     }
     supabase
@@ -113,6 +122,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       .maybeSingle()
       .then(({ data: row, error }) => {
         if (error) console.error("Supabase load error:", error);
+        setCloudHadData(Boolean(row));
         if (row?.data) {
           const d = row.data;
           if (Array.isArray(d.projects)) setProjects(d.projects);
@@ -124,8 +134,12 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
           if (d.settings) setSettings({ ...DEFAULT_SETTINGS, ...d.settings });
           if (Array.isArray(d.achievements)) setAchievements(d.achievements);
           if (typeof d.xp === "number") setXP(d.xp);
+          // Crossing record follows a legacy user to a new device — restore
+          // BEFORE cloudPulled flips so the gate never mis-classifies them.
+          if (d.crossing) importCrossing(d.crossing);
         }
         cloudReady.current = true;
+        setCloudPulled(true);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
@@ -137,9 +151,11 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
     getProfile(userId).then(({ data }) => {
       if (data) {
         setProfile(data);
+        setProfileWasCreated(false);
       } else {
-        createProfileIfMissing(userId, userEmail).then((created) => {
+        createProfileIfMissing(userId, userEmail).then(({ profile: created, created: isNew }) => {
           if (created) setProfile(created);
+          setProfileWasCreated(isNew);
         });
       }
     });
@@ -248,7 +264,8 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
         identity,
         settings,
         achievements,
-        xp
+        xp,
+        ...(hasCrossing() ? { crossing: loadCrossing() } : {})
       };
       const { error } = await supabase
         .from("user_data")
@@ -1100,6 +1117,10 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       profile,
       setProfile,
       syncStatus,
+      cloudReady: cloudPulled,
+      cloudHadData,
+      profileWasCreated,
+      cloudEnabled: Boolean(supabase && userId),
 
       // data
       projects, milestones, dailyLogs, weeklyReviews, visionBoard,
@@ -1149,7 +1170,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       pushToast, dismissToast, celebrate, dismissCelebration,
     }),
     [
-      userId, userEmail, profile, syncStatus,
+      userId, userEmail, profile, syncStatus, cloudPulled, cloudHadData, profileWasCreated,
       projects, milestones, dailyLogs, weeklyReviews, visionBoard,
       identity, settings, achievements, xp, toasts, celebrations,
       createProject, updateProject, deleteProject,

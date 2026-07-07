@@ -12,8 +12,10 @@ import {
 //   1. crossing_v1 exists                → settled (respect it)
 //   2. synchronous localStorage signals  → legacy, settled before first paint
 //   3. neither → HOLD until the initial cloud pull lands, then decide from
-//      the server: pre-existing profiles row OR a non-empty pulled snapshot
-//      = legacy on a brand-new device; truly fresh = the Crossing begins.
+//      the server: a pre-existing user_data row OR a non-empty pulled
+//      snapshot = legacy on a brand-new device; truly fresh = the Crossing.
+//      (NOT the profiles row — a DB trigger creates that at signup, so it
+//      exists before first login. Verified against prod 2026-07-07.)
 //
 // The hold is bounded: if the cloud never answers (offline, no supabase),
 // we fail SAFE — classify legacy, show the app. A real new user can still
@@ -24,7 +26,8 @@ const HOLD_TIMEOUT_MS = 8000;
 
 export default function useOnboarding({
   cloudReady = false,
-  profileWasCreated = null, // true | false | null (unknown / still checking)
+  cloudHadData = null, // true | false | null — did a user_data row already exist?
+  cloudEnabled = true, // false = guest / local-only session (no cloud check coming)
   xp = 0,
   projects = [],
   achievements = [],
@@ -59,16 +62,16 @@ export default function useOnboarding({
       setState({ status: "settled", data: loadCrossing() });
       return;
     }
-    // Wait for the profiles check unless the snapshot already proves history.
+    // Wait for the cloud check unless the snapshot already proves history.
     const snapshotHasHistory =
       Number(xp) > 0 ||
       (Array.isArray(projects) && projects.length > 0) ||
       (Array.isArray(achievements) && achievements.length > 0) ||
       hasLegacySignals();
-    if (profileWasCreated === null && !snapshotHasHistory) return;
-    const existingUser = snapshotHasHistory || profileWasCreated === false;
+    if (cloudHadData === null && cloudEnabled && !snapshotHasHistory) return;
+    const existingUser = snapshotHasHistory || cloudHadData === true;
     setState({ status: "settled", data: runMigrationOnce({ existingUser }) });
-  }, [state.status, cloudReady, profileWasCreated, xp, projects, achievements]);
+  }, [state.status, cloudReady, cloudHadData, cloudEnabled, xp, projects, achievements]);
 
   const refresh = () => setState({ status: "settled", data: loadCrossing() });
 

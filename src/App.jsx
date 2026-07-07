@@ -33,15 +33,33 @@ import TopFivePage from "./components/daily/TopFivePage.jsx";
 import AssetLibraryPage from "./components/assets/AssetLibraryPage.jsx";
 import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
 import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
+import useOnboarding from "./components/onboarding/useOnboarding.js";
 
 const ZonePage = React.lazy(() => import("./components/zone/ZonePage.jsx"));
 const FieldJournalMode = React.lazy(() => import("./components/journal/FieldJournalMode.jsx"));
 const WorkoutMode = React.lazy(() => import("./components/workout/WorkoutMode.jsx"));
+const TheCrossing = React.lazy(() => import("./components/onboarding/TheCrossing.jsx"));
+
+// Dark hold — shown for the instant between boot and the Crossing gate settling.
+const crossingHoldStyle = { position: "fixed", inset: 0, background: "#050007", zIndex: 320 };
 
 const BOOT_SESSION_FLAG = "milestone_mapping_boot_shown";
 
 function AppContent({ signOut }) {
-  const { settings, milestones, projects } = useAppData();
+  const {
+    settings,
+    milestones,
+    projects,
+    xp,
+    achievements,
+    cloudReady,
+    cloudHadData,
+    cloudEnabled,
+  } = useAppData();
+  // The Crossing — global onboarding gate. Classifies synchronously for
+  // devices with history; holds behind the boot for brand-new devices until
+  // the cloud pull proves the account is genuinely fresh.
+  const crossing = useOnboarding({ cloudReady, cloudHadData, cloudEnabled, xp, projects, achievements });
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
@@ -50,6 +68,14 @@ function AppContent({ signOut }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [workoutOpen, setWorkoutOpen] = useState(false);
+
+  // deep links into THE IRON (e.g. Sunday Review → Alpha Stockpile)
+  useEffect(() => {
+    const openIron = () => setWorkoutOpen(true);
+    window.addEventListener("mm:open-iron", openIron);
+    return () => window.removeEventListener("mm:open-iron", openIron);
+  }, []);
+
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
     try {
@@ -157,7 +183,14 @@ function AppContent({ signOut }) {
     }
     switch (currentPage) {
       case "dashboard":
-        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />;
+        return (
+          <DashboardPage
+            onNavigate={navigate}
+            onOpenProject={openProject}
+            onOpenMapQuest={openMapQuest}
+            onOpenWorkout={() => setWorkoutOpen(true)}
+          />
+        );
       case "daily":
         return <DailyPage />;
       case "milestones":
@@ -224,12 +257,35 @@ function AppContent({ signOut }) {
       case "assets":
         return <AssetLibraryPage />;
       default:
-        return <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />;
+        return (
+          <DashboardPage
+            onNavigate={navigate}
+            onOpenProject={openProject}
+            onOpenMapQuest={openMapQuest}
+            onOpenWorkout={() => setWorkoutOpen(true)}
+          />
+        );
     }
   }
 
   if (booting) {
     return <BootSequence onDone={finishBoot} />;
+  }
+
+  if (crossing.holding) {
+    return <div style={crossingHoldStyle} aria-hidden="true" />;
+  }
+
+  if (crossing.active) {
+    return (
+      <>
+        <Suspense fallback={<div style={crossingHoldStyle} aria-hidden="true" />}>
+          <TheCrossing onDone={crossing.refresh} />
+        </Suspense>
+        <ToastStack />
+        <CelebrationOverlay />
+      </>
+    );
   }
 
   return (
