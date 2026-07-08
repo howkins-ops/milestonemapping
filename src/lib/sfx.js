@@ -1,7 +1,8 @@
 // Big game SFX via the Web Audio API — impacts, storms, fire, water, voices.
 // Same philosophy as sounds.js: zero asset files, always fails silently.
 // Everything routes through a shared compressor bus so stacked BAMs stay loud
-// without clipping. Voice lines are baked mp3s under /audio/anger/.
+// without clipping. Voice lines are baked mp3s under /audio/anger/ and /audio/cup/.
+import { CUP_VOICE_LINES } from "../data/cupVoiceLines.js";
 
 let ctx = null;
 let bus = null;
@@ -480,24 +481,36 @@ export function sfxCupDrink(settings) {
   } catch { /* silent */ }
 }
 
-// Spoken affirmation via the device's built-in voice (no asset, no ElevenLabs
-// bake needed). The "ahh, I'm refreshed" line after drinking the cup.
+// Spoken affirmation after drinking the cup — a fun, warm woman's voice baked
+// with ElevenLabs (public/audio/cup/<id>.mp3). Picks a random line; if the mp3
+// is missing (not baked yet) it falls back to the device's built-in voice with
+// the same text so it's never silent.
 export function speakRefreshed(settings) {
   try {
     if (!enabled) return;
     if (settings && settings.soundEnabled === false) return;
+    if (typeof window === "undefined" || typeof Audio === "undefined") return;
+    const line = CUP_VOICE_LINES[Math.floor(Math.random() * CUP_VOICE_LINES.length)];
+    const a = new Audio(`/audio/cup/${line.id}.mp3`);
+    a.volume = 1;
+    a.onerror = () => speakRefreshedSynth(line.text);
+    const p = a.play();
+    if (p && typeof p.catch === "function") p.catch(() => speakRefreshedSynth(line.text));
+  } catch { /* silent */ }
+}
+
+function speakRefreshedSynth(text) {
+  try {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const lines = [
-      "Ahh. I'm refreshed. I feel full.",
-      "Ahh. That hits the spot. I feel restored.",
-      "Ahh. My cup is full, and so am I.",
-      "Ahh. Refreshed, recharged, and ready.",
-    ];
-    const line = lines[Math.floor(Math.random() * lines.length)];
-    const u = new SpeechSynthesisUtterance(line);
-    u.rate = 0.95;
-    u.pitch = 1.05;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.98;
+    u.pitch = 1.15; // nudge brighter/higher for a woman's tone on the fallback
     u.volume = 1;
+    const voices = window.speechSynthesis.getVoices() || [];
+    const pick =
+      voices.find((v) => /samantha|victoria|zira|female|woman/i.test(v.name)) ||
+      voices.find((v) => v.lang && v.lang.toLowerCase().startsWith("en"));
+    if (pick) u.voice = pick;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   } catch { /* silent */ }

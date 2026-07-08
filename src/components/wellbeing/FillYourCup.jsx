@@ -880,7 +880,7 @@ export default function FillYourCup() {
                   disabled={inCup}
                   title={inCup ? "Already in your cup" : "Add to My Cup"}
                   aria-label={inCup ? "Already in your cup" : `Add ${h.label} to My Cup`}>
-                  {inCup ? "✓ In Cup" : "+ Add to Cup"}
+                  {inCup ? "✓" : "+"}
                 </button>
               )}
 
