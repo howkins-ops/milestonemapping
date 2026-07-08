@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
+import FoodImg from "./FoodImg.jsx";
 import { sfxFridgeSlam, sfxMagnetClack, sfxCoin } from "../../../lib/sfx.js";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -60,13 +61,14 @@ export default function FillYourFridge({ alpha, userId, plan, checks, weekKey, o
   const stocked = progress >= 1;
   const stockedFlag = state.flags[`stocked_${weekKey}`];
 
-  /* stock a shelf item (with the pop-in handled by CSS on the shelf chip) */
+  /* each shelf fills with the ACTUAL foods from its grocery line once
+     that line is checked off — real ingredients, not prep instructions
+     (the old round-robin of step labels is what read as "notes in a box") */
   const shelfItems = useMemo(() => {
     const by = Object.fromEntries(SHELVES.map((s) => [s.id, []]));
-    for (const l of plan.lines) if (checks.has(`line:${l.id}`)) by[l.id]?.push(l.label);
-    const stepsDone = plan.prepSteps.filter((s) => checks.has(`step:${s.id}`));
-    // prepped steps stack onto shelves round-robin so the fridge visibly fills
-    stepsDone.forEach((s, i) => by[SHELVES[i % SHELVES.length].id].push(s.label));
+    for (const l of plan.lines) {
+      if (checks.has(`line:${l.id}`) && by[l.id]) by[l.id] = l.picks.slice(0, 6);
+    }
     return by;
   }, [plan, checks]);
 
@@ -158,7 +160,10 @@ export default function FillYourFridge({ alpha, userId, plan, checks, weekKey, o
               <span className="iw-al-shelf-label">{s.label}</span>
               <div className="iw-al-shelf-items">
                 {shelfItems[s.id].map((item, i) => (
-                  <span key={`${item}${i}`} className="iw-al-shelf-item">{item}</span>
+                  <span key={`${item}${i}`} className="iw-al-shelf-item iw-food-tile" style={{ animationDelay: `${i * 55}ms` }}>
+                    <FoodImg name={item} className="iw-food-tile-img" />
+                    <span className="iw-food-tile-name">{item}</span>
+                  </span>
                 ))}
                 {shelfItems[s.id].length === 0 && <span className="iw-al-shelf-empty">empty shelf</span>}
               </div>

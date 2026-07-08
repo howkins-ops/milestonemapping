@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useAppData } from "../../../hooks/useAppData.js";
 import { groceryPlan } from "./engine/mealPrep.js";
 import FillYourFridge from "./FillYourFridge.jsx";
+import FoodImg from "./FoodImg.jsx";
 import { sfxCoin } from "../../../lib/sfx.js";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -71,30 +72,39 @@ export default function StockpilePage({ alpha, addXP, settings, onBack, embedded
       <FillYourFridge alpha={alpha} userId={userId} plan={plan} checks={checks}
         weekKey={weekKey} addXP={addXP} settings={settings} />
 
-      {/* grocery plan */}
+      {/* the grocery run — go buy the list, tick it off */}
       <div className="iw-al-card">
-        <div className="iw-eyebrow iw-al-card-title">the raid list</div>
+        <div className="iw-eyebrow iw-al-card-title">the grocery run · check it off as you buy</div>
         <div className="iw-stack">
           {plan.lines.map((l) => {
             const id = `line:${l.id}`;
             const on = checks.has(id);
             return (
-              <button key={l.id} className={`iw-al-grocery ${on ? "iw-al-grocery-done" : ""}`} onClick={() => toggle(id)}>
-                <span className="iw-al-grocery-check" aria-hidden="true">{on ? "✓" : ""}</span>
-                <span className="iw-al-grocery-text">
-                  <span className="iw-al-grocery-label">{l.label} — {l.qty}</span>
-                  <span className="iw-al-grocery-why">{l.why}</span>
-                  <span className="iw-al-grocery-picks">{l.picks.join(" · ")}</span>
-                </span>
-              </button>
+              <div key={l.id} className={`iw-al-grocery ${on ? "iw-al-grocery-done" : ""}`}>
+                <button className="iw-al-grocery-row" onClick={() => toggle(id)}>
+                  <span className="iw-al-grocery-check" aria-hidden="true">{on ? "✓" : ""}</span>
+                  <span className="iw-al-grocery-text">
+                    <span className="iw-al-grocery-label">{l.label} — {l.qty}</span>
+                    <span className="iw-al-grocery-why">{l.why}</span>
+                  </span>
+                </button>
+                <div className="iw-al-grocery-shelf">
+                  {l.picks.map((it) => (
+                    <span key={it} className="iw-al-fooditem">
+                      <FoodImg name={it} className="iw-al-fooditem-img" />
+                      <span className="iw-al-fooditem-name">{it}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* prep guide */}
+      {/* the sunday prep day — one guided hour */}
       <div className="iw-al-card">
-        <div className="iw-eyebrow iw-al-card-title">the prep — seven moves, one hour</div>
+        <div className="iw-eyebrow iw-al-card-title">the prep day · seven moves, one hour</div>
         <div className="iw-stack">
           {plan.prepSteps.map((s, i) => {
             const id = `step:${s.id}`;

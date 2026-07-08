@@ -188,41 +188,20 @@
   letter-spacing: 0.5px;
 }
 
-/* ---------- ladder ---------- */
-.fc-ladderlbl {
-  font-size: 9.5px;
-  letter-spacing: 1.8px;
-  color: var(--text-soft);
-  font-weight: 800;
-  margin: 16px 0 8px;
-  text-align: center;
-}
-.fc-ladder {
+/* ---------- schedule strip (quarters as real time-of-day windows) ---------- */
+.fc-sched {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   flex-wrap: wrap;
+  margin: 16px 0 6px;
 }
-.fc-qgroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.fc-qname {
-  font-size: 8.5px;
-  color: var(--text-soft);
-  font-weight: 800;
-  letter-spacing: 1px;
-}
-.fc-drives {
-  display: flex;
-  gap: 4px;
-}
-.fc-drive {
-  width: 26px;
-  height: 30px;
-  border-radius: 7px;
+.fc-slot {
+  flex: 1 1 0;
+  min-width: 58px;
+  max-width: 90px;
+  padding: 7px 6px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.05);
   display: grid;
   place-items: center;
@@ -231,18 +210,32 @@
   font-size: 13px;
   color: var(--text-soft);
   border: 1px solid var(--zn-border);
+  white-space: nowrap;
   transition: transform 0.25s var(--ease-out), background 0.25s var(--ease-out);
 }
-.fc-drive--done {
+.fc-slot--done {
   background: linear-gradient(180deg, rgba(255, 209, 102, 0.35), rgba(255, 122, 26, 0.15));
   color: var(--text-main);
   border-color: rgba(255, 209, 102, 0.5);
 }
-.fc-drive--cur {
+.fc-slot--cur {
   border-color: var(--zfire);
   color: var(--zfire);
   box-shadow: 0 0 12px var(--zfire-glow);
   animation: fc-critpulse 1s ease-in-out infinite;
+}
+.fc-schedot {
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text-soft);
+  margin-bottom: 2px;
+}
+.fc-schedot b {
+  color: var(--zfire);
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
 .fc-qprog {
@@ -489,27 +482,41 @@
 .fc-obd__conv b { color: var(--text-main); }
 
 /* hydration cup — hold-to-fill (#9) */
+/* Hydration lives off to the LEFT of the scoreboard, clear of the score, the
+   hoop (top-right) and the action buttons below — with a big easy-to-hold tap
+   target so a finger lands on it every time. */
 .fc-hydro {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 5px;
+  margin: 0;
+  z-index: 5;
 }
 .fc-hydro__btn {
-  border: none;
-  background: none;
-  padding: 0;
+  border: 1px solid rgba(120, 200, 255, 0.28);
+  background: rgba(70, 200, 255, 0.07);
+  border-radius: 18px;
+  padding: 10px 14px;
   cursor: pointer;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   line-height: 0;
+  transition: transform 0.1s var(--ease-out), background 0.2s var(--ease-out);
+}
+.fc-hydro__btn:active,
+.fc-hydro__btn--filling {
+  background: rgba(70, 200, 255, 0.16);
 }
 .fc-hydro__cup {
-  width: 34px;
-  height: 38px;
+  width: 52px;
+  height: 58px;
   display: block;
   transition: transform 0.1s var(--ease-out);
 }
@@ -1563,7 +1570,7 @@
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .fc-clock--low,
-  .fc-drive--cur,
+  .fc-slot--cur,
   .fc-heat--on,
   .fc-buzz,
   .fc-buzz__siren,
@@ -1583,7 +1590,7 @@
   .fc-balls { display: none; }
   .fc-fly { animation-duration: 0.01ms; }
   .fc-score,
-  .fc-drive,
+  .fc-slot,
   .fc-modebtn,
   .fc-read,
   .fc-flavor,

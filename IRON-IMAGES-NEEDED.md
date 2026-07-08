@@ -45,7 +45,7 @@ of the bar/dumbbell/body. Think "training manual shot inside a midnight forge."
 
 ---
 
-## 🚨 P0 — The 55 exercise tiles (`public/assets/iron/exercises/`, spec **EX**)
+## 🚨 P0 — The exercise tiles (`public/assets/iron/exercises/`, spec **EX**) — 100 total (rows 1–55 original, 56–100 new gym lifts)
 
 The app shows these in the how-to panel of the live workout wizard, the mission briefing,
 and the Program exercise library. Brief for every row: *realistic athlete demonstrating the
@@ -109,6 +109,156 @@ tracing the movement path.*
 | 53 | `reverse-curl.png` | Reverse Curl | Overhand-grip curl; arrow: curl arc |
 | 54 | `calf-raise.png` | Calf Raise | On balls of feet at full height, weight held; arrow: heels up |
 | 55 | `seated-calf-raise.png` | Seated Calf Raise | Seated, weight across knees, heels raised; arrow: heels up |
+| 56 | `leg-press.png` | Leg Press | Seated in leg-press machine, feet on platform, knees ~90° at bottom; arrow: press platform away |
+| 57 | `hack-squat.png` | Hack Squat | Shoulders under pads, back flat on rest, deep squat on the sled; arrow: up |
+| 58 | `smith-machine-squat.png` | Smith Machine Squat | Bar on upper back on the fixed vertical rails, thighs parallel; arrow: straight up |
+| 59 | `leg-extension.png` | Leg Extension | Seated, shins behind pad, legs fully extended, quads flexed; arrow: knees straighten |
+| 60 | `walking-lunge.png` | Walking Lunge | Dumbbells at sides, mid-stride lunge, back knee near floor; arrow: forward-up |
+| 61 | `step-up.png` | Step-Up | Dumbbells, one foot planted on a knee-high box driving up; arrow: up onto box |
+| 62 | `barbell-hip-thrust.png` | Barbell Hip Thrust | Upper back on bench, padded bar across hips locked out parallel, shins vertical; arrow: hips up |
+| 63 | `lying-leg-curl.png` | Lying Leg Curl | Facedown on machine, pad above heels, heels curled to glutes; arrow: curl up |
+| 64 | `seated-leg-curl.png` | Seated Leg Curl | Seated, thigh pad locked, calves curling down and under; arrow: curl down |
+| 65 | `cable-pull-through.png` | Cable Pull-Through | Facing away from low pulley, rope between legs, hip-hinge to standing; arrow: hips through |
+| 66 | `farmer-carry.png` | Farmer Carry | Heavy dumbbell in each hand, tall braced walking carry; arrow: forward stride (timed) |
+| 67 | `cable-crunch.png` | Cable Crunch | Kneeling at high pulley, rope at head, spine crunched down; arrow: crunch down |
+| 68 | `ab-wheel-rollout.png` | Ab Wheel Rollout | Kneeling, wheel rolled forward, body extended, hips braced; arrow: roll out and back |
+| 69 | `hanging-leg-raise.png` | Hanging Leg Raise | Hanging from bar, straight legs raised to parallel; arrow: legs up |
+| 70 | `russian-twist.png` | Russian Twist | Seated leaning back, heels light, plate rotating to one side; arrow: twist arc |
+| 71 | `incline-barbell-press.png` | Incline Barbell Press | 30–45° bench, bar over upper chest, elbows ~45°; arrow: press up |
+| 72 | `decline-bench-press.png` | Decline Bench Press | Decline bench, bar over lower chest; arrow: press up |
+| 73 | `machine-chest-press.png` | Machine Chest Press | Seated, handles at mid-chest pressing forward; arrow: press out |
+| 74 | `pec-deck-fly.png` | Pec Deck Fly | Seated, forearms on the wings squeezing together in front of chest; arrow: wings close |
+| 75 | `cable-crossover.png` | Cable Crossover | High pulleys, hands sweeping down and together, slight forward lean; arrow: hands meet |
+| 76 | `chest-dip.png` | Chest Dip | On parallel bars, forward lean, deep chest stretch at bottom; arrow: press up |
+| 77 | `close-grip-bench-press.png` | Close-Grip Bench Press | Flat bench, shoulder-width grip, elbows tucked tight; arrow: press up (triceps) |
+| 78 | `arnold-press.png` | Arnold Press | Seated, palms rotating from facing-in to forward as arms press overhead; arrow: press + rotate up |
+| 79 | `machine-shoulder-press.png` | Machine Shoulder Press | Seated, handles at shoulders pressing overhead; arrow: press up |
+| 80 | `cable-lateral-raise.png` | Cable Lateral Raise | Low pulley, arm raised out to shoulder height across the body; arrow: lift to side |
+| 81 | `barbell-overhead-press.png` | Barbell Overhead Press | Standing strict press, bar from shoulders to overhead lockout; arrow: straight up |
+| 82 | `reverse-pec-deck.png` | Reverse Pec Deck | Seated facing the pad, arms sweeping out and back; arrow: arms open back (rear delts) |
+| 83 | `lat-pulldown.png` | Lat Pulldown | Seated, wide overhand grip pulling the bar to upper chest; arrow: pull down |
+| 84 | `wide-grip-lat-pulldown.png` | Wide-Grip Lat Pulldown | Very wide grip, elbows flaring, bar to chest; arrow: pull down (outer lats) |
+| 85 | `t-bar-row.png` | T-Bar Row | Straddling the bar, torso near-parallel, V-handle pulled to torso; arrow: pull up to chest |
+| 86 | `chest-supported-row.png` | Chest-Supported Row | Chest on an incline bench, dumbbells rowed to the sides; arrow: row up |
+| 87 | `machine-row.png` | Machine Row | Chest on pad, handles pulled to torso, shoulder blades squeezed; arrow: pull back |
+| 88 | `assisted-pull-up.png` | Assisted Pull-Up | Kneeling on the assist pad, overhand grip, chin to bar; arrow: pull up |
+| 89 | `straight-arm-pulldown.png` | Straight-Arm Pulldown | High pulley, straight arms sweeping the bar to the thighs; arrow: arc down |
+| 90 | `cable-pullover.png` | Cable Pullover | High pulley, arms overhead sweeping the rope to the hips; arrow: arc down (lats) |
+| 91 | `triceps-pushdown.png` | Triceps Pushdown | High-pulley bar pushed to straight arms, elbows pinned to sides; arrow: push down |
+| 92 | `rope-pushdown.png` | Rope Pushdown | Rope split apart at the bottom, arms straight; arrow: push + spread down |
+| 93 | `overhead-triceps-extension.png` | Overhead Triceps Extension | One dumbbell overhead lowered behind the head, elbows close; arrow: press up |
+| 94 | `skull-crusher.png` | Skull Crusher | Lying on bench, bar lowered to forehead, elbows fixed and pointing up; arrow: press up |
+| 95 | `preacher-curl.png` | Preacher Curl | Upper arms flat on the preacher pad, barbell curled up; arrow: curl arc |
+| 96 | `cable-curl.png` | Cable Curl | Low-pulley bar curled to shoulders, elbows pinned; arrow: curl arc |
+| 97 | `concentration-curl.png` | Concentration Curl | Seated, elbow braced on inner thigh, dumbbell curled; arrow: curl arc |
+| 98 | `incline-dumbbell-curl.png` | Incline Dumbbell Curl | Reclined on incline bench, arms hanging back for stretch, curling up; arrow: curl arc |
+| 99 | `cable-triceps-kickback.png` | Cable Triceps Kickback | Hinged torso, upper arm pinned, forearm extended straight back; arrow: extend back |
+| 100 | `bench-dip.png` | Bench Dip | Hands on a bench edge behind, legs out front, hips lowered to elbows ~90°; arrow: press up |
+
+---
+
+## 🍗 P0.5 — Fridge food ingredients (`public/assets/iron/foods/`, **67 — the whole library**)
+
+Shown on the animated plate, the grocery-run checklist, and the stocked cold-box shelves.
+Wire-in is **live**: [FoodImg.jsx](src/components/workout/alpha/FoodImg.jsx) resolves
+`/assets/iron/foods/<slug>.png` from each food's name (lowercased, parentheticals stripped,
+non-alphanumerics → `-`, so `Tuna (canned)` → `tuna.png`, `Ground beef (90/10)` → `ground-beef.png`).
+An emoji carries the plate until the real photo lands, then the photo overlays it. **The slug must
+match exactly** or the food shows its emoji forever.
+
+### ⚠️ Brief for EVERY food — real photos, true colors, NO brand palette
+This is the one set that must **NOT** use the steel / ember / neon brand colors. Each is a
+**photorealistic** photo of the actual ingredient in its **true, natural color** (raw red beef,
+orange salmon, green broccoli, yellow banana…). Isolated on a **plain white or transparent**
+background, food filling ~80% of a **square** frame, soft even studio light, a soft natural
+shadow, slight top-down ¾ angle. No color grade, no tint, no props, no text, no plate under it —
+clean grocery/recipe photography, not stylized game art. (The app supplies the plate + lighting;
+the PNG is just the food.)
+
+Every row below is a food in `data/foods.js`. Color/form cue is the "true color" note.
+
+**Proteins (24)**
+| Slug | Food | Real color & form |
+|---|---|---|
+| `ground-beef.png` | Ground beef (90/10) | raw pink-red minced mound |
+| `sirloin-steak.png` | Sirloin steak | raw deep-red steak, light marbling |
+| `flank-steak.png` | Flank steak | raw red lean steak, long grain |
+| `roast-beef.png` | Roast beef | cooked brown-pink sliced roast |
+| `chicken-breast.png` | Chicken breast | raw pale-pink boneless breast |
+| `chicken-thighs.png` | Chicken thighs | raw pink thighs with skin |
+| `ground-turkey.png` | Ground turkey | raw pale-pink mince |
+| `turkey-breast.png` | Turkey breast | raw pale turkey breast |
+| `pork-tenderloin.png` | Pork tenderloin | raw pink-tan loin |
+| `pork-chops.png` | Pork chops | raw pink bone-in chops |
+| `lamb-chops.png` | Lamb chops | raw red lamb chops, white fat |
+| `salmon.png` | Salmon fillet | raw orange-pink fillet, silver skin |
+| `tuna.png` | Tuna (canned) | open tin of pale tuna flakes |
+| `cod.png` | Cod fillet | raw white translucent fillet |
+| `tilapia.png` | Tilapia | raw white-grey fillet |
+| `sardines.png` | Sardines | small silver oily fish |
+| `shrimp.png` | Shrimp | raw grey-pink (or cooked pink) shrimp |
+| `scallops.png` | Scallops | raw ivory scallops |
+| `mussels.png` | Mussels | glossy black-blue shells |
+| `whole-eggs.png` | Whole eggs | brown & white eggs (also on the fats shelf) |
+| `egg-whites.png` | Egg whites | clear-white raw whites in a bowl |
+| `greek-yogurt.png` | Greek yogurt | thick white yogurt in a bowl |
+| `cottage-cheese.png` | Cottage cheese | white lumpy curds in a bowl |
+| `protein-powder.png` | Protein powder | scoop of tan/vanilla powder + shaker |
+
+**Free veggies (14)**
+| Slug | Food | Real color & form |
+|---|---|---|
+| `spinach.png` | Spinach | fresh dark-green leaves |
+| `broccoli.png` | Broccoli | green florets |
+| `cauliflower.png` | Cauliflower | cream-white head |
+| `zucchini.png` | Zucchini | glossy green courgette |
+| `peppers.png` | Bell peppers | red, yellow & green bell peppers |
+| `mushrooms.png` | Mushrooms | brown/white button mushrooms |
+| `asparagus.png` | Asparagus | green spears, purple tips |
+| `green-beans.png` | Green beans | fresh green beans |
+| `cucumber.png` | Cucumber | dark-green cucumber |
+| `celery.png` | Celery | pale-green stalks |
+| `kale.png` | Kale | curly dark-green kale |
+| `cabbage.png` | Cabbage | pale-green round head |
+| `lettuce.png` | Lettuce | light-green leaf head |
+| `tomatoes.png` | Tomatoes | ripe red tomatoes |
+
+**Low-GI carbs (17)**
+| Slug | Food | Real color & form |
+|---|---|---|
+| `oatmeal.png` | Oatmeal (rolled oats) | beige rolled oats |
+| `brown-rice.png` | Brown rice | tan cooked brown rice |
+| `quinoa.png` | Quinoa | pale-gold quinoa |
+| `whole-grain-bread.png` | Whole-grain bread | brown seeded loaf/slice |
+| `whole-wheat-pasta.png` | Whole-wheat pasta | tan-brown dry pasta |
+| `sweet-potato.png` | Sweet potato | orange flesh, tan skin |
+| `white-potato.png` | White potato | brown-skin white potato |
+| `squash.png` | Squash | orange butternut/acorn squash |
+| `corn.png` | Corn | yellow corn cob/kernels |
+| `black-beans.png` | Black beans | shiny black beans |
+| `chickpeas.png` | Chickpeas | beige chickpeas |
+| `lentils.png` | Lentils | green/brown lentils |
+| `peas.png` | Peas | bright-green peas |
+| `apples.png` | Apples | red/green apple |
+| `berries.png` | Mixed berries | red, blue & purple berries |
+| `bananas.png` | Bananas | ripe yellow bananas |
+| `oranges.png` | Oranges | orange citrus |
+
+**Fats (12)**
+| Slug | Food | Real color & form |
+|---|---|---|
+| `olive-oil.png` | Olive oil | golden-green oil in a cruet/bottle |
+| `coconut-oil.png` | Coconut oil | white solid coconut oil in a jar |
+| `butter.png` | Butter | pale-yellow butter block/stick |
+| `avocado-oil.png` | Avocado oil | green-gold oil in a bottle |
+| `almonds.png` | Almonds | brown whole almonds |
+| `walnuts.png` | Walnuts | tan walnut halves |
+| `peanut-butter.png` | Peanut butter | tan-brown creamy peanut butter in a jar |
+| `chia-seeds.png` | Chia seeds | tiny black-grey seeds |
+| `pumpkin-seeds.png` | Pumpkin seeds | green-shelled pepitas |
+| `avocado.png` | Avocado | halved green avocado, brown pit |
+| `olives.png` | Olives | black & green olives |
+| `cheese.png` | Cheese | yellow cheese block/wedge |
 
 ---
 

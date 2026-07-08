@@ -7,12 +7,36 @@ import TopFiveWizard from "./TopFiveWizard.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { uid } from "../../lib/id.js";
 
-// The three lighter checklists that live under the Top 5 — one connected
+// The three lighter checklists that live under the Top 5 - one connected
 // priority system. No XP / celebration, just a simple check / uncheck.
 const DAILY_LISTS = [
-  { key: "todoList", icon: "📋", label: "To-Do", accent: "0, 240, 255", placeholder: "Add a to-do…" },
-  { key: "errands", icon: "🏃", label: "Errands", accent: "0, 255, 191", placeholder: "Add an errand…" },
-  { key: "calls", icon: "📞", label: "Calls to Make", accent: "255, 209, 102", placeholder: "Add a call to make…" }
+  {
+    key: "todoList",
+    label: "To-Do",
+    accent: "0, 240, 255",
+    placeholder: "Add a to-do...",
+    empty: "Capture the loose sparks",
+    iconSrc: "/assets/daily/daily-list-todo-emoji.png",
+    backgroundSrc: "/assets/daily/daily-list-todo-bg.png"
+  },
+  {
+    key: "errands",
+    label: "Errands",
+    accent: "0, 255, 191",
+    placeholder: "Add an errand...",
+    empty: "Map the outside moves",
+    iconSrc: "/assets/daily/daily-list-errands-emoji.png",
+    backgroundSrc: "/assets/daily/daily-list-errands-bg.png"
+  },
+  {
+    key: "calls",
+    label: "Calls to Make",
+    accent: "255, 209, 102",
+    placeholder: "Add a call to make...",
+    empty: "Line up the signal flares",
+    iconSrc: "/assets/daily/daily-list-calls-emoji.png",
+    backgroundSrc: "/assets/daily/daily-list-calls-bg.png"
+  }
 ];
 
 function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
@@ -30,50 +54,31 @@ function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
 
   return (
     <div
-      className="daily-mini-list"
+      className={`daily-mini-list daily-mini-list--${config.key}`}
       style={{
-        marginTop: 12,
-        borderRadius: 12,
-        border: `1px solid rgba(${config.accent}, 0.18)`,
-        background: `rgba(${config.accent}, 0.04)`,
-        overflow: "hidden"
+        "--daily-list-accent": config.accent,
+        "--daily-list-bg": `url("${config.backgroundSrc}")`
       }}
     >
       <button
         type="button"
+        className="daily-mini-list__toggle"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-          width: "100%",
-          padding: "12px 14px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "var(--text-main)"
-        }}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13.5, fontWeight: 700, letterSpacing: "0.02em" }}>
-          <span aria-hidden="true" style={{ fontSize: 16 }}>{config.icon}</span>
-          {config.label}
+        <span className="daily-mini-list__identity">
+          <span className="daily-mini-list__emoji" aria-hidden="true">
+            <img src={config.iconSrc} alt="" loading="lazy" />
+          </span>
+          <span className="daily-mini-list__copy">
+            <strong>{config.label}</strong>
+            <span>{items.length > 0 ? `${doneCount}/${items.length} complete` : config.empty}</span>
+          </span>
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {items.length > 0 && (
-            <span style={{ fontSize: 12, fontWeight: 700, color: `rgba(${config.accent}, 0.85)` }}>
-              {doneCount}/{items.length}
-            </span>
-          )}
+        <span className="daily-mini-list__meta">
           <span
             aria-hidden="true"
-            style={{
-              fontSize: 11,
-              color: `rgba(${config.accent}, 0.6)`,
-              transition: "transform 200ms ease",
-              transform: open ? "rotate(180deg)" : "none"
-            }}
+            className={`daily-mini-list__chevron ${open ? "is-open" : ""}`}
           >
             ▾
           </span>
@@ -81,11 +86,11 @@ function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
       </button>
 
       {open && (
-        <div style={{ padding: "0 14px 14px" }}>
+        <div className="daily-mini-list__body">
           {items.length > 0 && (
-            <ul style={{ listStyle: "none", margin: "0 0 4px", padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+            <ul className="daily-mini-list__items">
               {items.map((item) => (
-                <li key={item.id} className="row" style={{ position: "relative" }}>
+                <li key={item.id} className="daily-mini-list__item row">
                   <button
                     type="button"
                     className={`checkbox-glow ${item.done ? "is-checked" : ""}`}
@@ -107,9 +112,9 @@ function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="daily-mini-list__delete"
                     onClick={() => onDelete(config.key, item.id)}
                     aria-label={`Delete: ${item.text}`}
-                    style={{ color: "var(--brand-red)" }}
                   >
                     ✕
                   </Button>
@@ -118,7 +123,7 @@ function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
             </ul>
           )}
 
-          <div className="row" style={{ marginTop: items.length > 0 ? 10 : 2 }}>
+          <div className="daily-mini-list__add row">
             <input
               className="input"
               placeholder={config.placeholder}
@@ -127,7 +132,7 @@ function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
               onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
               aria-label={`New ${config.label} item`}
             />
-            <Button variant="ghost" size="sm" onClick={submit} disabled={!draft.trim()}>
+            <Button variant="ghost" size="sm" className="daily-mini-list__add-btn" onClick={submit} disabled={!draft.trim()}>
               Add
             </Button>
           </div>

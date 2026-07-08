@@ -11,6 +11,12 @@ import { PHASES } from "../data/phases.js";
 import { FOOD_CATEGORIES } from "../data/foods.js";
 
 const r5 = (n) => Math.max(0, Math.round(n / 5) * 5);
+/* 24h hour → friendly 12-hour clock ("12pm", "4pm", "8pm") — no military time */
+const fmt12 = (h) => {
+  const hr = ((Math.round(h) % 24) + 24) % 24;
+  const h12 = hr % 12 === 0 ? 12 : hr % 12;
+  return `${h12}${hr < 12 ? "am" : "pm"}`;
+};
 const pickFrom = (catId, n = 4) => {
   const cat = FOOD_CATEGORIES.find((c) => c.id === catId);
   return cat ? cat.groups.flatMap((g) => g.items).slice(0, n) : [];
@@ -19,9 +25,8 @@ const pickFrom = (catId, n = 4) => {
 /* window times from the phase's fasting split (16:8 → 12:00–20:00) */
 function eatWindow(phase) {
   const eatHours = phase?.fasting?.eatHours ?? 8;
-  const start = 20 - eatHours; // anchor the close at 20:00, book-style
-  const fmt = (h) => `${h}:00`;
-  return { startH: start, endH: 20, start: fmt(start), end: fmt(20), fastHours: phase?.fasting?.fastHours ?? 16 };
+  const start = 20 - eatHours; // anchor the close at 8pm, book-style
+  return { startH: start, endH: 20, start: fmt12(start), end: fmt12(20), fastHours: phase?.fasting?.fastHours ?? 16 };
 }
 
 export function mealTimeline({ state, slot }) {
@@ -102,11 +107,11 @@ export function mealTimeline({ state, slot }) {
   }
 
   slots.push(
-    meal("meal2", `${win.startH + Math.round((win.endH - win.startH) / 2)}:00`, "Meal 2 — hold the line",
+    meal("meal2", fmt12(win.startH + Math.round((win.endH - win.startH) / 2)), "Meal 2 — hold the line",
       "Same shape as Meal 1: protein + greens. The green wall is unlimited — eat it loud.",
       mealP, 0, mealF,
       { protein: pickFrom("protein", 4), "free-veg": pickFrom("free-veg", 4), fat: pickFrom("fat", 3) }),
-    meal("final", `${win.endH - 1}:00`, "The final meal",
+    meal("final", fmt12(win.endH - 1), "The final meal",
       finalC > 0
         ? "Carbs land here on purpose — late carbs feed recovery and sleep, not the gut."
         : "Close the ledger: protein, greens, and the last of the fats.",

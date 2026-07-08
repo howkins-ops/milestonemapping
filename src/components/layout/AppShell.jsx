@@ -1,53 +1,20 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import BottomNav from "./BottomNav.jsx";
 import MoreSheet from "./MoreSheet.jsx";
 import AnimatedBackground from "./AnimatedBackground.jsx";
 import SyncStatus from "../ui/SyncStatus.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
-import NavIcon from "../ui/NavIcon.jsx";
 import "../../styles/wave.css";
 
-const GROWTH_MENU = [
-  { id: "zone", label: "The Zone", sub: "Accountability with your people" },
-  { id: "identity", label: "Identity", sub: "Name the new version" },
-  { id: "vision", label: "Vision Board", sub: "See where you're going" },
-  { id: "essence", label: "Shadow Work", sub: "Face what's holding you back" },
-  { id: "anger", label: "Anger Gym", sub: "Turn pressure into power" },
-  { id: "training", label: "5 Shifts", sub: "Cinematic transformation" },
-  { id: "wellbeing", label: "Fill Your Cup", sub: "Energy & recovery" },
-  { id: "blaze", label: "B.L.A.Z.E.", sub: "Advanced training lab" },
-];
-
 const TOPBAR_ICONS = {
-  sos: "/assets/topbar/topbar-sos.png",
   rewards: "/assets/topbar/topbar-rewards.png",
   paths: "/assets/topbar/topbar-paths.png",
-  more: "/assets/topbar/topbar-more.png",
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, onOpenJournal, onOpenWorkout, onOpenRoster, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenRoster, children }) {
   const { profile, syncStatus } = useAppData();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  // Close on outside click
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpen]);
-
-  const handleMenuNav = (id) => {
-    onNavigate(id);
-    setMenuOpen(false);
-  };
 
   return (
     <>
@@ -58,70 +25,19 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
             <header className="app-topbar">
               <div className="app-topbar__brand">
 
-                {/* Diamond — dropdown trigger */}
-                <div className="app-topbar__diamond-wrap" ref={menuRef}>
-                  <button
-                    type="button"
-                    className={`app-topbar__diamond ${menuOpen ? "is-open" : ""}`}
-                    onClick={() => setMenuOpen((v) => !v)}
-                    aria-label="Growth paths menu"
-                    aria-expanded={menuOpen}
-                    aria-haspopup="menu"
-                  >
-                    <span className="app-topbar__icon-box" aria-hidden="true">
-                      <img className="app-topbar__icon-art" src={TOPBAR_ICONS.paths} alt="" />
-                    </span>
-                    <span className="app-topbar__btn-label">
-                      Paths
-                      <span className={`app-topbar__chevron ${menuOpen ? "is-open" : ""}`} aria-hidden="true" />
-                    </span>
-                  </button>
-
-                  {menuOpen && (
-                    <div className="topbar-dropdown" role="menu" aria-label="Growth paths">
-                      <div className="topbar-dropdown__header">GROWTH PATHS</div>
-                      {GROWTH_MENU.map((item) => {
-                        const isActive = currentPage === item.id;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            role="menuitem"
-                            className={`topbar-dropdown__item ${isActive ? "is-active" : ""}`}
-                            onClick={() => handleMenuNav(item.id)}
-                          >
-                            <span className="topbar-dropdown__icon" aria-hidden="true">
-                              <NavIcon name={item.id} />
-                            </span>
-                            <span className="topbar-dropdown__text">
-                              <span className="topbar-dropdown__label">{item.label}</span>
-                              <span className="topbar-dropdown__sub">{item.sub}</span>
-                            </span>
-                            {isActive && <span className="topbar-dropdown__dot" aria-hidden="true" />}
-                          </button>
-                        );
-                      })}
-                      {onSignOut && (
-                        <>
-                          <div className="topbar-dropdown__divider" />
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="topbar-dropdown__item topbar-dropdown__item--signout"
-                            onClick={() => { setMenuOpen(false); onSignOut(); }}
-                          >
-                            <span className="topbar-dropdown__text">
-                              <span className="topbar-dropdown__label">Sign Out</span>
-                              <span className="topbar-dropdown__sub">
-                                {profile?.display_name || profile?.full_name || "Your account"}
-                              </span>
-                            </span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Diamond — opens the More sheet (all paths + tools live there) */}
+                <button
+                  type="button"
+                  className="app-topbar__diamond"
+                  onClick={() => setMoreOpen(true)}
+                  aria-label="Open menu — growth paths & tools"
+                  aria-haspopup="dialog"
+                >
+                  <span className="app-topbar__icon-box" aria-hidden="true">
+                    <img className="app-topbar__icon-art" src={TOPBAR_ICONS.paths} alt="" />
+                  </span>
+                  <span className="app-topbar__btn-label">Menu</span>
+                </button>
               </div>
 
               <div className="app-topbar__right">
@@ -171,19 +87,6 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                     <span className="app-topbar__btn-label">Journal</span>
                   </button>
                 )}
-                {onOpenSOS && (
-                  <button
-                    type="button"
-                    className="app-topbar__profile-btn app-topbar__sos"
-                    onClick={onOpenSOS}
-                    aria-label="SOS — Emotional Reset Hub"
-                  >
-                    <span className="app-topbar__icon-box" aria-hidden="true">
-                      <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.sos} alt="" />
-                    </span>
-                    <span className="app-topbar__btn-label">SOS</span>
-                  </button>
-                )}
                 <button
                   type="button"
                   className={`app-topbar__profile-btn app-topbar__rewards ${currentPage === "rewards" ? "is-active" : ""}`}
@@ -194,18 +97,6 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
                     <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.rewards} alt="" />
                   </span>
                   <span className="app-topbar__btn-label">Rewards</span>
-                </button>
-                <button
-                  type="button"
-                  className="app-topbar__profile-btn"
-                  onClick={() => setMoreOpen(true)}
-                  aria-label="More options"
-                  aria-haspopup="dialog"
-                >
-                  <span className="app-topbar__icon-box" aria-hidden="true">
-                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.more} alt="" />
-                  </span>
-                  <span className="app-topbar__btn-label">More</span>
                 </button>
                 <button
                   type="button"
@@ -232,6 +123,8 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
           currentPage={currentPage}
           onNavigate={(id) => { onNavigate(id); setMoreOpen(false); }}
           onClose={() => setMoreOpen(false)}
+          onSignOut={onSignOut}
+          profile={profile}
         />
       )}
     </>

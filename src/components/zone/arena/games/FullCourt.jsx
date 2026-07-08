@@ -32,9 +32,7 @@ import {
   quarterProgress,
   quarterLabel,
   quarterEffort,
-  currentDrive,
   outcomeBreakdown,
-  LADDER,
   HEAT_ON,
 } from "../../../../lib/fullCourtEngine.js";
 import {
@@ -100,16 +98,35 @@ const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const DEV_FAST =
   typeof window !== "undefined" && /[?&#]fcdev\b/.test(window.location.href);
 
-// Day schedules (handoff #2). Each sets a fixed quarter length; the four
-// quarters are timed from actual tip-off, back-to-back with locker rooms.
-//   Standard    — 4 × 2 hr, the classic game day.
-//   Saturday    — 4 × 1 hr, a short compressed day.
-//   Competition — 4 × 3 hr, the long grind.
+// Day schedules (handoff #2). Each sets a fixed quarter length AND a real
+// tip-off hour, so the scoreboard can show WHEN each quarter runs.
+//   Standard    — weekday: tip 1pm, 4 × 2 hr → 1–3 · 3–5 · 5–7 · 7–9pm.
+//   Saturday    — tip 9am, 4 × 3 hr → 9–12 · 12–3 · 3–6 · 6–9pm.
+//   Competition — same clock as Saturday (the long weekday grind).
+// Overtime for all: 9–9:30pm = OT, 9:30–10pm = Double OT (savage).
 export const SCHEDULES = {
-  standard: { key: "standard", label: "Standard", qSecs: 7200, otSecs: 1800, hint: "4 × 2 hr · the full game day" },
-  saturday: { key: "saturday", label: "Saturday", qSecs: 3600, otSecs: 1200, hint: "4 × 1 hr · short, compressed day" },
-  competition: { key: "competition", label: "Competition", qSecs: 10800, otSecs: 1800, hint: "4 × 3 hr · the long grind" },
+  standard: { key: "standard", label: "Weekday", qSecs: 7200, otSecs: 1800, startHour: 13, hint: "1–3 · 3–5 · 5–7 · 7–9pm · 2-hr quarters" },
+  saturday: { key: "saturday", label: "Saturday", qSecs: 10800, otSecs: 1800, startHour: 9, hint: "9–12 · 12–3 · 3–6 · 6–9pm · 3-hr quarters" },
+  competition: { key: "competition", label: "Competition", qSecs: 10800, otSecs: 1800, startHour: 9, hint: "9–12 · 12–3 · 3–6 · 6–9pm · 3-hr quarters" },
 };
+
+// A quarter's real time-of-day window, e.g. "1–3pm" / "9–12pm". Standard tips
+// at 1pm; Saturday & Competition at 9am. Shown on the scoreboard in place of
+// the old door-target numbers.
+const hour12 = (h) => {
+  const hh = ((Math.round(h) % 24) + 24) % 24;
+  return { disp: hh % 12 === 0 ? 12 : hh % 12, pm: hh >= 12 };
+};
+function quarterWindows(schedule) {
+  const s = SCHEDULES[schedule] || SCHEDULES.standard;
+  const start = s.startHour ?? 13;
+  const qLen = s.qSecs / 3600;
+  return [0, 1, 2, 3].map((i) => {
+    const a = hour12(start + i * qLen);
+    const b = hour12(start + (i + 1) * qLen);
+    return `${a.disp}–${b.disp}${b.pm ? "pm" : "am"}`;
+  });
+}
 const scheduleSecs = (schedule, q) => {
   const s = SCHEDULES[schedule] || SCHEDULES.standard;
   if (DEV_FAST) return q > 4 ? 45 : 90;
@@ -140,16 +157,6 @@ const LIVE_MAX_AGE_MS = 20 * 60 * 60 * 1000; // stale after 20h → fresh day
 // Streamed Pollinations fallbacks if a baked break mp3 is missing.
 const RESET_FALLBACK_VOICE = "shimmer";
 const HYPE_FALLBACK_VOICE = "onyx";
-
-// The 8 drives grouped into 4 quarters (2 each), from the Heat Ladder.
-const LADDER_GROUPS = [
-  [LADDER[0], LADDER[1]],
-  [LADDER[2], LADDER[3]],
-  [LADDER[4], LADDER[5]],
-  [LADDER[6], LADDER[7]],
-];
-// Cumulative doors when each drive completes (a drive is "done" past its mark).
-const DRIVE_CUM = [2, 6, 10, 16, 22, 30, 38, 48];
 
 // Tap buttons per mode — outcome keys match fullCourtEngine's outcome tables.
 // Every tap takes a SHOT — the sub-copy names the shot the ball will hit.
@@ -1250,7 +1257,6 @@ export default function FullCourt({ go }) {
 
   const odds = game ? oddsEngine(game) : null;
   const qp = game ? quarterProgress(game) : null;
-  const drv = game ? currentDrive(game).drive : -1;
   const onFire = !!game && game.heat >= HEAT_ON;
   const lowClock = phase === "playing" && clock <= BUZZER_WINDOW;
   const actions = MODE_ACTIONS[mode] || MODE_ACTIONS.rookie;
@@ -1309,10 +1315,10 @@ export default function FullCourt({ go }) {
         <p className="zn-eyebrow">Full Court · The Law of Probability</p>
         <h2 className="fc-title">Run your day like a 4-quarter game</h2>
         <p className="fc-sub">
-          Four real quarters — two hours each, just like a game day. Score on every door,
-          smash the quarter's door target, and watch the Odds Engine prove the sale is baked
-          into the math. Between quarters you hit the locker room: reset or get hyped, then
-          back on the court.
+          Four real quarters on the real clock — 1–3 · 3–5 · 5–7 · 7–9pm on a weekday, or
+          9–12 · 12–3 · 3–6 · 6–9pm on Saturday. Score on every door, smash the quarter's
+          door target, and watch the Odds Engine prove the sale is baked into the math.
+          Between quarters you hit the locker room: reset or get hyped, then back on the court.
         </p>
       </header>
 
@@ -1416,30 +1422,25 @@ export default function FullCourt({ go }) {
           />
         </div>
 
-        {/* ladder */}
-        <div className="fc-ladderlbl">DOOR TARGETS · 2-4-4-6-6-8-8-10 = 48 doors</div>
-        <div className="fc-ladder">
-          {LADDER_GROUPS.map((group, qi) => (
-            <div className="fc-qgroup" key={qi}>
-              <span className="fc-qname">Q{qi + 1}</span>
-              <div className="fc-drives">
-                {group.map((val, di) => {
-                  const idx = qi * 2 + di;
-                  const doors = game ? game.doors : 0;
-                  const done = doors >= DRIVE_CUM[idx];
-                  const cur = game && !done && drv === idx;
-                  return (
-                    <span
-                      key={di}
-                      className={`fc-drive ${done ? "fc-drive--done" : ""} ${cur ? "fc-drive--cur" : ""}`}
-                    >
-                      {val}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        {/* game schedule — each quarter as its real time-of-day window, the
+            current quarter lit and finished ones banked gold */}
+        <div className="fc-sched">
+          {quarterWindows(schedule).map((range, qi) => {
+            const q = game ? game.quarter : 0;
+            const done = !!game && (game.over || q > qi + 1);
+            const cur = phase !== "idle" && q === qi + 1;
+            return (
+              <span
+                key={qi}
+                className={`fc-slot ${done ? "fc-slot--done" : ""} ${cur ? "fc-slot--cur" : ""}`}
+              >
+                {range}
+              </span>
+            );
+          })}
+        </div>
+        <div className="fc-schedot">
+          🌙 OT 9–9:30pm · 2OT 9:30–10pm <b>savage</b>
         </div>
 
         <div className="fc-qprog">
@@ -1484,9 +1485,9 @@ export default function FullCourt({ go }) {
                   ▶ TIP OFF — start your game day
                 </button>
                 <p className="zn-hint fc-tiphint">
-                  Four 2-hour quarters with a locker-room break between each. Log every door —
-                  NO · PITCH · SALE — and watch the points climb. Pick Rookie/Pro or set your
-                  commission below first if you like.
+                  Four quarters on the real clock with a locker-room break between each. Log
+                  every door — NO · PITCH · SALE — and watch the points climb. Pick your
+                  schedule, Rookie/Pro, or set your commission below first if you like.
                 </p>
               </>
             )}

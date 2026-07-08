@@ -27,7 +27,7 @@
 .zone-root[data-fire="phoenix"] { --zfire: #D11EFF; --zfire-glow: rgba(209,30,255,0.50); --zfire-soft: rgba(209,30,255,0.13); }
 
 /* ---------- header — hero title + living flame ---------- */
-.zn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 2px 18px; }
+.zn-head { display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin: 8px 2px 18px; }
 .zn-head__titlewrap { min-width: 0; animation: zn-head-in 720ms var(--ease-out) both; }
 .zn-head__title {
   position: relative; display: inline-block;
@@ -52,7 +52,7 @@
 
 /* phoenix crest — same sigil as the bottom-nav Zone button, alive in the corner */
 .zn-head__crest {
-  position: relative; flex-shrink: 0; width: 76px; height: 76px;
+  position: relative; flex-shrink: 0; width: 91px; height: 91px;
   display: grid; place-items: center;
   mix-blend-mode: screen; /* melts the art's black backing into the dark bg */
   animation: zn-crest-float 4.6s ease-in-out infinite;

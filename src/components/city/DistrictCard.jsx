@@ -1,4 +1,5 @@
 import React from "react";
+import ChapterArt from "../shared/ChapterArt.jsx";
 import "../../styles/cityDistricts.css";
 
 // ════════════════════════════════════════════════════════════════════════
@@ -43,6 +44,8 @@ export default function DistrictCard({ district, onOpen }) {
           />
         </svg>
         <span className="mqc-d-card__glyph">{d.icon}</span>
+        {d.id && <ChapterArt folder="city" slug={`district-${d.id}`} className="mqc-d-card__badge" alt={d.name}
+          style={{ position: "absolute", top: "50%", left: "50%", width: 30, height: 30, transform: "translate(-50%,-50%)", borderRadius: "50%", objectFit: "cover" }} />}
       </span>
 
       <span className="mqc-d-card__txt">

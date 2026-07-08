@@ -6,6 +6,7 @@ import TraitTree from "./TraitTree.jsx";
 import HormonePanel from "./HormonePanel.jsx";
 import EatingCalculator from "./EatingCalculator.jsx";
 import HL from "./HL.jsx";
+import ChapterArt from "../../shared/ChapterArt.jsx";
 import { PHASES, PHASE_ORDER, MAINTENANCE_CHART } from "./data/phases.js";
 import { MYTH_BOSSES } from "./data/mythBosses.js";
 import { SCROLLS } from "./data/scrolls.js";
@@ -153,7 +154,11 @@ function Chapter({ n, title, sub, status, children, settings }) {
     <div className={`iw-bk-chapter ${open ? "iw-bk-chapter-open" : ""}`}>
       <button className="iw-bk-head" aria-expanded={open}
         onClick={() => { setOpen((o) => !o); sfxChalkPoof(settings); }}>
-        <span className="iw-bk-n">{n}</span>
+        <span className="iw-bk-n" style={{ position: "relative" }}>
+          {n}
+          <ChapterArt folder="iron/book" name={title} alt={title}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", borderRadius: "inherit", objectFit: "cover" }} />
+        </span>
         <span className="iw-bk-titles">
           <span className="iw-bk-title">{title}</span>
           <span className="iw-bk-sub">{sub}</span>

@@ -37,10 +37,36 @@ import RPGWorldPage from "./components/rpg-world/RPGWorldPage.jsx";
 import { AppDataProvider, useAppData } from "./hooks/useAppData.js";
 import useOnboarding from "./components/onboarding/useOnboarding.js";
 
-const ZonePage = React.lazy(() => import("./components/zone/ZonePage.jsx"));
-const FieldJournalMode = React.lazy(() => import("./components/journal/FieldJournalMode.jsx"));
-const WorkoutMode = React.lazy(() => import("./components/workout/WorkoutMode.jsx"));
-const TheCrossing = React.lazy(() => import("./components/onboarding/TheCrossing.jsx"));
+// Lazy import that survives a mid-session deploy. When a new build ships while
+// this tab is still open, the old chunk filename 404s and the dynamic import
+// rejects (ChunkLoadError) — which would otherwise dead-end on the ErrorBoundary
+// with no way out but a manual reload. Instead we force a ONE-TIME hard reload
+// to pull the fresh index.html + chunk map. A short time-guard per chunk stops a
+// genuinely-broken chunk from reload-looping (it rethrows on the retry, so the
+// ErrorBoundary still catches real failures).
+function lazyWithReload(name, factory) {
+  return React.lazy(() =>
+    factory().catch((err) => {
+      const KEY = `mm:chunk-retry:${name}`;
+      try {
+        const last = Number(window.sessionStorage.getItem(KEY) || 0);
+        if (Date.now() - last > 10000) {
+          window.sessionStorage.setItem(KEY, String(Date.now()));
+          window.location.reload();
+          return new Promise(() => {}); // hold render until the reload lands
+        }
+      } catch {
+        /* sessionStorage blocked — fall through and surface the real error */
+      }
+      throw err;
+    })
+  );
+}
+
+const ZonePage = lazyWithReload("zone", () => import("./components/zone/ZonePage.jsx"));
+const FieldJournalMode = lazyWithReload("journal", () => import("./components/journal/FieldJournalMode.jsx"));
+const WorkoutMode = lazyWithReload("workout", () => import("./components/workout/WorkoutMode.jsx"));
+const TheCrossing = lazyWithReload("crossing", () => import("./components/onboarding/TheCrossing.jsx"));
 
 // Dark hold — shown for the instant between boot and the Crossing gate settling.
 const crossingHoldStyle = { position: "fixed", inset: 0, background: "#050007", zIndex: 320 };

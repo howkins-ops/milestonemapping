@@ -8933,6 +8933,189 @@
   box-shadow: inset 0 0 28px rgba(0, 240, 255, 0.06);
 }
 
+.daily-mini-list {
+  position: relative;
+  isolation: isolate;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--daily-list-accent), 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(var(--daily-list-accent), 0.13), rgba(255, 255, 255, 0.03)),
+    rgba(1, 5, 12, 0.76);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 34px rgba(var(--daily-list-accent), 0.06);
+}
+
+.daily-mini-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--daily-list-bg);
+  background-position: center right;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.34;
+  filter: saturate(1.1) contrast(1.08);
+  transition: opacity 180ms ease, transform 240ms ease;
+}
+
+.daily-mini-list::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(1, 4, 10, 0.94), rgba(1, 4, 10, 0.66) 46%, rgba(1, 4, 10, 0.78)),
+    radial-gradient(circle at 16% 0%, rgba(var(--daily-list-accent), 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(1, 4, 10, 0.7));
+  pointer-events: none;
+}
+
+.daily-mini-list:hover::before,
+.daily-mini-list:focus-within::before {
+  opacity: 0.43;
+  transform: scale(1.015);
+}
+
+.daily-mini-list__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.daily-mini-list__identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+}
+
+.daily-mini-list__emoji {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--daily-list-accent), 0.34);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.34);
+  box-shadow:
+    0 0 22px rgba(var(--daily-list-accent), 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.daily-mini-list__emoji img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.daily-mini-list__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.daily-mini-list__copy strong {
+  overflow-wrap: anywhere;
+  color: #F8FBFF;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  line-height: 1.1;
+  text-shadow: 0 0 18px rgba(var(--daily-list-accent), 0.22);
+}
+
+.daily-mini-list__copy span {
+  overflow-wrap: anywhere;
+  color: rgba(242, 240, 244, 0.68);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.daily-mini-list__meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(var(--daily-list-accent), 0.22);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.daily-mini-list__chevron {
+  color: rgba(var(--daily-list-accent), 0.82);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.daily-mini-list__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.daily-mini-list__body {
+  padding: 0 14px 14px;
+}
+
+.daily-mini-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.daily-mini-list__item {
+  position: relative;
+  min-height: 42px;
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.daily-mini-list__delete {
+  color: var(--brand-red);
+}
+
+.daily-mini-list__add {
+  margin-top: 10px;
+}
+
+.daily-mini-list__items + .daily-mini-list__add {
+  margin-top: 11px;
+}
+
+.daily-mini-list__add:first-child {
+  margin-top: 2px;
+}
+
+.daily-mini-list__add-btn {
+  flex: 0 0 auto;
+  min-width: 58px;
+}
+
 @media (max-width: 920px) {
   .daily-hero-title {
     font-size: clamp(28px, 7.5vw, 36px);
@@ -8993,6 +9176,25 @@
 
   .gratitude-card__sub {
     font-size: 13px;
+  }
+
+  .daily-mini-list__toggle {
+    min-height: 66px;
+    padding: 11px 12px;
+  }
+
+  .daily-mini-list__emoji {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .daily-mini-list__copy strong {
+    font-size: 13px;
+  }
+
+  .daily-mini-list__copy span {
+    font-size: 11px;
   }
 }
 

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import HL from "./HL.jsx";
+import FoodImg from "./FoodImg.jsx";
 import { mealTimeline } from "./engine/mealTimeline.js";
 import { daySlot, dayIdxFromDate } from "./engine/scheduler.js";
 import { PHASES } from "./data/phases.js";
@@ -17,6 +18,15 @@ const SHELF_LABELS = {
   carb: "fuel",
   fat: "fats",
 };
+/* emoji carry the plate before Codex art lands (FoodImg overlays when present) */
+const SHELF_GLYPH = {
+  protein: "🍗",
+  "free-veg": "🥦",
+  carb: "🍚",
+  fat: "🥑",
+};
+/* plate wedge order so protein always anchors the dish */
+const PLATE_ORDER = ["protein", "free-veg", "carb", "fat"];
 
 export default function MealTimeline({ alpha }) {
   const { state } = alpha;
@@ -92,12 +102,40 @@ export default function MealTimeline({ alpha }) {
                   {s.macros.fat > 0 && <span className="iw-mt-macro"><b>{s.macros.fat}g</b> fat</span>}
                 </div>
               )}
-              {s.picks && Object.entries(s.picks).filter(([, items]) => items.length).map(([shelf, items]) => (
-                <div key={shelf} className="iw-mt-picks">
-                  <span className="iw-mt-shelf">{SHELF_LABELS[shelf] || shelf}</span>
-                  <span className="iw-mt-items">{items.join(" · ")}</span>
-                </div>
-              ))}
+              {s.picks && (() => {
+                const plated = PLATE_ORDER
+                  .map((shelf) => [shelf, s.picks[shelf]])
+                  .filter(([, items]) => items && items.length);
+                if (!plated.length) return null;
+                return (
+                  <>
+                    <div className="iw-mt-plate" aria-hidden="true">
+                      <div className="iw-mt-dish">
+                        {plated.map(([shelf, items], k) => (
+                          <span key={shelf} className={`iw-mt-portion iw-mt-portion-${shelf}`}
+                            style={{ animationDelay: `${120 + k * 90}ms` }}>
+                            <span className="iw-mt-portion-glyph">{SHELF_GLYPH[shelf]}</span>
+                            <FoodImg name={items[0]} className="iw-mt-portion-img" />
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {plated.map(([shelf, items]) => (
+                      <div key={shelf} className="iw-mt-picks">
+                        <span className="iw-mt-shelf">{SHELF_LABELS[shelf] || shelf}</span>
+                        <span className="iw-mt-items">
+                          {items.map((it) => (
+                            <span key={it} className="iw-mt-fooditem">
+                              <FoodImg name={it} className="iw-mt-food-thumb" />
+                              {it}
+                            </span>
+                          ))}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ))}
