@@ -62,7 +62,15 @@ import {
   sfxSwish,
   sfxBank,
   sfxDunk,
+  playCrowdSample,
+  playArenaStinger,
+  stopCrowd,
 } from "../../../../lib/sfx.js";
+import {
+  crowdAudioPath,
+  pickCheer,
+  pickHype,
+} from "../../../../data/fullCourtCrowd.js";
 import { slamHeavy } from "../../../../lib/haptics.js";
 import { createLineAudio, playLine, stopNarration } from "../../../../lib/voiceOver.js";
 import {
@@ -73,6 +81,7 @@ import {
 } from "../../../../data/fullCourtBreakScript.js";
 import FullCourtStats from "./FullCourtStats.jsx";
 import HydrationCup from "./HydrationCup.jsx";
+import FullCourtSplash from "./FullCourtSplash.jsx";
 import {
   dunkTierCrossed,
   HOT_ZONE_AT,
@@ -231,7 +240,7 @@ function readBreakLenPref(isHalf) {
 }
 
 export default function FullCourt({ go, initialFullscreen = false }) {
-  const { userId, member, fire, squads = [], partner } = useZoneCtx();
+  const { userId, member, fire, squads = [] } = useZoneCtx();
   const { celebrate, pushToast, settings } = useAppData();
   const reveal = useReveal();
   const burst = useArenaBurst();
@@ -249,8 +258,6 @@ export default function FullCourt({ go, initialFullscreen = false }) {
 
   const squad = squads[0] || null;
   const squadName = squad?.name || null;
-  const partnerActive =
-    partner?.link?.status === "active" && partner?.partner ? partner.partner : null;
   const myTeam = squadName ? squadName.toUpperCase() : "SOLO RUN";
   const myTag = member?.username ? `@${member.username}` : "you";
 
@@ -258,8 +265,8 @@ export default function FullCourt({ go, initialFullscreen = false }) {
   const [season, setSeason] = useState(null);
   const [seasonStatus, setSeasonStatus] = useState("loading"); // loading|ready|offline
 
-  // Setup knobs.
-  const [mode, setMode] = useState("rookie");
+  // Setup knobs. (Rookie retired — Pro is the default, Full for the full stat sheet.)
+  const [mode, setMode] = useState("pro");
   const [avgDollar, setAvgDollar] = useState(250);
   const [schedule, setSchedule] = useState("standard"); // Standard | Saturday | Competition
 
@@ -278,7 +285,9 @@ export default function FullCourt({ go, initialFullscreen = false }) {
 
   // Live game state (null until tip-off) + UI phase.
   const [game, setGame] = useState(null);
-  const [phase, setPhase] = useState("idle"); // idle|playing|buzzer|break|over
+  // splash|idle|playing|buzzer|break|over. Launched from the HOOPS button
+  // (fullscreen) → play the basketball splash first; windowed → straight to idle.
+  const [phase, setPhase] = useState(initialFullscreen ? "splash" : "idle");
   const [endsAt, setEndsAt] = useState(0); // quarter deadline (epoch ms)
   const [clock, setClock] = useState(0); // derived seconds remaining
   const [buzz, setBuzz] = useState(null); // { label, ended, isHalf, read, breakLen }
@@ -321,6 +330,14 @@ export default function FullCourt({ go, initialFullscreen = false }) {
   const badMinRef = useRef({});           // bad-quarter countdown marks already fired
   const otTierRef = useRef(null);         // last OT tier the coach called ('ot'|'2ot')
   const ambientRef = useRef(null);        // crowd/ambient bed while on the court
+
+  // Real baked crowd audio (fullCourtCrowd.js) — a landed SALE erupts the crowd
+  // (random cheer), and the GET LOUD button fires a random hype chant to break a
+  // lull. Track the last id so back-to-back picks never repeat.
+  const lastCheerRef = useRef(null);
+  const lastHypeRef = useRef(null);
+  const [hyping, setHyping] = useState(false); // GET LOUD cooldown (one 15s chant at a time)
+  const hypeTimer = useRef(null);
 
   const loadSeason = useCallback(async () => {
     if (!userId) {
@@ -439,6 +456,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     () => () => {
       clearTimeout(calloutTimer.current);
       clearTimeout(dunkTimer.current);
+      clearTimeout(hypeTimer.current);
     },
     []
   );
@@ -496,6 +514,72 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     [speak]
   );
 
+  /* ---------------- real crowd audio (cheers + hype) ---------------- */
+
+  // The crowd ERUPTS — a random real 15s cheer on the shared channel (a landed
+  // door-to-door sale, the final buzzer). Falls back to the synth roar if the
+  // mp3 hasn't been baked yet, so it's never silent. `volume` ducks it under
+  // the announcer on the buzzer/final calls.
+  const crowdCheer = useCallback(
+    (volume = 0.92) => {
+      const t = pickCheer(lastCheerRef.current);
+      if (!t) {
+        try {
+          sfxCrowdRoar(settings);
+        } catch {
+          /* silent */
+        }
+        return;
+      }
+      lastCheerRef.current = t.id;
+      playCrowdSample(crowdAudioPath(t.id), { volume, settings, fallback: sfxCrowdRoar });
+    },
+    [settings]
+  );
+
+  // GET LOUD — the rep taps it in a lull and a random 15s hype chant fills the
+  // arena to get them going again ("DEE-FENSE", drumline, organ CHARGE…). An
+  // air-horn stab + a jumbotron callout punctuate it; a 15s cooldown keeps it to
+  // one chant at a time.
+  const getLoud = useCallback(() => {
+    if (hyping || phase !== "playing" || paused) return;
+    const t = pickHype(lastHypeRef.current);
+    if (t) {
+      lastHypeRef.current = t.id;
+      playCrowdSample(crowdAudioPath(t.id), { volume: 0.95, settings, fallback: sfxCrowdRoar });
+    } else {
+      try {
+        sfxCrowdRoar(settings);
+      } catch {
+        /* silent */
+      }
+    }
+    try {
+      playArenaStinger(crowdAudioPath("stinger-airhorn"), {
+        settings,
+        fallback: () => sfxHorn(2, settings),
+      });
+    } catch {
+      /* silent */
+    }
+    showCallout({
+      title: "CROWD ON THEIR FEET",
+      sub: "RIDE IT — GO GET THE NEXT DOOR",
+      glyph: "📣",
+      tone: "fire",
+    });
+    try {
+      if (navigator.vibrate) navigator.vibrate([30, 30, 60]);
+    } catch {
+      /* silent */
+    }
+    setHyping(true);
+    clearTimeout(hypeTimer.current);
+    hypeTimer.current = setTimeout(() => {
+      if (aliveRef.current) setHyping(false);
+    }, 15000);
+  }, [hyping, phase, paused, settings, showCallout]);
+
   /* ---------------- buzzer / finish ---------------- */
 
   const finalize = useCallback(
@@ -504,7 +588,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       setPhase("over");
       try {
         sfxPhoenix();
-        sfxCrowdRoar();
+        crowdCheer(0.85); // final buzzer → the building comes down
       } catch {
         /* audio never blocks */
       }
@@ -532,7 +616,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         }
       }
     },
-    [celebrate, pushToast, squadName, speak]
+    [celebrate, pushToast, squadName, speak, crowdCheer]
   );
 
   // The quarter buzzer — a full celebration takeover, then the locker room.
@@ -540,7 +624,8 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     (next, effort) => {
       try {
         sfxBuzzer();
-        sfxCrowdRoar();
+        playArenaStinger(crowdAudioPath("stinger-whistle"), { settings, fallback: sfxCrowdRoar });
+        crowdCheer(0.72); // ducked under the announcer's recap
       } catch {
         /* silent */
       }
@@ -578,7 +663,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         /* confetti optional */
       }
     },
-    [finalize, burst, speak]
+    [finalize, burst, speak, crowdCheer, settings]
   );
 
   /* ---------------- clock (timestamp-based — survives throttled tabs) ---------------- */
@@ -703,6 +788,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       } catch {
         /* silent */
       }
+      stopCrowd();
     },
     []
   );
@@ -876,17 +962,20 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     setFlies([]);
     try {
       sfxWhoosh();
+      playArenaStinger(crowdAudioPath("stinger-whistle"), { settings }); // tip-off whistle
     } catch {
       /* silent */
     }
-  }, [season, mode, avgDollar, startQuarterClock]);
+  }, [season, mode, avgDollar, startQuarterClock, settings]);
 
   // Pick up a saved live game where it left off. An expired quarter clock
   // simply buzzes on the next tick; a saved buzzer/break drops back to the
   // celebration screen so the rep re-picks their locker room.
   const resumeGame = useCallback(() => {
     if (!rejoin?.game) return;
-    setMode(rejoin.mode === "pro" || rejoin.mode === "full" ? rejoin.mode : "rookie");
+    // Rookie is retired — sanitize any legacy/corrupted saved mode to the new
+    // default so the idle selector never lands on an un-selectable mode.
+    setMode(rejoin.mode === "full" ? "full" : "pro");
     if (rejoin.schedule && SCHEDULES[rejoin.schedule]) setSchedule(rejoin.schedule);
     if (Number(rejoin.avgDollar) > 0) setAvgDollar(rejoin.avgDollar);
     coachCadenceRef.current = 0;
@@ -1002,7 +1091,10 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       const ev = next.lastEvent;
       if (ev?.targetSmashed) {
         try {
-          sfxHorn(2);
+          playArenaStinger(crowdAudioPath("stinger-airhorn"), {
+            settings,
+            fallback: () => sfxHorn(2, settings),
+          });
         } catch {
           /* silent */
         }
@@ -1020,6 +1112,9 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       if (ev?.isRecord) recordShownRef.current = true;
       setTimeout(() => {
         if (!aliveRef.current) return;
+        // Door-to-door SALE → the whole arena erupts (real 15s crowd cheer),
+        // whether or not this sale also crossed a milestone dunk tier.
+        if (ev?.isSale) crowdCheer();
         if (tier) {
           showDunk(tier);
           return;
@@ -1062,7 +1157,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
 
       setGame(next);
     },
-    [game, phase, paused, clock, schedule, shootBall, bump, showCallout, showDunk, coachSay]
+    [game, phase, paused, clock, schedule, shootBall, bump, showCallout, showDunk, coachSay, crowdCheer]
   );
 
   /* ---------------- locker room (break) ---------------- */
@@ -1101,6 +1196,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     (flavor) => {
       if (!buzz) return;
       stopVoice(); // hush the announcer recap before the locker-room track
+      stopCrowd(); // and cut any buzzer cheer still rolling
       const secs = buzz.breakLen || BREAK_LENS[0];
       const track = pickBreakTrack(flavor, buzz.read, DEV_FAST ? (secs > 15 ? 120 : 60) : secs);
       setBrk({ flavor, secs, endsAt: Date.now() + secs * 1000, track });
@@ -1146,6 +1242,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
   const nextQuarter = useCallback(() => {
     if (!game) return;
     stopBreakAudio();
+    stopCrowd();
     setBuzz(null);
     setBrk(null);
     setPhase("playing");
@@ -1216,6 +1313,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
 
   const newGame = useCallback(() => {
     stopBreakAudio();
+    stopCrowd();
     clearLive();
     setGame(null);
     setPhase("idle");
@@ -1226,6 +1324,8 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     setDunk(null);
     setLogged(null);
     setPaused(false);
+    setHyping(false);
+    clearTimeout(hypeTimer.current);
     setOtTier(null);
     otTierRef.current = null;
     coachCadenceRef.current = 0;
@@ -1270,8 +1370,18 @@ export default function FullCourt({ go, initialFullscreen = false }) {
   const qp = game ? quarterProgress(game) : null;
   const onFire = !!game && game.heat >= HEAT_ON;
   const lowClock = phase === "playing" && clock <= BUZZER_WINDOW;
-  const actions = MODE_ACTIONS[mode] || MODE_ACTIONS.rookie;
+  const actions = MODE_ACTIONS[mode] || MODE_ACTIONS.pro;
   const canPlay = phase === "playing";
+  // The scoreboard + odds only make sense once a game is live — keep them (and
+  // the whole gameplay board) out of the idle title screen and the splash.
+  const inGame =
+    phase === "playing" || phase === "buzzer" || phase === "break" || phase === "over";
+  // The Law of Probability line, kept as a small strip pinned to the very top.
+  const lawLine = odds
+    ? `At your average, the next sale is inside ${odds.nextSaleInDoors} ${
+        odds.nextSaleInDoors === 1 ? "door" : "doors"
+      }.`
+    : "Every no you log makes the yes more certain.";
   const bx = game && phase === "over" ? boxScore(game) : null;
   const { best: seasonBest } = seasonPrior(season);
 
@@ -1318,6 +1428,12 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         count={phase === "playing" && clock > 0 && clock <= 10 ? clock : null}
       />
 
+      {/* HOOPS boot cinematic — the crazy ~15s "here's the game" splash, then
+          it hands off to the idle title screen. Skippable. */}
+      {phase === "splash" && (
+        <FullCourtSplash settings={settings} onDone={() => setPhase("idle")} />
+      )}
+
       {fullscreen ? (
         <button
           type="button"
@@ -1343,18 +1459,46 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         </div>
       )}
 
-      <header className="fc-head arena-reveal">
-        <p className="zn-eyebrow">Full Court · The Law of Probability</p>
-        <h2 className="fc-title">Run your day like a 4-quarter game</h2>
-        <p className="fc-sub">
-          Four real quarters on the real clock — 1–3 · 3–5 · 5–7 · 7–9pm on a weekday, or
-          9–12 · 12–3 · 3–6 · 6–9pm on Saturday. Score on every door, smash the quarter's
-          door target, and watch the Odds Engine prove the sale is baked into the math.
-          Between quarters you hit the locker room: reset or get hyped, then back on the court.
-        </p>
-      </header>
+      {/* the Law of Probability quote — kept, small, pinned to the very top */}
+      <div className="fc-lawtop">
+        <span className="fc-lawtop__tag">🎯 The Law of Probability</span>
+        <span className="fc-lawtop__line">
+          {lawLine} <b>The math owes you.</b>
+        </span>
+      </div>
 
-      {/* ---------------- SCOREBOARD (jumbotron shell) ---------------- */}
+      {/* ---------------- HOOPS title screen (idle only) ---------------- */}
+      {phase === "idle" && (
+        <section className="fc-hero arena-reveal">
+          <div className="fc-hero__court" aria-hidden="true" />
+          <p className="fc-hero__eyebrow">FULL COURT</p>
+          <h1 className="fc-hero__logo">HOOPS</h1>
+          <p className="fc-hero__tag">Every no is a shot. Every yes is a bucket.</p>
+          {rejoin?.game ? (
+            <>
+              <button type="button" className="fc-hero__start" onClick={resumeGame}>
+                ▶ REJOIN — {rejoin.game.quarter > 4 ? "OT" : `Q${rejoin.game.quarter}`}
+                {rejoin.phase === "playing" && rejoin.endsAt
+                  ? ` · ${fmtClock(Math.max(0, Math.ceil((rejoin.endsAt - Date.now()) / 1000)))} left`
+                  : " · at the buzzer"}
+              </button>
+              <p className="fc-hero__note">
+                {rejoin.game.points} points on the board already —{" "}
+                <button type="button" className="fc-linkbtn" onClick={abandonSave}>
+                  abandon that game
+                </button>
+              </p>
+            </>
+          ) : (
+            <button type="button" className="fc-hero__start" onClick={tipOff}>
+              ▶ START THE GAME
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* ---------------- SCOREBOARD (jumbotron shell) — live only ---------------- */}
+      {inGame && (
       <div className="fc-board zn-card zn-card--glow fcj-shell" data-fire={fire?.key || "cold"}>
         <div className="fc-top">
           <div className="fc-team">
@@ -1491,55 +1635,40 @@ export default function FullCourt({ go, initialFullscreen = false }) {
           )}
         </div>
 
-        {/* action row — until tip-off the door buttons are inert, so show a loud
-            TIP OFF CTA right here instead of dead-looking buttons. Live buttons
-            appear the instant the game starts. */}
-        {phase === "idle" ? (
-          <div className="fc-actions fc-actions--tip">
-            {rejoin?.game ? (
-              <>
-                <button type="button" className="zn-btn fc-tipnow" onClick={resumeGame}>
-                  ▶ REJOIN YOUR GAME — {rejoin.game.quarter > 4 ? "OT" : `Q${rejoin.game.quarter}`}
-                  {rejoin.phase === "playing" && rejoin.endsAt
-                    ? ` · ${fmtClock(Math.max(0, Math.ceil((rejoin.endsAt - Date.now()) / 1000)))} left`
-                    : " · at the buzzer"}
-                </button>
-                <p className="zn-hint fc-tiphint">
-                  {rejoin.game.points} points on the board already — the day isn't over.{" "}
-                  <button type="button" className="fc-linkbtn" onClick={abandonSave}>
-                    Abandon that game
-                  </button>
-                </p>
-              </>
-            ) : (
-              <>
-                <button type="button" className="zn-btn fc-tipnow" onClick={tipOff}>
-                  ▶ TIP OFF — start your game day
-                </button>
-                <p className="zn-hint fc-tiphint">
-                  Four quarters on the real clock with a locker-room break between each. Log
-                  every door — NO · PITCH · SALE — and watch the points climb. Pick your
-                  schedule, Rookie/Pro, or set your commission below first if you like.
-                </p>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className={`fc-actions fc-actions--${actions.length}`}>
-            {actions.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                className={`fc-btn ${a.cls}`}
-                disabled={!canPlay || paused}
-                onClick={(e) => doLog(a.key, e)}
-              >
-                <span className="fc-btn__glyph">{a.glyph}</span>
-                {a.label}
-                <small>{a.sub}</small>
-              </button>
-            ))}
-          </div>
+        {/* action row — the live door buttons (the board only renders in-game). */}
+        <div className={`fc-actions fc-actions--${actions.length}`}>
+          {actions.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              className={`fc-btn ${a.cls}`}
+              disabled={!canPlay || paused}
+              onClick={(e) => doLog(a.key, e)}
+            >
+              <span className="fc-btn__glyph">{a.glyph}</span>
+              {a.label}
+              <small>{a.sub}</small>
+            </button>
+          ))}
+        </div>
+
+        {/* GET LOUD — the lull-breaker. Tap it and the arena fires a real 15s
+            hype chant (DEE-FENSE / drumline / organ CHARGE) to get you going. */}
+        {phase === "playing" && (
+          <button
+            type="button"
+            className={`fc-getloud ${hyping ? "fc-getloud--cooling" : ""}`}
+            onClick={getLoud}
+            disabled={paused || hyping}
+            aria-label="Get loud — pump the crowd"
+          >
+            <span className="fc-getloud__glyph" aria-hidden="true">📣</span>
+            <span className="fc-getloud__txt">
+              {hyping ? "CROWD'S UP — RIDE IT" : "GET LOUD"}
+              <small>{hyping ? "go get the next door" : "in a lull? pump the crowd"}</small>
+            </span>
+            <span className="fc-getloud__glyph" aria-hidden="true">🔊</span>
+          </button>
         )}
 
         {/* clock controls — pause / end the quarter on demand (handoff #2) */}
@@ -1564,6 +1693,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
           </p>
         )}
       </div>
+      )}
 
       {/* ---------------- QUARTER-END CELEBRATION (broadcast takeover) ---------------- */}
       {phase === "buzzer" && buzz && game && (
@@ -1676,60 +1806,41 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         </div>
       )}
 
-      {/* ---------------- ODDS ENGINE ---------------- */}
-      <div className="fc-odds">
-        <div className="fc-odd fc-odd--hero">
-          <div className="fc-odd__v">{odds ? odds.yourNumber : "—"}</div>
-          <div className="fc-odd__l">
-            <b>YOUR NUMBER</b>
-            <br />
-            doors to knock for 1 sale
+      {/* ---------------- ODDS ENGINE — live only ---------------- */}
+      {inGame && (
+        <div className="fc-odds">
+          <div className="fc-odd fc-odd--hero">
+            <div className="fc-odd__v">{odds ? odds.yourNumber : "—"}</div>
+            <div className="fc-odd__l">
+              <b>YOUR NUMBER</b>
+              <br />
+              doors to knock for 1 sale
+            </div>
+          </div>
+          <div className="fc-odd">
+            <div className="fc-odd__v">${odds ? odds.valueOfNo : 0}</div>
+            <div className="fc-odd__l">
+              value of every <b>"no"</b>
+              <br />
+              you just got paid
+            </div>
+          </div>
+          <div className="fc-odd">
+            <div className="fc-odd__v">${odds ? odds.onPaceDollars : 0}</div>
+            <div className="fc-odd__l">
+              on pace for
+              <br />
+              today's <b>payout</b>
+            </div>
           </div>
         </div>
-        <div className="fc-odd">
-          <div className="fc-odd__v">${odds ? odds.valueOfNo : 0}</div>
-          <div className="fc-odd__l">
-            value of every <b>"no"</b>
-            <br />
-            you just got paid
-          </div>
-        </div>
-        <div className="fc-odd">
-          <div className="fc-odd__v">${odds ? odds.onPaceDollars : 0}</div>
-          <div className="fc-odd__l">
-            on pace for
-            <br />
-            today's <b>payout</b>
-          </div>
-        </div>
-      </div>
-      <div className="fc-law">
-        🎯 The Law of Probability:{" "}
-        <b>
-          {odds
-            ? `at your average, the next sale is inside ${odds.nextSaleInDoors} ${
-                odds.nextSaleInDoors === 1 ? "door" : "doors"
-              }.`
-            : "every no you log makes the yes more certain."}
-        </b>{" "}
-        Keep knocking — the math owes you.
-      </div>
+      )}
 
       {/* ---------------- CONTROLS / IDLE / OVER ---------------- */}
       {phase === "idle" && (
         <div className="zn-card fc-setup arena-reveal">
           <span className="fc-seglbl">Tracking mode</span>
-          <div className="fc-modeseg" role="tablist" aria-label="Tracking mode">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === "rookie"}
-              className={`fc-modebtn ${mode === "rookie" ? "fc-modebtn--on" : ""}`}
-              onClick={() => setMode("rookie")}
-            >
-              Rookie
-              <small>No · Pitch · Sale</small>
-            </button>
+          <div className="fc-modeseg fc-modeseg--2" role="tablist" aria-label="Tracking mode">
             <button
               type="button"
               role="tab"
@@ -1788,9 +1899,6 @@ export default function FullCourt({ go, initialFullscreen = false }) {
             </div>
           </div>
 
-          <button type="button" className="zn-btn fc-tipoff" onClick={tipOff}>
-            ▶ Tip off — start the game
-          </button>
           {seasonStatus === "offline" && (
             <p className="fc-note">
               You're offline — the game plays fully, but tonight's box score won't hit your
@@ -1972,22 +2080,13 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         </div>
       )}
 
-      {(phase === "playing" || phase === "buzzer" || phase === "break") && (
-        <p className="fc-realnote">
-          Every tap is a real door. When the final buzzer's done, log the box score — that's what
-          feeds your season and pings {partnerActive ? `@${partnerActive.username}` : "your squad"}.
-        </p>
-      )}
-
       {phase === "playing" && (
         <button
           type="button"
           className={`fc-restart ${resetArm ? "fc-restart--arm" : ""}`}
           onClick={startOver}
         >
-          {resetArm
-            ? "⚠ Tap again to confirm — this game is wiped, back to tip-off"
-            : "↻ Start over — scrap this game and set up a fresh one"}
+          {resetArm ? "⚠ Tap again to wipe" : "↻ Start over"}
         </button>
       )}
     </div>

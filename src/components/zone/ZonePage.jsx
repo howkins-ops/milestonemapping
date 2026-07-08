@@ -103,7 +103,9 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
   return (
     <div className="zone-root" data-fire={fire.key}>
       <EmberCanvas tint={fire.tint} />
-      <ArenaIntro />
+      {/* HOOPS launches its own basketball splash (in FullCourt) — skip the
+          Zone reveal on that path so the two cinematics don't collide. */}
+      {!bootHoops && <ArenaIntro />}
       <header className="zn-head">
         <div className="zn-head__titlewrap">
           <h1 className="zn-head__title" data-text="The Zone">The Zone</h1>

@@ -516,6 +516,76 @@ function speakRefreshedSynth(text) {
   } catch { /* silent */ }
 }
 
+// ═══════════ FULL COURT — real baked crowd samples ═══════════
+// The cheers + hype chants are real ElevenLabs sound-effect mp3s under
+// /audio/fullcourt/crowd/. They play through a single shared "big track"
+// channel so a new one always replaces the last (a landed SALE erupts the
+// crowd; the GET LOUD button fires a hype chant). Stingers (air horn, whistle)
+// are transient one-shots on their own element so they never cut the channel.
+// Everything respects the Arena mute + per-game soundEnabled, and falls back to
+// the synth crowd roar if an mp3 is missing — so it is never silent.
+let crowdEl = null;
+
+export function stopCrowd() {
+  try {
+    if (crowdEl) {
+      crowdEl.pause();
+      crowdEl.currentTime = 0;
+    }
+  } catch { /* silent */ }
+  crowdEl = null;
+}
+
+// Internal: play one mp3, returning a { stop } handle. `shared` routes through
+// the crowd channel (replaces whatever's playing); one-shots pass shared:false.
+function playSample(src, { volume = 0.9, settings, fallback, shared = true } = {}) {
+  const fall = () => {
+    try {
+      if (fallback) fallback(settings);
+    } catch { /* silent */ }
+  };
+  try {
+    if (!enabled) return null;
+    if (settings && settings.soundEnabled === false) return null;
+    if (typeof Audio === "undefined") return null;
+    getCtx(); // nudge the autoplay policy awake so the first sample isn't swallowed
+    if (shared) stopCrowd();
+    const a = new Audio(src);
+    a.volume = Math.max(0, Math.min(1, volume));
+    if (shared) crowdEl = a;
+    let fell = false;
+    const guard = () => {
+      if (fell) return;
+      fell = true;
+      fall();
+    };
+    a.onerror = guard;
+    const p = a.play();
+    if (p && typeof p.catch === "function") p.catch(guard);
+    return {
+      stop() {
+        try { a.pause(); } catch { /* silent */ }
+        if (crowdEl === a) crowdEl = null;
+      },
+    };
+  } catch {
+    fall();
+    return null;
+  }
+}
+
+// A 15s crowd eruption / hype chant on the shared channel. Pass the mp3 path
+// (from fullCourtCrowd.crowdAudioPath) and a fallback (usually sfxCrowdRoar).
+export function playCrowdSample(src, opts = {}) {
+  return playSample(src, { volume: 0.92, shared: true, ...opts });
+}
+
+// A short real-game stinger (air horn, ref whistle) — transient, never touches
+// the crowd channel, so it can punctuate a roar without cutting it.
+export function playArenaStinger(src, opts = {}) {
+  return playSample(src, { volume: 0.85, shared: false, ...opts });
+}
+
 // ---------- arena one-shots ----------
 
 // The game buzzer — end-of-quarter / end-of-game horn. Harsh dissonant

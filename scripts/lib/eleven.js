@@ -49,6 +49,31 @@ export const VOICES = {
   andrew: 'SF9uvIlY93SJRMdV5jeP', // "Andrew Griffin — Football Commentator" (middle-aged american, calm) — REAL library id (verified 2026-07-08). ANNOUNCER: quarter recaps, stat lines, halftime roll.
 };
 
+// Generate a SOUND EFFECT (not speech) and return an mp3 Buffer. Uses the
+// text-to-sound endpoint — crowd cheers, air horns, whistles, etc. `seconds`
+// maps to duration_seconds (0.5–22; omit/null lets the model auto-pick);
+// `influence` is prompt_influence (0–1, higher = more literal). Throws on error.
+export async function generateSound({
+  prompt,
+  seconds = null,
+  influence = 0.4,
+  format = 'mp3_44100_128',
+  apiKey,
+}) {
+  const body = { text: prompt, prompt_influence: influence };
+  if (seconds != null) body.duration_seconds = seconds;
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/sound-generation?output_format=${format}`,
+    {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) throw new Error(`ElevenLabs SFX ${res.status}: ${await res.text()}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
 // Generate speech and return an mp3 Buffer. Throws on API error.
 export async function generateSpeech({
   text,
