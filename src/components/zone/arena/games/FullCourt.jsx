@@ -438,7 +438,14 @@ export default function FullCourt({ go }) {
       } catch {
         /* silent */
       }
-      const audio = createLineAudio(text, opts.voice || COACH.voice, opts.clip || null);
+      // Route through the real ElevenLabs proxy: the announcer streams it live
+      // (dynamic box score), the coach uses it as the fallback behind its baked
+      // mp3. Pick the id by which voice is speaking; synth stays the last resort.
+      const elevenVoiceId =
+        opts.elevenId || (opts.voice === ANNOUNCER.voice ? ANNOUNCER.elevenId : COACH.elevenId);
+      const audio = createLineAudio(text, opts.voice || COACH.voice, opts.clip || null, {
+        elevenVoiceId,
+      });
       voiceRef.current = audio;
       // small beat so it lands after the buzzer/sfx, not on top of it
       const t = setTimeout(() => {

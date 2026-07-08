@@ -45,8 +45,8 @@ export const VOICES = {
   // re-run:  node scripts/bake-fullcourt-voice.js --audition   (then without).
   // Until then these fall back to proven premade male voices so the bake works
   // and the streamed runtime voice sounds right.
-  alex:   'nPczCjzI2devNBz1zQrb', // "Alex — Basketball Coach" (mid-30s African-American). COACH: hype-ups + affirmations. FALLBACK=brian; swap in the real id.
-  andrew: 'JBFqnCBsd6RMkjVDRZzb', // "Andrew Griffin — Commentator" (middle-aged). ANNOUNCER: quarter recaps, stat lines, halftime roll. FALLBACK=george; swap in the real id.
+  alex:   'ePEc9tlhrIO7VRkiOlQN', // "Alex — Basketball Coach" (young american male, confident) — REAL library id (verified 2026-07-08). COACH: hype-ups + affirmations.
+  andrew: 'SF9uvIlY93SJRMdV5jeP', // "Andrew Griffin — Football Commentator" (middle-aged american, calm) — REAL library id (verified 2026-07-08). ANNOUNCER: quarter recaps, stat lines, halftime roll.
 };
 
 // Generate speech and return an mp3 Buffer. Throws on API error.

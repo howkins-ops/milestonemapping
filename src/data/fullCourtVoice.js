@@ -26,8 +26,12 @@
 
 // The streamed fallback voices are the openai-audio set (see lib/voiceOver.js).
 // onyx = warm/grounded male → the coach; echo = deep/resonant → the broadcaster.
-export const COACH = { id: "alex", label: "Coach Alex", voice: "onyx" };
-export const ANNOUNCER = { id: "andrew", label: "Andrew Griffin", voice: "echo" };
+// `voice` = the Pollinations streamed fallback; `elevenId` = the REAL ElevenLabs
+// library voice, streamed at runtime through /.netlify/functions/tts (the coach
+// pool is also baked to mp3 — see coachClip; the announcer is dynamic so it only
+// streams). Keep elevenId in sync with scripts/lib/eleven.js (alex / andrew).
+export const COACH = { id: "alex", label: "Coach Alex", voice: "onyx", elevenId: "ePEc9tlhrIO7VRkiOlQN" };
+export const ANNOUNCER = { id: "andrew", label: "Andrew Griffin", voice: "echo", elevenId: "SF9uvIlY93SJRMdV5jeP" };
 
 /** Path to a pre-baked coach clip (streamed voice is the fallback). */
 export const coachClip = (id) => `/audio/fullcourt/voice/${id}.mp3`;

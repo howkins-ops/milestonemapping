@@ -19,17 +19,31 @@ export function buildVoiceUrl(text, voice = "onyx") {
   return `${TTS_BASE}/${encodeURIComponent(text)}?model=openai-audio&voice=${voice}`;
 }
 
+// Real ElevenLabs voice, streamed at runtime through our own serverless proxy
+// (netlify/functions/tts) so the API key never touches the client. Used for
+// DYNAMIC lines that can't be pre-baked (e.g. Full Court's announcer reading the
+// live box score). Returns a same-origin URL — 404s harmlessly in local dev
+// unless `netlify dev` is running, in which case the chain falls through below.
+export function buildElevenUrl(text, voiceId) {
+  return `/.netlify/functions/tts?voice=${encodeURIComponent(voiceId)}&text=${encodeURIComponent(text)}`;
+}
+
 // Preload an <audio> element for a guided line so it's ready the moment its
-// scene begins. If `localSrc` is given (a pre-baked ElevenLabs mp3) it plays
-// first, with the streamed Pollinations voice kept as an automatic fallback.
+// scene begins. Sources are tried in order until one plays; the device speech
+// engine is the final offline fallback:
+//   localSrc (baked mp3) → ElevenLabs proxy (opts.elevenVoiceId) → Pollinations
+// Pass opts.elevenVoiceId to stream a real ElevenLabs voice for dynamic copy.
 // Returns null in non-browser environments.
-export function createLineAudio(text, voice = "onyx", localSrc = null) {
+export function createLineAudio(text, voice = "onyx", localSrc = null, opts = {}) {
   if (typeof Audio === "undefined") return null;
   try {
-    const remote = buildVoiceUrl(text, voice);
-    const a = new Audio(localSrc || remote);
+    const sources = [];
+    if (localSrc) sources.push(localSrc);
+    if (opts.elevenVoiceId) sources.push(buildElevenUrl(text, opts.elevenVoiceId));
+    sources.push(buildVoiceUrl(text, voice)); // Pollinations — always the last remote fallback
+    const a = new Audio(sources[0]);
     a.preload = "auto";
-    if (localSrc) a._fallbackSrc = remote; // local mp3 first; stream if it fails to load
+    a._fallbackSrcs = sources.slice(1); // ordered remaining remotes; synth is the final fallback
     return a;
   } catch {
     return null;
@@ -66,21 +80,25 @@ export function playLine(audio, text, settings) {
     return;
   }
 
-  // Pre-baked local file failed → swap to the streamed AI voice once; if that
-  // can't play either, drop to the device speech engine. Returns true if a
-  // remote fallback was kicked off.
+  // A source failed → advance to the next remote in the ordered chain
+  // (ElevenLabs proxy → Pollinations). When the chain is exhausted, drop to the
+  // device speech engine. Returns true if another remote was kicked off.
   const fallbackRemote = () => {
-    if (!audio._fallbackSrc) return false;
-    const fb = audio._fallbackSrc;
-    audio._fallbackSrc = null;
+    const list = audio._fallbackSrcs;
+    if (!list || !list.length) return false;
+    const next = list.shift();
     try {
-      audio.src = fb;
+      audio.src = next;
       audio.load();
       const p = audio.play();
-      if (p && typeof p.catch === "function") p.catch(() => speakWithSynth(text, settings));
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          if (!fallbackRemote()) speakWithSynth(text, settings);
+        });
+      }
       return true;
     } catch {
-      return false;
+      return fallbackRemote();
     }
   };
 

@@ -1,0 +1,7 @@
+# Minimal config — only declares the serverless functions directory so the
+# existing CLI deploy (`npm run build` → `netlify deploy --prod --dir=dist`)
+# also ships netlify/functions/*. Does NOT set build/publish so it can't disturb
+# the established deploy flow.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
