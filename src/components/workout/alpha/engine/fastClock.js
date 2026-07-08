@@ -40,6 +40,43 @@ function fmtHour(h) {
   return `${hr}${h < 12 || h === 24 ? "am" : "pm"}`;
 }
 
+const clamp01 = (n) => Math.max(0, Math.min(1, n));
+
+/* status across ONE OR MORE eating windows (from mealTimeline.eatWindows).
+   Are we inside a window right now (eating, until it closes) or between
+   windows (fasting, until the next one opens)? Handles the day wrap. */
+export function windowClock(windows, now = new Date()) {
+  const cur = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+  const norm = windows
+    .map((w) => ({ s: ((w.startH % 24) + 24) % 24, e: Math.min(w.endH, 24), label: w.label }))
+    .sort((a, b) => a.s - b.s);
+
+  const active = norm.find((w) => cur >= w.s && cur < w.e);
+  if (active) {
+    const remainH = active.e - cur;
+    const spanH = Math.max(0.01, active.e - active.s);
+    return {
+      phase: "eating", label: active.label,
+      remainingS: Math.round(remainH * 3600),
+      progress: clamp01(1 - remainH / spanH),
+    };
+  }
+
+  const opens = norm.map((w) => w.s);
+  const closes = norm.map((w) => w.e);
+  let nextOpen = opens.find((s) => s > cur);
+  if (nextOpen == null) nextOpen = opens[0] + 24; // wraps to tomorrow's first window
+  const pastCloses = closes.filter((e) => e <= cur);
+  const prevClose = pastCloses.length ? Math.max(...pastCloses) : Math.max(...closes) - 24;
+  const remainH = nextOpen - cur;
+  const spanH = Math.max(0.01, nextOpen - prevClose);
+  return {
+    phase: "fasting", label: "",
+    remainingS: Math.round(remainH * 3600),
+    progress: clamp01(1 - remainH / spanH),
+  };
+}
+
 /* Refuel meter: 100 right after a refuel (cheat day), draining to 0
    over 7 days — the visual case for the next scheduled feast. */
 export function refuelMeter(lastRefuelISO, now = new Date()) {

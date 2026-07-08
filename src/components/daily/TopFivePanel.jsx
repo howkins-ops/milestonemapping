@@ -305,7 +305,9 @@ export default function TopFivePanel({ mode = "execute" }) {
 
         {!isPlan && tasks.length === 0 && (
           <button type="button" className="t5-build-cta" onClick={() => setBuilding(true)}>
-            <span className="t5-build-cta-star">★</span>
+            <span className="t5-build-cta-star" aria-hidden="true">
+              <img src="/assets/daily/daily-build-top-five-emoji.png" alt="" loading="lazy" />
+            </span>
             <span className="t5-build-cta-text">
               <strong>Build My Top 5</strong>
               <span>Pull today's priorities straight from your maps</span>

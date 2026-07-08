@@ -42,6 +42,14 @@ const GLYPHS = {
       <path d="M10.27 21a1.94 1.94 0 0 0 3.46 0" />
     </>
   ),
+  roster: (
+    <>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+    </>
+  ),
   profile: (
     <>
       <circle cx="12" cy="8" r="5" />
@@ -71,31 +79,36 @@ function Glyph({ name }) {
 // dashboard's "open MapQuest". Keeps this dock short and focused.
 // Friends is its own tab (people asked "how do I add a friend?") — one tap
 // to the search + your circle, right next to Squad.
+// Chat now folds Inbox in (Chats + Alerts sub-tabs), freeing a slot for the
+// Roster tab — the games launcher (opens the roster sheet, not a view swap).
 const TABS = [
   { key: "home", label: "Home" },
   { key: "friends", label: "Friends" },
   { key: "squad", label: "Squad" },
   { key: "messages", label: "Chat" },
-  { key: "inbox", label: "Inbox" },
+  { key: "roster", label: "Roster" },
   { key: "profile", label: "You" },
 ];
 
 // Secondary views map to a primary tab for highlight purposes.
 // Feed lives inside Home now (preview strip + "Open the feed"), so it
-// keeps Home lit rather than needing its own slot.
+// keeps Home lit rather than needing its own slot. `inbox` now lives under
+// the merged Chat tab, so its deep-links light Chat.
 const TAB_ALIAS = {
   feed: "home",
   city: "home",
   partner: "home",
   challenges: "home",
   reports: "profile",
+  inbox: "messages",
 };
 
-export default function ZoneNav({ view, go }) {
+export default function ZoneNav({ view, go, onOpenRoster }) {
   const { unreadNotifications, unreadMessages } = useZoneCtx();
   const active = TAB_ALIAS[view] || view;
+  // The merged Chat tab carries both unread streams (messages + notifications).
   const badgeFor = (key) =>
-    key === "inbox" ? unreadNotifications : key === "messages" ? unreadMessages : 0;
+    key === "messages" ? unreadMessages + unreadNotifications : 0;
 
   return (
     <nav className="zn-tabs" aria-label="Zone sections">
@@ -108,7 +121,11 @@ export default function ZoneNav({ view, go }) {
             type="button"
             data-key={t.key}
             className={`zn-tab${isActive ? " zn-tab--active" : ""}${badge > 0 ? " zn-tab--alert" : ""}`}
-            onClick={() => go(t.key === "squad" ? "arena" : t.key)}
+            onClick={() =>
+              t.key === "roster"
+                ? onOpenRoster?.()
+                : go(t.key === "squad" ? "arena" : t.key)
+            }
             aria-current={isActive ? "page" : undefined}
           >
             <span className="zn-tab__icon" aria-hidden="true">

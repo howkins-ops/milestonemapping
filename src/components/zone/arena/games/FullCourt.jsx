@@ -230,11 +230,22 @@ function readBreakLenPref(isHalf) {
   return isHalf ? BREAK_LENS[1] : BREAK_LENS[0]; // halftime defaults long
 }
 
-export default function FullCourt({ go }) {
+export default function FullCourt({ go, initialFullscreen = false }) {
   const { userId, member, fire, squads = [], partner } = useZoneCtx();
   const { celebrate, pushToast, settings } = useAppData();
   const reveal = useReveal();
   const burst = useArenaBurst();
+
+  // Widescreen "broadcast" mode — the whole game takes over the viewport (over
+  // the Zone header + nav) with an X to minimize. Auto-on when launched from the
+  // main-page Hoops button; off when opened windowed from the Arena roster.
+  const [fullscreen, setFullscreen] = useState(!!initialFullscreen);
+  useEffect(() => {
+    if (!fullscreen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [fullscreen]);
 
   const squad = squads[0] || null;
   const squadName = squad?.name || null;
@@ -1278,7 +1289,7 @@ export default function FullCourt({ go }) {
   const brkFrac = phase === "break" && brk?.secs ? brkClock / brk.secs : 0;
 
   return (
-    <div className="fc-wrap" ref={reveal}>
+    <div className={`fc-wrap${fullscreen ? " fc-wrap--full" : ""}`} ref={reveal}>
       {/* balls in flight — fixed layer so the arc runs from button to rim */}
       {balls.length > 0 && (
         <div className="fc-balls" aria-hidden="true">
@@ -1307,9 +1318,30 @@ export default function FullCourt({ go }) {
         count={phase === "playing" && clock > 0 && clock <= 10 ? clock : null}
       />
 
-      <button type="button" className="zn-back fc-back" onClick={() => go?.("arena")}>
-        ← Arena
-      </button>
+      {fullscreen ? (
+        <button
+          type="button"
+          className="fc-fs-close"
+          onClick={() => setFullscreen(false)}
+          aria-label="Minimize — exit fullscreen"
+        >
+          ✕
+        </button>
+      ) : (
+        <div className="fc-topbar">
+          <button type="button" className="zn-back fc-back" onClick={() => go?.("arena")}>
+            ← Arena
+          </button>
+          <button
+            type="button"
+            className="fc-fs-expand"
+            onClick={() => setFullscreen(true)}
+            aria-label="Play fullscreen"
+          >
+            ⤢ Fullscreen
+          </button>
+        </div>
+      )}
 
       <header className="fc-head arena-reveal">
         <p className="zn-eyebrow">Full Court · The Law of Probability</p>

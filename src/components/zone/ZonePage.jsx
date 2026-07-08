@@ -16,11 +16,11 @@ import FriendsPanel from "./friends/FriendsPanel.jsx";
 import SquadPanel from "./squad/SquadPanel.jsx";
 import PartnerPanel from "./partner/PartnerPanel.jsx";
 import ChallengesPanel from "./challenges/ChallengesPanel.jsx";
-import MessagesPanel from "./messages/MessagesPanel.jsx";
-import InboxPanel from "./inbox/InboxPanel.jsx";
+import MessagesHub from "./messages/MessagesHub.jsx";
 import ZoneProfile from "./profile/ZoneProfile.jsx";
 import ReportsPanel from "./reports/ReportsPanel.jsx";
 import ArenaHome from "./arena/ArenaHome.jsx";
+import RosterSheet from "../layout/RosterSheet.jsx";
 import MapQuestCityPage from "../city/MapQuestCityPage.jsx";
 import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
 
@@ -44,11 +44,24 @@ export default function ZonePage({ onNavigate, onOpenMapQuest, initialView, init
 
 function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
   const { loading, error, state, member, fire, refreshState } = useZoneCtx();
-  const [view, setView] = useState(initialView || "home");
-  const [viewParam, setViewParam] = useState(initialParam ?? null);
+  // "hoops" is a launch sentinel from the main-page basketball button: land
+  // straight on Full Court in fullscreen. Everything else lands as-routed.
+  const bootHoops = initialView === "hoops";
+  const [view, setView] = useState(bootHoops ? "arena" : initialView || "home");
+  const [viewParam, setViewParam] = useState(bootHoops ? "full_court" : initialParam ?? null);
+  const [gameFullscreen, setGameFullscreen] = useState(bootHoops);
+  const [rosterOpen, setRosterOpen] = useState(false);
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
 
   const go = useCallback((next, param = null) => {
+    if (next === "hoops") {
+      setGameFullscreen(true);
+      setView("arena");
+      setViewParam("full_court");
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    setGameFullscreen(false);
     setView(next);
     setViewParam(param);
     window.scrollTo({ top: 0 });
@@ -103,7 +116,11 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
         </span>
       </header>
 
-      <ZoneNav view={view === "arena" ? "squad" : view} go={go} />
+      <ZoneNav
+        view={gameFullscreen ? "hoops" : view === "arena" ? "squad" : view}
+        go={go}
+        onOpenRoster={() => setRosterOpen(true)}
+      />
 
       {view === "home" && <ZoneHome go={go} openDeclare={openDeclare} openProof={openProof} />}
       {view === "city" && (
@@ -114,10 +131,10 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
         />
       )}
       {view === "feed" && <ZoneFeed go={go} />}
-      {view === "arena" && <ArenaHome go={go} gameKey={viewParam} />}
+      {view === "arena" && <ArenaHome go={go} gameKey={viewParam} fullscreen={gameFullscreen} />}
       {view === "squad" && <SquadPanel go={go} squadId={viewParam} />}
-      {view === "messages" && <MessagesPanel go={go} conversationId={viewParam} />}
-      {view === "inbox" && <InboxPanel go={go} />}
+      {view === "messages" && <MessagesHub go={go} conversationId={viewParam} initialTab="chats" />}
+      {view === "inbox" && <MessagesHub go={go} initialTab="alerts" />}
       {view === "profile" && <ZoneProfile go={go} viewUserId={viewParam} />}
       {view === "friends" && <FriendsPanel go={go} />}
       {view === "partner" && <PartnerPanel go={go} />}
@@ -126,6 +143,14 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
 
       {overlay === "declare" && <DeclareMission onClose={closeOverlay} onDone={closeOverlay} />}
       {isProofOverlay && <PostProof onClose={closeOverlay} onDone={closeOverlay} challengeId={overlay.param} />}
+
+      {/* Roster — the games launcher, opened from the Zone nav's Roster tab. */}
+      <RosterSheet
+        open={rosterOpen}
+        onClose={() => setRosterOpen(false)}
+        onPickGame={(key) => { setRosterOpen(false); go("arena", key); }}
+        onPickView={(v) => { setRosterOpen(false); go(v, null); }}
+      />
     </div>
   );
 }

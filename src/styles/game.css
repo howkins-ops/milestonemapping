@@ -4129,33 +4129,87 @@
 
 /* "Build my 5" CTA on the empty morning panel */
 .t5-build-cta {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: 13px;
   width: 100%;
   text-align: left;
-  padding: 14px 16px;
+  min-height: 74px;
+  padding: 12px 16px;
   margin-bottom: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,62,165,0.3);
-  background: linear-gradient(135deg, rgba(255,62,165,0.1), rgba(209,30,255,0.07));
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(255,62,165,0.42);
+  background:
+    linear-gradient(135deg, rgba(255,62,165,0.16), rgba(0,240,255,0.06)),
+    rgba(2, 5, 12, 0.72);
   cursor: pointer;
   transition: border-color 0.18s, transform 0.12s, box-shadow 0.18s;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.t5-build-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("/assets/daily/daily-build-top-five-bg.png") center right / cover no-repeat;
+  opacity: 0.44;
+  filter: saturate(1.12) contrast(1.08);
+  transition: opacity 0.18s ease, transform 0.24s ease;
+}
+.t5-build-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(4, 1, 10, 0.92), rgba(4, 1, 10, 0.52) 48%, rgba(4, 1, 10, 0.72)),
+    radial-gradient(circle at 16% 0%, rgba(255,62,165,0.24), transparent 35%),
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(4,1,10,0.72));
+  pointer-events: none;
 }
 .t5-build-cta:hover {
   border-color: rgba(255,62,165,0.6);
   transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(255,62,165,0.22);
+  box-shadow:
+    0 20px 46px rgba(0, 0, 0, 0.34),
+    0 0 22px rgba(255,62,165,0.24);
+}
+.t5-build-cta:hover::before {
+  opacity: 0.54;
+  transform: scale(1.015);
 }
 .t5-build-cta-star {
-  font-size: 22px;
-  color: var(--brand-pink, #ff3ea5);
-  text-shadow: 0 0 12px rgba(255,62,165,0.6);
-  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid rgba(255,62,165,0.38);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.34);
+  box-shadow:
+    0 0 22px rgba(255,62,165,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.t5-build-cta-star img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .t5-build-cta-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.t5-build-cta-text strong { font-size: 15.5px; color: var(--text-main); }
-.t5-build-cta-text span { font-size: 12.5px; color: var(--text-soft, rgba(242,240,244,0.6)); }
+.t5-build-cta-text strong {
+  color: #F8FBFF;
+  font-size: 15.5px;
+  text-shadow: 0 0 18px rgba(255,62,165,0.28);
+}
+.t5-build-cta-text span { font-size: 12.5px; color: rgba(242,240,244,0.72); }
 .t5-build-cta-arrow { font-size: 18px; color: var(--brand-pink, #ff3ea5); flex-shrink: 0; }
 
 /* done-state recap */

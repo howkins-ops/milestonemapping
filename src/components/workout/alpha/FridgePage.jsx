@@ -15,17 +15,17 @@ export default function FridgePage({ alpha, addXP, settings }) {
 
   return (
     <div className="iw-page iw-page-in iw-fr">
-      <div className="iw-eyebrow">the coldbox · fuel is half the program</div>
+      <div className="iw-eyebrow">food is half the program</div>
       <h2 className="iw-display iw-page-title">The Fridge</h2>
       <div className="iw-rec-tabs">
         <button className={`iw-chip-btn ${tab === "plate" ? "iw-chip-on" : ""}`}
-          onClick={() => setTab("plate")}>🍽 today&apos;s plate</button>
+          onClick={() => setTab("plate")}>🍽 today&apos;s meals</button>
         <button className={`iw-chip-btn ${tab === "stockpile" ? "iw-chip-on" : ""}`}
-          onClick={() => setTab("stockpile")}>🧊 the stockpile</button>
+          onClick={() => setTab("stockpile")}>🛒 shop &amp; prep</button>
       </div>
 
       {tab === "plate"
-        ? <MealTimeline alpha={alpha} />
+        ? <MealTimeline alpha={alpha} addXP={addXP} settings={settings} />
         : <StockpilePage alpha={alpha} addXP={addXP} settings={settings} embedded />}
 
       <AlphaDisclaimer />

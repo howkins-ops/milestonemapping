@@ -293,6 +293,47 @@
 .zn-chip--fire { border-color: var(--zfire); color: var(--zfire); background: var(--zfire-soft); }
 .zn-chip__icon { width: 16px; height: 16px; }
 
+/* Chat/Alerts sub-tab toggle inside the merged Chat tab */
+.zn-subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--zn-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+.zn-subtab {
+  position: relative;
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  transition: color 160ms, background 160ms;
+}
+.zn-subtab--active {
+  color: #0b0210;
+  background: linear-gradient(120deg, var(--zfire), #FF7A1A);
+}
+.zn-subtab__dot {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--zfire);
+  box-shadow: 0 0 8px var(--zfire);
+}
+.zn-subtab--active .zn-subtab__dot { background: #0b0210; box-shadow: none; }
+
 /* ---------- buttons ---------- */
 .zn-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;

@@ -301,15 +301,17 @@ function ArenaHub({ go }) {
 }
 
 // ------- router shell -------
-export default function ArenaHome({ go, gameKey }) {
+export default function ArenaHome({ go, gameKey, fullscreen }) {
   const game = getArenaGame(gameKey);
 
   if (game) {
     const GameComponent = game.Component;
     // Every game renders its own zn-back — no wrapper back here or we get two.
+    // `fullscreen` only matters to Full Court (launched from the Hoops button);
+    // the other games ignore the extra prop.
     return (
       <div className="ah-gameview">
-        <GameComponent go={go} />
+        <GameComponent go={go} initialFullscreen={fullscreen} />
       </div>
     );
   }

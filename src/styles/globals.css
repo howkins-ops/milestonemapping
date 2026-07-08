@@ -460,6 +460,31 @@ button {
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
 }
 
+/* ── Hoops button — animated basketball that launches Full Court ── */
+@keyframes tb-hoops-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes tb-hoops-spin {
+  to { transform: rotate(360deg); }
+}
+.app-topbar__game .app-topbar__icon-box svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  animation: tb-hoops-bounce 1.15s ease-in-out infinite;
+}
+.app-topbar__game .tb-ball {
+  transform-origin: 12px 12px;
+  animation: tb-hoops-spin 3.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-topbar__game .app-topbar__icon-box svg,
+  .app-topbar__game .tb-ball { animation: none; }
+}
+[data-reduced-motion="true"] .app-topbar__game .app-topbar__icon-box svg,
+[data-reduced-motion="true"] .app-topbar__game .tb-ball { animation: none; }
+
 /* ── Diamond dropdown ── */
 .topbar-dropdown {
   position: absolute;

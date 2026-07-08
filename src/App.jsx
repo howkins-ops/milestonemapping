@@ -1,7 +1,6 @@
 import React, { useEffect, useState, Suspense } from "react";
 import AuthGate from "./components/auth/AuthGate.jsx";
 import AppShell from "./components/layout/AppShell.jsx";
-import RosterSheet from "./components/layout/RosterSheet.jsx";
 import BootSequence from "./components/layout/BootSequence.jsx";
 import ToastStack from "./components/ui/Toast.jsx";
 import ErrorBoundary from "./components/ui/ErrorBoundary.jsx";
@@ -96,7 +95,6 @@ function AppContent({ signOut }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [workoutOpen, setWorkoutOpen] = useState(false);
-  const [rosterOpen, setRosterOpen] = useState(false);
   // Roster deep-links into the Zone Arena. `zoneInitial` sets ZonePage's landing
   // view/param on mount; `zoneNonce` forces a fresh mount so a launch works even
   // when the user is already sitting on the Zone. Normal navigate() clears it so
@@ -151,7 +149,6 @@ function AppContent({ signOut }) {
     navigate("zone");
     setZoneInitial({ view, param });
     setZoneNonce((n) => n + 1);
-    setRosterOpen(false);
   };
 
   const openProject = (id) => {
@@ -365,7 +362,7 @@ function AppContent({ signOut }) {
         onOpenSOS={() => setSosOpen(true)}
         onOpenJournal={() => setJournalOpen(true)}
         onOpenWorkout={() => setWorkoutOpen(true)}
-        onOpenRoster={() => setRosterOpen(true)}
+        onOpenGame={() => openZoneView("hoops")}
       >
         {/* Keyed by page: navigating away from a crashed page auto-recovers. */}
         <ErrorBoundary key={currentPage} onReset={() => navigate("dashboard")}>
@@ -374,16 +371,6 @@ function AppContent({ signOut }) {
       </AppShell>
       <ToastStack />
       <CelebrationOverlay />
-      {/* Arena Roster — top-nav launcher. Owns the sheet here (not in AppShell)
-          so the game deep-link handlers stay co-located with navigate(). */}
-      <ErrorBoundary onReset={() => setRosterOpen(false)}>
-        <RosterSheet
-          open={rosterOpen}
-          onClose={() => setRosterOpen(false)}
-          onPickGame={(key) => openZoneView("arena", key)}
-          onPickView={(view) => openZoneView(view, null)}
-        />
-      </ErrorBoundary>
       {/* Each overlay gets its own boundary: a crash inside one closes that
           overlay instead of unmounting the whole app shell. */}
       <ErrorBoundary onReset={() => setSosOpen(false)}>

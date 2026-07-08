@@ -12,7 +12,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenRoster, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, children }) {
   const { profile, syncStatus } = useAppData();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -42,23 +42,23 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
-                {onOpenRoster && (
+                {onOpenGame && (
                   <button
                     type="button"
-                    className="app-topbar__profile-btn app-topbar__roster"
-                    onClick={onOpenRoster}
-                    aria-label="Open the Arena roster — launch any game"
-                    aria-haspopup="dialog"
+                    className="app-topbar__profile-btn app-topbar__game"
+                    onClick={onOpenGame}
+                    aria-label="Play Full Court — start your game day"
                   >
                     <span className="app-topbar__icon-box" aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
-                        <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
-                        <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
-                        <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+                        <g className="tb-ball">
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="M3 12h18M12 3v18" />
+                          <path d="M5.2 5.2C8 8 8 16 5.2 18.8M18.8 5.2C16 8 16 16 18.8 18.8" />
+                        </g>
                       </svg>
                     </span>
-                    <span className="app-topbar__btn-label">Roster</span>
+                    <span className="app-topbar__btn-label">Hoops</span>
                   </button>
                 )}
                 {onOpenWorkout && (

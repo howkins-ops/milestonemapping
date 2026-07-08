@@ -12,7 +12,7 @@ export default function EatingCard({ state, slot, dayLabel, onOpenCalculator, on
     return (
       <div className="iw-al-card iw-al-cheatline">
         <div className="iw-al-card-head">
-          <span className="iw-eyebrow">today · {dayLabel} · the eating equation</span>
+          <span className="iw-eyebrow">today · {dayLabel} · your food</span>
           <span className="iw-chip iw-chip-ember">cheat day</span>
         </div>
         <div className="iw-al-offledger">OFF THE LEDGER</div>

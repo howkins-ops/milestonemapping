@@ -129,8 +129,8 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
       <button className={`iw-al-stockcard ${isSunday ? "iw-al-stockcard-sunday" : ""}`} onClick={onOpenStockpile}>
         <span className="iw-al-stock-icon" aria-hidden="true">🧊</span>
         <span className="iw-al-stock-text">
-          <span className="iw-al-stock-name">The Stockpile</span>
-          <span className="iw-al-stock-sub">{isSunday ? "It's Sunday — fill your fridge for the week" : "grocery plan · prep guide · the fridge"}</span>
+          <span className="iw-al-stock-name">Shop &amp; prep</span>
+          <span className="iw-al-stock-sub">{isSunday ? "It's Sunday — fill your fridge for the week" : "grocery list · meal prep · your fridge"}</span>
         </span>
         <span className="iw-plan-go">❯</span>
       </button>

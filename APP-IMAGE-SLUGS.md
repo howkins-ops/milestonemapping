@@ -22,9 +22,33 @@ Titles overlay in-app, so keep the lower third calm and leave headroom.
 
 ---
 
+## 📦 Complete Codex batch (generate all of these)
+
+| Set | Path | Count | Palette |
+|---|---|---|---|
+| Exercise tiles | `iron/exercises/` | 100 | **brand** — steel/chalk/ember (see `IRON-IMAGES-NEEDED.md` Style Bible) |
+| **Food ingredients** | `iron/foods/` | **67** | ⚠️ **NO brand colors — real photos, true natural food color, plain white/transparent bg** (see `IRON-IMAGES-NEEDED.md` P0.5) |
+| Book of Iron chapters | `iron/book/` | 9 | brand — steel/chalk/ember |
+| Alpha journey stages | `iron/journey/` | 11 | brand — steel/chalk/ember |
+| Myth-boss cards | `iron/bosses/` | 11 | brand — steel/chalk/ember |
+| City district badges | `city/` (`district-*`) | 16 | brand — neon cyberpunk |
+| City quarter banners | `city/` (`quarter-*`) | 6 | brand — neon cyberpunk |
+| Alchemist chapter cards | `map-quest/` (`chapter-*-card`) | 22 | brand — neon cyberpunk |
+| Crossing phases + archetypes | `crossing/` | 9 + 4 | dark cinematic |
+| Shadow depths + chambers | `shadow/depths/`, `shadow/chambers/` | 5 + 9 | dark cinematic |
+| 5 Shifts cards | `shifts/` | 5 | brand |
+| Hometown stations | `city/hometown/` | 4 | dark cinematic |
+| Mask portraits + critics | `city/masks/`, `city/masks/critics/` | 10 + 8 | brand — neon |
+| nav-city icon | `nav/` | 1 | brand |
+
+**The only palette exception is the food photos.** Everything else keeps its feature's brand look —
+the food set is deliberately real/photographic so meals read as actual food on the plate.
+
+---
+
 ## 🔁 Cross-referenced (specced elsewhere — generate from those files)
 - **IRON exercises — 100** (`public/assets/iron/exercises/`) → `IRON-IMAGES-NEEDED.md` P0 (rows 1–100).
-- **Fridge foods — ~34** (`public/assets/iron/foods/`) → `IRON-IMAGES-NEEDED.md` P0.5.
+- **Fridge foods — 67** (`public/assets/iron/foods/`) → `IRON-IMAGES-NEEDED.md` P0.5.
 - **Alpha myth-boss portraits — 11** (`public/assets/alpha/bosses/`) → `ALPHA-IMAGES-NEEDED.md`.
 - **City environment (sky/skyline/plaza/guide)** → `city/IMAGES_CITY.md`.
 
