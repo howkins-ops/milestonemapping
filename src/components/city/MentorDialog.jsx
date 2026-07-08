@@ -3,7 +3,7 @@ import { MentorSprite, AlchemistSprite } from "../map-quest/kit.jsx";
 import "../../styles/cityMentors.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Mentor Dialog
+// MILESTONE CITY — Mentor Dialog
 // Full-screen typed-dialogue lesson scene. The mentor teaches one beat at a
 // time; the final panel sends the player into the REAL feature — "the
 // lesson ends where the work begins."

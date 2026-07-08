@@ -25,7 +25,6 @@ const SECTIONS = [
     id: "system",
     title: "System",
     items: [
-      { id: "assets", label: "Asset Library", sub: "Art & world assets", accent: "#D11EFF" },
       { id: "settings", label: "Settings", sub: "Theme, data, account", accent: "#8CE1F5" },
     ],
   },

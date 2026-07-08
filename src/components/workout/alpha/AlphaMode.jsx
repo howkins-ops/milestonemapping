@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppData } from "../../../hooks/useAppData.js";
 import AlphaCall from "./AlphaCall.jsx";
+import AlphaToday from "./AlphaToday.jsx";
 import WorldMap from "./WorldMap.jsx";
 import ZoneGate from "./ZoneGate.jsx";
 import MythBossFight from "./MythBossFight.jsx";
@@ -62,9 +63,10 @@ export default function AlphaMode({ alpha, workoutData, initialView = null, onIm
   const flags = state.flags;
   const inCrossing = alpha.loaded && !flags.crossingDone;
   const apotheosisNow = flags.apotheosisPending && !flags.apotheosisDone && view.name !== "apotheosis";
-  const resolved = view.name === "auto"
-    ? ((flags.zoneEntered || {})[state.phase] ? { name: "zone" } : { name: "map" })
-    : view;
+  // Today opens on the HUB — today's workout + meals + fasting — not the
+  // journey map. The Road (map) is now a deliberate destination (from the Book
+  // or the hub's doorway), never the default clutter.
+  const resolved = view.name === "auto" ? { name: "hub" } : view;
 
   /* full-bleed moments: the global nav steps out of the frame */
   const immersiveNow = Boolean(
@@ -156,8 +158,17 @@ export default function AlphaMode({ alpha, workoutData, initialView = null, onIm
 
   return (
     <div className="iw-al-root">
+      {resolved.name === "hub" && (
+        <AlphaToday alpha={alpha}
+          onStartWorkout={(workoutId) => go({ name: "session", workoutId })}
+          onOpenRoad={() => go({ name: "map" })}
+          onOpenZone={() => go({ name: "zone" })}
+          onOpenCheat={() => go({ name: "cheat" })} />
+      )}
+
       {resolved.name === "map" && (
         <>
+          <button className="iw-back" onClick={() => go({ name: "hub" })}>❮ today</button>
           <div className="iw-eyebrow" style={{ color: phase.accent }}>alpha mode · stage {state.stage} · {phase.name} w{state.week}</div>
           <h2 className="iw-display iw-page-title">The Road</h2>
           <WorldMap alpha={alpha}

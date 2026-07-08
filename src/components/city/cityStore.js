@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — visit + lesson store
+// MILESTONE CITY — visit + lesson store
 // Pure localStorage (pressureForgeStore pattern): guards every read/write,
 // no hooks, no side effects beyond the one key. Everything is idempotent so
 // XP/achievement triggers built on top can never double-fire.

@@ -8,7 +8,7 @@ import { deriveTitles } from "./cityTitles.js";
 import "../../styles/cityCitizen.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Citizen Card
+// MILESTONE CITY — Citizen Card
 // The player's holo identity card: avatar, name, earned titles, rank sigil,
 // XP progress and cross-feature stat chips. Renders safely for a fresh
 // offline user (social = null, progress = null, profile = null).

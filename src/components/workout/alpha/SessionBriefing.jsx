@@ -171,6 +171,11 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
           .some((n) => !lastWeights.has(exKey(n))) ? "" : " You've logged every lift in here before."}
       </div>
 
+      <p className="iw-al-disclaimer">
+        Warm up before your first heavy set — a few light build-up reps on the
+        opening lift. Train within your range and stop if anything sharp shows up.
+      </p>
+
       <button className="iw-btn-ember iw-btn-wide" onClick={onStart}>
         ▶ START WORKOUT <span className="iw-btn-sub">· step under the bar</span>
       </button>

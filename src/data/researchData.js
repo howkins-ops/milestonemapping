@@ -5,7 +5,7 @@ export const RESEARCH_BANK = [
     categoryColor: "cyan",
     headline: "Gratitude rewires attention. This isn't fluffy — it's neuroscience.",
     appLine: "Start your day by training your mind to notice what's working before chasing what's missing.",
-    stat: "64 randomized clinical trials proved gratitude interventions reduce anxiety and depression symptoms.",
+    stat: "64 randomized clinical trials have shown gratitude interventions can reduce anxiety and depression symptoms.",
     source: "Gratitude Intervention Meta-Analysis, 2023",
     sourceUrl: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10393216/",
     icon: "🧠",

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import MealTimeline from "./MealTimeline.jsx";
 import StockpilePage from "./StockpilePage.jsx";
+import AlphaDisclaimer from "./AlphaDisclaimer.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    THE FRIDGE — top-level nav home for everything food.
@@ -26,6 +27,8 @@ export default function FridgePage({ alpha, addXP, settings }) {
       {tab === "plate"
         ? <MealTimeline alpha={alpha} />
         : <StockpilePage alpha={alpha} addXP={addXP} settings={settings} embedded />}
+
+      <AlphaDisclaimer />
     </div>
   );
 }

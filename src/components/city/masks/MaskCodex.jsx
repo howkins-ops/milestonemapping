@@ -130,6 +130,17 @@ export default function MaskCodex({ masks, onClose }) {
           {state.stats.walkaways} — walking away is a skill, not a loss
           {masks.courtClaimed ? " · THE COURT IS YOURS — the fog has thinned" : ""}
         </footer>
+
+        <button
+          type="button"
+          className={`mqk-codex__toggle${masks.encountersOff ? " is-off" : ""}`}
+          onClick={() => masks.setEncountersOff(!masks.encountersOff)}
+          aria-pressed={masks.encountersOff}
+        >
+          {masks.encountersOff
+            ? "ENCOUNTERS OFF — the fog stays quiet. Tap to turn them back on."
+            : "ENCOUNTERS ON — critics roam the fog. Tap to turn them off."}
+        </button>
       </div>
     </div>
   );

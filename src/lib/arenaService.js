@@ -3,6 +3,7 @@
 // game outcomes directly. Guard: null supabase → { offline: true }.
 // Mirrors src/lib/zoneService.js (same private rpc helper + offline guard).
 import { supabase } from "./supabase.js";
+import { assertClean } from "./contentFilter.js";
 
 const OFFLINE = { offline: true };
 
@@ -15,8 +16,11 @@ async function rpc(name, args = {}) {
 
 /* ---------------- the vow ---------------- */
 
-export const vowCreate = ({ title, ifCue, dueAt, squadId, witnessId, stake }) =>
-  rpc("az_vow_create", {
+export const vowCreate = ({ title, ifCue, dueAt, squadId, witnessId, stake }) => {
+  // The vow's title/cue/stake are shown to the witness and squadmates — filter
+  // them like every other user-generated content surface (Guideline 1.2).
+  assertClean(title, ifCue, stake);
+  return rpc("az_vow_create", {
     p_title: title,
     p_if_cue: ifCue || null,
     p_due_at: dueAt,
@@ -24,6 +28,7 @@ export const vowCreate = ({ title, ifCue, dueAt, squadId, witnessId, stake }) =>
     p_witness: witnessId || null,
     p_stake: stake || null,
   });
+};
 
 export const vowList = ({ squadId } = {}) =>
   rpc("az_vow_list", { p_squad: squadId || null });

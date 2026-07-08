@@ -7,12 +7,13 @@ import ProgramConsole from "./alpha/ProgramConsole.jsx";
 import BookOfIron from "./alpha/BookOfIron.jsx";
 import FridgePage from "./alpha/FridgePage.jsx";
 import ExerciseHowTo from "./alpha/ExerciseHowTo.jsx";
+import PlanBuilder from "./alpha/PlanBuilder.jsx";
+import { exerciseInfo } from "./alpha/data/exercises.js";
 import {
   sfxPlateClank,
   sfxChalkPoof,
   sfxRoundBell,
   sfxImpact,
-  sfxCoin,
 } from "../../lib/sfx.js";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -33,31 +34,26 @@ export const STEELS = [
   { id: "blued", label: "blued", css: "linear-gradient(150deg,#1f2a3d,#131a28 55%,#0a0d14)" },
   { id: "rust", label: "rust", css: "linear-gradient(150deg,#3a221a,#221310 55%,#100907)" },
 ];
-const EMBLEMS = ["▲", "◆", "⬢", "✦", "⚡", "✕"];
+export const EMBLEMS = ["▲", "◆", "⬢", "✦", "⚡", "✕"];
 
-const LIBRARY = [
-  "Bench Press", "Incline DB Press", "Overhead Press", "Dips", "Push-ups",
-  "Triceps Pushdown", "Deadlift", "Barbell Row", "Lat Pulldown", "Pull-ups",
-  "Barbell Curl", "Face Pull", "Squat", "Romanian Deadlift", "Leg Press",
-  "Walking Lunge", "Calf Raise", "Hip Thrust", "Plank", "Farmer Carry",
-];
-
-const TEMPLATES = [
+/* Template lifts use CANONICAL library names (from alpha/data/exercises.js)
+   so every seeded plan resolves its image + how-to. */
+export const TEMPLATES = [
   {
     key: "push", name: "PUSH DAY", focus: "chest · shoulders · triceps", steel: "gunmetal", emblem: "▲",
     exercises: [
       { name: "Bench Press", sets: 4, reps: 8, weight: 135 },
-      { name: "Overhead Press", sets: 3, reps: 10, weight: 75 },
-      { name: "Incline DB Press", sets: 3, reps: 10, weight: 40 },
-      { name: "Dips", sets: 3, reps: 12, weight: 0 },
+      { name: "Barbell Overhead Press", sets: 3, reps: 10, weight: 75 },
+      { name: "Incline DB Chest Press", sets: 3, reps: 10, weight: 40 },
+      { name: "Chest Dip", sets: 3, reps: 12, weight: 0 },
       { name: "Triceps Pushdown", sets: 3, reps: 12, weight: 40 },
     ],
   },
   {
     key: "pull", name: "PULL DAY", focus: "back · biceps", steel: "blued", emblem: "◆",
     exercises: [
-      { name: "Deadlift", sets: 4, reps: 6, weight: 185 },
-      { name: "Barbell Row", sets: 4, reps: 8, weight: 115 },
+      { name: "Barbell Deadlift", sets: 4, reps: 6, weight: 185 },
+      { name: "Barbell Bent-Over Row", sets: 4, reps: 8, weight: 115 },
       { name: "Lat Pulldown", sets: 3, reps: 10, weight: 100 },
       { name: "Barbell Curl", sets: 3, reps: 12, weight: 45 },
       { name: "Face Pull", sets: 3, reps: 15, weight: 30 },
@@ -66,8 +62,8 @@ const TEMPLATES = [
   {
     key: "legs", name: "LEG DAY", focus: "quads · hams · calves", steel: "carbon", emblem: "⬢",
     exercises: [
-      { name: "Squat", sets: 4, reps: 8, weight: 155 },
-      { name: "Romanian Deadlift", sets: 3, reps: 10, weight: 135 },
+      { name: "Back Squat", sets: 4, reps: 8, weight: 155 },
+      { name: "Barbell Romanian Deadlift", sets: 3, reps: 10, weight: 135 },
       { name: "Leg Press", sets: 3, reps: 12, weight: 230 },
       { name: "Walking Lunge", sets: 3, reps: 12, weight: 0 },
       { name: "Calf Raise", sets: 4, reps: 15, weight: 90 },
@@ -76,14 +72,41 @@ const TEMPLATES = [
   {
     key: "full", name: "FULL BODY", focus: "the big five", steel: "rust", emblem: "⚡",
     exercises: [
-      { name: "Squat", sets: 3, reps: 8, weight: 155 },
+      { name: "Back Squat", sets: 3, reps: 8, weight: 155 },
       { name: "Bench Press", sets: 3, reps: 8, weight: 135 },
-      { name: "Barbell Row", sets: 3, reps: 8, weight: 115 },
-      { name: "Overhead Press", sets: 3, reps: 10, weight: 75 },
-      { name: "Push-ups", sets: 3, reps: 15, weight: 0 },
+      { name: "Barbell Bent-Over Row", sets: 3, reps: 8, weight: 115 },
+      { name: "Barbell Overhead Press", sets: 3, reps: 10, weight: 75 },
+      { name: "Push-Up", sets: 3, reps: 15, weight: 0 },
     ],
   },
 ];
+
+/* ── plan → blocks: consecutive exercises sharing a non-null `group`
+   run back-to-back as a superset; everything else is a singleton.
+   Old flat plans (no group) → all singletons → identical behavior.
+   Shared by PlanBuilder and LiveSession. ── */
+export function deriveBlocks(exercises = []) {
+  const raw = [];
+  let cur = null;
+  exercises.forEach((ex, i) => {
+    const g = ex.group;
+    if (cur && g != null && cur.group === g) {
+      cur.members.push(i);
+    } else {
+      cur = { group: g, members: [i] };
+      raw.push(cur);
+    }
+  });
+  return raw.map((b) => {
+    const last = exercises[b.members[b.members.length - 1]];
+    return {
+      members: b.members,
+      superset: b.members.length > 1,
+      rounds: Math.max(1, ...b.members.map((mi) => exercises[mi].sets || 1)),
+      rest: last.rest ?? null,
+    };
+  });
+}
 
 export const CREED = [
   {
@@ -129,6 +152,8 @@ const fmtDur = (s) => {
 };
 const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : Math.round(v).toLocaleString());
 const exKey = (name) => String(name || "").trim().toLowerCase();
+/* a lift is timed if the plan item says so, or the library entry is a hold */
+const isHoldEx = (ex) => !!(ex?.hold ?? exerciseInfo(ex?.name)?.hold);
 
 /* ── stepper: big thumb targets, no typing needed mid-set ──
    (exported for ALPHA MODE sessions, which share the control) */
@@ -294,7 +319,6 @@ export default function IronWorkout({ onExit, startOpen = false }) {
   const [opening, setOpening] = useState(false);
   const [racked, setRacked] = useState(null); // {summary, after}
   const [pageKey, setPageKey] = useState(0);
-  const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [recordsTab, setRecordsTab] = useState("prs"); // prs | history
   const [alphaEntry, setAlphaEntry] = useState(null); // deep entry into the campaign (gate/boss/session)
   const [alphaImmersive, setAlphaImmersive] = useState(false); // hide nav during crossing/session/boss
@@ -448,9 +472,23 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     return (
       <PlanPage key={`p${p.id}${pageKey}`} plan={p} settings={settings}
         onBack={() => go({ name: "program" })}
-        onPatch={(patch) => patchPlan(p.id, patch)}
-        onDelete={() => { removePlan(p.id); go({ name: "program" }); }}
+        onEdit={() => go({ name: "builder", id: p.id })}
         onStart={() => go({ name: "session", id: p.id })}
+      />
+    );
+  };
+
+  /* ── BUILDER (create / reforge a custom plan) ── */
+  const renderBuilder = () => {
+    const existing = view.id ? plans.find((x) => x.id === view.id) : null;
+    return (
+      <PlanBuilder key={`b${view.id || "new"}${pageKey}`} plan={existing} settings={settings}
+        onCancel={() => go(existing ? { name: "plan", id: existing.id } : { name: "program" })}
+        onSave={(data) => {
+          if (existing) { patchPlan(existing.id, data); go({ name: "plan", id: existing.id }); }
+          else { const row = addPlan(data); go({ name: "plan", id: row.id }); }
+        }}
+        onDelete={existing ? () => { removePlan(existing.id); go({ name: "program" }); } : undefined}
       />
     );
   };
@@ -578,7 +616,7 @@ export default function IronWorkout({ onExit, startOpen = false }) {
     view.name === id ||
     (id === "program" && ["plan", "plans"].includes(view.name)) ||
     (id === "records" && view.name === "session-detail");
-  const showNav = !["cover", "session"].includes(view.name) && !alphaImmersive;
+  const showNav = !["cover", "session", "builder"].includes(view.name) && !alphaImmersive;
 
   const enterCampaign = (entry) => {
     setAlphaEntry(entry || null);
@@ -600,7 +638,7 @@ export default function IronWorkout({ onExit, startOpen = false }) {
           <ProgramConsole key={`pg${pageKey}`} alpha={alpha} sessions={sessions} plans={plans}
             settings={settings}
             onOpenPlan={(id) => go({ name: "plan", id })}
-            onNewPlan={() => setNewPlanOpen(true)}
+            onNewPlan={() => go({ name: "builder" })}
             onEnterCampaign={enterCampaign} />
         )}
         {view.name === "fridge" && (
@@ -610,9 +648,11 @@ export default function IronWorkout({ onExit, startOpen = false }) {
           <BookOfIron key={`bk${pageKey}`} alpha={alpha} prs={prs} traitLevels={traitLevels}
             creedSeen={creedSeen} markCreedSeen={markCreedSeen} addXP={addXP} settings={settings}
             onOpenProgram={() => go({ name: "program" })}
+            onOpenRoad={() => enterCampaign({ name: "map" })}
             onFight={(bossId) => enterCampaign({ name: "boss", bossId, from: { name: "zone" } })} />
         )}
         {view.name === "plan" && renderPlan()}
+        {view.name === "builder" && renderBuilder()}
         {view.name === "session" && renderSession()}
         {view.name === "records" && renderRecords()}
         {view.name === "session-detail" && renderSessionDetail()}
@@ -638,32 +678,19 @@ export default function IronWorkout({ onExit, startOpen = false }) {
         <RackedOverlay settings={settings} summary={racked.summary}
           onDone={() => { const cb = racked.after; setRacked(null); cb(); }} />
       )}
-
-      {newPlanOpen && (
-        <NewPlanModal onClose={() => setNewPlanOpen(false)} onCreate={(plan) => {
-          const row = addPlan(plan);
-          setNewPlanOpen(false);
-          go({ name: "plan", id: row.id });
-        }} />
-      )}
     </div>
   );
 }
 
-/* ═══════════════ PLAN PAGE (edit + launch) ═══════════════ */
-function PlanPage({ plan, onBack, onPatch, onDelete, onStart, settings }) {
-  const [adding, setAdding] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+/* ═══════════════ PLAN PAGE (preview + launch) ═══════════════ */
+function PlanPage({ plan, onBack, onEdit, onStart }) {
   const exercises = plan.exercises || [];
+  const blocks = deriveBlocks(exercises);
 
-  const addExercise = (ex) => {
-    onPatch({ exercises: [...exercises, ex] });
-    sfxCoin(settings);
-    setAdding(false);
-  };
-  const removeExercise = (i) => {
-    onPatch({ exercises: exercises.filter((_, j) => j !== i) });
-  };
+  const target = (ex) =>
+    isHoldEx(ex)
+      ? `${ex.sets} × ${ex.reps}s`
+      : `${ex.sets} × ${ex.reps}${ex.weight > 0 ? ` · ${ex.weight} lbs` : " · BW"}`;
 
   return (
     <div className="iw-page iw-page-in">
@@ -680,65 +707,24 @@ function PlanPage({ plan, onBack, onPatch, onDelete, onStart, settings }) {
 
       <div className="iw-eyebrow iw-shelf-label">the lifts</div>
       <div className="iw-stack">
-        {exercises.map((ex, i) => (
-          <div key={i} className="iw-ex-row">
-            <span className="iw-ex-name">{ex.name}</span>
-            <span className="iw-ex-target">
-              {ex.sets} × {ex.reps}{ex.weight > 0 ? ` · ${ex.weight} lbs` : " · BW"}
-            </span>
-            <button className="iw-ex-remove" aria-label={`Remove ${ex.name}`} onClick={() => removeExercise(i)}>✕</button>
+        {blocks.map((b, bi) => (
+          <div key={bi} className={b.superset ? "iw-super-bracket" : ""}>
+            {b.superset && <div className="iw-super-tag">superset · {b.rounds} rounds</div>}
+            {b.members.map((mi) => {
+              const ex = exercises[mi];
+              return (
+                <div key={mi} className="iw-ex-row">
+                  <span className="iw-ex-name">{ex.name}</span>
+                  <span className="iw-ex-target">{target(ex)}</span>
+                </div>
+              );
+            })}
           </div>
         ))}
-        {exercises.length === 0 && <div className="iw-empty">no lifts yet — load the bar below</div>}
+        {exercises.length === 0 && <div className="iw-empty">no lifts yet — open the builder</div>}
       </div>
 
-      {adding ? (
-        <AddExerciseForm onAdd={addExercise} onCancel={() => setAdding(false)} />
-      ) : (
-        <button className="iw-newplan" onClick={() => setAdding(true)}>＋ add a lift</button>
-      )}
-
-      {!confirmDelete ? (
-        <button className="iw-danger-link" onClick={() => setConfirmDelete(true)}>melt this plan down</button>
-      ) : (
-        <div className="iw-danger-row">
-          <span>sure? sessions already logged stay in the book.</span>
-          <button className="iw-btn-ghost" onClick={() => setConfirmDelete(false)}>keep it</button>
-          <button className="iw-danger-btn" onClick={onDelete}>melt it</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══════════════ ADD EXERCISE FORM ═══════════════ */
-function AddExerciseForm({ onAdd, onCancel }) {
-  const [name, setName] = useState("");
-  const [sets, setSets] = useState(3);
-  const [reps, setReps] = useState(10);
-  const [weight, setWeight] = useState(0);
-  const canAdd = name.trim().length > 0;
-  return (
-    <div className="iw-addex">
-      <input className="iw-input" value={name} maxLength={60} placeholder="name the lift"
-        onChange={(e) => setName(e.target.value)} />
-      <div className="iw-lib-chips">
-        {LIBRARY.map((l) => (
-          <button key={l} className={`iw-chip-btn ${name === l ? "iw-chip-on" : ""}`} onClick={() => setName(l)}>{l}</button>
-        ))}
-      </div>
-      <div className="iw-addex-steppers">
-        <Stepper label="sets" value={sets} min={1} max={12} onChange={setSets} />
-        <Stepper label="reps" value={reps} min={1} max={100} onChange={setReps} />
-        <Stepper label="lbs (0 = bodyweight)" value={weight} step={5} min={0} onChange={setWeight} wide />
-      </div>
-      <div className="iw-addex-actions">
-        <button className="iw-btn-ghost" onClick={onCancel}>cancel</button>
-        <button className={`iw-btn-ember ${canAdd ? "" : "iw-btn-off"}`} disabled={!canAdd}
-          onClick={() => onAdd({ name: name.trim(), sets, reps, weight })}>
-          load it on the bar
-        </button>
-      </div>
+      <button className="iw-newplan" onClick={onEdit}>✎ edit in the builder</button>
     </div>
   );
 }
@@ -749,21 +735,24 @@ const REST_PRESETS = [60, 90, 120, 180];
 function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }) {
   const startRef = useRef(Date.now());
   const [elapsed, setElapsed] = useState(0);
-  const [idx, setIdx] = useState(0);
+
+  const planExercises = plan.exercises || [];
+  const blocks = useMemo(() => deriveBlocks(planExercises), [plan]);
+
+  const [blockIdx, setBlockIdx] = useState(0);
+  const [memberPos, setMemberPos] = useState(0);
   const [restLen, setRestLen] = useState(90);
+  const [restSecs, setRestSecs] = useState(90);
   const [resting, setResting] = useState(false);
   const [prFlash, setPrFlash] = useState(null);
   const [confirmAbort, setConfirmAbort] = useState(false);
 
-  const planExercises = plan.exercises || [];
-
-  /* per-exercise logged sets + the working weight/reps steppers */
+  /* per-exercise logged sets + the working weight/reps steppers (index-keyed) */
   const [logged, setLogged] = useState(() => planExercises.map(() => []));
   const [work, setWork] = useState(() => planExercises.map((ex) => ({
     weight: lastWeights.get(exKey(ex.name)) ?? ex.weight ?? 0,
     reps: ex.reps ?? 10,
   })));
-  /* best new PR this session, one per exercise: exKey -> {exercise, weight, reps} */
   const sessionPRs = useRef(new Map());
 
   useEffect(() => {
@@ -771,38 +760,64 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
     return () => clearInterval(iv);
   }, []);
 
-  const ex = planExercises[idx];
+  const block = blocks[blockIdx];
+  if (!block) return null;
+  const curIdx = block.members[Math.min(memberPos, block.members.length - 1)];
+  const ex = planExercises[curIdx];
   if (!ex) return null;
-  const sets = logged[idx];
-  const w = work[idx];
-  const targetDone = sets.length >= ex.sets;
-  const isLastExercise = idx >= planExercises.length - 1;
+  const hold = isHoldEx(ex);
+  const sets = logged[curIdx];
+  const w = work[curIdx];
+
+  const memberDone = (mi) => logged[mi].length >= (planExercises[mi].sets || 1);
+  const blockDone = block.members.every(memberDone);
+  const isLastBlock = blockIdx >= blocks.length - 1;
   const anySetLogged = logged.some((s) => s.length > 0);
+  const restForBlock = block.rest ?? restLen;
 
   const setWorkAt = (patch) => {
-    setWork((prev) => prev.map((x, i) => (i === idx ? { ...x, ...patch } : x)));
+    setWork((prev) => prev.map((x, i) => (i === curIdx ? { ...x, ...patch } : x)));
   };
 
-  const logSet = () => {
-    const set = { weight: w.weight, reps: w.reps };
-    setLogged((prev) => prev.map((s, i) => (i === idx ? [...s, set] : s)));
+  const commitSet = (set) => {
+    setLogged((prev) => prev.map((s, i) => (i === curIdx ? [...s, set] : s)));
     sfxPlateClank(settings);
     try { if (navigator.vibrate) navigator.vibrate(20); } catch { /* silent */ }
 
-    /* PR check: heavier than anything on the wall AND anything earlier this session */
-    if (set.weight > 0) {
+    /* PR check: real weight only — never for holds. Heavier than the wall AND this session. */
+    if (!hold && set.weight > 0) {
       const k = exKey(ex.name);
       const wall = bestPRs.get(k);
       const mine = sessionPRs.current.get(k);
-      const beatsWall = !wall || set.weight > wall.weight;
-      const beatsMine = !mine || set.weight > mine.weight;
-      if (beatsWall && beatsMine) {
+      if ((!wall || set.weight > wall.weight) && (!mine || set.weight > mine.weight)) {
         const pr = { exercise: ex.name, weight: set.weight, reps: set.reps };
         sessionPRs.current.set(k, pr);
         setPrFlash(pr);
       }
     }
-    setResting(true);
+
+    /* superset: hop to the next member with no rest; otherwise rest the block */
+    if (block.superset && memberPos < block.members.length - 1) {
+      setMemberPos(memberPos + 1);
+    } else {
+      setRestSecs(restForBlock);
+      setResting(true);
+    }
+  };
+
+  const logSet = () => commitSet({ weight: w.weight, reps: w.reps });
+  const logHold = (secs) => commitSet({ weight: 0, reps: Math.max(1, Math.round(secs)) });
+
+  const onRestDone = () => {
+    setResting(false);
+    if (block.superset && !blockDone) setMemberPos(0); // start the next superset round
+  };
+
+  const goNextBlock = () => {
+    setResting(false);
+    setMemberPos(0);
+    setBlockIdx((b) => Math.min(blocks.length - 1, b + 1));
+    sfxChalkPoof(settings);
   };
 
   const finish = () => {
@@ -814,14 +829,7 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
       (sum, e) => sum + e.sets.reduce((s, x) => s + x.weight * x.reps, 0), 0);
     const total_sets = exercises.reduce((sum, e) => sum + e.sets.length, 0);
     onFinish({
-      session: {
-        plan_id: plan.id,
-        plan_name: plan.name,
-        duration_s,
-        total_volume,
-        total_sets,
-        exercises,
-      },
+      session: { plan_id: plan.id, plan_name: plan.name, duration_s, total_volume, total_sets, exercises },
       prs: [...sessionPRs.current.values()],
     });
   };
@@ -834,26 +842,36 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
       </div>
 
       <div className="iw-session-progress">
-        {planExercises.map((_, i) => (
-          <span key={i} className={`iw-prog-cell ${i < idx || logged[i].length > 0 ? "iw-prog-done" : ""} ${i === idx ? "iw-prog-now" : ""}`} />
+        {blocks.map((b, i) => (
+          <span key={i} className={`iw-prog-cell ${i < blockIdx || b.members.every(memberDone) ? "iw-prog-done" : ""} ${i === blockIdx ? "iw-prog-now" : ""}`} />
         ))}
       </div>
 
-      <div className="iw-eyebrow">lift {idx + 1} of {planExercises.length}</div>
+      {block.superset && (
+        <div className="iw-super-banner">
+          superset · {block.members.map((mi) => planExercises[mi].name).join(" + ")}
+        </div>
+      )}
+
+      <div className="iw-eyebrow">
+        {block.superset ? `move ${memberPos + 1} of ${block.members.length}` : `lift ${blockIdx + 1} of ${blocks.length}`}
+      </div>
       <h2 className="iw-display iw-session-lift">{ex.name}</h2>
       <div className="iw-session-target">
-        target {ex.sets} × {ex.reps}
-        {bestPRs.get(exKey(ex.name)) && (
+        target {ex.sets} × {hold ? `${ex.reps}s` : ex.reps}
+        {ex.weight > 0 && !hold ? ` · ${ex.weight} lbs` : ""}
+        {bestPRs.get(exKey(ex.name)) && !hold && (
           <span className="iw-session-pr-hint"> · wall: {bestPRs.get(exKey(ex.name)).weight} lbs</span>
         )}
       </div>
+      {ex.note && <div className="iw-session-note">✎ {ex.note}</div>}
       <ExerciseHowTo key={exKey(ex.name)} name={ex.name}
-        defaultOpen={!lastWeights.has(exKey(ex.name)) && sets.length === 0} />
+        defaultOpen={!hold && !lastWeights.has(exKey(ex.name)) && sets.length === 0} />
 
       <div className="iw-set-chips">
         {sets.map((s, i) => (
           <span key={i} className="iw-set-chip iw-set-chip-done">
-            {s.weight > 0 ? `${s.weight} × ${s.reps}` : `BW × ${s.reps}`}
+            {hold ? `${s.reps}s` : s.weight > 0 ? `${s.weight} × ${s.reps}` : `BW × ${s.reps}`}
           </span>
         ))}
         {Array.from({ length: Math.max(0, ex.sets - sets.length) }).map((_, i) => (
@@ -862,8 +880,10 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
       </div>
 
       {resting ? (
-        <RestTimer seconds={restLen} settings={settings}
-          onDone={() => setResting(false)} onSkip={() => setResting(false)} />
+        <RestTimer seconds={restSecs} settings={settings}
+          onDone={onRestDone} onSkip={onRestDone} />
+      ) : hold ? (
+        <HoldControl key={`${curIdx}-${sets.length}`} seconds={ex.reps || 30} settings={settings} onLog={logHold} />
       ) : (
         <>
           <div className="iw-work-steppers">
@@ -884,13 +904,13 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
       </div>
 
       <div className="iw-session-actions">
-        {!isLastExercise && (
-          <button className={`iw-btn-ghost ${targetDone ? "iw-btn-ready" : ""}`} onClick={() => { setResting(false); setIdx(idx + 1); sfxChalkPoof(settings); }}>
-            next lift ❯
+        {!isLastBlock && (
+          <button className={`iw-btn-ghost ${blockDone ? "iw-btn-ready" : ""}`} onClick={goNextBlock}>
+            next {block.superset ? "block" : "lift"} ❯
           </button>
         )}
         {anySetLogged && (
-          <button className={`${isLastExercise && targetDone ? "iw-btn-ember" : "iw-btn-ghost"}`} onClick={finish}>
+          <button className={`${isLastBlock && blockDone ? "iw-btn-ember" : "iw-btn-ghost"}`} onClick={finish}>
             ■ FINISH &amp; SAVE WORKOUT
           </button>
         )}
@@ -914,76 +934,44 @@ function LiveSession({ plan, bestPRs, lastWeights, onFinish, onAbort, settings }
   );
 }
 
-/* ═══════════════ NEW PLAN MODAL ═══════════════ */
-function NewPlanModal({ onClose, onCreate }) {
-  const [name, setName] = useState("");
-  const [focus, setFocus] = useState("");
-  const [steel, setSteel] = useState("gunmetal");
-  const [emblem, setEmblem] = useState("▲");
-  const [template, setTemplate] = useState(null);
-
-  const pickTemplate = (t) => {
-    setTemplate(t.key);
-    setName(t.name);
-    setFocus(t.focus);
-    setSteel(t.steel);
-    setEmblem(t.emblem);
-  };
-
-  const create = () => {
-    const tpl = TEMPLATES.find((t) => t.key === template);
-    onCreate({
-      name: name.trim(),
-      focus: focus.trim(),
-      steel,
-      emblem,
-      exercises: tpl ? tpl.exercises.map((e) => ({ ...e })) : [],
-    });
-  };
-
+/* ── hold control: countdown for timed moves (planks, carries, swings) ── */
+function HoldControl({ seconds, onLog, settings }) {
+  const [running, setRunning] = useState(false);
+  const [left, setLeft] = useState(seconds);
+  const endRef = useRef(0);
+  useEffect(() => { if (!running) setLeft(seconds); }, [seconds, running]);
+  useEffect(() => {
+    if (!running) return;
+    endRef.current = Date.now() + left * 1000;
+    const iv = setInterval(() => {
+      const rem = Math.max(0, Math.ceil((endRef.current - Date.now()) / 1000));
+      setLeft(rem);
+      if (rem <= 0) {
+        clearInterval(iv);
+        setRunning(false);
+        sfxRoundBell(settings);
+        try { if (navigator.vibrate) navigator.vibrate([60, 80, 60]); } catch { /* silent */ }
+        onLog(seconds);
+      }
+    }, 200);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]);
+  const frac = seconds > 0 ? left / seconds : 0;
   return (
-    <div className="iw-modal-veil" onClick={onClose}>
-      <div className="iw-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="iw-eyebrow">forge a plan</div>
-
-        <div className="iw-eyebrow iw-modal-sub">start from a template</div>
-        <div className="iw-tpl-row">
-          {TEMPLATES.map((t) => (
-            <button key={t.key} className={`iw-tpl-card ${template === t.key ? "iw-tpl-on" : ""}`}
-              style={{ background: STEELS.find((x) => x.id === t.steel)?.css }}
-              onClick={() => pickTemplate(t)}>
-              <span className="iw-tpl-emblem">{t.emblem}</span>
-              <span className="iw-tpl-name">{t.name}</span>
-            </button>
-          ))}
-        </div>
-
-        <input className="iw-input" placeholder="plan name" value={name} maxLength={48}
-          onChange={(e) => { setName(e.target.value); setTemplate(null); }} />
-        <input className="iw-input iw-input-sub" placeholder="focus — e.g. chest · triceps (optional)" value={focus} maxLength={40}
-          onChange={(e) => setFocus(e.target.value)} />
-
-        <div className="iw-eyebrow iw-modal-sub">steel</div>
-        <div className="iw-swatch-row">
-          {STEELS.map((s) => (
-            <button key={s.id} className={`iw-swatch ${steel === s.id ? "iw-swatch-on" : ""}`}
-              style={{ background: s.css }} onClick={() => setSteel(s.id)} aria-label={s.label} />
-          ))}
-        </div>
-        <div className="iw-eyebrow iw-modal-sub">stamp</div>
-        <div className="iw-swatch-row">
-          {EMBLEMS.map((g) => (
-            <button key={g} className={`iw-emblem-pick ${emblem === g ? "iw-swatch-on" : ""}`} onClick={() => setEmblem(g)}>{g}</button>
-          ))}
-        </div>
-
-        <div className="iw-modal-actions">
-          <button className="iw-btn-ghost" onClick={onClose}>cancel</button>
-          <button className={`iw-btn-ember ${name.trim() ? "" : "iw-btn-off"}`} disabled={!name.trim()} onClick={create}>
-            stamp the steel
-          </button>
-        </div>
+    <div className="iw-hold">
+      <div className="iw-rest-ring iw-hold-ring" style={{ "--iw-frac": frac }}>
+        <span className="iw-rest-num">{left}</span>
+        <span className="iw-rest-unit">hold</span>
       </div>
+      {running ? (
+        <button className="iw-btn-ghost" onClick={() => { setRunning(false); onLog(Math.max(1, seconds - left)); }}>■ stop &amp; log</button>
+      ) : (
+        <button className="iw-btn-ember iw-btn-wide iw-log-set-btn" onClick={() => setRunning(true)}>
+          ▶ START THE {seconds}s HOLD
+        </button>
+      )}
     </div>
   );
 }
+

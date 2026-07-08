@@ -3,7 +3,7 @@ import { getFireLevel } from "../../lib/zoneFire.js";
 import "../../styles/cityPlaza.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — The Plaza
+// MILESTONE CITY — The Plaza
 // A horizontal presence strip: your friends stand in the city square, each
 // wrapped in a fire-tier aura ring; your squad flies its banner; your
 // accountability partner stands beside you. Renders nothing offline or when

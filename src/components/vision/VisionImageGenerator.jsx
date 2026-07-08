@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { STYLE_OPTIONS, buildPrompt, buildImageUrl } from "../../lib/imageGen.js";
+import { hasAiConsent } from "../../lib/aiConsent.js";
+import AiConsentModal from "../common/AiConsentModal.jsx";
 
 // "Imagine your goal" — describe a goal in words and let FLUX Pro paint it.
 // Reuses the keyless Pollinations image gen + the shared `rig-*` modal styles.
@@ -10,6 +12,7 @@ export default function VisionImageGenerator({ onUse, onClose, defaultPrompt = "
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showConsent, setShowConsent] = useState(false);
 
   const text = (prompt || "").trim();
 
@@ -21,6 +24,13 @@ export default function VisionImageGenerator({ onUse, onClose, defaultPrompt = "
     setImageUrl(buildImageUrl(buildPrompt(text, style), seed));
     setTimeout(() => setLoading(false), 800);
   }, [text, style]);
+
+  // Gate the first transmission behind explicit AI consent (Guideline 5.1.2(i)).
+  const requestGenerate = useCallback(() => {
+    if (!text) return;
+    if (!hasAiConsent()) { setShowConsent(true); return; }
+    generate();
+  }, [text, generate]);
 
   const regenerate = useCallback(() => {
     if (!imageUrl) return;
@@ -77,10 +87,17 @@ export default function VisionImageGenerator({ onUse, onClose, defaultPrompt = "
         </div>
 
         {!imageUrl ? (
-          <button className="rig-generate-btn" onClick={generate} disabled={loading || !text}>
+          <button className="rig-generate-btn" onClick={requestGenerate} disabled={loading || !text}>
             {loading ? "⏳ Generating…" : "✨ Generate Vision"}
           </button>
         ) : null}
+
+        {showConsent && (
+          <AiConsentModal
+            onAccept={() => { setShowConsent(false); generate(); }}
+            onCancel={() => setShowConsent(false)}
+          />
+        )}
 
         {imageUrl && (
           <div className="rig-preview">

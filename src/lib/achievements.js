@@ -152,7 +152,7 @@ export const ACHIEVEMENTS = [
   {
     id: "city_arrival",
     title: "Citizen of the City",
-    description: "You stepped into MapQuest City for the first time. Every path now has an address.",
+    description: "You stepped into Milestone City for the first time. Every path now has an address.",
     icon: "🌆"
   },
   {

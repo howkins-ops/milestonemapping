@@ -4,6 +4,7 @@ import { bossesForPhase } from "./data/mythBosses.js";
 import { daySlot, dayIdxFromDate } from "./engine/scheduler.js";
 import { scheduledWorkoutCount, completedThisWeek } from "./engine/progression.js";
 import ScheduleGrid from "./ScheduleGrid.jsx";
+import ExerciseImg from "./ExerciseImg.jsx";
 import EatingCard from "./EatingCard.jsx";
 import FastClock from "./FastClock.jsx";
 import HormonePanel from "./HormonePanel.jsx";
@@ -55,8 +56,8 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
           <h2 className="iw-display iw-al-zonename">{phase.name}</h2>
         </div>
         <div className="iw-al-weekbadge">
-          <span className="iw-al-weekbadge-num">W{state.week}</span>
-          <span className="iw-al-weekbadge-sub">{done}/{need} lifts</span>
+          <span className="iw-al-weekbadge-num">Week {state.week}</span>
+          <span className="iw-al-weekbadge-sub">{done}/{need} done</span>
         </div>
       </div>
 
@@ -80,8 +81,16 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
                 </span>
               ))}
             </div>
+            <div className="iw-al-today-thumbs" aria-label="today's moves">
+              {[...new Set(slot.workout.blocks.flatMap((b) => b.exercises.map((e) => e.name)))].slice(0, 6).map((name) => (
+                <span key={name} className="iw-al-today-thumb" title={name}>
+                  <span className="iw-al-today-mono" aria-hidden="true">{name.slice(0, 1)}</span>
+                  <ExerciseImg name={name} className="iw-al-today-thumbimg" />
+                </span>
+              ))}
+            </div>
             <button className="iw-btn-ember iw-btn-wide" onClick={() => onStartWorkout(slot.workout.id)}>
-              ⚡ start {slot.workout.name}
+              ⚡ START — {slot.workout.name}
             </button>
           </>
         )}

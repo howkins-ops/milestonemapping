@@ -3,7 +3,7 @@ import CityAmbient from "./CityAmbient.jsx";
 import "../../styles/city.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — The living scene
+// MILESTONE CITY — The living scene
 // ⚠ SUPERSEDED (2026-07): the walkable street (world/WorldScene.jsx +
 // cityWorld.js) replaced this static banner on MapQuestCityPage. Kept for
 // reference like SeekerCity — no live imports remain.
@@ -60,7 +60,7 @@ export default function CityScene({
     <div
       className={`mqc-scene ${stageClass} ${todClass}${reducedMotion ? " mqc-scene--still" : ""}`}
       role="img"
-      aria-label={`MapQuest City at ${((timeOfDay && timeOfDay.label) || "night").toLowerCase()} — ${(stage && stage.name) || "Foundations"}`}
+      aria-label={`Milestone City at ${((timeOfDay && timeOfDay.label) || "night").toLowerCase()} — ${(stage && stage.name) || "Foundations"}`}
     >
       <div className="mqc-sc-sky" aria-hidden="true" />
 

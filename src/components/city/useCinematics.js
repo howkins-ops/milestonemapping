@@ -3,7 +3,7 @@ import fx from "./world/fx.js";
 import { markZoneSeen, markWhisperSeen } from "./streetStore.js";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — the camera tells the legend (Phase 7 · CINEMA & STORY)
+// MILESTONE CITY — the camera tells the legend (Phase 7 · CINEMA & STORY)
 // One orchestrator owns every directed shot so no two cinematics ever
 // overlap (single cineLock). Everything is skippable (walking cancels the
 // engine pan) and reduced-motion-safe (pans become jump-cuts inside the

@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
 import WorldMap from "./WorldMap.jsx";
-import ExerciseHowTo from "./ExerciseHowTo.jsx";
 import HL from "./HL.jsx";
 import { STEELS } from "../IronWorkout.jsx";
 import { STYLE_EXPLAINERS, blockTitle, protocolLine, KIND_BLURBS, estimateMinutes } from "./SessionBriefing.jsx";
 import { PHASES, PHASE_ORDER, WORKOUTS } from "./data/phases.js";
 import { EXERCISE_GROUPS } from "./data/exercises.js";
-import { daySlot, dayIdxFromDate } from "./engine/scheduler.js";
+import { daySlot, weekGrid, dayIdxFromDate } from "./engine/scheduler.js";
+import ExerciseImg from "./ExerciseImg.jsx";
+import { exerciseInfo } from "./data/exercises.js";
+import AlphaDisclaimer from "./AlphaDisclaimer.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    THE PROGRAM — the full campaign console, on the main nav.
@@ -17,7 +19,7 @@ import { daySlot, dayIdxFromDate } from "./engine/scheduler.js";
    the Today tab — this page is the manual.
    ═══════════════════════════════════════════════════════════════ */
 
-const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const relAge = (iso) => {
   const d = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -37,8 +39,8 @@ export default function ProgramConsole({ alpha, sessions, plans, onOpenPlan, onN
 
   return (
     <div className="iw-page iw-page-in iw-pc">
-      <div className="iw-eyebrow">the manual · read everything, any time</div>
-      <h2 className="iw-display iw-page-title">The Program</h2>
+      <div className="iw-eyebrow">your plan · read anything, any time</div>
+      <h2 className="iw-display iw-page-title">Your Program</h2>
 
       {/* today strip */}
       {started && slot?.kind === "workout" && slot.workout && (
@@ -62,7 +64,7 @@ export default function ProgramConsole({ alpha, sessions, plans, onOpenPlan, onN
 
       {/* the road */}
       <section className="iw-pc-section">
-        <div className="iw-eyebrow iw-pc-section-title">the roadmap</div>
+        <div className="iw-eyebrow iw-pc-section-title">your 16-week road</div>
         <WorldMap alpha={alpha}
           onOpenGate={(phaseId) => onEnterCampaign({ name: "gate", phaseId })}
           onOpenZone={() => onEnterCampaign({ name: "zone" })} />
@@ -70,23 +72,24 @@ export default function ProgramConsole({ alpha, sessions, plans, onOpenPlan, onN
 
       {/* the four phases */}
       <section className="iw-pc-section">
-        <div className="iw-eyebrow iw-pc-section-title">the four phases · 16 weeks</div>
+        <div className="iw-eyebrow iw-pc-section-title">the 4 phases · 16 weeks</div>
         <div className="iw-stack">
           {PHASE_ORDER.map((pid) => (
-            <PhaseCard key={pid} phase={PHASES[pid]} state={state} started={started} />
+            <PhaseCard key={pid} phase={PHASES[pid]} state={state} started={started}
+              sessions={sessions} todayIdx={todayIdx} />
           ))}
         </div>
       </section>
 
       {/* exercise library */}
       <section className="iw-pc-section">
-        <div className="iw-eyebrow iw-pc-section-title">the exercise library · every move in the program</div>
+        <div className="iw-eyebrow iw-pc-section-title">move library · every exercise, with pictures</div>
         <ExerciseLibrary />
       </section>
 
       {/* custom plans */}
       <section className="iw-pc-section">
-        <div className="iw-eyebrow iw-pc-section-title">your own plans · freestyle iron</div>
+        <div className="iw-eyebrow iw-pc-section-title">your own workouts · build your own</div>
         <div className="iw-stack">
           {plans.map((p) => {
             const lastRun = sessions.find((s) => s.plan_id === p.id);
@@ -111,17 +114,29 @@ export default function ProgramConsole({ alpha, sessions, plans, onOpenPlan, onN
           <div className="iw-empty">an empty rack is a loud invitation — forge your first plan</div>
         )}
       </section>
+
+      <AlphaDisclaimer variant="training" />
     </div>
   );
 }
 
 /* ── one phase: story, eating, rotation, workouts ── */
-function PhaseCard({ phase, state, started }) {
+function PhaseCard({ phase, state, started, sessions, todayIdx }) {
   const [open, setOpen] = useState(started && state.phase === phase.id);
   const here = started && state.phase === phase.id;
   const conquered = started && phase.stage < (PHASES[state.phase]?.stage ?? 0);
   const workouts = Object.values(WORKOUTS).filter((w) => w.phase === phase.id).sort((a, b) => a.n - b.n);
   const e = phase.eating;
+
+  /* which workouts you've already finished, keyed week:workoutId (same as the Today grid) */
+  const doneSet = useMemo(
+    () => new Set(
+      (sessions || [])
+        .filter((s) => s.meta?.alpha?.phaseId === phase.id)
+        .map((s) => `${s.meta.alpha.week}:${s.meta.alpha.workoutId}`)
+    ),
+    [sessions, phase.id]
+  );
 
   const carbLine = (side) => {
     const c = e.carbs;
@@ -176,30 +191,31 @@ function PhaseCard({ phase, state, started }) {
             </div>
           </div>
 
-          {/* rotation grid */}
+          {/* the weekly schedule — plain days, real workout names */}
           <div className="iw-pc-block">
-            <div className="iw-eyebrow">the 4-week rotation · which workout lands on which day</div>
-            <div className="iw-pc-rotation">
-              <div className="iw-pc-rotrow iw-pc-rothead">
-                <span>wk</span>
-                {DAY_LABELS.map((d, i) => <span key={i}>{d}</span>)}
-              </div>
-              {phase.rotation.map((week, wi) => (
-                <div key={wi} className={`iw-pc-rotrow ${here && state.week === wi + 1 ? "iw-pc-rotnow" : ""}`}>
-                  <span className="iw-pc-rotwk">{wi + 1}</span>
-                  {week.map((cell, di) => (
-                    <span key={di} className={`iw-pc-rotcell ${cell ? (cell === "cardio" ? "iw-pc-rot-cardio" : "iw-pc-rot-lift") : ""}`}>
-                      {cell === "cardio" ? "run" : cell ? cell.toUpperCase() : "·"}
-                    </span>
-                  ))}
-                </div>
-              ))}
+            <div className="iw-eyebrow iw-pc-blocktitle">Your schedule · which workout each day</div>
+            <div className="iw-pc-weeks">
+              {phase.rotation.map((_week, wi) => {
+                const weekNum = wi + 1;
+                const isThisWeek = here && state.week === weekNum;
+                return (
+                  <WeekBlock
+                    key={wi}
+                    phaseId={phase.id}
+                    weekNum={weekNum}
+                    isThisWeek={isThisWeek}
+                    todayIdx={isThisWeek ? todayIdx : -1}
+                    doneSet={doneSet}
+                    defaultOpen={isThisWeek || (!here && weekNum === 1)}
+                  />
+                );
+              })}
             </div>
           </div>
 
           {/* the workouts */}
           <div className="iw-pc-block">
-            <div className="iw-eyebrow">the {workouts.length} workouts of {phase.name}</div>
+            <div className="iw-eyebrow iw-pc-blocktitle">The {workouts.length} workouts · tap one to see every move</div>
             <div className="iw-stack">
               {workouts.map((w) => <WorkoutBreakdown key={w.id} workout={w} />)}
             </div>
@@ -210,17 +226,67 @@ function PhaseCard({ phase, state, started }) {
   );
 }
 
+/* ── one program week: a plain, day-by-day list (no "W1/W2" codes) ── */
+function WeekBlock({ phaseId, weekNum, isThisWeek, todayIdx, doneSet, defaultOpen }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const days = useMemo(() => weekGrid(phaseId, weekNum), [phaseId, weekNum]);
+  const workoutCount = days.filter((d) => d.kind === "workout").length;
+
+  return (
+    <div className={`iw-pc-week ${isThisWeek ? "iw-pc-week-now" : ""} ${open ? "iw-pc-week-open" : ""}`}>
+      <button className="iw-pc-weekhead" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span className="iw-pc-weeknum">Week {weekNum}</span>
+        {isThisWeek && <span className="iw-chip iw-chip-ember">this week</span>}
+        <span className="iw-pc-weekcount">{workoutCount} workouts</span>
+        <span className="iw-howto-caret" aria-hidden="true">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="iw-pc-days">
+          {days.map((s, di) => {
+            const isToday = di === todayIdx;
+            const done = s.workout && doneSet.has(`${weekNum}:${s.workout.id}`);
+            return (
+              <div key={di}
+                className={`iw-pc-day ${s.kind === "workout" ? "iw-pc-day-work" : ""} ${s.kind === "rest" ? "iw-pc-day-rest" : ""} ${isToday ? "iw-pc-day-today" : ""} ${done ? "iw-pc-day-done" : ""}`}>
+                <span className="iw-pc-dayname">{DAY_NAMES[di]}</span>
+                <span className="iw-pc-daymain">
+                  <span className="iw-pc-daywork">
+                    {s.kind === "workout" ? s.workout?.name
+                      : s.kind === "cardio" ? "Cardio — the long road"
+                      : "Rest day"}
+                  </span>
+                  <span className="iw-pc-daytags">
+                    {s.kind === "workout" && <span className="iw-pc-daymin">~{estimateMinutes(s.workout)} min</span>}
+                    {s.nutrition.cheat && <span className="iw-pc-daytag iw-pc-daytag-cheat">🔥 cheat day</span>}
+                    {s.nutrition.fullFast && <span className="iw-pc-daytag">⏳ full fast</span>}
+                  </span>
+                </span>
+                <span className="iw-pc-daystate">
+                  {done ? <span className="iw-pc-daycheck">✓ done</span>
+                    : isToday ? <span className="iw-pc-daynow">▶ today</span>
+                    : null}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── one workout: block-by-block breakdown with how-tos ── */
 function WorkoutBreakdown({ workout }) {
   const [open, setOpen] = useState(false);
   const mins = estimateMinutes(workout);
+  const moveCount = workout.blocks.reduce((s, b) => s + b.exercises.length, 0);
   return (
     <div className={`iw-pc-workout ${open ? "iw-pc-workout-open" : ""}`}>
       <button className="iw-pc-wohead" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span className="iw-pc-wobadge">W{workout.n}</span>
+        <span className="iw-pc-wobadge">{workout.n}</span>
         <span className="iw-pc-wotext">
           <span className="iw-pc-woname">{workout.name}</span>
-          <span className="iw-pc-wosub">{workout.styleLabel || `${workout.style} day`} · {workout.blocks.length} blocks · ~{mins} min</span>
+          <span className="iw-pc-wosub">{workout.styleLabel || `${workout.style} day`} · {moveCount} moves · ~{mins} min</span>
         </span>
         <span className="iw-howto-caret" aria-hidden="true">{open ? "▾" : "▸"}</span>
       </button>
@@ -236,13 +302,43 @@ function WorkoutBreakdown({ workout }) {
               <p className="iw-al-fastline"><HL text={KIND_BLURBS[b.kind]} /></p>
               <div className="iw-stack">
                 {b.exercises.map((ex, i) => (
-                  <ExerciseHowTo key={`${b.key}-${i}-${ex.name}`} name={ex.name}
-                    title={ex.name} meta={ex.reps} defaultOpen={false} />
+                  <ExerciseCard key={`${b.key}-${i}-${ex.name}`} ex={ex} />
                 ))}
               </div>
               {b.note && <div className="iw-al-fastline"><HL text={b.note} /></div>}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── one exercise: thumbnail + name + reps ALWAYS visible; how-to text on tap ── */
+function ExerciseCard({ ex }) {
+  const info = exerciseInfo(ex.name);
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`iw-pc-ex ${open ? "iw-pc-ex-open" : ""}`}>
+      <div className="iw-pc-ex-top">
+        <ExerciseImg name={ex.name} className="iw-pc-ex-thumb" />
+        <span className="iw-pc-ex-info">
+          <span className="iw-pc-ex-name">{ex.name}</span>
+          {info && <span className="iw-pc-ex-tags">{info.muscles} · {info.equipment}</span>}
+        </span>
+        {ex.reps && <span className="iw-pc-ex-reps">{ex.reps}</span>}
+      </div>
+      {info && (
+        <button className="iw-pc-ex-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          {open ? "▾ hide the how-to" : "▸ how to do it"}
+        </button>
+      )}
+      {open && info && (
+        <div className="iw-pc-ex-how">
+          <p className="iw-pc-ex-setup"><HL text={info.setup} /></p>
+          <ol className="iw-pc-ex-steps">
+            {info.steps.map((s, i) => <li key={i}><HL text={s} /></li>)}
+          </ol>
         </div>
       )}
     </div>
@@ -255,7 +351,7 @@ function ExerciseLibrary() {
   const total = EXERCISE_GROUPS.reduce((s, g) => s + g.exercises.length, 0);
   return (
     <div className="iw-pc-lib">
-      <div className="iw-al-fastline"><HL text={`${total} moves — tap a family, then tap any move for the full how-to.`} /></div>
+      <div className="iw-al-fastline"><HL text={`${total} moves — tap a family to see every move with its picture.`} /></div>
       {EXERCISE_GROUPS.map((g) => {
         const open = openGroup === g.id;
         return (
@@ -268,8 +364,7 @@ function ExerciseLibrary() {
             {open && (
               <div className="iw-stack iw-pc-libstack">
                 {g.exercises.map((ex) => (
-                  <ExerciseHowTo key={ex.name} name={ex.name} title={ex.name}
-                    meta={`${ex.muscles} · ${ex.equipment}`} defaultOpen={false} />
+                  <ExerciseCard key={ex.name} ex={ex} />
                 ))}
               </div>
             )}

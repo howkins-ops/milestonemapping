@@ -952,6 +952,150 @@
 .mqw-theme-hometown .mqfx-reflect { opacity: 0.18; }
 .mqw-theme-hometown .mqfx-crosswalk { opacity: 0.5; }
 
+/* ════════ PHASE 4b — THE BIO-GROVES (de-squish greenways) ═══════════════ */
+/* Bioluminescent street nature between districts, tinted by the zone
+   accent (--fl-accent). Trees sway gently (transform only, small canopy);
+   bushes are static mounds with light-berries; bush2 carries fireflies. */
+
+.mqfx-flora {
+  position: absolute;
+  bottom: 11.5%;
+  pointer-events: none;
+  z-index: 1; /* behind citizens (2), clowns (3) and the Seeker (4) */
+}
+
+.mqfx-flora i { position: absolute; display: block; }
+
+/* neon-sakura tree: dark trunk + three glowing canopy puffs */
+.mqfx-flora--tree {
+  width: 64px;
+  height: 78px;
+}
+
+.mqfx-flora--tree i:nth-child(1) {
+  left: 28px;
+  bottom: 0;
+  width: 8px;
+  height: 40px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #140b22, #090311);
+  box-shadow: inset 1px 0 0 rgba(140, 160, 220, 0.1);
+}
+
+.mqfx-flora--tree i:nth-child(2),
+.mqfx-flora--tree i:nth-child(3) {
+  transform-origin: 32px 74px; /* sway from the trunk base */
+  animation: mqfx-treesway 7s ease-in-out infinite alternate;
+}
+
+.mqfx-flora--tree i:nth-child(2) {
+  left: 6px;
+  top: 4px;
+  width: 52px;
+  height: 34px;
+  background:
+    radial-gradient(38% 44% at 30% 62%, color-mix(in srgb, var(--fl-accent, #00ffbf) 34%, #0c0618) 0 68%, transparent 69%),
+    radial-gradient(42% 50% at 62% 42%, color-mix(in srgb, var(--fl-accent, #00ffbf) 28%, #0c0618) 0 68%, transparent 69%),
+    radial-gradient(34% 40% at 78% 70%, color-mix(in srgb, var(--fl-accent, #00ffbf) 22%, #0c0618) 0 68%, transparent 69%);
+}
+
+/* canopy light-blossoms — tiny glowing dots riding the sway */
+.mqfx-flora--tree i:nth-child(3) {
+  left: 14px;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fl-accent, #00ffbf);
+  box-shadow:
+    0 0 6px var(--fl-accent, #00ffbf),
+    22px 6px 0 -1px var(--fl-accent, #00ffbf),
+    34px -2px 0 -1.4px var(--fl-accent, #00ffbf),
+    10px 16px 0 -1.4px var(--fl-accent, #00ffbf);
+  opacity: 0.8;
+  animation-delay: -3.5s;
+}
+
+@keyframes mqfx-treesway {
+  from { transform: rotate(-2deg); }
+  to { transform: rotate(2.4deg); }
+}
+
+/* glow-bush: low mound + three light berries (static) */
+.mqfx-flora--bush,
+.mqfx-flora--bush2 {
+  width: 44px;
+  height: 24px;
+}
+
+.mqfx-flora--bush i:nth-child(1),
+.mqfx-flora--bush2 i:nth-child(1) {
+  left: 0;
+  bottom: 0;
+  width: 44px;
+  height: 20px;
+  background:
+    radial-gradient(36% 90% at 26% 100%, #0d1420 0 62%, transparent 63%),
+    radial-gradient(40% 110% at 56% 100%, #0f1626 0 62%, transparent 63%),
+    radial-gradient(32% 84% at 82% 100%, #0c1220 0 62%, transparent 63%);
+}
+
+.mqfx-flora--bush i:nth-child(2),
+.mqfx-flora--bush2 i:nth-child(2) {
+  left: 10px;
+  bottom: 8px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--fl-accent, #00ffbf);
+  box-shadow:
+    0 0 5px var(--fl-accent, #00ffbf),
+    14px 3px 0 -0.6px var(--fl-accent, #00ffbf),
+    24px -2px 0 -1px var(--fl-accent, #00ffbf);
+  opacity: 0.75;
+}
+
+/* bush2: fireflies — two slow orbiting motes (the grove breathes) */
+.mqfx-flora--bush2 i:nth-child(3) {
+  left: 20px;
+  bottom: 16px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fl-accent, #00ffbf) 80%, #fff);
+  box-shadow: 0 0 5px var(--fl-accent, #00ffbf);
+  animation: mqfx-moth 5.2s linear infinite;
+}
+
+.mqfx-flora--bush i:nth-child(3) { display: none; }
+
+/* the vine lamp — a hanging strand wraps the between-zone lamp */
+.mqfx-lamp--vine::before {
+  box-shadow:
+    0 0 12px var(--lamp-color, rgba(0, 240, 255, 0.9)),
+    0 0 30px rgba(0, 240, 255, 0.3),
+    0 14px 0 -3px color-mix(in srgb, var(--lamp-color, #00f0ff) 45%, #0c1420),
+    0 26px 0 -3.6px color-mix(in srgb, var(--lamp-color, #00f0ff) 30%, #0c1420);
+}
+
+/* hometown: warm amber-olive flora, slower sway */
+.mqw-theme-hometown .mqfx-flora--tree i:nth-child(2) {
+  background:
+    radial-gradient(38% 44% at 30% 62%, #2c2412 0 68%, transparent 69%),
+    radial-gradient(42% 50% at 62% 42%, #332a15 0 68%, transparent 69%),
+    radial-gradient(34% 40% at 78% 70%, #271f10 0 68%, transparent 69%);
+  animation-duration: 11s;
+}
+
+.mqw-theme-hometown .mqfx-flora--tree i:nth-child(1) {
+  background: linear-gradient(180deg, #241a0e, #140d06);
+}
+
+/* LITE: fireflies + sway off; the static greenery stays (it's the win) */
+.mqfx-q-lite .mqfx-flora--bush2 i:nth-child(3) { display: none; }
+.mqfx-q-lite .mqfx-flora--tree i:nth-child(2),
+.mqfx-q-lite .mqfx-flora--tree i:nth-child(3) { animation: none; }
+
 /* ════════ PHASE 5 — THE SEEKER, ALIVE ═══════════════════════════════════ */
 
 /* ── Idle life: breathe, blink, micro head-turn, 14s fidget ─────────────── */

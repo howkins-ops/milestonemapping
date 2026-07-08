@@ -48,7 +48,9 @@ import {
    (typed lines, embers, confetti) — kit.jsx is NOT imported (font law).
    ════════════════════════════════════════════════════════════════════════ */
 
-const SKIPPABLE = new Set(["ignition", "mirror", "wall", "cost", "path"]);
+// Every phase carries a skip affordance — a reviewer (or any user) must always
+// be able to leave onboarding, including after a force-quit resumes mid-flow.
+const SKIPPABLE = new Set(PROGRESS_PHASES);
 
 function prefersInstant(settings) {
   if (settings && settings.reducedMotion) return true;

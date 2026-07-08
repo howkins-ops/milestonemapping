@@ -7,6 +7,136 @@ import TopFiveWizard from "./TopFiveWizard.jsx";
 import { useDailyLog } from "../../hooks/useDailyLog.js";
 import { uid } from "../../lib/id.js";
 
+// The three lighter checklists that live under the Top 5 — one connected
+// priority system. No XP / celebration, just a simple check / uncheck.
+const DAILY_LISTS = [
+  { key: "todoList", icon: "📋", label: "To-Do", accent: "0, 240, 255", placeholder: "Add a to-do…" },
+  { key: "errands", icon: "🏃", label: "Errands", accent: "0, 255, 191", placeholder: "Add an errand…" },
+  { key: "calls", icon: "📞", label: "Calls to Make", accent: "255, 209, 102", placeholder: "Add a call to make…" }
+];
+
+function DailyChecklist({ config, items, onAdd, onToggle, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const doneCount = items.filter((i) => i.done).length;
+
+  const submit = () => {
+    const text = draft.trim();
+    if (!text) return;
+    onAdd(config.key, text);
+    setDraft("");
+    if (!open) setOpen(true);
+  };
+
+  return (
+    <div
+      className="daily-mini-list"
+      style={{
+        marginTop: 12,
+        borderRadius: 12,
+        border: `1px solid rgba(${config.accent}, 0.18)`,
+        background: `rgba(${config.accent}, 0.04)`,
+        overflow: "hidden"
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          width: "100%",
+          padding: "12px 14px",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "var(--text-main)"
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13.5, fontWeight: 700, letterSpacing: "0.02em" }}>
+          <span aria-hidden="true" style={{ fontSize: 16 }}>{config.icon}</span>
+          {config.label}
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {items.length > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: `rgba(${config.accent}, 0.85)` }}>
+              {doneCount}/{items.length}
+            </span>
+          )}
+          <span
+            aria-hidden="true"
+            style={{
+              fontSize: 11,
+              color: `rgba(${config.accent}, 0.6)`,
+              transition: "transform 200ms ease",
+              transform: open ? "rotate(180deg)" : "none"
+            }}
+          >
+            ▾
+          </span>
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ padding: "0 14px 14px" }}>
+          {items.length > 0 && (
+            <ul style={{ listStyle: "none", margin: "0 0 4px", padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+              {items.map((item) => (
+                <li key={item.id} className="row" style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className={`checkbox-glow ${item.done ? "is-checked" : ""}`}
+                    onClick={() => onToggle(config.key, item.id)}
+                    aria-label={`${item.done ? "Uncheck" : "Complete"}: ${item.text}`}
+                  >
+                    {item.done ? "✓" : ""}
+                  </button>
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 14.5,
+                      color: item.done ? "var(--text-soft)" : "var(--text-main)",
+                      textDecoration: item.done ? "line-through" : "none"
+                    }}
+                  >
+                    {item.text}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(config.key, item.id)}
+                    aria-label={`Delete: ${item.text}`}
+                    style={{ color: "var(--brand-red)" }}
+                  >
+                    ✕
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="row" style={{ marginTop: items.length > 0 ? 10 : 2 }}>
+            <input
+              className="input"
+              placeholder={config.placeholder}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+              aria-label={`New ${config.label} item`}
+            />
+            <Button variant="ghost" size="sm" onClick={submit} disabled={!draft.trim()}>
+              Add
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // mode="execute" → morning: tick off today's five (checkboxes, XP, progress)
 // mode="plan"    → evening: load tomorrow's five (no checkboxes, planning copy)
 export default function TopFivePanel({ mode = "execute" }) {
@@ -20,6 +150,9 @@ export default function TopFivePanel({ mode = "execute" }) {
     updateTopFiveTask,
     deleteTopFiveTask,
     toggleTopFiveTask,
+    addDailyListItem,
+    deleteDailyListItem,
+    toggleDailyListItem,
     addTomorrowTopFiveTask,
     updateTomorrowTopFiveTask,
     deleteTomorrowTopFiveTask
@@ -200,6 +333,24 @@ export default function TopFivePanel({ mode = "execute" }) {
           <p className="soft" style={{ marginTop: 16, fontSize: 13 }}>
             {isPlan ? "Five priorities locked. Wake up ready." : "Five priorities locked. Now execute."}
           </p>
+        )}
+
+        {!isPlan && (
+          <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(242, 240, 244, 0.08)" }}>
+            <span className="daily-action-card__eyebrow" style={{ display: "block", marginBottom: 12 }}>
+              THE REST OF THE DAY · KEEP IT ALL IN ONE PLACE
+            </span>
+            {DAILY_LISTS.map((config) => (
+              <DailyChecklist
+                key={config.key}
+                config={config}
+                items={(todayLog[config.key]) || []}
+                onAdd={addDailyListItem}
+                onToggle={toggleDailyListItem}
+                onDelete={deleteDailyListItem}
+              />
+            ))}
+          </div>
         )}
       </Card>
     </section>

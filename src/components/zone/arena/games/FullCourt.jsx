@@ -33,9 +33,21 @@ import {
   quarterLabel,
   quarterEffort,
   currentDrive,
+  outcomeBreakdown,
   LADDER,
   HEAT_ON,
 } from "../../../../lib/fullCourtEngine.js";
+import {
+  COACH,
+  ANNOUNCER,
+  coachClip,
+  pickCoachLine,
+  coachBadQuarterClip,
+  announcerQuarterRecap,
+  announcerHalftime,
+  announcerFinal,
+} from "../../../../data/fullCourtVoice.js";
+import { joinLiveMatch, makeMatchCode } from "../../../../lib/fullCourtLive.js";
 import { useReveal, useArenaBurst } from "../useArenaFX.js";
 import { witnessSay } from "../../witness/witnessLines.js";
 import {
@@ -62,6 +74,17 @@ import {
   BREAK_BEDS,
 } from "../../../../data/fullCourtBreakScript.js";
 import FullCourtStats from "./FullCourtStats.jsx";
+import HydrationCup from "./HydrationCup.jsx";
+import {
+  dunkTierCrossed,
+  HOT_ZONE_AT,
+  JumboTicker,
+  JumboCallout,
+  JumboDunk,
+  ClutchLayer,
+  QuarterBreakdown,
+  JumboFinal,
+} from "./FullCourtJumbotron.jsx";
 import "./FullCourt.css";
 
 const GOLD = "#FFD166";
@@ -70,15 +93,44 @@ const GOLD = "#FFD166";
 const today = () => new Date().toLocaleDateString("en-CA");
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-// GAME DAY clock — a quarter is 2 real hours; OT chases the record for 30 min.
-// `?fcdev` (or #fcdev) anywhere in the URL shrinks everything for testing.
+// GAME DAY clock — the quarter clock counts DOWN from the moment you tip off
+// (elapsed play time, never a fixed time of day). Quarter length is fixed per
+// SCHEDULE so a late start never stretches a quarter. `?fcdev` (or #fcdev)
+// anywhere in the URL shrinks everything for testing.
 const DEV_FAST =
   typeof window !== "undefined" && /[?&#]fcdev\b/.test(window.location.href);
-const Q_SECS = DEV_FAST ? 90 : 7200;
-const OT_SECS = DEV_FAST ? 45 : 1800;
+
+// Day schedules (handoff #2). Each sets a fixed quarter length; the four
+// quarters are timed from actual tip-off, back-to-back with locker rooms.
+//   Standard    — 4 × 2 hr, the classic game day.
+//   Saturday    — 4 × 1 hr, a short compressed day.
+//   Competition — 4 × 3 hr, the long grind.
+export const SCHEDULES = {
+  standard: { key: "standard", label: "Standard", qSecs: 7200, otSecs: 1800, hint: "4 × 2 hr · the full game day" },
+  saturday: { key: "saturday", label: "Saturday", qSecs: 3600, otSecs: 1200, hint: "4 × 1 hr · short, compressed day" },
+  competition: { key: "competition", label: "Competition", qSecs: 10800, otSecs: 1800, hint: "4 × 3 hr · the long grind" },
+};
+const scheduleSecs = (schedule, q) => {
+  const s = SCHEDULES[schedule] || SCHEDULES.standard;
+  if (DEV_FAST) return q > 4 ? 45 : 90;
+  return q > 4 ? s.otSecs : s.qSecs;
+};
 const BUZZER_WINDOW = DEV_FAST ? 10 : 60; // sale inside the final stretch = buzzer-beater
 const BREAK_LENS = DEV_FAST ? [15, 30] : [60, 120];
-const quarterSecs = (q) => (q > 4 ? OT_SECS : Q_SECS);
+
+// Overtime tier from the REAL time of day (handoff #10). 9:00–9:30pm = OT,
+// 9:30–10:00pm = Double OT. `?fcot=ot` / `?fcot=2ot` forces a tier for testing.
+function overtimeTierNow() {
+  if (typeof window !== "undefined") {
+    const m = /[?&#]fcot=(2ot|ot)\b/.exec(window.location.href);
+    if (m) return m[1] === "2ot" ? "2ot" : "ot";
+  }
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  if (mins >= 21 * 60 && mins < 21 * 60 + 30) return "ot"; // 9:00–9:30pm
+  if (mins >= 21 * 60 + 30 && mins < 22 * 60) return "2ot"; // 9:30–10:00pm
+  return null;
+}
 
 // A live game survives refreshes/navigation — it spans a whole workday.
 const LIVE_KEY = "fullcourt_live_v1";
@@ -113,6 +165,16 @@ const MODE_ACTIONS = {
     { key: "value_build", glyph: "📈", label: "VALUE", sub: "+6 · pull-up", cls: "fc-btn--pitch" },
     { key: "price_drop", glyph: "🏷️", label: "PRICE", sub: "+8 · step-back three", cls: "fc-btn--pitch" },
     { key: "close", glyph: "💰", label: "CLOSE", sub: "+10 · THE DUNK", cls: "fc-btn--sale" },
+  ],
+  // FULL mode — the 6 real door outcomes (handoff #3). Feeds the stat sheet's
+  // outcome breakdown and the AI-ready door log.
+  full: [
+    { key: "no_answer", glyph: "🚪", label: "NO ANSWER", sub: "+2 · nobody home", cls: "fc-btn--no" },
+    { key: "not_interested", glyph: "🙅", label: "NOT INTERESTED", sub: "+3 · they passed", cls: "fc-btn--no" },
+    { key: "gatekeeper", glyph: "🛡️", label: "GATEKEEPER", sub: "+4 · got blocked", cls: "fc-btn--pitch" },
+    { key: "objection", glyph: "💬", label: "OBJECTION", sub: "+6 · worked a concern", cls: "fc-btn--pitch" },
+    { key: "full_pitch", glyph: "🎤", label: "FULL PITCH", sub: "+8 · value stack", cls: "fc-btn--pitch" },
+    { key: "sale", glyph: "💰", label: "SALE", sub: "+10 · THE DUNK", cls: "fc-btn--sale" },
   ],
 };
 
@@ -181,6 +243,20 @@ export default function FullCourt({ go }) {
   // Setup knobs.
   const [mode, setMode] = useState("rookie");
   const [avgDollar, setAvgDollar] = useState(250);
+  const [schedule, setSchedule] = useState("standard"); // Standard | Saturday | Competition
+
+  // Pause — freezes the quarter clock (elapsed play time, so a pause never
+  // shortens a quarter). Stores the seconds left so resume re-arms the deadline.
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(0); // seconds remaining while paused
+  const [otTier, setOtTier] = useState(null); // 'ot' | '2ot' — real-clock overtime
+
+  // Live head-to-head (handoff #5) — join a match code to see a friend's line
+  // tick up live. Ephemeral Realtime Broadcast; no backend to deploy.
+  const [matchCode, setMatchCode] = useState("");
+  const [codeInput, setCodeInput] = useState("");
+  const [opponent, setOpponent] = useState(null); // { name, points, doors, sales }
+  const liveRef = useRef(null);
 
   // Live game state (null until tip-off) + UI phase.
   const [game, setGame] = useState(null);
@@ -198,6 +274,15 @@ export default function FullCourt({ go }) {
   const [showStats, setShowStats] = useState(false);
   const [rejoin, setRejoin] = useState(null); // saved live game found on mount
 
+  // Jumbotron layer — full-screen call-outs + milestone combo dunks. One of
+  // each at a time; a dunk outranks a call-out on the same door.
+  const [callout, setCallout] = useState(null);
+  const [dunk, setDunk] = useState(null);
+  const calloutTimer = useRef(null);
+  const dunkTimer = useRef(null);
+  const warnedRef = useRef({}); // clock warnings fired this quarter
+  const recordShownRef = useRef(false); // NEW CAREER HIGH fires once per game
+
   // Persist bookkeeping.
   const [logging, setLogging] = useState(false);
   const [logged, setLogged] = useState(null); // null|'done'|'offline'
@@ -208,6 +293,16 @@ export default function FullCourt({ go }) {
   const brkVoiceRef = useRef(null);
   const brkBedRef = useRef(null);
   const brkLoopRef = useRef(null);
+
+  // Two-voice broadcast channel (Andrew the announcer + Alex the coach). One
+  // line at a time so they never talk over each other; separate from the break
+  // track which owns its own channel.
+  const voiceRef = useRef(null);
+  const coachSeenRef = useRef(new Set()); // recently-played coach line ids (avoid repeats)
+  const coachCadenceRef = useRef(0);      // doors since the last in-round coach line
+  const badMinRef = useRef({});           // bad-quarter countdown marks already fired
+  const otTierRef = useRef(null);         // last OT tier the coach called ('ot'|'2ot')
+  const ambientRef = useRef(null);        // crowd/ambient bed while on the court
 
   const loadSeason = useCallback(async () => {
     if (!userId) {
@@ -264,12 +359,12 @@ export default function FullCourt({ go }) {
       }
       localStorage.setItem(
         LIVE_KEY,
-        JSON.stringify({ game, phase, endsAt, mode, avgDollar, savedAt: Date.now() })
+        JSON.stringify({ game, phase, endsAt, mode, avgDollar, schedule, savedAt: Date.now() })
       );
     } catch {
       /* storage full/blocked — game still plays */
     }
-  }, [game, phase, endsAt, mode, avgDollar, logged]);
+  }, [game, phase, endsAt, mode, avgDollar, schedule, logged]);
 
   const clearLive = useCallback(() => {
     try {
@@ -296,6 +391,86 @@ export default function FullCourt({ go }) {
     }, 170);
   }, []);
 
+  /* ---------------- jumbotron moments ---------------- */
+
+  const showCallout = useCallback((c) => {
+    clearTimeout(calloutTimer.current);
+    setCallout({ id: Math.random().toString(36).slice(2), ...c });
+    calloutTimer.current = setTimeout(() => {
+      if (aliveRef.current) setCallout(null);
+    }, 1450); // matches the fcj-callout-life animation
+  }, []);
+
+  const showDunk = useCallback((tier) => {
+    clearTimeout(dunkTimer.current);
+    setDunk({ id: Math.random().toString(36).slice(2), tier });
+    dunkTimer.current = setTimeout(() => {
+      if (aliveRef.current) setDunk(null);
+    }, 2450); // matches the fcj-dunk-life animation
+    try {
+      sfxDunk();
+      sfxHorn(Math.min(3, 1 + Math.floor(tier.intensity / 4)));
+      if (tier.intensity >= 4) sfxCrowdRoar();
+      if (navigator.vibrate) navigator.vibrate(tier.intensity >= 7 ? [60, 40, 90] : 50);
+    } catch {
+      /* silent */
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      clearTimeout(calloutTimer.current);
+      clearTimeout(dunkTimer.current);
+    },
+    []
+  );
+
+  /* ---------------- broadcast voices (announcer + coach) ---------------- */
+
+  // Speak one line on the shared broadcast channel. `clip` = a baked mp3 path
+  // (coach lines); omit it for the announcer (dynamic → streamed). Stops any
+  // line already talking so the two voices never overlap.
+  const speak = useCallback(
+    (text, opts = {}) => {
+      if (!text || settings?.soundEnabled === false) return;
+      try {
+        stopNarration([voiceRef.current]);
+      } catch {
+        /* silent */
+      }
+      const audio = createLineAudio(text, opts.voice || COACH.voice, opts.clip || null);
+      voiceRef.current = audio;
+      // small beat so it lands after the buzzer/sfx, not on top of it
+      const t = setTimeout(() => {
+        if (aliveRef.current && voiceRef.current === audio) playLine(audio, text, settings);
+      }, opts.delay ?? 220);
+      return () => clearTimeout(t);
+    },
+    [settings]
+  );
+
+  const stopVoice = useCallback(() => {
+    try {
+      stopNarration([voiceRef.current]);
+    } catch {
+      /* silent */
+    }
+    voiceRef.current = null;
+  }, []);
+
+  // The coach drops an affirmation — remembers recent ids so it won't repeat.
+  const coachSay = useCallback(
+    (pool) => {
+      const line = pickCoachLine(pool, coachSeenRef.current);
+      if (!line) return;
+      const seen = coachSeenRef.current;
+      seen.add(line.id);
+      if (seen.size > 12) seen.delete(seen.values().next().value); // keep it small
+      speak(line.text, { voice: COACH.voice, clip: coachClip(line.id) });
+    },
+    [speak]
+  );
+
   /* ---------------- buzzer / finish ---------------- */
 
   const finalize = useCallback(
@@ -309,6 +484,8 @@ export default function FullCourt({ go }) {
         /* audio never blocks */
       }
       const bx = boxScore(next);
+      // Andrew calls the final.
+      speak(announcerFinal(bx), { voice: ANNOUNCER.voice, delay: 900 });
       celebrate?.({
         variant: "reward",
         title: "FINAL BUZZER",
@@ -330,7 +507,7 @@ export default function FullCourt({ go }) {
         }
       }
     },
-    [celebrate, pushToast, squadName]
+    [celebrate, pushToast, squadName, speak]
   );
 
   // The quarter buzzer — a full celebration takeover, then the locker room.
@@ -354,6 +531,11 @@ export default function FullCourt({ go }) {
       }
       const ended = next.quarterLog[next.quarterLog.length - 1];
       const isHalf = ended?.label === "Q2";
+      // Andrew reads the quarter recap (the big halftime roll after Q2).
+      speak(isHalf ? announcerHalftime(next, oddsEngine(next)) : announcerQuarterRecap(ended, next), {
+        voice: ANNOUNCER.voice,
+        delay: 850,
+      });
       // The game's read: a sale wins the quarter outright; otherwise the
       // work-rate verdict decides whether you fought or hid.
       const read = ended?.won ? "won" : effort === "slump" ? "slump" : "rough";
@@ -371,7 +553,7 @@ export default function FullCourt({ go }) {
         /* confetti optional */
       }
     },
-    [finalize, burst]
+    [finalize, burst, speak]
   );
 
   /* ---------------- clock (timestamp-based — survives throttled tabs) ---------------- */
@@ -405,11 +587,245 @@ export default function FullCourt({ go }) {
 
   /* ---------------- controls ---------------- */
 
-  const startQuarterClock = useCallback((q) => {
-    const secs = quarterSecs(q);
-    setEndsAt(Date.now() + secs * 1000);
-    setClock(secs);
+  const startQuarterClock = useCallback(
+    (q) => {
+      const secs = scheduleSecs(schedule, q);
+      warnedRef.current = {}; // fresh quarter → fresh clock warnings
+      badMinRef.current = {}; // fresh bad-quarter countdown
+      setPaused(false);
+      setEndsAt(Date.now() + secs * 1000);
+      setClock(secs);
+    },
+    [schedule]
+  );
+
+  // Pause / resume — freezes the deadline so the quarter never runs long.
+  const togglePause = useCallback(() => {
+    if (phase !== "playing") return;
+    setPaused((p) => {
+      if (!p) {
+        // pausing: bank the seconds left, drop the deadline
+        pausedRef.current = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        setEndsAt(0);
+        try {
+          sfxWhoosh();
+        } catch {
+          /* silent */
+        }
+        return true;
+      }
+      // resuming: re-arm the deadline from the banked seconds
+      const secs = pausedRef.current || 0;
+      setEndsAt(Date.now() + secs * 1000);
+      setClock(secs);
+      try {
+        sfxRoundBell();
+      } catch {
+        /* silent */
+      }
+      return false;
+    });
+  }, [phase, endsAt]);
+
+  // End the quarter on demand (handoff #2) — same path as the clock expiring,
+  // so the buzzer, recap and locker room all fire exactly as normal.
+  const endQuarterNow = useCallback(() => {
+    if (phase !== "playing" || !game || game.over) return;
+    const frac = endsAt ? 1 - Math.max(0, (endsAt - Date.now()) / 1000) / scheduleSecs(schedule, game.quarter) : 1;
+    const effort = quarterEffort(game, frac);
+    const next = advanceDrive(game);
+    if (next === game) return;
+    setPaused(false);
+    setEndsAt(0);
+    setClock(0);
+    setGame(next);
+    doBuzzer(next, effort);
+  }, [phase, game, endsAt, schedule, doBuzzer]);
+
+  // On-court crowd ambiance (handoff #8) — a soft arena bed while you play,
+  // hushed on pause / between quarters / when sound is off.
+  useEffect(() => {
+    if (phase !== "playing" || paused || settings?.soundEnabled === false) {
+      try {
+        ambientRef.current?.stop();
+      } catch {
+        /* silent */
+      }
+      ambientRef.current = null;
+      return undefined;
+    }
+    if (!ambientRef.current) {
+      try {
+        ambientRef.current = sfxCrowdLoop(settings);
+      } catch {
+        /* silence is fine */
+      }
+    }
+    return undefined;
+  }, [phase, paused, settings]);
+
+  // Never leave ambiance or a voice line running after the game unmounts.
+  useEffect(
+    () => () => {
+      try {
+        ambientRef.current?.stop();
+      } catch {
+        /* silent */
+      }
+      ambientRef.current = null;
+      try {
+        stopNarration([voiceRef.current]);
+      } catch {
+        /* silent */
+      }
+    },
+    []
+  );
+
+  /* ---------------- live head-to-head ---------------- */
+
+  const leaveMatch = useCallback(() => {
+    try {
+      liveRef.current?.leave();
+    } catch {
+      /* silent */
+    }
+    liveRef.current = null;
+    setMatchCode("");
+    setOpponent(null);
   }, []);
+
+  const joinMatch = useCallback(
+    (rawCode) => {
+      const code = String(rawCode || "").trim().toUpperCase();
+      if (!code) return;
+      try {
+        liveRef.current?.leave();
+      } catch {
+        /* silent */
+      }
+      const handle = joinLiveMatch(code, {
+        me: { id: userId || myTag, name: myTag },
+        onOpponent: (line) => {
+          if (aliveRef.current) setOpponent(line);
+        },
+      });
+      liveRef.current = handle;
+      setMatchCode(code);
+      setOpponent(null);
+      if (!handle.ok) {
+        pushToast?.({
+          type: "info",
+          title: "Challenge offline",
+          message: "Live scoring needs a connection — you can still play solo.",
+        });
+      } else {
+        pushToast?.({
+          type: "success",
+          title: "🏀 Match ready",
+          message: `Share code ${code}. Points go live the moment you both tip off.`,
+        });
+      }
+    },
+    [userId, myTag, pushToast]
+  );
+
+  // Broadcast my running line to the opponent on every meaningful change.
+  useEffect(() => {
+    if (!liveRef.current?.ok || !game) return;
+    liveRef.current.publish({
+      points: game.points,
+      doors: game.doors,
+      sales: game.sales,
+      quarter: game.quarter,
+      over: !!game.over,
+    });
+  }, [game]);
+
+  // Tear the channel down when leaving the game entirely.
+  useEffect(() => () => leaveMatch(), [leaveMatch]);
+
+  // Jumbotron clock warnings — 1 hour / 30 min / CLUTCH TIME at 2 min. Fires
+  // once per quarter each; on a resume below a mark, only the most urgent one
+  // speaks (the rest are marked spent so they never cascade).
+  useEffect(() => {
+    if (phase !== "playing" || !game || !endsAt || clock <= 0) return;
+    const qLen = scheduleSecs(schedule, game.quarter);
+    const marks = [
+      { t: 3600, title: "1 HOUR LEFT", sub: "HALF THE QUARTER — KEEP THE PACE" },
+      { t: 1800, title: "30 MINUTES", sub: "PUSH — THE BUZZER'S COMING" },
+      { t: 120, title: "CLUTCH TIME", sub: "TWO MINUTES — EMPTY THE TANK" },
+    ].filter((m) => m.t < qLen);
+    const crossed = marks.filter((m) => clock <= m.t && !warnedRef.current[m.t]);
+    if (!crossed.length) return;
+    crossed.forEach((m) => {
+      warnedRef.current[m.t] = true;
+    });
+    const m = crossed[crossed.length - 1]; // marks are ordered big→small
+    showCallout({ title: m.title, sub: m.sub, glyph: "⏱️", tone: "warn" });
+    try {
+      sfxHorn(1);
+    } catch {
+      /* silent */
+    }
+  }, [clock, phase, game, endsAt, schedule, showCallout]);
+
+  // COACH · bad-quarter countdown — in a scoreless, low-activity quarter the
+  // coach speaks one recovery line per minute through the final 10 minutes,
+  // counting down (clip 10 at the 10-min mark … clip 1 at 1-min). Fires once
+  // per minute mark; only when the court "saw you hiding" (not while working).
+  useEffect(() => {
+    if (phase !== "playing" || paused || !game || !endsAt || clock <= 0) return;
+    if (game.salesThisQ > 0 || clock > 600) return;
+    const minutesLeft = Math.ceil(clock / 60);
+    if (minutesLeft < 1 || minutesLeft > 10 || badMinRef.current[minutesLeft]) return;
+    const frac = 1 - clock / scheduleSecs(schedule, game.quarter);
+    if (quarterEffort(game, frac) === "hot") return; // they're working — no nag
+    badMinRef.current[minutesLeft] = true;
+    const clip = coachBadQuarterClip(minutesLeft);
+    speak(clip.text, { voice: COACH.voice, clip: coachClip(clip.id) });
+  }, [clock, phase, paused, game, endsAt, schedule, speak]);
+
+  // COACH · Overtime work-ethic lines (handoff #10) — driven by the REAL time
+  // of day. 9:00–9:30pm = OT, 9:30–10:00pm = Double OT. The coach calls it on
+  // entry and drops a fresh line every ~5 min while you're still out there.
+  // `?fcot=ot` / `?fcot=2ot` forces a tier for testing.
+  useEffect(() => {
+    if (phase !== "playing") {
+      setOtTier(null);
+      return undefined;
+    }
+    let periodic = 0;
+    const check = () => {
+      if (pausedRef.current && paused) return;
+      const tier = overtimeTierNow();
+      setOtTier(tier);
+      if (tier && tier !== otTierRef.current) {
+        otTierRef.current = tier;
+        periodic = 0;
+        coachSay(tier === "2ot" ? "doubleOt" : "ot");
+        showCallout({
+          title: tier === "2ot" ? "DOUBLE OVERTIME" : "OVERTIME",
+          sub: tier === "2ot" ? "SICKO HOURS — STILL OUT HERE" : "9PM DOESN'T MEAN DONE",
+          glyph: "🌙",
+          tone: "fire",
+        });
+        try {
+          sfxHorn(2);
+        } catch {
+          /* silent */
+        }
+      } else if (tier) {
+        periodic += 1;
+        if (periodic % 10 === 0) coachSay(tier === "2ot" ? "doubleOt" : "ot"); // ~5 min at 30s ticks
+      } else {
+        otTierRef.current = null;
+      }
+    };
+    check();
+    const t = setInterval(check, 30000);
+    return () => clearInterval(t);
+  }, [phase, paused, coachSay, showCallout]);
 
   const tipOff = useCallback(() => {
     const { prior, best } = seasonPrior(season);
@@ -420,6 +836,11 @@ export default function FullCourt({ go }) {
       seasonBest: best,
     });
     loggedRef.current = false;
+    recordShownRef.current = false;
+    coachCadenceRef.current = 0;
+    coachSeenRef.current = new Set();
+    otTierRef.current = null;
+    setOtTier(null);
     setLogged(null);
     setRejoin(null);
     setGame(g);
@@ -440,8 +861,12 @@ export default function FullCourt({ go }) {
   // celebration screen so the rep re-picks their locker room.
   const resumeGame = useCallback(() => {
     if (!rejoin?.game) return;
-    setMode(rejoin.mode === "pro" ? "pro" : "rookie");
+    setMode(rejoin.mode === "pro" || rejoin.mode === "full" ? rejoin.mode : "rookie");
+    if (rejoin.schedule && SCHEDULES[rejoin.schedule]) setSchedule(rejoin.schedule);
     if (Number(rejoin.avgDollar) > 0) setAvgDollar(rejoin.avgDollar);
+    coachCadenceRef.current = 0;
+    badMinRef.current = {};
+    otTierRef.current = null;
     loggedRef.current = false;
     setLogged(null);
     setGame(rejoin.game);
@@ -538,9 +963,16 @@ export default function FullCourt({ go }) {
 
   const doLog = useCallback(
     (outcome, e) => {
-      if (!game || phase !== "playing") return;
-      // A sale in the real clock's final stretch is the buzzer-beater.
-      const next = logDoor(game, outcome, { atBuzzer: clock > 0 && clock <= BUZZER_WINDOW });
+      if (!game || phase !== "playing" || paused) return;
+      // A sale in the real clock's final stretch is the buzzer-beater. `at` =
+      // how far into the quarter this door landed (0..1) — recorded on the
+      // door log for the future AI pattern layer.
+      const qLen = scheduleSecs(schedule, game.quarter);
+      const at = qLen > 0 ? Math.max(0, Math.min(1, 1 - clock / qLen)) : null;
+      const next = logDoor(game, outcome, {
+        atBuzzer: clock > 0 && clock <= BUZZER_WINDOW,
+        at,
+      });
       if (next === game) return; // unknown outcome / finished
       const ev = next.lastEvent;
       if (ev?.targetSmashed) {
@@ -554,9 +986,58 @@ export default function FullCourt({ go }) {
       const y = e?.clientY ?? window.innerHeight / 2;
       shootBall(x, y, ev);
       bump();
+
+      // Jumbotron: pick THE moment for this door (dunk tier outranks call-outs)
+      // and land it with the ball, on the same 520ms flight delay as the sound.
+      const prevHeat = game.heat;
+      const tier = dunkTierCrossed(game.points, next.points);
+      const wasRecordShown = recordShownRef.current;
+      if (ev?.isRecord) recordShownRef.current = true;
+      setTimeout(() => {
+        if (!aliveRef.current) return;
+        if (tier) {
+          showDunk(tier);
+          return;
+        }
+        if (ev?.buzzerBeater) {
+          showCallout({ title: `BUZZER BEATER +${ev.points}`, sub: "SALE AT THE HORN", glyph: "🎯", tone: "sale" });
+        } else if (ev?.targetSmashed) {
+          showCallout({ title: `TARGET SMASHED +${ev.points}`, sub: "QUARTER TARGET DOWN — KEEP SCORING", glyph: "🎯", tone: "bonus" });
+        } else if (ev?.isRecord && !wasRecordShown) {
+          showCallout({ title: "NEW CAREER HIGH", sub: "EVERY POINT FROM HERE IS A RECORD", glyph: "🏆", tone: "record" });
+        } else if (ev?.isSale) {
+          showCallout({ title: `THE DUNK +${ev.points}`, sub: "SALE ON THE BOARD", glyph: "💰", tone: "sale" });
+        } else if (next.heat >= HOT_ZONE_AT && prevHeat < HOT_ZONE_AT) {
+          showCallout({ title: "HOT ZONE", sub: "STREAK ALIVE — EVERY KNOCK IS HEAVY", glyph: "🔥", tone: "fire" });
+        } else if (ev?.onFire && prevHeat < HEAT_ON) {
+          showCallout({ title: "ON FIRE", sub: `${next.heat} GOOD DOORS IN A ROW`, glyph: "🔥", tone: "fire" });
+        }
+      }, 520);
+
+      // Coach affirmations — NOT every door (handoff #7). A good pitch earns
+      // praise now and then; a stretch of grind earns a keep-going line. Big
+      // moments (sale/dunk/target/buzzer) own the audio channel, so skip them.
+      const isBigMoment =
+        !!tier || ev?.isSale || ev?.targetSmashed || ev?.buzzerBeater;
+      if (!isBigMoment) {
+        const goodPitch =
+          ev?.outcome === "full_pitch" ||
+          ev?.outcome === "value_build" ||
+          ev?.outcome === "pitch" ||
+          ev?.outcome === "objection";
+        coachCadenceRef.current += 1;
+        if (goodPitch && Math.random() < 0.4) {
+          coachCadenceRef.current = 0;
+          coachSay("goodPitch");
+        } else if (coachCadenceRef.current >= 4) {
+          coachCadenceRef.current = 0;
+          coachSay("keepGoing");
+        }
+      }
+
       setGame(next);
     },
-    [game, phase, clock, shootBall, bump]
+    [game, phase, paused, clock, schedule, shootBall, bump, showCallout, showDunk, coachSay]
   );
 
   /* ---------------- locker room (break) ---------------- */
@@ -594,6 +1075,7 @@ export default function FullCourt({ go }) {
   const startBreak = useCallback(
     (flavor) => {
       if (!buzz) return;
+      stopVoice(); // hush the announcer recap before the locker-room track
       const secs = buzz.breakLen || BREAK_LENS[0];
       const track = pickBreakTrack(flavor, buzz.read, DEV_FAST ? (secs > 15 ? 120 : 60) : secs);
       setBrk({ flavor, secs, endsAt: Date.now() + secs * 1000, track });
@@ -632,7 +1114,7 @@ export default function FullCourt({ go }) {
         }, 700);
       }
     },
-    [buzz, settings]
+    [buzz, settings, stopVoice]
   );
 
   // Back on the court — break finished (or skipped from the buzzer screen).
@@ -715,8 +1197,20 @@ export default function FullCourt({ go }) {
     setBuzz(null);
     setBrk(null);
     setFlies([]);
+    setCallout(null);
+    setDunk(null);
     setLogged(null);
+    setPaused(false);
+    setOtTier(null);
+    otTierRef.current = null;
+    coachCadenceRef.current = 0;
     loggedRef.current = false;
+    recordShownRef.current = false;
+    try {
+      stopNarration([voiceRef.current]);
+    } catch {
+      /* silent */
+    }
   }, [stopBreakAudio, clearLive]);
 
   // Mid-game start-over — a live game spans a whole workday, so it needs an
@@ -792,6 +1286,14 @@ export default function FullCourt({ go }) {
         </div>
       )}
 
+      {/* jumbotron overlays — call-outs, milestone dunks, clutch-time layer */}
+      <JumboCallout callout={callout} />
+      <JumboDunk dunk={dunk} />
+      <ClutchLayer
+        active={phase === "playing" && clock > 0 && clock <= (DEV_FAST ? 15 : 120)}
+        count={phase === "playing" && clock > 0 && clock <= 10 ? clock : null}
+      />
+
       <button type="button" className="zn-back fc-back" onClick={() => go?.("arena")}>
         ← Arena
       </button>
@@ -807,8 +1309,8 @@ export default function FullCourt({ go }) {
         </p>
       </header>
 
-      {/* ---------------- SCOREBOARD ---------------- */}
-      <div className="fc-board zn-card zn-card--glow" data-fire={fire?.key || "cold"}>
+      {/* ---------------- SCOREBOARD (jumbotron shell) ---------------- */}
+      <div className="fc-board zn-card zn-card--glow fcj-shell" data-fire={fire?.key || "cold"}>
         <div className="fc-top">
           <div className="fc-team">
             {myTeam}
@@ -817,12 +1319,49 @@ export default function FullCourt({ go }) {
             </small>
           </div>
           <div className="fc-topright">
+            {otTier && phase === "playing" && (
+              <span className={`fc-otbadge fc-otbadge--${otTier}`}>
+                {otTier === "2ot" ? "🌙 DOUBLE OT" : "🌙 OVERTIME"}
+              </span>
+            )}
             <span className="fc-qchip">{game ? quarterLabel(game) : "Q1"}</span>
-            <span className={`fc-clock ${lowClock ? "fc-clock--low" : ""}`}>
-              {fmtClock(phase === "idle" ? quarterSecs(1) : clock)}
+            <span className={`fc-clock ${lowClock ? "fc-clock--low" : ""} ${paused ? "fc-clock--paused" : ""}`}>
+              {paused ? "PAUSED" : fmtClock(phase === "idle" ? scheduleSecs(schedule, 1) : clock)}
             </span>
           </div>
         </div>
+
+        {/* live head-to-head bar (#5) — opponent's line ticks up in real time */}
+        {matchCode && (
+          <div className="fc-vs" aria-label="Live head-to-head">
+            <div className="fc-vs__side">
+              <span className="fc-vs__name">{myTag}</span>
+              <span className="fc-vs__pts">{game ? game.points : 0}</span>
+              <span className="fc-vs__sub">{game ? game.doors : 0} doors · {game ? game.sales : 0} sales</span>
+            </div>
+            <div className="fc-vs__mid">
+              <span className="fc-vs__code">{matchCode}</span>
+              <button type="button" className="fc-vs__leave" onClick={leaveMatch}>
+                leave
+              </button>
+            </div>
+            <div className="fc-vs__side fc-vs__side--them">
+              <span className="fc-vs__name">{opponent?.name || "waiting…"}</span>
+              <span className="fc-vs__pts">{opponent ? opponent.points : "—"}</span>
+              <span className="fc-vs__sub">
+                {opponent ? `${opponent.doors} doors · ${opponent.sales} sales` : "share your code"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* live shooting stats — shots taken, on-target %, streak, hot zone */}
+        <JumboTicker
+          shots={game ? game.doors : 0}
+          onTargetPct={game && game.doors > 0 ? Math.round((game.contacts / game.doors) * 100) : 0}
+          streak={game ? game.heat : 0}
+          hotZone={phase === "playing" && !!game && game.heat >= HOT_ZONE_AT}
+        />
 
         <div className="fc-scorewrap">
           {/* the hoop — every logged door is a shot at this rim */}
@@ -852,6 +1391,22 @@ export default function FullCourt({ go }) {
             </span>
             <span className="fc-best">🏆 BEST {Math.max(seasonBest, game ? game.points : 0)}</span>
           </div>
+          {/* hydration — hold the cup to drink, one per quarter (#9) */}
+          <HydrationCup
+            target={4}
+            onCupDone={(n) => {
+              try {
+                sfxCoin();
+              } catch {
+                /* silent */
+              }
+              pushToast?.({
+                type: "success",
+                title: "💧 Cup down",
+                message: `That's ${n} today. Fresh legs close more doors.`,
+              });
+            }}
+          />
         </div>
 
         {/* ladder */}
@@ -936,7 +1491,7 @@ export default function FullCourt({ go }) {
                 key={a.key}
                 type="button"
                 className={`fc-btn ${a.cls}`}
-                disabled={!canPlay}
+                disabled={!canPlay || paused}
                 onClick={(e) => doLog(a.key, e)}
               >
                 <span className="fc-btn__glyph">{a.glyph}</span>
@@ -945,6 +1500,28 @@ export default function FullCourt({ go }) {
               </button>
             ))}
           </div>
+        )}
+
+        {/* clock controls — pause / end the quarter on demand (handoff #2) */}
+        {phase === "playing" && (
+          <div className="fc-clockctrl">
+            <button
+              type="button"
+              className={`fc-cbtn ${paused ? "fc-cbtn--on" : ""}`}
+              onClick={togglePause}
+            >
+              {paused ? "▶ Resume" : "⏸ Pause"}
+            </button>
+            <button type="button" className="fc-cbtn fc-cbtn--end" onClick={endQuarterNow}>
+              ⏭ End quarter
+            </button>
+          </div>
+        )}
+        {paused && (
+          <p className="fc-pausehint">
+            Paused — the clock's frozen. Your door count is safe; resume when you're back on the
+            street.
+          </p>
         )}
       </div>
 
@@ -961,6 +1538,9 @@ export default function FullCourt({ go }) {
               {(buzz.ended?.sales ?? 0) === 1 ? "sale" : "sales"} this quarter
               {buzz.ended?.won && <span className="fc-cine__won"> · ✓ QUARTER WON</span>}
             </div>
+
+            {/* jumbotron quarter breakdown — points per quarter + checkmarks */}
+            <QuarterBreakdown quarterLog={game.quarterLog} />
 
             <div className="fc-cine__readlbl">The game's read — tap to correct it:</div>
             <div className="fc-cine__reads">
@@ -1098,6 +1678,7 @@ export default function FullCourt({ go }) {
       {/* ---------------- CONTROLS / IDLE / OVER ---------------- */}
       {phase === "idle" && (
         <div className="zn-card fc-setup arena-reveal">
+          <span className="fc-seglbl">Tracking mode</span>
           <div className="fc-modeseg" role="tablist" aria-label="Tracking mode">
             <button
               type="button"
@@ -1119,6 +1700,33 @@ export default function FullCourt({ go }) {
               Pro
               <small>Full funnel · sharper math</small>
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "full"}
+              className={`fc-modebtn ${mode === "full" ? "fc-modebtn--on" : ""}`}
+              onClick={() => setMode("full")}
+            >
+              Full
+              <small>6 outcomes · stat sheet</small>
+            </button>
+          </div>
+
+          <span className="fc-seglbl">Day schedule</span>
+          <div className="fc-modeseg fc-schedseg" role="tablist" aria-label="Day schedule">
+            {Object.values(SCHEDULES).map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                role="tab"
+                aria-selected={schedule === s.key}
+                className={`fc-modebtn ${schedule === s.key ? "fc-modebtn--on" : ""}`}
+                onClick={() => setSchedule(s.key)}
+              >
+                {s.label}
+                <small>{s.hint}</small>
+              </button>
+            ))}
           </div>
 
           <div className="zn-field fc-field">
@@ -1156,11 +1764,60 @@ export default function FullCourt({ go }) {
           >
             📊 Season & stat sheet
           </button>
+
+          {/* challenge a friend — live head-to-head (#5) */}
+          <div className="fc-challenge">
+            <p className="fc-seglbl">Challenge a friend · live head-to-head</p>
+            {matchCode ? (
+              <div className="fc-challenge__on">
+                <span>
+                  Match code <b>{matchCode}</b> — share it, then both tip off.
+                </span>
+                <button type="button" className="fc-linkbtn" onClick={leaveMatch}>
+                  Leave match
+                </button>
+              </div>
+            ) : (
+              <div className="fc-challenge__row">
+                <input
+                  className="zn-input fc-codein"
+                  type="text"
+                  inputMode="text"
+                  placeholder="ENTER CODE"
+                  maxLength={5}
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                />
+                <button
+                  type="button"
+                  className="zn-btn zn-btn--ghost fc-joinbtn"
+                  disabled={codeInput.length < 4}
+                  onClick={() => joinMatch(codeInput)}
+                >
+                  Join
+                </button>
+                <button
+                  type="button"
+                  className="zn-btn fc-hostbtn"
+                  onClick={() => {
+                    const c = makeMatchCode();
+                    setCodeInput(c);
+                    joinMatch(c);
+                  }}
+                >
+                  Host
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {phase === "over" && bx && (
         <div className="zn-card fc-box arena-reveal">
+          {/* jumbotron final summary — score, goal progress, sign-off */}
+          <JumboFinal bx={bx} />
+          <QuarterBreakdown quarterLog={game.quarterLog} />
           <h3 className="fc-boxtitle">🏆 Final buzzer · your box score</h3>
           <div className="fc-boxrows">
             <div className="fc-row">
@@ -1204,6 +1861,36 @@ export default function FullCourt({ go }) {
               <b>${bx.payout}</b>
             </div>
           </div>
+
+          {/* outcome breakdown — the 6 door outcomes feeding your stats (#4) */}
+          {(() => {
+            const ob = outcomeBreakdown(game);
+            const cells = [
+              { k: "no_answer", label: "No answers", v: ob.no_answer },
+              { k: "not_interested", label: "Not interested", v: ob.not_interested },
+              { k: "gatekeeper", label: "Gatekeepers", v: ob.gatekeeper },
+              { k: "objection", label: "Objections", v: ob.objection },
+              { k: "full_pitch", label: "Full pitches", v: ob.full_pitch },
+              { k: "sale", label: "Sales", v: ob.sale },
+            ];
+            return (
+              <div className="fc-obd">
+                <p className="fc-obd__title">Outcome breakdown</p>
+                <div className="fc-obd__grid">
+                  {cells.map((c) => (
+                    <div key={c.k} className={`fc-obd__cell fc-obd__cell--${c.k}`}>
+                      <b>{c.v}</b>
+                      <span>{c.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="fc-obd__conv">
+                  Conversion: <b>{ob.conversionPct}%</b> · Good pitches: <b>{ob.goodPitches}</b>
+                </p>
+              </div>
+            );
+          })()}
+
           {bx.isPersonalBest && <div className="fc-pb">🏆 New personal best</div>}
 
           <div className="fc-boxcta">

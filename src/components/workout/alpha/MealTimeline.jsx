@@ -104,7 +104,7 @@ export default function MealTimeline({ alpha }) {
       </div>
 
       <p className="iw-al-fastline iw-mt-foot">
-        <HL text="Times ride the book's default noon-to-8 window — shift the whole rail earlier or later to fit your day, keep the order and the gaps." />
+        <HL text="Times ride a default noon-to-8 window — shift the whole rail earlier or later to fit your day, keep the order and the gaps." />
       </p>
     </div>
   );

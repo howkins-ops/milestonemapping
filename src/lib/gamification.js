@@ -20,7 +20,7 @@ export const XP_VALUES = {
   waveRidden: 20,
   // The Crossing — one-time onboarding vow seal
   crossingComplete: 150,
-  // MapQuest City
+  // Milestone City
   cityFirstVisit: 50,
   cityDailySweep: 15,
   mentorLesson: 10,

@@ -5,7 +5,7 @@ import { LIFE } from "./world/worldFxTuning.js";
 import { getDailyEvent } from "./world/streetEvents.js";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — street geography + the story order (ACT 1 · the training)
+// MILESTONE CITY — street geography + the story order (ACT 1 · the training)
 // This file owns WHERE everything stands on the walkable street. The
 // district registry (cityDistricts.js) stays the single source of truth
 // for WHAT a district is; its old banner `position` field is simply
@@ -41,12 +41,15 @@ export const STORY_ORDER = [
 
 /* ── Street constants (tune here) ─────────────────────────────────────── */
 
+// De-squish pass (Jon, 2026-07-07): doors are ±75px hit-ranges, mentors
+// ±64px, clown patrols ±90px — the street is sized so none of them ever
+// overlap. ZONE_GAP is the bio-grove greenway between districts.
 const BUILDING_W = 150;
 const SPIRE_W = 210;
-const GAP = 48;
+const GAP = 130;
 const ARCH_W = 132;
-const ARCH_GAP = 44;
-const ZONE_GAP = 72;
+const ARCH_GAP = 90;
+const ZONE_GAP = 300;
 
 const WIDTH_BY_ID = { "alchemist-spire": SPIRE_W };
 
@@ -101,12 +104,12 @@ const STREET_ZONES = [
     accent: QUARTER_META.commons.accent,
     ids: ["guild-quarter", "hall-of-champions"],
   },
-  { label: "THE TERMINUS", accent: "#FACC15", ids: ["the-vault"], gapBefore: 150 },
+  { label: "THE TERMINUS", accent: "#FACC15", ids: ["the-vault"], gapBefore: 260 },
   {
     label: "THE SPIRE",
     accent: QUARTER_META.quest.accent,
     ids: ["alchemist-spire"],
-    gapBefore: 190,
+    gapBefore: 340,
   },
 ];
 
@@ -148,7 +151,7 @@ export function buildCityWorld(
   const byId = new Map((districts || []).map((d) => [d.id, d]));
 
   const props = [
-    { type: "gate", x: 40, label: "MAPQUEST CITY" },
+    { type: "gate", x: 40, label: "MILESTONE CITY" },
     { type: "lamp", x: 300, color: "#7B2CFF" },
     { type: "fountain", x: 470 },
     { type: "lamp", x: 760, color: "#00F0FF" },
@@ -179,11 +182,17 @@ export function buildCityWorld(
       dur: 4.2 + (i % 3) * 0.8,
     });
   };
-  addClown(752, 56); // first heckler on the walk from the Plaza to THE GRID
+  addClown(810, 60); // first heckler — the clear stretch past the Guide
 
-  let cursor = 830;
+  // plaza greenery — the bio-grove grammar starts at the gates
+  props.push({ type: "flora", variant: "tree", x: 370, accent: "#00FFBF" });
+  props.push({ type: "flora", variant: "bush", x: 515, accent: "#00F0FF" });
+  props.push({ type: "flora", variant: "tree", x: 732, accent: "#7B2CFF" });
+
+  let cursor = 900; // the plaza breathes before THE GRID
   for (const zone of STREET_ZONES) {
     cursor += zone.gapBefore || 0;
+    const zoneArchX = cursor; // gatekeeper clowns anchor to the arch
     // a fog bank drifts on the approach to every chapter arch — the tall
     // grass where wild critics ambush (none guards the Spire's approach)
     if (zone.label !== "THE SPIRE") {
@@ -216,14 +225,14 @@ export function buildCityWorld(
         facadeFx: FACADE_FX[d.id] || null,
       });
 
-      // The district's Guide stands just west of the door (not for the
-      // sealed Spire — the Alchemist waits inside, not on the street).
+      // The district's Guide stands west of the door, clear of its ±75px
+      // hit-range so the talk prompt and the door prompt never fight.
       const m = mentors[d.id];
       if (m && !d.sealed) {
         npcs.push({
           id: `mentor:${d.id}`,
           name: m.name,
-          x: p.x - 34,
+          x: p.x - 64,
           color: m.color,
           sprite: "guide",
           disabled: Boolean(d.locked),
@@ -231,14 +240,21 @@ export function buildCityWorld(
       }
     }
 
-    // every zone gets a resident clown pacing its stretch of street —
+    // a glow-bush in every other gap between doors — the street gardens
+    for (let gi = 1; gi < placed.length; gi += 2) {
+      props.push({
+        type: "flora",
+        variant: "bush",
+        x: Math.round(placed[gi].x - GAP / 2),
+        accent: zone.accent,
+      });
+    }
+
     // single-building zones (Vault, Spire) get a gatekeeper heckling the
-    // approach instead ("the last naysayer before the tower")
-    if (placed.length > 1) {
-      const last = placed[placed.length - 1];
-      addClown((placed[0].x + last.x + last.w) / 2);
-    } else if (placed.length === 1) {
-      addClown(placed[0].x - 96, 56);
+    // wide-open approach ("the last naysayer before the tower") — clear of
+    // both the arch and the previous grove's clown
+    if (placed.length === 1) {
+      addClown(zoneArchX - 150, 56);
     }
 
     // the chapter record: its districts + where its final boss materializes
@@ -259,8 +275,19 @@ export function buildCityWorld(
 
     cursor = end - GAP + ZONE_GAP;
 
-    // a street lamp between zones, tinted by the zone it closes
-    props.push({ type: "lamp", x: cursor - ZONE_GAP / 2, color: zone.accent });
+    // ── THE BIO-GROVE — the greenway between districts ───────────────────
+    // Bioluminescent street nature in the zone's accent: a neon-sakura
+    // tree, glow-bushes (one with fireflies), the vine lamp — and the
+    // zone's resident clown patrolling the open stretch, far from any
+    // door, so stomping is clean. groveStart..cursor is all clear street.
+    const groveStart = cursor - ZONE_GAP;
+    props.push({ type: "flora", variant: "tree", x: groveStart + 45, accent: zone.accent });
+    props.push({ type: "flora", variant: "bush2", x: groveStart + 108, accent: zone.accent });
+    props.push({ type: "lamp", x: cursor - ZONE_GAP / 2, color: zone.accent, vine: true });
+    props.push({ type: "flora", variant: "bush", x: cursor - 42, accent: zone.accent });
+    if (placed.length > 1) {
+      addClown(cursor - ZONE_GAP / 2 + 62, 82); // the grove's heckler
+    }
   }
 
   const width = cursor + 240;
@@ -297,7 +324,13 @@ export function buildCityWorld(
     const originals = [...enemies];
     for (const e of originals) {
       e.dur = Math.max(2.4, (e.dur || 4.6) * 0.7);
-      addClown(e.x + 120, Math.max(48, (e.patrol || 80) - 12));
+      // the rush doubles pace tiny frantic loops in the safe pocket
+      // beside each original — never inside a door/mentor hit-range:
+      // grove clowns get the grove's west pocket, the plaza heckler's
+      // twin drops back to the plaza garden, gatekeepers' twins push
+      // right up under the arch
+      const dx = (e.patrol || 80) >= 80 ? -160 : e.x < 900 ? -310 : 140;
+      addClown(e.x + dx, 18);
     }
   } else if (streetEvent && streetEvent.id === "quiet-morning") {
     enemies.length = 0;
@@ -354,7 +387,7 @@ export function buildCityWorld(
 
   return {
     id: "city",
-    label: "MapQuest City — the walkable street",
+    label: "Milestone City — the walkable street",
     theme: "mqw-theme-city",
     width,
     spawnX: 560,

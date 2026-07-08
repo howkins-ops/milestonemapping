@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { generateRewardImage, STYLE_OPTIONS, buildPrompt, buildImageUrl } from "../../lib/imageGen.js";
+import { hasAiConsent } from "../../lib/aiConsent.js";
+import AiConsentModal from "../common/AiConsentModal.jsx";
 
 export default function RewardImageGenerator({ reward, onSave, onClose }) {
   const [style, setStyle] = useState("cinematic");
@@ -8,6 +10,7 @@ export default function RewardImageGenerator({ reward, onSave, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [seed, setSeed] = useState(null);
+  const [showConsent, setShowConsent] = useState(false);
 
   const generate = useCallback(() => {
     setLoading(true);
@@ -20,6 +23,12 @@ export default function RewardImageGenerator({ reward, onSave, onClose }) {
     // Image loads naturally via <img> tag — mark loading done after short delay
     setTimeout(() => setLoading(false), 800);
   }, [customPrompt, reward.text, style]);
+
+  // Gate the first transmission behind explicit AI consent (Guideline 5.1.2(i)).
+  const requestGenerate = useCallback(() => {
+    if (!hasAiConsent()) { setShowConsent(true); return; }
+    generate();
+  }, [generate]);
 
   const regenerate = useCallback(() => {
     if (!imageUrl) return;
@@ -90,12 +99,19 @@ export default function RewardImageGenerator({ reward, onSave, onClose }) {
         {!imageUrl ? (
           <button
             className="rig-generate-btn"
-            onClick={generate}
+            onClick={requestGenerate}
             disabled={loading}
           >
             {loading ? "⏳ Generating..." : "✨ Generate AI Image"}
           </button>
         ) : null}
+
+        {showConsent && (
+          <AiConsentModal
+            onAccept={() => { setShowConsent(false); generate(); }}
+            onCancel={() => setShowConsent(false)}
+          />
+        )}
 
         {/* Image preview */}
         {imageUrl && (

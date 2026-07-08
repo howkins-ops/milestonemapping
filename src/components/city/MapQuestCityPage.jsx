@@ -59,7 +59,7 @@ import { useDailyLog } from "../../hooks/useDailyLog.js";
 import "../../styles/city.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — the living open-world hub
+// MILESTONE CITY — the living open-world hub
 // One city, sixteen districts, every district a real feature. The street
 // is walkable now: your Seeker walks it end to end, the camera follows,
 // the buildings glow with your actual progress, your people stand in the
@@ -249,11 +249,11 @@ export default function MapQuestCityPage({
     arrivalFired.current = true;
     const { firstVisit, newDay } = recordVisit();
     if (firstVisit) {
-      addXP(XP_VALUES.cityFirstVisit, "First steps into MapQuest City");
+      addXP(XP_VALUES.cityFirstVisit, "First steps into Milestone City");
       unlockAchievement("city_arrival");
       celebrate({
         variant: "project",
-        title: "WELCOME TO MAPQUEST CITY",
+        title: "WELCOME TO MILESTONE CITY",
         subtitle: "Every feature is a district. Every district is your life.",
         detail: "The city grows as you do.",
       });
@@ -578,7 +578,7 @@ export default function MapQuestCityPage({
     <div className={`mqc-root${embedded ? " mqc-root--embedded" : ""}`}>
       <header className="mqc-head">
         <div>
-          <h2 className="mqc-head__title">MAPQUEST CITY</h2>
+          <h2 className="mqc-head__title">MILESTONE CITY</h2>
           <p className="mqc-head__sub">{stage.blurb}</p>
         </div>
         {!journey.legacy && !journey.spireOpen ? (

@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Atmosphere
+// MILESTONE CITY — Atmosphere
 // Pure helpers: the city's 4 evolution stages (driven by real rank) and the
 // time-of-day palette (driven by the real local clock). No React, no RNG.
 // ════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Mentors
+// MILESTONE CITY — Mentors
 // Every district has a resident NPC mentor who teaches that path's lesson,
 // then sends the player into the REAL feature. "The lesson ends where the
 // work begins." Pure data + deterministic helpers — no React, no random.

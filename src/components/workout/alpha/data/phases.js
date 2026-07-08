@@ -29,7 +29,7 @@ export const PHASES = {
   prime: {
     id: "prime",
     n: 1,
-    name: "PRIME",
+    name: "FOUNDATION",
     subtitle: "the insulin reset",
     accent: ZONE_ACCENTS.prime,
     stage: 5,
@@ -62,7 +62,7 @@ export const PHASES = {
   adapt: {
     id: "adapt",
     n: 2,
-    name: "ADAPT",
+    name: "FORGE",
     subtitle: "density · the drive engine",
     accent: ZONE_ACCENTS.adapt,
     stage: 6,
@@ -88,7 +88,7 @@ export const PHASES = {
   surge: {
     id: "surge",
     n: 3,
-    name: "SURGE",
+    name: "FURNACE",
     subtitle: "the growth burn",
     accent: ZONE_ACCENTS.surge,
     stage: 7,
@@ -113,7 +113,7 @@ export const PHASES = {
   complete: {
     id: "complete",
     n: 4,
-    name: "COMPLETE",
+    name: "ASCENSION",
     subtitle: "all systems, one week",
     accent: ZONE_ACCENTS.complete,
     stage: 9,

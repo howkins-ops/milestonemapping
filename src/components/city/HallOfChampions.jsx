@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "../../styles/cityPlaza.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Hall of Champions
+// MILESTONE CITY — Hall of Champions
 // Full-sheet 7-day leaderboard for the citizen's circle. Celebration, not
 // shame: only people who showed up are ranked. Top 3 stand on a neon podium
 // (gold / silver / bronze, #1 raised at center), everyone else gets a ranked

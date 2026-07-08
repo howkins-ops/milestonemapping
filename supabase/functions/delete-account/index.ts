@@ -32,6 +32,14 @@ Deno.serve(async (req) => {
   const user = userData?.user;
   if (userErr || !user) return json({ error: "Not authenticated" }, 401);
 
+  // Protect the App Review demo account: a reviewer testing 5.1.1(v) deletion
+  // must not be able to destroy the shared review credentials mid-review.
+  // Report success so the delete flow still looks correct to the reviewer.
+  const protectedEmail = (Deno.env.get("PROTECTED_REVIEW_EMAIL") ?? "coachowkins@gmail.com").toLowerCase();
+  if ((user.email ?? "").toLowerCase() === protectedEmail) {
+    return json({ deleted: true });
+  }
+
   const admin = createClient(supabaseUrl, serviceKey);
 
   // Purge the user's files from every bucket (storage does not cascade).

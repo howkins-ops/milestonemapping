@@ -5,7 +5,7 @@
 //
 // {
 //   id: "city",
-//   label: "MapQuest City",              // aria label for the scene
+//   label: "Milestone City",              // aria label for the scene
 //   theme: "mqw-theme-city",             // CSS class on the viewport
 //   width: 4600,                         // world width in px
 //   spawnX: 560,                         // default spawn (px)

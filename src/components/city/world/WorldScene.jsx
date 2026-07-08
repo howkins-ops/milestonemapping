@@ -701,10 +701,24 @@ export default function WorldScene({
             return (
               <span
                 key={`p${i}`}
-                className="mqw-lamp"
+                className={`mqw-lamp${p.vine ? " mqfx-lamp--vine" : ""}`}
                 style={{ left: p.x, "--lamp-color": p.color || "#00F0FF" }}
                 aria-hidden="true"
               />
+            );
+          }
+          if (p.type === "flora") {
+            return (
+              <span
+                key={`p${i}`}
+                className={`mqfx-flora mqfx-flora--${p.variant || "bush"}`}
+                style={{ left: p.x, "--fl-accent": p.accent || "#00FFBF" }}
+                aria-hidden="true"
+              >
+                <i />
+                <i />
+                <i />
+              </span>
             );
           }
           if (p.type === "fountain") {

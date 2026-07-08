@@ -21,10 +21,12 @@ import { sfxChalkPoof } from "../../../lib/sfx.js";
    ladders · traits · glossary.
    ═══════════════════════════════════════════════════════════════ */
 
-export default function BookOfIron({ alpha, prs, traitLevels, creedSeen, markCreedSeen, addXP, settings, onOpenProgram, onFight }) {
+export default function BookOfIron({ alpha, prs, traitLevels, creedSeen, markCreedSeen, addXP, settings, onOpenProgram, onOpenRoad, onFight }) {
   const { state } = alpha;
   const defeated = new Set(state.flags.bossesDefeated || []);
   const collected = new Set(state.flags.scrolls || []);
+  const stagesTotal = 11;
+  const stageNow = Math.min(stagesTotal, Math.max(1, state.stage || 1));
 
   /* the earnable pages: creed (1) + scrolls + myths */
   const totalPages = 1 + SCROLLS.length + MYTH_BOSSES.length;
@@ -40,6 +42,23 @@ export default function BookOfIron({ alpha, prs, traitLevels, creedSeen, markCre
         <div className="iw-al-bc-bar"><div className="iw-al-bc-fill" style={{ width: `${(earnedPages / totalPages) * 100}%` }} /></div>
         <span className="iw-al-fastline"><HL text={`${earnedPages} of ${totalPages} pages earned — the rest is already on the shelf, waiting`} /></span>
       </div>
+
+      {/* The Road — the hero's-journey map lives here now (moved off Today so
+          Today stays about right-now: workout + meals). */}
+      {onOpenRoad && (
+        <button className="iw-bk-road" onClick={onOpenRoad}>
+          <div className="iw-bk-road-text">
+            <span className="iw-bk-road-title">❖ The Road — your journey</span>
+            <span className="iw-bk-road-sub">
+              stage {stageNow} of {stagesTotal} · the eleven-stage climb from Ordinary World to the Return
+            </span>
+          </div>
+          <div className="iw-al-bc-bar iw-bk-road-bar">
+            <div className="iw-al-bc-fill" style={{ width: `${(stageNow / stagesTotal) * 100}%` }} />
+          </div>
+          <span className="iw-bk-road-go" aria-hidden="true">open the map ❯</span>
+        </button>
+      )}
 
       <div className="iw-bk-depth">
         <Chapter n={1} title="The Creed" sub="the five plates this whole mode stands on"

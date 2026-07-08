@@ -268,6 +268,7 @@ export default function MaskBattle({
     await wait(220);
     burstAtStage(glowColor, 18, 4);
     shakeFx("shake");
+    sfxBlock();
     await wait(420);
     if (!alive.current) return;
     if (!setComp(compRef.current - 12)) return;
@@ -346,6 +347,7 @@ export default function MaskBattle({
       const sr = segEl.getBoundingClientRect();
       fx.current.spawnShards(sr.left, sr.top, sr.width, sr.height, crit ? 70 : 40);
     }
+    sfxShatter();
     if (crit) {
       shakeFx("quake");
       setSys("CRITICAL NAMING.", "crit");
@@ -379,6 +381,7 @@ export default function MaskBattle({
     anim(rigRef.current, "lunge");
     shakeFx("quake");
     flash(true);
+    sfxThunder(3);
     await wait(500);
     if (!alive.current) return;
     setPanel("surge");
@@ -500,6 +503,7 @@ export default function MaskBattle({
     if (rigRef.current) rigRef.current.classList.add("kneel");
     setSettled(true);
     shakeFx("rumble");
+    sfxBossKneel();
     await wait(2200); // the kneel + a beat of silence
     if (!alive.current) return;
 
@@ -524,6 +528,7 @@ export default function MaskBattle({
     } else {
       setRigFx("mqk-rig--rise mqk-rig--white");
       await wait(600);
+      sfxEvolveSweep();
       // accelerating strobe: dark ⇄ evolved silhouette
       const beats = [600, 600, 300, 300, 150, 150, 80, 80, 80, 80];
       let swapped = false;
@@ -547,6 +552,7 @@ export default function MaskBattle({
     setDimmed(false);
     flash(false);
     shakeFx("quake");
+    sfxEvolveReveal();
     burstAtStage(e ? e.color : "#ffffff", 60, 7, 0.5);
     setBanner({
       name: boss.name,
@@ -610,6 +616,7 @@ export default function MaskBattle({
     setWispShatter(true);
     const r = stageRect();
     if (r && fx.current) fx.current.spawnShards(r.left, r.top, r.width, r.height, crit ? 50 : 32);
+    sfxShatter();
     if (crit) shakeFx("quake");
     await wait(700);
     if (!alive.current) return;
@@ -628,6 +635,7 @@ export default function MaskBattle({
     await fireBeam(STRIKE_COLOR, 1.2);
     if (!alive.current) return;
     if (rigRef.current) rigRef.current.classList.add("kneel");
+    sfxBossKneel();
     setSettled(true);
     await wait(1400);
     if (!alive.current) return;
@@ -687,6 +695,7 @@ export default function MaskBattle({
             ? { name: boss.name, tag: "OLD VOICE — YOU ALREADY KNOW ITS NAME" }
             : { name: critic.name, tag: "WILD CRITIC" }
       );
+      sfxMaskAmbush();
       flash(false);
       shakeFx("shake");
       anim(rigRef.current, "lunge");

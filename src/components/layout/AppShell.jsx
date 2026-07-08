@@ -26,7 +26,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, onOpenJournal, onOpenWorkout, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS, onOpenJournal, onOpenWorkout, onOpenRoster, children }) {
   const { profile, syncStatus } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -126,6 +126,25 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenSOS
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
+                {onOpenRoster && (
+                  <button
+                    type="button"
+                    className="app-topbar__profile-btn app-topbar__roster"
+                    onClick={onOpenRoster}
+                    aria-label="Open the Arena roster — launch any game"
+                    aria-haspopup="dialog"
+                  >
+                    <span className="app-topbar__icon-box" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+                        <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+                        <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+                        <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+                      </svg>
+                    </span>
+                    <span className="app-topbar__btn-label">Roster</span>
+                  </button>
+                )}
                 {onOpenWorkout && (
                   <button
                     type="button"

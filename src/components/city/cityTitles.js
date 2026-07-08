@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Citizen titles
+// MILESTONE CITY — Citizen titles
 // Pure derivation of earned honorifics from cross-feature progress.
 // No React, no side effects. Every ctx field is optional / null-tolerant.
 //

@@ -1,7 +1,7 @@
 import React from "react";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Ambient life
+// MILESTONE CITY — Ambient life
 // Embers rising off the grid, drones drifting with blinking nav lights and
 // tram light-streaks on the mid-rail. All positions are deterministic
 // (module-level tables, no RNG) so the city looks the same on every render.

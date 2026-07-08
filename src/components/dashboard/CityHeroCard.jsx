@@ -5,7 +5,7 @@ export default function CityHeroCard({ onEnter }) {
     <button
       type="button"
       onClick={onEnter}
-      aria-label="Enter MapQuest City"
+      aria-label="Enter Milestone City"
       className="dashboard-image-card dashboard-image-card--city"
     >
       <img
@@ -17,7 +17,7 @@ export default function CityHeroCard({ onEnter }) {
       <span className="dashboard-image-card__shade" aria-hidden="true" />
       <span className="dashboard-image-card__content">
         <span className="dashboard-image-card__kicker">Open World</span>
-        <span className="dashboard-image-card__title">MAPQUEST CITY</span>
+        <span className="dashboard-image-card__title">MILESTONE CITY</span>
         <span className="dashboard-image-card__copy">
           Every feature is a district.
           <br />

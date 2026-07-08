@@ -9,6 +9,7 @@ import { useReveal, useArenaBurst } from "../useArenaFX.js";
 import { witnessSay } from "../../witness/witnessLines.js";
 import PostProof from "../../proof/PostProof.jsx";
 import VowFuse from "./VowFuse.jsx";
+import ReportButton from "../../shared/ReportButton.jsx";
 import "./TheVow.css";
 
 const TODAY = () => new Date().toISOString().slice(0, 10);
@@ -562,6 +563,16 @@ function VowCard({ vow, onDefuse, onExpire, onRevow }) {
         <button type="button" className="zn-btn zn-btn--ghost vow-revow" onClick={onRevow}>
           ↻ Re-vow in one tap
         </button>
+      )}
+
+      {!mine && (
+        <div className="vow-report-row">
+          <ReportButton
+            contentType="arena_vow"
+            contentId={vow.id}
+            targetUser={owner?.user_id || vow.user_id || null}
+          />
+        </div>
       )}
     </div>
   );

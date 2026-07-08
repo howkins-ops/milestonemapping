@@ -8,7 +8,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { SUPPORT_EMAIL } from "../../lib/constants.js";
 
 export default function DangerZone() {
-  const { clearAllData, pushToast } = useAppData();
+  const { clearAllData, pushToast, userId } = useAppData();
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
@@ -66,15 +66,17 @@ export default function DangerZone() {
         </Button>
       </Card>
 
-      <Card variant="danger" style={{ marginTop: 14 }}>
-        <p className="muted" style={{ marginBottom: 14, fontSize: 14 }}>
-          Permanently delete your account and everything tied to it — profile, posts, messages,
-          proofs, journal, squads, and uploaded media. Deletion is immediate and cannot be undone.
-        </p>
-        <Button variant="danger" onClick={() => setAccountOpen(true)}>
-          Delete Account &amp; All Data
-        </Button>
-      </Card>
+      {userId && (
+        <Card variant="danger" style={{ marginTop: 14 }}>
+          <p className="muted" style={{ marginBottom: 14, fontSize: 14 }}>
+            Permanently delete your account and everything tied to it — profile, posts, messages,
+            proofs, journal, squads, and uploaded media. Deletion is immediate and cannot be undone.
+          </p>
+          <Button variant="danger" onClick={() => setAccountOpen(true)}>
+            Delete Account &amp; All Data
+          </Button>
+        </Card>
+      )}
 
       <Modal open={open} onClose={close} title="Confirm total wipe">
         <p className="muted" style={{ marginBottom: 16 }}>

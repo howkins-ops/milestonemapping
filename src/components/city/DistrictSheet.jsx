@@ -4,7 +4,7 @@ import { QUARTER_META } from "./cityDistricts.js";
 import { MENTORS, getGreeting } from "./cityMentors.js";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — District sheet
+// MILESTONE CITY — District sheet
 // Bottom sheet for a tapped district: quarter kicker, lore, live progress
 // meter, the resident mentor (greeting + HEAR THE LESSON) and the big
 // ENTER action. Scrim tap + Escape close it.

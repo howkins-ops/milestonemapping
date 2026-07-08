@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — Progress engine
+// MILESTONE CITY — Progress engine
 // Builds one cross-feature ctx from useAppData() slices plus small PURE
 // localStorage readers (never mounts other features' stateful hooks), then
 // maps the district registry into live { progress, glowState } entries.

@@ -39,6 +39,14 @@ export const VOICES = {
   // library voice you prefer and re-run the audition/bake.
   marcus: 'nPczCjzI2devNBz1zQrb', // deep + resonant — Level 2 customer ("Always Be Persistent")
   deon:   'N2lVS1w4EtoT3dr4eOWO', // husky + gravelly — Level 4 customer ("Never Do Call-Backs")
+  // ── FULL COURT two-voice cast (2026-07-07) ────────────────────────────────
+  // Jon picked these from the ElevenLabs library. PASTE THE REAL voice_id from
+  // each voice's "…" menu → "Copy voice ID" to replace the fallback, then
+  // re-run:  node scripts/bake-fullcourt-voice.js --audition   (then without).
+  // Until then these fall back to proven premade male voices so the bake works
+  // and the streamed runtime voice sounds right.
+  alex:   'nPczCjzI2devNBz1zQrb', // "Alex — Basketball Coach" (mid-30s African-American). COACH: hype-ups + affirmations. FALLBACK=brian; swap in the real id.
+  andrew: 'JBFqnCBsd6RMkjVDRZzb', // "Andrew Griffin — Commentator" (middle-aged). ANNOUNCER: quarter recaps, stat lines, halftime roll. FALLBACK=george; swap in the real id.
 };
 
 // Generate speech and return an mp3 Buffer. Throws on API error.

@@ -22,13 +22,15 @@ function today() {
 export const usernameAvailable = (username) =>
   rpc("az_username_available", { p_username: username });
 
-export const joinZone = ({ username, displayName, identityTitle, avatarUrl }) =>
-  rpc("az_join_zone", {
+export const joinZone = ({ username, displayName, identityTitle, avatarUrl }) => {
+  assertClean(username, displayName, identityTitle);
+  return rpc("az_join_zone", {
     p_username: username,
     p_display_name: displayName || null,
     p_identity_title: identityTitle || null,
     p_avatar_url: avatarUrl || null,
   });
+};
 
 export const getZoneState = () => rpc("az_get_zone_state", { p_local_date: today() });
 
@@ -119,8 +121,10 @@ export const invitePartner = (userId) => rpc("az_invite_partner", { p_user: user
 export const respondPartner = (linkId, accept) =>
   rpc("az_respond_partner", { p_link: linkId, p_accept: accept });
 export const endPartnership = (linkId) => rpc("az_end_partnership", { p_link: linkId });
-export const partnerAction = (kind, note) =>
-  rpc("az_partner_action", { p_kind: kind, p_note: note || null });
+export const partnerAction = (kind, note) => {
+  assertClean(note);
+  return rpc("az_partner_action", { p_kind: kind, p_note: note || null });
+};
 export const getPartnerState = () =>
   rpc("az_get_partner_state", { p_local_date: today() });
 

@@ -342,6 +342,11 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
       { type: "lamp", x: 1050, color: HOMETOWN_DUST },
       { type: "lamp", x: 1560, color: HOMETOWN_DUST },
       { type: "gate", x: 1740, label: "THE ROAD OUT" },
+      // warm real trees — the hometown's version of the bio-groves
+      { type: "flora", variant: "tree", x: 90, accent: HOMETOWN_DUST },
+      { type: "flora", variant: "bush", x: 660, accent: HOMETOWN_DUST },
+      { type: "flora", variant: "tree", x: 1090, accent: HOMETOWN_DUST },
+      { type: "flora", variant: "bush2", x: 1500, accent: PORCH },
     ],
     buildings,
     npcs,

@@ -35,7 +35,7 @@ export const MOTIVATIONAL_COPY = [
   },
   {
     text: "Gratitude rewires what you notice. It rewires who you become.",
-    stat: "64 randomized clinical trials proved gratitude interventions reduce anxiety and depression.",
+    stat: "64 randomized clinical trials have shown gratitude interventions can reduce anxiety and depression.",
     source: "Gratitude Intervention Meta-Analysis, 2023"
   },
   {

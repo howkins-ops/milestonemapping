@@ -322,5 +322,6 @@ PERF:    { animNodesFull: 90, animNodesLite: 40 }
 3. Audio: confirm cold-load silence, mute <100ms, duck behavior under Mask battles.
 4. Tuning passes: camera lerp/look-ahead feel, rain sheet opacity at dusk, citizen density at 15/15.
 5. Offer `fx.js` + `sfxDuck` to the Mask session's overlays (built as public APIs for them).
+6. **De-squish pass (2026-07-07, post-Jon-feedback):** street re-spaced (GAP 48→130, ZONE_GAP 72→300, world ~6k→9k px), mentors pushed clear of door hit-ranges, clowns moved to the new BIO-GROVE greenways (neon-sakura trees + glow-bushes + fireflies between every zone; warm trees in the hometown). Static overlap audit (scratchpad `layout-audit2.mjs` logic: door ±75 / npc ±64 / clown-span checks across 6 mocked days incl. HATER RUSH ×2 doubles) = zero collisions. Verify the FEEL on device — spacing rhythm, grove readability, stomp/talk comfort.
 
 **Tuning constants** live in `src/components/city/world/worldFxTuning.js` (CAMERA/JUICE/RUN/SKY/LIFE/REWARD/PERF) — tweak there first. No art gaps: everything shipped in CSS/SVG, zero image assets needed.

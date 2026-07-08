@@ -74,6 +74,60 @@ export const EXERCISES = [
     ],
   },
 
+  {
+    name: "Leg Press", muscles: "legs · glutes", equipment: "leg press machine",
+    setup: "Sit back in the machine, feet shoulder-width on the platform, knees and hips bent. Release the safety catches.",
+    steps: [
+      "Press the platform away until your legs are almost straight — don't lock your knees hard.",
+      "Lower under control until your knees reach about 90 degrees.",
+      "Drive back up through your heels.",
+    ],
+  },
+  {
+    name: "Hack Squat", muscles: "legs · glutes", equipment: "hack squat machine",
+    setup: "Shoulders under the pads, back flat against the rest, feet shoulder-width on the platform. Release the catches.",
+    steps: [
+      "Sit your hips down and back until your thighs are at least parallel.",
+      "Keep your back flat against the pad the whole way.",
+      "Drive up through your heels to the start.",
+    ],
+  },
+  {
+    name: "Smith Machine Squat", muscles: "legs · glutes", equipment: "smith machine",
+    setup: "Bar across your upper back, feet slightly in front of the bar, hands just outside your shoulders. Unrack with a twist.",
+    steps: [
+      "Sit your hips down until your thighs are at least parallel.",
+      "The fixed bar path lets you sit back a touch more than a free squat.",
+      "Drive back up through your heels.",
+    ],
+  },
+  {
+    name: "Leg Extension", muscles: "quads", equipment: "leg extension machine",
+    setup: "Sit back in the machine, shins behind the pad, knees lined up with the pivot.",
+    steps: [
+      "Straighten your legs until they're fully extended, squeezing your quads at the top.",
+      "Pause, then lower under control — don't let the stack drop.",
+    ],
+  },
+  {
+    name: "Walking Lunge", muscles: "legs · glutes", equipment: "dumbbells",
+    setup: "Dumbbell in each hand at your sides, standing tall, shoulders back.",
+    steps: [
+      "Step forward and lower until your back knee nearly touches the floor.",
+      "Drive through your front heel to stand, bringing the back foot through into the next step.",
+      "Keep walking forward, alternating legs.",
+    ],
+  },
+  {
+    name: "Step-Up", muscles: "legs · glutes", equipment: "dumbbells + box",
+    setup: "Dumbbell in each hand, standing in front of a knee-height box or bench.",
+    steps: [
+      "Plant one foot flat on the box and drive through that heel to stand fully on top.",
+      "Step back down under control with the same leg leading.",
+      "All reps on one leg, then switch — or alternate.",
+    ],
+  },
+
   /* ── hinges & deadlifts ── */
   {
     name: "Barbell Deadlift", muscles: "full body · posterior chain", equipment: "barbell",
@@ -158,6 +212,48 @@ export const EXERCISES = [
     ],
   },
 
+  {
+    name: "Barbell Hip Thrust", muscles: "glutes · hamstrings", equipment: "barbell + bench + pad",
+    setup: "Upper back against a bench, padded barbell across your hips, feet flat and shoulder-width, knees bent.",
+    steps: [
+      "Drive through your heels and thrust your hips up until your torso is parallel to the floor.",
+      "Squeeze your glutes hard at the top — shins vertical.",
+      "Lower under control and repeat.",
+    ],
+  },
+  {
+    name: "Lying Leg Curl", muscles: "hamstrings", equipment: "lying leg curl machine",
+    setup: "Lie facedown, pad resting just above your heels, knees just off the edge of the bench.",
+    steps: [
+      "Curl your heels toward your glutes as far as they'll go.",
+      "Squeeze at the top, then lower slowly under control.",
+    ],
+  },
+  {
+    name: "Seated Leg Curl", muscles: "hamstrings", equipment: "seated leg curl machine",
+    setup: "Sit back, thigh pad locked over your legs, the pad against the back of your lower calves.",
+    steps: [
+      "Curl your heels down and under toward the seat.",
+      "Squeeze your hamstrings, then return slowly.",
+    ],
+  },
+  {
+    name: "Cable Pull-Through", muscles: "glutes · hamstrings", equipment: "cable + rope",
+    setup: "Rope on the low pulley. Face away, rope between your legs, step forward until the stack is live, slight knee bend.",
+    steps: [
+      "Hinge at your hips and let the rope draw back between your legs, back flat.",
+      "Snap your hips forward to stand tall, squeezing your glutes — it's a hinge, not a squat.",
+    ],
+  },
+  {
+    name: "Farmer Carry", muscles: "grip · traps · core", equipment: "heavy dumbbells", hold: true,
+    setup: "A heavy dumbbell in each hand at your sides, shoulders back, abs braced, standing tall.",
+    steps: [
+      "Walk in a straight line with short, quick steps — stay tall, don't lean.",
+      "Grip hard and keep breathing. Carry for the whole clock, then set them down.",
+    ],
+  },
+
   /* ── glutes & core ── */
   {
     name: "Glute Bridge", muscles: "glutes", equipment: "bodyweight",
@@ -232,6 +328,39 @@ export const EXERCISES = [
     steps: [
       "Jump up slightly, spreading your legs while bringing your arms together overhead.",
       "Jump again to return to the start. Keep a steady rhythm for the whole clock.",
+    ],
+  },
+
+  {
+    name: "Cable Crunch", muscles: "abs", equipment: "cable + rope",
+    setup: "Rope on the high pulley. Kneel facing the stack, rope held at the sides of your head, hips back.",
+    steps: [
+      "Crunch down by rounding your spine and driving your elbows toward your thighs.",
+      "Squeeze your abs at the bottom, then rise slowly — keep the pull on your abs, not your arms.",
+    ],
+  },
+  {
+    name: "Ab Wheel Rollout", muscles: "abs · core", equipment: "ab wheel",
+    setup: "Kneel with the wheel under your shoulders, arms straight, abs braced.",
+    steps: [
+      "Roll the wheel forward, extending your body as far as you can without letting your hips sag.",
+      "Pull with your abs to roll back to the start. Only go as far as you can control.",
+    ],
+  },
+  {
+    name: "Hanging Leg Raise", muscles: "abs · grip", equipment: "pull-up bar",
+    setup: "Hang from the bar, overhand grip at shoulder-width, legs straight and together.",
+    steps: [
+      "Keeping your legs straight, raise them until they're at least parallel to the floor.",
+      "Pause, then lower slowly — no swinging.",
+    ],
+  },
+  {
+    name: "Russian Twist", muscles: "obliques · core", equipment: "weight plate or dumbbell",
+    setup: "Sit on the floor, knees bent, heels light or lifted, leaning back to a strong brace. Hold a plate at your chest.",
+    steps: [
+      "Rotate your torso to tap the weight toward the floor on one side.",
+      "Rotate the other way and tap — control the turn from your core, not your arms.",
     ],
   },
 
@@ -335,6 +464,103 @@ export const EXERCISES = [
     ],
   },
 
+  {
+    name: "Incline Barbell Press", muscles: "upper chest · shoulders", equipment: "barbell + incline bench",
+    setup: "Bench set to 30–45°. Overhand grip just wider than your shoulders, bar over your upper chest, arms straight.",
+    steps: [
+      "Lower the bar to your upper chest, elbows tucked to about 45°.",
+      "Pause, then press straight up over your shoulders.",
+    ],
+  },
+  {
+    name: "Decline Bench Press", muscles: "lower chest · triceps", equipment: "barbell + decline bench",
+    setup: "Legs locked into a decline bench. Overhand grip just wider than shoulders, bar over your lower chest.",
+    steps: [
+      "Lower the bar to your lower chest under control.",
+      "Pause, then press back up to straight arms.",
+    ],
+  },
+  {
+    name: "Machine Chest Press", muscles: "chest · triceps", equipment: "chest press machine",
+    setup: "Sit back, handles level with the middle of your chest, feet planted.",
+    steps: [
+      "Press the handles forward until your arms are almost straight.",
+      "Pause, then return under control until you feel a stretch across your chest.",
+    ],
+  },
+  {
+    name: "Pec Deck Fly", muscles: "chest", equipment: "pec deck machine",
+    setup: "Sit back against the pad, forearms on the wings, elbows level with your shoulders.",
+    steps: [
+      "Squeeze the wings together in front of your chest.",
+      "Pause on the squeeze, then open slowly back to a stretch.",
+    ],
+  },
+  {
+    name: "Cable Crossover", muscles: "chest", equipment: "cable + handles",
+    setup: "Both pulleys set high, a handle in each hand, one foot forward, slight forward lean, elbows softly bent.",
+    steps: [
+      "Bring your hands together down and in front of your chest, squeezing your pecs.",
+      "Pause, then let your arms open back out to a stretch under control.",
+    ],
+  },
+  {
+    name: "Chest Dip", muscles: "lower chest · triceps", equipment: "dip bars",
+    setup: "Support yourself on parallel bars, arms straight, a slight forward lean, ankles crossed behind you.",
+    steps: [
+      "Lower until you feel a stretch across your chest, elbows flaring slightly with the lean.",
+      "Press back up to straight arms. Add a belt or hold a dumbbell to load it.",
+    ],
+  },
+  {
+    name: "Close-Grip Bench Press", muscles: "triceps · chest", equipment: "barbell + bench",
+    setup: "Lie on a flat bench, overhand grip about shoulder-width, bar over your chest, arms straight.",
+    steps: [
+      "Lower the bar to your lower chest, elbows tucked tight to your sides.",
+      "Press straight up, driving through your triceps.",
+    ],
+  },
+  {
+    name: "Arnold Press", muscles: "shoulders", equipment: "dumbbells",
+    setup: "Seated, dumbbells held in front of your shoulders, palms facing you.",
+    steps: [
+      "Press overhead while rotating your palms to face forward at the top.",
+      "Reverse the rotation on the way down, back to palms facing you.",
+    ],
+  },
+  {
+    name: "Machine Shoulder Press", muscles: "shoulders", equipment: "shoulder press machine",
+    setup: "Sit back, handles level with your shoulders, feet planted, back against the pad.",
+    steps: [
+      "Press the handles overhead until your arms are almost straight.",
+      "Pause, then lower under control back to your shoulders.",
+    ],
+  },
+  {
+    name: "Cable Lateral Raise", muscles: "shoulders", equipment: "cable + handle",
+    setup: "Low pulley on one side. Stand side-on, handle in the outside hand across your body, slight elbow bend.",
+    steps: [
+      "Raise your arm out to the side until your hand is level with your shoulder.",
+      "Pause, then lower slowly — the cable keeps tension the whole way. All reps, then switch sides.",
+    ],
+  },
+  {
+    name: "Barbell Overhead Press", muscles: "shoulders · core", equipment: "barbell",
+    setup: "Bar racked on the front of your shoulders, hands just outside shoulder-width, abs braced, glutes tight.",
+    steps: [
+      "Press the bar straight overhead, moving your head back slightly to clear it, then through at the top.",
+      "Lock out overhead, then lower under control to your shoulders. No leg drive — this is strict.",
+    ],
+  },
+  {
+    name: "Reverse Pec Deck", muscles: "rear shoulders · upper back", equipment: "pec deck machine",
+    setup: "Sit facing the pad, arms forward holding the handles, slight elbow bend.",
+    steps: [
+      "Sweep your arms out and back, squeezing your rear shoulders and shoulder blades.",
+      "Pause, then return slowly to the front.",
+    ],
+  },
+
   /* ── pulls ── */
   {
     name: "Chin-Up", muscles: "back · biceps", equipment: "pull-up bar",
@@ -426,6 +652,71 @@ export const EXERCISES = [
     ],
   },
 
+  {
+    name: "Lat Pulldown", muscles: "back · biceps", equipment: "lat pulldown machine",
+    setup: "Overhand grip wider than your shoulders, thighs locked under the pads, chest up, slight lean back.",
+    steps: [
+      "Pull the bar to your upper chest, driving your elbows down and squeezing your shoulder blades.",
+      "Pause, then let the bar rise slowly to a full stretch.",
+    ],
+  },
+  {
+    name: "Wide-Grip Lat Pulldown", muscles: "back · lats", equipment: "lat pulldown machine",
+    setup: "Overhand grip well outside shoulder-width, thighs under the pads, chest up.",
+    steps: [
+      "Pull the bar to your upper chest, leading with your elbows to hit the outer lats.",
+      "Pause, then return slowly to a full stretch overhead.",
+    ],
+  },
+  {
+    name: "T-Bar Row", muscles: "back", equipment: "t-bar row",
+    setup: "Straddle the bar, torso hinged to near-parallel, V-handle under the bar, back flat.",
+    steps: [
+      "Pull the handle to your torso, squeezing your shoulder blades together.",
+      "Pause, then lower under control to a full stretch.",
+    ],
+  },
+  {
+    name: "Chest-Supported Row", muscles: "back", equipment: "incline bench + dumbbells",
+    setup: "Lie chest-down on an incline bench, a dumbbell in each hand hanging straight down.",
+    steps: [
+      "Row the dumbbells to your sides, squeezing your shoulder blades — the bench kills all momentum.",
+      "Pause, then lower under control.",
+    ],
+  },
+  {
+    name: "Machine Row", muscles: "back", equipment: "seated row machine",
+    setup: "Chest against the pad, handles at arm's length, feet planted.",
+    steps: [
+      "Pull the handles to your torso, squeezing your shoulder blades together.",
+      "Pause, then let them back out to a full stretch.",
+    ],
+  },
+  {
+    name: "Assisted Pull-Up", muscles: "back · biceps", equipment: "assisted pull-up machine",
+    setup: "Set the assist weight, kneel or stand on the pad, overhand grip just wider than shoulders.",
+    steps: [
+      "Pull until your chin clears the bar, driving your elbows down.",
+      "Lower under control to a full hang. Drop the assist as you get stronger.",
+    ],
+  },
+  {
+    name: "Straight-Arm Pulldown", muscles: "lats", equipment: "cable + bar",
+    setup: "Bar on the high pulley. Stand back, hinge slightly, arms straight out to the bar, slight elbow bend.",
+    steps: [
+      "Keeping your arms straight, sweep the bar down to your thighs using your lats.",
+      "Pause on the squeeze, then let it rise slowly back overhead.",
+    ],
+  },
+  {
+    name: "Cable Pullover", muscles: "lats · chest", equipment: "cable + rope",
+    setup: "Rope on the high pulley. Face the stack, arms overhead holding the rope, slight forward lean.",
+    steps: [
+      "Pull the rope down and toward your hips in an arc, arms nearly straight, squeezing your lats.",
+      "Return slowly overhead to a full stretch.",
+    ],
+  },
+
   /* ── arms & calves ── */
   {
     name: "Biceps Curl", muscles: "biceps", equipment: "dumbbells",
@@ -475,6 +766,86 @@ export const EXERCISES = [
       "Pause, then lower slowly into the stretch.",
     ],
   },
+  {
+    name: "Triceps Pushdown", muscles: "triceps", equipment: "cable + bar",
+    setup: "Bar on the high pulley, overhand grip at shoulder-width, elbows pinned to your sides.",
+    steps: [
+      "Push the bar down until your arms are straight, keeping your upper arms locked in place.",
+      "Squeeze at the bottom, then let it rise to about 90 degrees.",
+    ],
+  },
+  {
+    name: "Rope Pushdown", muscles: "triceps", equipment: "cable + rope",
+    setup: "Rope on the high pulley, a neutral grip on each end, elbows pinned to your sides.",
+    steps: [
+      "Push down and spread the rope apart at the bottom, fully straightening your arms.",
+      "Squeeze your triceps, then return under control.",
+    ],
+  },
+  {
+    name: "Overhead Triceps Extension", muscles: "triceps", equipment: "dumbbell",
+    setup: "Hold one dumbbell overhead with both hands, arms straight, elbows close to your head.",
+    steps: [
+      "Lower the weight behind your head by bending only your elbows.",
+      "Pause at the stretch, then press back up to straight arms.",
+    ],
+  },
+  {
+    name: "Skull Crusher", muscles: "triceps", equipment: "barbell or EZ bar + bench",
+    setup: "Lie on a flat bench, bar held over your forehead, arms straight, elbows pointing up.",
+    steps: [
+      "Bend at the elbows to lower the bar toward your forehead, upper arms still.",
+      "Pause, then press back up to the start.",
+    ],
+  },
+  {
+    name: "Preacher Curl", muscles: "biceps", equipment: "preacher bench + barbell",
+    setup: "Upper arms flat on the preacher pad, underhand grip on the bar, arms nearly straight.",
+    steps: [
+      "Curl the bar up to your shoulders, keeping your arms glued to the pad.",
+      "Pause, then lower slowly — don't bounce out of the stretch.",
+    ],
+  },
+  {
+    name: "Cable Curl", muscles: "biceps", equipment: "cable + bar",
+    setup: "Bar on the low pulley, underhand grip at shoulder-width, elbows pinned to your sides.",
+    steps: [
+      "Curl the bar to your shoulders without moving your upper arms.",
+      "Squeeze, then lower slowly — the cable holds tension the whole way.",
+    ],
+  },
+  {
+    name: "Concentration Curl", muscles: "biceps", equipment: "dumbbell",
+    setup: "Seated, elbow braced against the inside of your thigh, dumbbell hanging at arm's length.",
+    steps: [
+      "Curl the weight to your shoulder, squeezing your biceps hard at the top.",
+      "Lower slowly. All reps on one arm, then switch.",
+    ],
+  },
+  {
+    name: "Incline Dumbbell Curl", muscles: "biceps", equipment: "dumbbells + incline bench",
+    setup: "Lie back on an incline bench, dumbbells hanging at arm's length, palms forward — arms behind your torso for a big stretch.",
+    steps: [
+      "Curl the weights to your shoulders without moving your upper arms.",
+      "Squeeze at the top, then lower all the way back to the stretch.",
+    ],
+  },
+  {
+    name: "Cable Triceps Kickback", muscles: "triceps", equipment: "cable + handle",
+    setup: "Low pulley, handle in one hand, torso hinged to near-parallel, upper arm pinned to your side.",
+    steps: [
+      "Straighten your arm behind you until it's fully extended, squeezing your triceps.",
+      "Pause, then return under control. All reps, then switch.",
+    ],
+  },
+  {
+    name: "Bench Dip", muscles: "triceps", equipment: "bench",
+    setup: "Hands on the edge of a bench behind you, legs out in front, hips off the bench.",
+    steps: [
+      "Lower your hips toward the floor by bending your elbows to about 90 degrees.",
+      "Press back up to straight arms. Prop your feet on a second bench or add a plate to make it harder.",
+    ],
+  },
 ];
 
 /* ── movement families for the Program console library —
@@ -514,6 +885,27 @@ const ALIASES = {
   "barbell high pull": "High Pull",
   "kb swing": "Two-Arm KB Swing",
   "kettlebell rdl": "KB Romanian Deadlift",
+  /* common gym vocabulary → canonical machine/cable entries */
+  "leg curl": "Lying Leg Curl",
+  "hamstring curl": "Lying Leg Curl",
+  "leg curls": "Lying Leg Curl",
+  "hip thrust": "Barbell Hip Thrust",
+  "lat pulldowns": "Lat Pulldown",
+  "pulldown": "Lat Pulldown",
+  "triceps pushdowns": "Triceps Pushdown",
+  "tricep pushdown": "Triceps Pushdown",
+  "pushdown": "Triceps Pushdown",
+  "dips": "Chest Dip",
+  "dip": "Chest Dip",
+  "overhead press": "Barbell Overhead Press",
+  "military press": "Barbell Overhead Press",
+  "cable fly": "Cable Crossover",
+  "chest fly": "Pec Deck Fly",
+  "pec deck": "Pec Deck Fly",
+  "rear delt fly (machine)": "Reverse Pec Deck",
+  "skullcrusher": "Skull Crusher",
+  "lying leg curl": "Lying Leg Curl",
+  "hack squat (machine)": "Hack Squat",
 };
 
 const norm = (n) => String(n || "").trim().toLowerCase();

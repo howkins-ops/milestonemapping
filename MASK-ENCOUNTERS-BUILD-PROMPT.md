@@ -248,3 +248,20 @@ src/styles/maskCourt.css   # mqk-* — port the concept CSS, re-skinned to Sora/
 - Do NOT commit, deploy, or run migrations without Jon's go.
 
 **Definition of done:** a new user walks east from the Plaza, hits a fog bank, gets ambushed by THE SNOOZE, learns to breathe + name, wins in under a minute. Chapters later they finish THE GRID and fog gathers at its end arch — *"You leveled up. That's when it gets loud."* They choose to face THE NAIVE WARRIOR in its own themed boss stage, survive the surge, name three fears, return POWER, lock "Make the call" — and then the screen goes white and strobes and **THE NAIVE WARRIOR evolves into THE COMMANDER**, essence emblem branding onto its chest, before shrinking and falling in behind them on the street. Four boss stages later, five evolved protectors walk at their back and the fog thins over the whole city because **the court is theirs**.
+
+---
+
+## BUILD STATUS — 2026-07-07 (Claude session, all phases complete)
+
+| Phase | Status | Verified |
+|---|---|---|
+| 0 · Recon | ✅ | concept played/read line-by-line, all §0 files read, baseline build green |
+| 1 · Data + store | ✅ | Node smoke 37/37 (round-trips, idempotence, relapse eligibility, corrupt-storage defaults) |
+| 2 · Battle | ✅ | CDP E2E ×4: full Broke King fight (fight-back grow, breathe+crit, 3 namings, surge, essence deflect→POWER, proof, kneel→strobe→**THE SOVEREIGN** reveal); Saint fight w/ composure-0 Survival Mode + ally lineup; wild Snooze <10s + Walk Away free; reduced-motion single-crossfade run @390px |
+| 3 · Street layer | ✅ | 7 fog banks, real ambush while walking, Guide framing FACE IT/NOT NOW (session snooze), straight-to-battle after framing, legacy materialization (all 5 lurkers + toast), FACE prompt + mutter, soft-gate walk-past, boss walk-away |
+| 4 · Integration | ✅ | codex (dark→evolved pairs, typed fears/proofs, ??? unknowns, relapse tally), 🎭 5/5 HUD chip, XP 20/275/500 + 6 registered achievements, Court finale w/ evolved lineup, fog ×0.5 permanent, 5 allies trailing |
+| 5 · Polish | ✅ | 7 new WebAudio sfx in lib/sfx.js (no 2nd engine), night ×1.5, encounters OFF toggle in codex, copy pass vs §2 laws, Proof→Top Five mission button, final build green, full-arc E2E PASS |
+
+**Files:** `src/components/city/masks/*` (12 new) + `src/styles/maskCourt.css` + surgical touches to useWorldEngine (onStride), WorldScene, cityWorld (maskDens/maskZones), MapQuestCityPage, StoryDialog (altLabel), lib/sfx.js, lib/achievements.js.
+**Dev flags:** `?maskfight=<boss-id>|wild:<critic>|relapse:<boss-id>` mounts a fight; `?maskrate=1` forces ambush rolls.
+**Notes:** local-first (mask_court_v1) — no migrations; NOT committed/deployed; ElevenLabs untouched per law. Achievements hydrate server-first on reload (pre-existing app behavior) — mid-session unlocks all fire.

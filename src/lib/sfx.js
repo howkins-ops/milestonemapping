@@ -395,6 +395,114 @@ export function sfxRainbow(settings) {
   } catch { /* silent */ }
 }
 
+// ═══════════ FILL YOUR CUP (well-being) ═══════════
+
+// Water pouring into the cup on every habit checked — a soft liquid rush plus
+// a run of glugs whose pitch CLIMBS with the fill level, exactly like water
+// filling a real glass (the air column above the water shortens, so its
+// resonance rises). pct = the new fill % after this pour (0..100).
+export function sfxCupPour(pct = 0, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const p = Math.max(0, Math.min(100, pct)) / 100;
+    // liquid rush — bandpassed noise stream, brightens as the cup fills
+    const src = noise(c);
+    const bp = c.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 0.7;
+    const f0 = 600 + p * 900;
+    bp.frequency.setValueAtTime(f0, t);
+    bp.frequency.exponentialRampToValueAtTime(f0 * 1.5, t + 0.34);
+    const g = env(c, { gain: 0.13, attack: 0.03, duration: 0.4 });
+    src.connect(bp).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.46);
+    // filling glugs — a few sine "bloops" rising in pitch with the water level
+    const glugBase = 260 + p * 520;
+    for (let i = 0; i < 3; i += 1) {
+      const st = t + 0.02 + i * 0.09;
+      const gf = glugBase * (1 + i * 0.12);
+      const o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(gf * 0.7, st);
+      o.frequency.exponentialRampToValueAtTime(gf, st + 0.08);
+      const og = c.createGain();
+      og.gain.setValueAtTime(0.0001, st);
+      og.gain.exponentialRampToValueAtTime(0.09, st + 0.02);
+      og.gain.exponentialRampToValueAtTime(0.0001, st + 0.12);
+      o.connect(og).connect(bus);
+      o.start(st);
+      o.stop(st + 0.16);
+    }
+    // tiny top-off droplet
+    blip(c, { from: 900 + p * 700, to: 1600 + p * 700, duration: 0.06, type: "sine", gain: 0.05, start: 0.3 });
+  } catch { /* silent */ }
+}
+
+// Drinking it down — three satisfying gulps descending, then a soft "ahh" sigh
+// of air. Pairs with the spoken affirmation (speakRefreshed) after the gulps.
+export function sfxCupDrink(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    // gulp · gulp · gulp — descending sine drops with a wet body tap
+    for (let i = 0; i < 3; i += 1) {
+      const st = t + i * 0.22;
+      const f = 300 - i * 55;
+      const o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f + 180, st);
+      o.frequency.exponentialRampToValueAtTime(f, st + 0.1);
+      const og = c.createGain();
+      og.gain.setValueAtTime(0.0001, st);
+      og.gain.exponentialRampToValueAtTime(0.16, st + 0.02);
+      og.gain.exponentialRampToValueAtTime(0.0001, st + 0.16);
+      o.connect(og).connect(bus);
+      o.start(st);
+      o.stop(st + 0.2);
+      crack(c, { hp: 200, lp: 1400, duration: 0.05, gain: 0.06, start: i * 0.22 });
+    }
+    // contented "ahh" breath after the last gulp
+    const st = t + 0.72;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.4;
+    f.frequency.setValueAtTime(900, st);
+    f.frequency.exponentialRampToValueAtTime(1400, st + 0.5);
+    const g = env(c, { gain: 0.06, attack: 0.12, duration: 0.6, start: 0.72 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(st);
+    src.stop(st + 0.7);
+  } catch { /* silent */ }
+}
+
+// Spoken affirmation via the device's built-in voice (no asset, no ElevenLabs
+// bake needed). The "ahh, I'm refreshed" line after drinking the cup.
+export function speakRefreshed(settings) {
+  try {
+    if (!enabled) return;
+    if (settings && settings.soundEnabled === false) return;
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const lines = [
+      "Ahh. I'm refreshed. I feel full.",
+      "Ahh. That hits the spot. I feel restored.",
+      "Ahh. My cup is full, and so am I.",
+      "Ahh. Refreshed, recharged, and ready.",
+    ];
+    const line = lines[Math.floor(Math.random() * lines.length)];
+    const u = new SpeechSynthesisUtterance(line);
+    u.rate = 0.95;
+    u.pitch = 1.05;
+    u.volume = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch { /* silent */ }
+}
+
 // ---------- arena one-shots ----------
 
 // The game buzzer — end-of-quarter / end-of-game horn. Harsh dissonant

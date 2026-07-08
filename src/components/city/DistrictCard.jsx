@@ -2,7 +2,7 @@ import React from "react";
 import "../../styles/cityDistricts.css";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — District card
+// MILESTONE CITY — District card
 // Compact grid card: glyph medallion, name, live progress ring, streak
 // flame. Glow state mirrors the building in the skyline above.
 // ════════════════════════════════════════════════════════════════════════

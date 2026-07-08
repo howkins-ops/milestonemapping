@@ -62,7 +62,7 @@ export default function WorldAtlas({ onJump, current = null }) {
       {
         id: "city",
         act: "ACT 1",
-        name: "MapQuest City",
+        name: "Milestone City",
         detail: spireOpen
           ? "Fully trained — the Spire answered"
           : `Training ${spireLitCount(journey)}/${TUTORIAL_DISTRICT_IDS.length} lit`,

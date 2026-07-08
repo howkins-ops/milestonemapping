@@ -65,14 +65,42 @@ const PRO_OUTCOMES = {
   close:       { points: 10, contact: true,  pitch: true,  objection: false, sale: true,  resetsHeat: false },
 };
 
+// FULL mode — the 6 real door outcomes (handoff #3). Each feeds the stat sheet
+// and, via the per-door event log, a future AI pattern-recognition layer. The
+// funnel is cumulative (a deeper stage implies the shallower counters). Heat
+// only resets on outcomes that are genuinely a dead end (no answer, a flat no).
+//   No Answer +2 · Not Interested +3 · Gatekeeper +4 · Objection +6 · Full Pitch +8 · Sale +10
+const FULL_OUTCOMES = {
+  no_answer:      { points: 2,  contact: false, pitch: false, objection: false, sale: false, resetsHeat: true,  funnel: "knock" },
+  not_interested: { points: 3,  contact: true,  pitch: false, objection: false, sale: false, resetsHeat: true,  funnel: "contact" },
+  gatekeeper:     { points: 4,  contact: true,  pitch: false, objection: false, sale: false, resetsHeat: false, funnel: "contact" },
+  objection:      { points: 6,  contact: true,  pitch: true,  objection: true,  sale: false, resetsHeat: false, funnel: "objection" },
+  full_pitch:     { points: 8,  contact: true,  pitch: true,  objection: false, sale: false, resetsHeat: false, funnel: "pitch" },
+  sale:           { points: 10, contact: true,  pitch: true,  objection: false, sale: true,  resetsHeat: false, funnel: "sale" },
+};
+
+// The FULL-mode outcome keys, in funnel order — the canonical set the stat
+// sheet and the AI layer read. Exported so the UI never hard-codes them.
+export const FULL_OUTCOME_KEYS = [
+  "no_answer",
+  "not_interested",
+  "gatekeeper",
+  "objection",
+  "full_pitch",
+  "sale",
+];
+
 // Aliases so callers can stay in one vocabulary if they like.
 const ALIASES = {
   rookie: {},
   pro: { no: "knock" },
+  full: { no: "no_answer", knock: "no_answer", pitch: "full_pitch", close: "sale" },
 };
 
 function outcomeTable(mode) {
-  return mode === "pro" ? PRO_OUTCOMES : ROOKIE_OUTCOMES;
+  if (mode === "pro") return PRO_OUTCOMES;
+  if (mode === "full") return FULL_OUTCOMES;
+  return ROOKIE_OUTCOMES;
 }
 
 function resolveOutcome(mode, outcome) {
@@ -96,7 +124,7 @@ function resolveOutcome(mode, outcome) {
  * @returns immutable-style game state.
  */
 export function createGame(opts = {}) {
-  const mode = opts.mode === "pro" ? "pro" : "rookie";
+  const mode = opts.mode === "pro" ? "pro" : opts.mode === "full" ? "full" : "rookie";
   const season = { ...blankFunnel(), ...(opts.season || {}) };
   return {
     mode,
@@ -115,6 +143,16 @@ export function createGame(opts = {}) {
     pitches: 0,
     objections: 0,
     sales: 0,
+
+    // Per-outcome tally (raw counts by outcome key) — powers the stat sheet's
+    // outcome breakdown AND keeps the door-level detail the AI layer will read.
+    outcomes: {},
+
+    // Per-door event log — the sequence the AI pattern layer needs. One entry
+    // per logged door; append-only, never mutated after write. Kept compact so
+    // a full workday of doors stays cheap to persist.
+    //   { i, q, outcome, points, sale, at }  (at = quarter-elapsed frac, 0..1)
+    doorLog: [],
 
     points: 0,
     heat: 0,                // current consecutive-good streak
@@ -135,6 +173,8 @@ function clone(state) {
     ...state,
     season: { ...state.season },
     quarterLog: state.quarterLog.slice(),
+    outcomes: { ...(state.outcomes || {}) },
+    doorLog: (state.doorLog || []).slice(),
   };
 }
 
@@ -204,6 +244,9 @@ export function logDoor(state, outcome, opts = {}) {
   if (spec.pitch) next.pitches += 1;
   if (spec.objection) next.objections += 1;
 
+  // Raw per-outcome tally (keyed by the resolved outcome key).
+  next.outcomes[key] = (next.outcomes[key] || 0) + 1;
+
   // TARGET SMASHED — this door is exactly the one that reaches the quarter's
   // target. quarterDoors climbs by 1 per door, so this fires once per quarter.
   // Clock-only rules: the quarter does NOT end — the bonus lands, play rolls on.
@@ -234,6 +277,17 @@ export function logDoor(state, outcome, opts = {}) {
   }
 
   next.points += points;
+
+  // Append the AI-ready door event (append-only; caller may pass opts.at =
+  // quarter-elapsed fraction 0..1 for time-of-quarter pattern mining).
+  next.doorLog.push({
+    i: next.doors,
+    q: next.quarter,
+    outcome: key,
+    points,
+    sale: !!spec.sale,
+    at: typeof opts.at === "number" ? Math.max(0, Math.min(1, opts.at)) : null,
+  });
 
   const isRecord = next.points > next.seasonBest;
   const tag = targetSmashed
@@ -389,7 +443,58 @@ export function boxScore(state) {
     payout: state.sales * state.avgDollar,
     isPersonalBest: state.points > state.seasonBest,
     quarterLog: state.quarterLog.slice(),
+    outcomes: { ...(state.outcomes || {}) },
   };
+}
+
+/**
+ * outcomeBreakdown — the NBA-style outcome table (handoff #4). Resolves every
+ * raw outcome tally into the FULL-mode vocabulary so the stat sheet reads one
+ * consistent set of columns regardless of the mode played. Rookie/Pro keys map
+ * onto their nearest FULL bucket; unknown keys are ignored.
+ */
+const OUTCOME_TO_FULL = {
+  // rookie
+  no: "no_answer",
+  pitch: "full_pitch",
+  sale: "sale",
+  // pro
+  knock: "no_answer",
+  talked_to: "not_interested",
+  value_build: "full_pitch",
+  price_drop: "objection",
+  close: "sale",
+  // full (identity)
+  no_answer: "no_answer",
+  not_interested: "not_interested",
+  gatekeeper: "gatekeeper",
+  objection: "objection",
+  full_pitch: "full_pitch",
+};
+
+export function outcomeBreakdown(state) {
+  const src = state.outcomes || {};
+  const out = {
+    no_answer: 0,
+    not_interested: 0,
+    gatekeeper: 0,
+    objection: 0,
+    full_pitch: 0,
+    sale: 0,
+  };
+  for (const [k, n] of Object.entries(src)) {
+    const bucket = OUTCOME_TO_FULL[k];
+    if (bucket) out[bucket] += n;
+  }
+  // Convenience roll-ups the stat sheet uses directly.
+  out.goodPitches = out.full_pitch + out.objection + out.sale;
+  out.nos = out.not_interested + out.objection;
+  out.noAnswers = out.no_answer;
+  out.gatekeepers = out.gatekeeper;
+  out.doors = state.doors || 0;
+  out.sales = out.sale;
+  out.conversionPct = out.doors > 0 ? Math.round((out.sale / out.doors) * 1000) / 10 : 0;
+  return out;
 }
 
 /** The payload persisted to az_fullcourt_log_game (matches arena_fullcourt_games). */
@@ -406,6 +511,11 @@ export function toGamePayload(state) {
     // an int like 2 would blow up the ::boolean cast and the log would never land.
     ot: state.ot > 0,
     avg_dollar: state.avgDollar,
+    // Extra detail for the stat sheet's outcome breakdown. The RPC ignores keys
+    // it has no column for, so this is safe to send even before a migration adds
+    // an `outcomes jsonb` column — no data model painted into a corner (#3).
+    outcomes: { ...(state.outcomes || {}) },
+    objections: state.objections,
   };
 }
 

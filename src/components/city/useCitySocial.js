@@ -4,7 +4,7 @@ import { getZoneState, listFriends, getLeaderboard } from "../../lib/zoneService
 import { getFireLevel, getPhoenixStage } from "../../lib/zoneFire.js";
 
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — social presence hook
+// MILESTONE CITY — social presence hook
 // One mount-time fan-out (zone state + friends + 7-day leaderboard) via
 // Promise.allSettled so a single failed RPC never nukes the other slices.
 // Refreshes when the tab becomes visible again (throttled to >= 60s).

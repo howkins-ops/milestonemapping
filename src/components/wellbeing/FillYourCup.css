@@ -94,7 +94,7 @@
 }
 
 .fyc-cup {
-  width: min(96px, 26vw);
+  width: min(115px, 31vw);
   filter: drop-shadow(0 0 16px rgba(209, 30, 255, 0.4));
   transition: filter 0.6s ease;
 }
@@ -607,7 +607,7 @@
 }
 
 .fyc-full-cup {
-  width: 120px;
+  width: 144px;
   margin: 0 auto 0.75rem;
 }
 

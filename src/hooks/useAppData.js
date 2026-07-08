@@ -67,10 +67,16 @@ import { upsertMilestone, completeMilestoneInDB, deleteMilestone as dbDeleteMile
 
 const AppDataContext = createContext(null);
 
+// Plain daily checklists that live alongside the Top 5 (no XP / celebration).
+const DAILY_LIST_KEYS = ["todoList", "errands", "calls"];
+
 function emptyDailyLog(date) {
   return {
     date,
     topFive: [],
+    todoList: [],
+    errands: [],
+    calls: [],
     gratitude: { entry1: "", entry2: "", entry3: "" },
     battlePlan: "",
     biggestWin: "",
@@ -121,8 +127,14 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       .eq("user_id", userId)
       .maybeSingle()
       .then(({ data: row, error }) => {
-        if (error) console.error("Supabase load error:", error);
-        setCloudHadData(Boolean(row));
+        if (error) {
+          // Network/read failure: leave cloudHadData null (unresolved) so the
+          // onboarding gate's fail-safe treats an existing user as returning,
+          // rather than mis-classifying them as new and forcing the Crossing.
+          console.error("Supabase load error:", error);
+        } else {
+          setCloudHadData(Boolean(row));
+        }
         if (row?.data) {
           const d = row.data;
           if (Array.isArray(d.projects)) setProjects(d.projects);
@@ -764,6 +776,61 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
     [getTodayLog, updateTodayLog, addXP, unlockAchievement, celebrate, userId]
   );
 
+  /* ---------------- daily plain lists (To-Do / Errands / Calls) ---------------- */
+  // Lightweight checklists that sit under the Top 5. Same daily-log blob, but no
+  // XP / celebration / daily_priorities dual-write — just a plain check/uncheck.
+  // listKey is allowlisted so this path can never clobber topFive/gratitude/etc.
+
+  const addDailyListItem = useCallback(
+    (listKey, text) => {
+      if (!DAILY_LIST_KEYS.includes(listKey)) return;
+      const clean = (text || "").trim();
+      if (!clean) return;
+      const log = getTodayLog();
+      updateTodayLog({
+        [listKey]: [...(log[listKey] || []), { id: uid("dl"), text: clean, done: false }]
+      });
+    },
+    [getTodayLog, updateTodayLog]
+  );
+
+  const updateDailyListItem = useCallback(
+    (listKey, id, patch) => {
+      if (!DAILY_LIST_KEYS.includes(listKey)) return;
+      const log = getTodayLog();
+      updateTodayLog({
+        [listKey]: (log[listKey] || []).map((item) =>
+          item.id === id ? { ...item, ...patch } : item
+        )
+      });
+    },
+    [getTodayLog, updateTodayLog]
+  );
+
+  const deleteDailyListItem = useCallback(
+    (listKey, id) => {
+      if (!DAILY_LIST_KEYS.includes(listKey)) return;
+      const log = getTodayLog();
+      updateTodayLog({
+        [listKey]: (log[listKey] || []).filter((item) => item.id !== id)
+      });
+    },
+    [getTodayLog, updateTodayLog]
+  );
+
+  const toggleDailyListItem = useCallback(
+    (listKey, id) => {
+      if (!DAILY_LIST_KEYS.includes(listKey)) return;
+      const log = getTodayLog();
+      updateTodayLog({
+        [listKey]: (log[listKey] || []).map((item) =>
+          item.id === id ? { ...item, done: !item.done } : item
+        )
+      });
+    },
+    [getTodayLog, updateTodayLog]
+  );
+
   /* ---------------- tomorrow log (night planning) ---------------- */
 
   const getTomorrowLog = useCallback(() => {
@@ -1140,6 +1207,9 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       getTodayLog, updateTodayLog,
       addTopFiveTask, updateTopFiveTask, deleteTopFiveTask, toggleTopFiveTask,
 
+      // daily plain lists (To-Do / Errands / Calls)
+      addDailyListItem, updateDailyListItem, deleteDailyListItem, toggleDailyListItem,
+
       // tomorrow log
       getTomorrowLog, updateTomorrowLog,
       addTomorrowTopFiveTask, updateTomorrowTopFiveTask, deleteTomorrowTopFiveTask,
@@ -1178,6 +1248,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
       addMilestoneAction, updateMilestoneAction, deleteMilestoneAction, toggleMilestoneAction,
       getTodayLog, updateTodayLog,
       addTopFiveTask, updateTopFiveTask, deleteTopFiveTask, toggleTopFiveTask,
+      addDailyListItem, updateDailyListItem, deleteDailyListItem, toggleDailyListItem,
       getTomorrowLog, updateTomorrowLog,
       addTomorrowTopFiveTask, updateTomorrowTopFiveTask, deleteTomorrowTopFiveTask,
       saveWeeklyReview, claimReward, saveRewardImage, saveDailyProof,

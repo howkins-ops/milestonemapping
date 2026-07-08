@@ -721,12 +721,34 @@
   padding: 8px 14px;
   background: rgba(0, 0, 0, 0.3);
 }
-.iw-al-weekbadge-num { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 18px; color: var(--iw-al-accent, #e8e4da); }
+.iw-al-weekbadge-num { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 15px; white-space: nowrap; color: var(--iw-al-accent, #e8e4da); }
 .iw-al-weekbadge-sub { font-size: 9px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #837e72; }
 .iw-al-todaycard { border-top: 2px solid var(--iw-al-accent, #ff6a2b); }
 .iw-al-todaytags { display: flex; gap: 6px; }
 .iw-al-today-name { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 19px; color: #e8e4da; margin-bottom: 8px; }
 .iw-al-today-blocks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+/* today's moves — thumbnail preview strip */
+.iw-al-today-thumbs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.iw-al-today-thumb {
+  position: relative;
+  width: 46px; height: 46px; flex: none;
+  border-radius: 10px; overflow: hidden;
+  background: rgba(232, 228, 218, 0.05);
+  border: 1px solid rgba(232, 228, 218, 0.1);
+}
+.iw-al-today-mono {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 18px;
+  color: color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 60%, #837e72);
+}
+.iw-exi.iw-al-today-thumbimg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 0; margin: 0; border: none;
+}
 .iw-al-stockcard {
   display: flex;
   align-items: center;
@@ -767,47 +789,34 @@
 .iw-al-challenge-name { font-weight: 800; font-size: 13px; color: #e8e4da; }
 .iw-al-challenge-sub { font-size: 11px; color: #9a948a; font-style: italic; }
 
-/* schedule grid */
-.iw-al-grid { display: flex; flex-direction: column; gap: 4px; }
-.iw-al-grid-row { display: flex; gap: 4px; align-items: stretch; opacity: 0.55; }
-.iw-al-grid-now { opacity: 1; }
-.iw-al-grid-past { opacity: 0.75; }
-.iw-al-grid-head { opacity: 1; }
-.iw-al-grid-wk {
-  width: 30px;
+/* this-week list (Today card) — plain days + real workout names */
+.iw-al-weeklist { display: flex; flex-direction: column; margin-top: 4px; }
+.iw-al-wl-day {
   display: flex;
   align-items: center;
-  font-size: 10px;
-  font-weight: 800;
-  color: #837e72;
+  gap: 10px;
+  padding: 9px 6px;
+  border-top: 1px dashed rgba(232, 228, 218, 0.08);
 }
-.iw-al-grid-day { flex: 1; text-align: center; font-size: 9px; font-weight: 800; color: #55514a; }
-.iw-al-grid-cell {
-  flex: 1;
-  min-height: 34px;
-  border-radius: 8px;
-  border: 1px solid rgba(232, 228, 218, 0.07);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  font-size: 9.5px;
-  font-weight: 800;
-  color: #6d685d;
+.iw-al-wl-day:first-child { border-top: none; }
+.iw-al-wl-name { flex: none; width: 82px; font-size: 12px; font-weight: 800; color: #c7c2b6; }
+.iw-al-wl-rest .iw-al-wl-name { color: #837e72; }
+.iw-al-wl-lift { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: #e8e4da; }
+.iw-al-wl-work .iw-al-wl-lift { color: #f2eee4; font-weight: 800; }
+.iw-al-wl-rest .iw-al-wl-lift { color: #837e72; font-weight: 600; }
+.iw-al-wl-tag { font-size: 10.5px; font-weight: 700; color: #a8a296; }
+.iw-al-wl-tag-cheat { color: #ff8a4d; }
+.iw-al-wl-state { flex: none; }
+.iw-al-wl-check { font-size: 13px; font-weight: 800; color: #6fcf97; }
+.iw-al-wl-now {
+  font-size: 10.5px; font-weight: 800; color: #0e0f11; white-space: nowrap;
+  background: var(--iw-al-accent, #ff8a4d);
+  padding: 3px 9px; border-radius: 999px;
 }
-.iw-al-cell-work { border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 40%, transparent); color: #c7c2b6; }
-.iw-al-cell-done { background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 14%, transparent); color: var(--iw-al-accent, #ff8a4d); }
-.iw-al-cell-dots { display: flex; gap: 2px; }
-.iw-al-dot-cheat, .iw-al-dot-fast {
-  display: inline-block;
-  width: 5px; height: 5px;
-  border-radius: 50%;
+.iw-al-wl-today {
+  background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 12%, transparent);
+  border-radius: 9px;
 }
-.iw-al-dot-cheat { background: #ff6a2b; }
-.iw-al-dot-fast { background: #e8e4da; }
-.iw-al-grid-legend { display: flex; gap: 14px; margin-top: 10px; font-size: 10px; color: #6d685d; align-items: center; }
-.iw-al-grid-legend span { display: inline-flex; align-items: center; gap: 5px; }
 
 /* fast clock */
 .iw-al-fastclock { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
@@ -1792,38 +1801,92 @@
 }
 .iw-pc-eatday { font-weight: 800; color: #e8e4da; }
 
-/* rotation grid */
-.iw-pc-rotation { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-.iw-pc-rotrow {
-  display: grid;
-  grid-template-columns: 26px repeat(7, 1fr);
-  gap: 4px;
+/* section block titles — a touch of the phase color, not flat grey */
+.iw-pc-blocktitle { color: color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 74%, #e8e4da); }
+
+/* the weekly schedule — plain days, real workout names */
+.iw-pc-weeks { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.iw-pc-week {
+  border: 1px solid rgba(232, 228, 218, 0.1);
+  border-radius: 12px;
+  background: rgba(232, 228, 218, 0.02);
+  overflow: hidden;
+}
+.iw-pc-week-now {
+  border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 55%, transparent);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 9%, transparent), transparent);
+}
+.iw-pc-weekhead {
+  display: flex;
   align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none; border: none; color: inherit; cursor: pointer; text-align: left;
 }
-.iw-pc-rothead {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #837e72;
-  text-align: center;
+.iw-pc-weeknum {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 14px; letter-spacing: 0.03em;
+  color: #f2eee4;
 }
-.iw-pc-rothead span:first-child { text-align: left; }
-.iw-pc-rotwk { font-size: 11px; font-weight: 800; color: #9a948a; }
-.iw-pc-rotcell {
-  padding: 5px 0;
-  border-radius: 7px;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-align: center;
-  color: #6d685d;
-  background: rgba(232, 228, 218, 0.025);
+.iw-pc-week-now .iw-pc-weeknum { color: var(--iw-al-accent, #ff8a4d); }
+.iw-pc-weekcount { flex: 1; text-align: right; font-size: 11px; font-weight: 700; color: #9a948a; }
+.iw-pc-days { padding: 2px 8px 8px; display: flex; flex-direction: column; }
+.iw-pc-day {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-top: 1px dashed rgba(232, 228, 218, 0.07);
 }
-.iw-pc-rot-lift { color: #f2eee4; background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 22%, transparent); }
-.iw-pc-rot-cardio { color: #c7c2b6; background: rgba(232, 228, 218, 0.09); }
-.iw-pc-rotnow .iw-pc-rotwk { color: var(--iw-al-accent, #ff8a4d); }
-.iw-pc-rotnow { outline: 1px dashed color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent); outline-offset: 2px; border-radius: 8px; }
+.iw-pc-day:first-child { border-top: none; }
+.iw-pc-dayname { flex: none; width: 84px; font-size: 12px; font-weight: 800; color: #c7c2b6; }
+.iw-pc-day-rest .iw-pc-dayname { color: #837e72; }
+.iw-pc-daymain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.iw-pc-daywork { font-size: 13.5px; font-weight: 700; color: #e8e4da; }
+.iw-pc-day-work .iw-pc-daywork { color: #f2eee4; font-weight: 800; }
+.iw-pc-day-rest .iw-pc-daywork { color: #837e72; font-weight: 600; }
+.iw-pc-daytags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.iw-pc-daymin { font-size: 10.5px; font-weight: 800; color: color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 72%, #a8a296); }
+.iw-pc-daytag { font-size: 10px; font-weight: 700; color: #a8a296; }
+.iw-pc-daytag-cheat { color: #ff8a4d; }
+.iw-pc-daystate { flex: none; }
+.iw-pc-daycheck { font-size: 11px; font-weight: 800; color: #6fcf97; }
+.iw-pc-daynow {
+  font-size: 10.5px; font-weight: 800; color: #0e0f11;
+  background: var(--iw-al-accent, #ff8a4d);
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+.iw-pc-day-today { background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 12%, transparent); border-radius: 8px; }
+
+/* exercise cards — the picture is ALWAYS visible, how-to text on tap */
+.iw-pc-ex {
+  border: 1px solid rgba(232, 228, 218, 0.09);
+  border-radius: 11px;
+  background: rgba(232, 228, 218, 0.02);
+  overflow: hidden;
+}
+.iw-pc-ex-top { display: flex; align-items: center; gap: 11px; padding: 9px 10px; }
+.iw-exi.iw-pc-ex-thumb { width: 58px; height: 58px; flex: none; object-fit: cover; border-radius: 9px; margin: 0; }
+.iw-pc-ex-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.iw-pc-ex-name { font-size: 13.5px; font-weight: 800; color: #f2eee4; }
+.iw-pc-ex-tags { font-size: 10.5px; font-weight: 600; color: #9a948a; text-transform: capitalize; }
+.iw-pc-ex-reps {
+  flex: none; font-size: 13px; font-weight: 800;
+  color: var(--iw-al-accent, #ff8a4d);
+  padding: 4px 9px; border-radius: 8px;
+  background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 13%, transparent);
+}
+.iw-pc-ex-toggle {
+  width: 100%; text-align: left; padding: 7px 11px;
+  background: none; border: none; border-top: 1px dashed rgba(232, 228, 218, 0.08);
+  color: #a8a296; font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.iw-pc-ex-how { padding: 2px 12px 12px; }
+.iw-pc-ex-setup { font-size: 12.5px; line-height: 1.5; color: #c7c2b6; margin: 6px 0 8px; }
+.iw-pc-ex-steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.iw-pc-ex-steps li { font-size: 12.5px; line-height: 1.5; color: #c7c2b6; }
+.iw-pc-ex-steps li::marker { color: var(--iw-al-accent, #ff8a4d); font-weight: 800; }
 
 /* workout breakdown cards */
 .iw-pc-workout {
@@ -1847,12 +1910,15 @@
 }
 .iw-pc-wobadge {
   flex: none;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
+  width: 27px; height: 27px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 13px;
   font-weight: 800;
   color: var(--iw-al-accent, #ff8a4d);
   border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent);
+  background: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 8%, transparent);
 }
 .iw-pc-wotext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .iw-pc-woname { font-weight: 800; font-size: 14.5px; color: #f2eee4; }
@@ -2149,3 +2215,73 @@
 .iw-al-sm-glyph { font-size: 13px; color: #e8e4da; }
 .iw-al-sm-kind { font-size: 11.5px; font-weight: 700; color: #c7c2b6; }
 .iw-al-sm-arrow { color: #6d685d; font-weight: 800; }
+
+/* ═══════════ TODAY HUB — right-now focus (ADHD-first) ═══════════ */
+.iw-al-today { display: flex; flex-direction: column; }
+.iw-al-today-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  width: 100%;
+  border: 1px solid rgba(232, 228, 218, 0.12);
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin: 6px 0 14px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 12%, transparent), transparent 60%),
+    rgba(232, 228, 218, 0.03);
+  cursor: default;
+}
+.iw-al-today-hero--train { border-top: 3px solid var(--iw-al-accent, #ff6a2b); }
+.iw-al-today-hero--cheat { border-top: 3px solid #ffb44d; cursor: pointer; }
+.iw-al-today-hero--rest,
+.iw-al-today-hero--cardio { border-top: 3px solid rgba(232, 228, 218, 0.25); }
+.iw-al-today-kicker {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 70%, #837e72);
+}
+.iw-al-today-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 26px; line-height: 1.05; color: #f0ece2; margin-top: 2px;
+}
+.iw-al-today-meta { font-size: 12px; font-weight: 700; letter-spacing: 0.4px; color: #a7a294; margin-top: 2px; }
+.iw-al-today-sub { font-size: 13px; line-height: 1.5; color: #a7a294; margin-top: 3px; }
+.iw-al-today-go { margin-top: 14px; }
+.iw-al-today-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.iw-al-today-water { color: #7fd4ff; border-color: rgba(70, 200, 255, 0.4); }
+.iw-al-today-section { margin-bottom: 16px; }
+.iw-al-today-section .iw-eyebrow { margin-bottom: 8px; }
+.iw-al-today-doors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.iw-al-today-door {
+  display: flex; flex-direction: column; gap: 3px; text-align: left;
+  border: 1px solid rgba(232, 228, 218, 0.12); border-radius: 13px;
+  padding: 13px 12px; background: rgba(232, 228, 218, 0.03); cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.08s ease;
+}
+.iw-al-today-door:active { transform: scale(0.97); }
+.iw-al-today-door-title { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 13px; color: #e8e4da; }
+.iw-al-today-door-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px; color: #837e72; }
+
+/* The Road entry inside the Book */
+.iw-bk-road {
+  display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%;
+  border: 1px solid rgba(232, 228, 218, 0.14); border-radius: 14px;
+  padding: 15px 14px; margin-bottom: 14px; cursor: pointer;
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 14%, transparent), transparent 60%),
+    rgba(232, 228, 218, 0.03);
+  transition: border-color 0.2s ease, transform 0.08s ease;
+}
+.iw-bk-road:active { transform: scale(0.99); }
+.iw-bk-road-text { display: flex; flex-direction: column; gap: 2px; }
+.iw-bk-road-title { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 16px; color: #f0ece2; }
+.iw-bk-road-sub { font-size: 12px; line-height: 1.45; color: #a7a294; }
+.iw-bk-road-bar { margin: 2px 0; }
+.iw-bk-road-go { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 11px; letter-spacing: 1px; color: color-mix(in srgb, var(--iw-al-accent, #ff8a4d) 70%, #837e72); }
+
+@media (max-width: 360px) {
+  .iw-al-today-doors { grid-template-columns: 1fr; }
+  .iw-al-today-title { font-size: 23px; }
+}

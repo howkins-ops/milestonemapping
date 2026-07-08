@@ -26,8 +26,8 @@ import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
 
 // The Accountability Zone — its own world inside the app.
 // Gates: no supabase/user → ZoneGate; no zone identity → onboarding; else the Zone.
-// MapQuest City lives here as its own tab — the Zone is the city's population.
-export default function ZonePage({ onNavigate, onOpenMapQuest, initialView }) {
+// Milestone City lives here as its own tab — the Zone is the city's population.
+export default function ZonePage({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
   const { userId } = useAppData();
   if (!supabase || !userId) return <ZoneGate />;
   return (
@@ -36,15 +36,16 @@ export default function ZonePage({ onNavigate, onOpenMapQuest, initialView }) {
         onNavigate={onNavigate}
         onOpenMapQuest={onOpenMapQuest}
         initialView={initialView}
+        initialParam={initialParam}
       />
     </ZoneProvider>
   );
 }
 
-function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
-  const { loading, member, fire, refreshState } = useZoneCtx();
+function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
+  const { loading, error, state, member, fire, refreshState } = useZoneCtx();
   const [view, setView] = useState(initialView || "home");
-  const [viewParam, setViewParam] = useState(null);
+  const [viewParam, setViewParam] = useState(initialParam ?? null);
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
 
   const go = useCallback((next, param = null) => {
@@ -63,6 +64,20 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView }) {
         <div className="zn-empty" style={{ paddingTop: 90 }}>
           <div className="zn-witness__orb" style={{ margin: "0 auto 18px" }} aria-hidden="true" />
           Entering the Zone…
+        </div>
+      </div>
+    );
+  }
+
+  // Couldn't reach the Zone (e.g. offline): an existing member must NOT be
+  // dropped into the "claim your @name" join flow — show a retry instead.
+  if (error && !state) {
+    return (
+      <div className="zone-root" data-fire="cold">
+        <div className="zn-empty" style={{ paddingTop: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div className="zn-witness__orb" style={{ margin: "0 auto" }} aria-hidden="true" />
+          <div>The Zone couldn't load. Check your connection and try again.</div>
+          <button type="button" className="zn-btn" onClick={refreshState}>Retry</button>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════
-// MAPQUEST CITY — District registry (pure data + total progress readers)
+// MILESTONE CITY — District registry (pure data + total progress readers)
 // The open-world hub is a skyline of 16 districts across 6 quarters.
 // Every readProgress(ctx) is a TOTAL function: it never throws, always
 // returns { value: 0..1, label, detail, streak }. The ctx object is built

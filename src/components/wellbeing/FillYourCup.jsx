@@ -4,6 +4,7 @@ import {
   LEVELS, KILL_STREAKS, getLevel, getNextLevel,
 } from "./cupData.js";
 import CupWizard from "./CupWizard.jsx";
+import { sfxCupPour, sfxCupDrink, speakRefreshed } from "../../lib/sfx.js";
 import "./FillYourCup.css";
 
 const TODAY = new Date().toISOString().split("T")[0];
@@ -392,6 +393,11 @@ function FullCupScreen({ streak, level, onReset, onClose }) {
   const start = (which) => {
     if (mode) return;
     setMode(which);
+    // Drinking: gulp-gulp-gulp, then a spoken "ahh, I'm refreshed" affirmation.
+    if (which === "drink") {
+      sfxCupDrink();
+      setTimeout(() => speakRefreshed(), 850);
+    }
     // Next frame: flip pct to 0 so the liquid transition animates the drain.
     requestAnimationFrame(() => setDrainPct(0));
     setTimeout(() => onReset(), DRAIN_MS);
@@ -649,6 +655,8 @@ export default function FillYourCup() {
         const txt = milestone ? milestone.msg : ENERGY_MSGS[(floatKey.current || 0) % ENERGY_MSGS.length];
         floatKey.current = (floatKey.current || 0) + 1;
         setFloatMsg({ text: txt, id: floatKey.current });
+        // Fluid water-fill sound; pitch rises with the new fill level.
+        sfxCupPour(newPct);
       }
       if (masteredNow) setTimeout(() => setMasteredHabit(masteredNow), 700);
 
