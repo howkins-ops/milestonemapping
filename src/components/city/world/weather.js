@@ -26,10 +26,19 @@ export const WEATHER_LABEL = {
 };
 
 // The day's weather for a given time-of-day key ("dawn"|"day"|"dusk"|"night").
+// METEOR NIGHT (streetEvents) overrides the night sky with starfall.
 export function getWeather(todKey = "night", date = new Date()) {
   const day = todayKey(date);
   const list = PICKS[todKey] || PICKS.night;
-  const kind = list[Math.floor(seedFor(day, "wx") * list.length) % list.length];
+  let kind = list[Math.floor(seedFor(day, "wx") * list.length) % list.length];
+  if (todKey === "night") {
+    // inline event check (kept here to avoid a module cycle): the picks
+    // table in streetEvents.js — index 3 of 6 = meteor-night
+    const picks = [null, "hater-rush", null, "meteor-night", null, "quiet-morning"];
+    if (picks[Math.floor(seedFor(day, "event") * picks.length) % picks.length] === "meteor-night") {
+      kind = "starfall";
+    }
+  }
   return { kind, day, label: WEATHER_LABEL[kind] || kind };
 }
 

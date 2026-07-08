@@ -8,6 +8,40 @@ import MaskSprite from "../masks/MaskSprite.jsx";
 import { MentorSprite } from "../../map-quest/kit.jsx";
 import fx from "./fx.js";
 import { JUICE } from "./worldFxTuning.js";
+import { getWeather, isWet } from "./weather.js";
+import useStreetSound from "./useStreetSound.js";
+import { recordComboBest, loadStreet } from "../streetStore.js";
+import { PERF } from "./worldFxTuning.js";
+
+// ── Quality tiers (Phase 10) ─────────────────────────────────────────────
+// FULL keeps everything; LITE drops weather particles, reflections, grain
+// and ambient traffic (CSS gates on mqfx-q-lite). AUTO demotes on low-core
+// devices. Persisted per player.
+const QUALITY_KEY = "mqfx_quality";
+
+function readQualityPref() {
+  try {
+    const v = localStorage.getItem(QUALITY_KEY);
+    return v === "full" || v === "lite" ? v : "auto";
+  } catch {
+    return "auto";
+  }
+}
+
+function resolveTier(pref) {
+  if (pref === "full" || pref === "lite") return pref;
+  try {
+    if (
+      navigator.hardwareConcurrency &&
+      navigator.hardwareConcurrency <= PERF.liteCoreHeuristic
+    ) {
+      return "lite";
+    }
+  } catch {
+    /* default */
+  }
+  return "full";
+}
 import "../../../styles/cityWorld.css";
 import "../../../styles/maskCourt.css";
 import "../../../styles/cityWorldFx.css";
@@ -67,6 +101,13 @@ export default function WorldScene({
   onFaceBoss = null, // (bossId) — the player CHOSE the fight at the arch
   fxApiRef = null, // Living City: imperative scene FX handle for the page
   onStomp = null, // (kind, chain) — a clown got squashed (rewards layer)
+  sparks = [], // [{ i, x, air }] — today's collectible motes (Phase 9)
+  collectedSparks = [], // indices already collected today
+  onCollectSpark = null, // (i, { air }) — walked/jumped through a spark
+  secrets = [], // [{ id, x, air, line }] — street finds, invisible until found
+  foundSecrets = [], // ids already found, ever
+  onSecretFind = null, // (secret) — stood/landed in the odd spot
+  playerBoots = false, // 25km odometer cosmetic (Phase 9)
 }) {
   const targets = useMemo(() => {
     const list = [];
@@ -115,10 +156,25 @@ export default function WorldScene({
   // it every airborne frame. Nothing runs while the player is on the ground.
   const airFrameRef = useRef(null);
   const [bonks, setBonks] = useState(readBonks);
+  const [comboBest, setComboBest] = useState(() => loadStreet().comboBest);
+
+  // quality tier — AUTO / FULL / LITE (Phase 10)
+  const [qualityPref, setQualityPref] = useState(readQualityPref);
+  const qualityTier = resolveTier(qualityPref);
+  const cycleQuality = () => {
+    const next = qualityPref === "auto" ? "full" : qualityPref === "full" ? "lite" : "auto";
+    setQualityPref(next);
+    try {
+      localStorage.setItem(QUALITY_KEY, next);
+    } catch {
+      /* preference just won't persist */
+    }
+  };
 
   // ── Living City juice (Phase 1) ─────────────────────────────────────────
   const fxLayerRef = useRef(null); // particle pool lives in this layer
   const stompChainRef = useRef(0); // stomps without touching the ground
+  const soundRef = useRef(null); // the street's ears (Phase 8) — set below
   const charTimersRef = useRef([]); // coil/land class timeouts
   const pushCharTimer = (t) => charTimersRef.current.push(t);
   useEffect(() => {
@@ -132,17 +188,53 @@ export default function WorldScene({
   const onStrideRef = useRef(onStride);
   onStrideRef.current = onStride;
 
+  // ── Rewarded walking (Phase 9): sparks + street finds ───────────────────
+  // Live lists in refs so the per-frame checks never rebind the loop.
+  const rewardRef = useRef({});
+  rewardRef.current = {
+    groundSparks: sparks.filter((s) => !s.air && !collectedSparks.includes(s.i)),
+    airSparks: sparks.filter((s) => s.air && !collectedSparks.includes(s.i)),
+    groundSecrets: secrets.filter((s) => !s.air && !foundSecrets.includes(s.id)),
+    airSecrets: secrets.filter((s) => s.air && !foundSecrets.includes(s.id)),
+    onCollectSpark,
+    onSecretFind,
+  };
+
+  const checkGroundRewards = (x) => {
+    const r = rewardRef.current;
+    for (const s of r.groundSparks) {
+      if (Math.abs(x - s.x) < 24 && r.onCollectSpark) r.onCollectSpark(s.i, { air: false });
+    }
+    for (const s of r.groundSecrets) {
+      if (Math.abs(x - s.x) < 30 && r.onSecretFind) r.onSecretFind(s);
+    }
+  };
+
+  const checkAirRewards = (x, y) => {
+    const r = rewardRef.current;
+    if (y < 55) return; // air motes hang high — jump for them
+    for (const s of r.airSparks) {
+      if (Math.abs(x - s.x) < 26 && r.onCollectSpark) r.onCollectSpark(s.i, { air: true });
+    }
+    for (const s of r.airSecrets) {
+      if (Math.abs(x - s.x) < 34 && r.onSecretFind) r.onSecretFind(s);
+    }
+  };
+
   const {
     viewportRef,
     layerRef,
     farRef,
     midRef,
+    nearRef,
+    groundRef,
     charRef,
     nearTarget,
     walking,
     facing,
     heldDir,
     airborne,
+    running,
     controls,
     getX,
   } = useWorldEngine({
@@ -161,11 +253,14 @@ export default function WorldScene({
         charEl.classList.toggle("mqw-char--fall", !apex && vy < 0);
       }
       if (airFrameRef.current) airFrameRef.current(y, vy);
+      checkAirRewards(getXInner(), y);
     },
     onStride: (dxAbs) => {
+      const x = getXInner();
       if (onStrideRef.current && !airborneRef.current) {
-        onStrideRef.current(dxAbs, getXInner());
+        onStrideRef.current(dxAbs, x);
       }
+      if (!airborneRef.current) checkGroundRewards(x);
     },
     onJump: () => {
       // anticipation crouch — one beat; the tap still feels instant
@@ -177,6 +272,7 @@ export default function WorldScene({
         );
       }
       fx.burst(fxLayerRef.current, getXInner(), 0, "dust", 2);
+      if (soundRef.current) soundRef.current.verbs.jump();
     },
     onLand: (impact, { fromBounce }) => {
       stompChainRef.current = 0; // chains only live while airborne
@@ -191,8 +287,43 @@ export default function WorldScene({
       const big = fromBounce || impact > 720;
       fx.burst(fxLayerRef.current, getXInner(), 0, "dust", big ? 7 : JUICE.landDust);
       fx.shake(shakeTarget(), { amp: big ? 3 : 2, ms: 90 });
+      if (soundRef.current) soundRef.current.verbs.land(Math.min(1, impact / 900));
+    },
+    onStep: (foot, isRun) => {
+      // speed-line wisps at a run (2/s at run cadence — every other step)
+      if (isRun && foot) {
+        fx.burst(fxLayerRef.current, getXInner(), 14, "streak", 1);
+      }
+      if (stepSoundRef.current) stepSoundRef.current(foot, isRun);
+    },
+    onSkid: () => {
+      const charEl = charRef.current;
+      if (charEl) {
+        charEl.classList.add("mqfx-char--skid");
+        pushCharTimer(setTimeout(() => charEl.classList.remove("mqfx-char--skid"), 170));
+      }
+      fx.burst(fxLayerRef.current, getXInner(), 0, "dust", 3);
     },
   });
+
+  // footstep audio hook — the sound layer plugs in here (Phase 8)
+  const stepSoundRef = useRef(null);
+
+  // ── The street's ears (Phase 8) ─────────────────────────────────────────
+  const todKeyForSound = (timeOfDay && timeOfDay.key) || "night";
+  const sound = useStreetSound({
+    todKey: todKeyForSound,
+    theme: world.theme === "mqw-theme-hometown" ? "hometown" : "city",
+    weatherKind: getWeather(todKeyForSound).kind,
+    paused,
+  });
+  soundRef.current = sound;
+  stepSoundRef.current = sound.verbs.step;
+
+  // run = a gear shift: the world widens while the Seeker sprints
+  useEffect(() => {
+    if (controls.setZoom) controls.setZoom(running ? 0.97 : 1);
+  }, [running, controls]);
   airborneRef.current = airborne;
   // getX isn't in scope when the engine config is built — bridge via ref
   const getXBridge = useRef(() => 0);
@@ -220,6 +351,19 @@ export default function WorldScene({
       amp: Math.min(JUICE.stompShakeCap, JUICE.stompShakeBase + (chain - 1)),
       ms: JUICE.shakeMs,
     });
+    if (soundRef.current && chain > 1) soundRef.current.verbs.chain(chain);
+    // combo pops: ×2/×3/×4 toasts; 3+ = CIRCUS CLOSED (all five colors)
+    if (chain >= 2) {
+      fx.toast(
+        viewportRef.current,
+        chain >= 3 ? `×${chain} — CIRCUS CLOSED` : `×${chain} CHAIN`,
+        "#FF3EDB",
+        { big: chain >= 3 }
+      );
+      if (chain >= 3 && pos) fx.burst(fxLayerRef.current, pos.x, pos.y + 12, "confetti", 8);
+      const { newBest } = recordComboBest(chain);
+      if (newBest) setComboBest(chain);
+    }
     if (onStomp) onStomp(kind, chain);
     setBonks((n) => {
       const next = n + 1;
@@ -275,6 +419,11 @@ export default function WorldScene({
         return b ? Math.round(b.x + b.w / 2) : null;
       },
       viewportEl: () => viewportRef.current,
+      // the street's ears (Phase 8)
+      powerOnSwell: () => soundRef.current && soundRef.current.verbs.powerOn(),
+      zoneSting: (i) => soundRef.current && soundRef.current.verbs.sting(i),
+      sparkPing: (i) => soundRef.current && soundRef.current.verbs.spark(i),
+      spireHum: (on) => soundRef.current && soundRef.current.spireHum(on),
       // POWER-ON — the building performs: windows ramp floor-by-floor, the
       // beacon ignites with a shockwave, sparks burst off the rooftop sign.
       erupt: (buildingId) => {
@@ -316,6 +465,16 @@ export default function WorldScene({
         doorEl.classList.add("mqfx-doorflare");
         pushCharTimer(setTimeout(() => doorEl.classList.remove("mqfx-doorflare"), 320));
         fx.flash(viewportRef.current, { color: b.color, ms: 110 });
+        // iris into the door — a radial wipe at the door's viewport position
+        const vp = viewportRef.current;
+        const dr = doorEl.getBoundingClientRect();
+        const vr = vp.getBoundingClientRect();
+        fx.iris(vp, {
+          x: dr.left - vr.left + dr.width / 2,
+          y: dr.top - vr.top + dr.height / 2,
+          color: b.color,
+        });
+        if (soundRef.current) soundRef.current.verbs.chime(b.id);
       }
     } catch {
       /* flare is garnish */
@@ -392,14 +551,51 @@ export default function WorldScene({
   const todClass = (timeOfDay && timeOfDay.className) || "";
   const themeClass = world.theme || "";
 
+  // ── The living sky (Phase 3): one deterministic weather kind per day ────
+  const todKey = (timeOfDay && timeOfDay.key) || "night";
+  const weather = useMemo(() => getWeather(todKey), [todKey]);
+  const wet = isWet(weather.kind);
+  const fogThin = weather.kind === "fogdrift" && (world.maskDens || []).length > 0;
+  // 8 motes / 6 ripples, all index-math deterministic (no RNG in render)
+  const motes = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        left: `${(i * 13 + 4) % 96}%`,
+        d: `${(i * 1.7) % 9}s`,
+        dur: `${11 + (i % 4) * 2.5}s`,
+        drift: `${((i % 3) - 1) * 22}px`,
+      })),
+    []
+  );
+
   return (
     <div
       ref={viewportRef}
-      className={`mqw-viewport ${themeClass} ${stageClass} ${todClass}${reducedMotion ? " mqw-viewport--still" : ""}`}
+      className={`mqw-viewport ${themeClass} ${stageClass} ${todClass} mqfx-q-${qualityTier}${reducedMotion ? " mqw-viewport--still" : ""}${wet ? " mqfx-wet" : ""}`}
       role="group"
       aria-label={world.label || "The world"}
+      onPointerDownCapture={sound.arm}
     >
       <div className="mqw-sky" aria-hidden="true" />
+
+      {/* celestial layer — moon/sun, cloud banks, one shooting star */}
+      <div className="mqfx-celestial" aria-hidden="true">
+        <span className="mqfx-moon" />
+        <span className="mqfx-cloud mqfx-cloud--a" />
+        <span className="mqfx-cloud mqfx-cloud--b" />
+        <span className="mqfx-cloud mqfx-cloud--c" />
+        <span className="mqfx-shootstar" />
+        {/* delivery drones (day/dusk/night) and dawn birds — tod-gated in CSS */}
+        {world.ambient ? (
+          <>
+            <span className="mqfx-drone mqfx-drone--a" />
+            <span className="mqfx-drone mqfx-drone--b" />
+            <span className="mqfx-bird mqfx-bird--a" />
+            <span className="mqfx-bird mqfx-bird--b" />
+            <span className="mqfx-bird mqfx-bird--c" />
+          </>
+        ) : null}
+      </div>
 
       <div className="mqw-stars" aria-hidden="true">
         {STARS.map(([x, y, s, d], i) => (
@@ -412,6 +608,31 @@ export default function WorldScene({
       </div>
 
       <div className="mqw-aurora" aria-hidden="true" />
+
+      {/* weather-far — behind the parallax planes */}
+      {weather.kind !== "clear" ? (
+        <div
+          className={`mqfx-weather mqfx-weather--far mqfx-wx-${weather.kind}${fogThin ? " mqfx-wx--thin" : ""}`}
+          aria-hidden="true"
+        >
+          {wet ? <span className="mqfx-rainsheet" /> : null}
+          {weather.kind === "fogdrift" ? (
+            <>
+              <span className="mqfx-fogspan mqfx-fogspan--a" />
+              <span className="mqfx-fogspan mqfx-fogspan--b" />
+            </>
+          ) : null}
+          {weather.kind === "embers" || weather.kind === "starfall"
+            ? motes.map((m, i) => (
+                <span
+                  key={i}
+                  className="mqfx-wxmote"
+                  style={{ left: m.left, top: "10%", "--d": m.d, "--dur": m.dur, "--drift": m.drift }}
+                />
+              ))
+            : null}
+        </div>
+      ) : null}
 
       <div
         ref={farRef}
@@ -441,12 +662,41 @@ export default function WorldScene({
             style={{ left: `${t.x}%`, width: t.w, height: `${t.h}%` }}
           />
         ))}
+        {/* hover-trams ride the mid rail — population scales with progress */}
+        {world.ambient
+          ? Array.from({ length: world.ambient.tramCount || 0 }, (_, i) => (
+              <span
+                key={`tram${i}`}
+                className={`mqfx-tram${i % 2 ? " mqfx-tram--rev" : ""}`}
+                style={{ top: `${54 + i * 8}%`, "--tdur": `${52 + i * 16}s`, "--tdelay": `-${i * 21}s` }}
+              />
+            ))
+          : null}
       </div>
 
       {showAmbient ? <CityAmbient stage={stage} reducedMotion={reducedMotion} /> : null}
 
       <div ref={layerRef} className="mqw-main" style={{ width: world.width }}>
         {(world.props || []).map((p, i) => {
+          if (p.type === "billboard") {
+            return (
+              <span
+                key={`p${i}`}
+                className="mqfx-billboard"
+                style={{ left: p.x, "--bb-color": p.color || "#00F0FF" }}
+                aria-hidden="true"
+              >
+                {p.text || "MQ"}
+              </span>
+            );
+          }
+          if (p.type === "holo") {
+            return (
+              <span key={`p${i}`} className="mqfx-holo" style={{ left: p.x }} aria-hidden="true">
+                <span className="mqfx-holo__glyph">◈</span>
+              </span>
+            );
+          }
           if (p.type === "lamp") {
             return (
               <span
@@ -484,7 +734,7 @@ export default function WorldScene({
           </div>
         ))}
 
-        {(world.buildings || []).map((b) => (
+        {(world.buildings || []).map((b, bi) => (
           <button
             key={b.id}
             type="button"
@@ -496,6 +746,7 @@ export default function WorldScene({
               height: `${b.hPct}%`,
               "--b-color": b.color,
               "--b-glow": b.glow,
+              "--wseed": bi % 6,
             }}
             onClick={() => enterBuilding(b)}
             aria-label={`${b.name} district${b.locked ? " — powered down" : ""}`}
@@ -503,6 +754,15 @@ export default function WorldScene({
             <span className="mqw-b__beacon" aria-hidden="true" />
             <span className="mqw-b__sign" aria-hidden="true">{b.icon}</span>
             <span className="mqw-b__tower" aria-hidden="true" />
+            {b.facadeFx ? (
+              <span className={`mqfx-fx mqfx-fx--${b.facadeFx}`} aria-hidden="true">
+                <i /><i /><i />
+              </span>
+            ) : null}
+            <span
+              className={`mqfx-blife${bi % 5 === 2 ? " mqfx-blife--flicker" : ""}`}
+              aria-hidden="true"
+            />
             <span className="mqw-b__door" aria-hidden="true" />
             <span className="mqw-b__plate" aria-hidden="true">{b.name}</span>
             <span className="mqw-b__lock" aria-hidden="true">⏻ powered down</span>
@@ -551,6 +811,68 @@ export default function WorldScene({
           </div>
         ))}
 
+        {/* ── ambient life (Phase 6) — all CSS patrol loops, zero JS ────── */}
+        {world.ambient
+          ? (world.ambient.citizens || []).map((c, i) => (
+              <span
+                key={`cit${i}`}
+                className={`mqfx-citizen mqfx-citizen--t${i % 3}`}
+                style={{
+                  left: c.x,
+                  "--patrol": `${c.patrol}px`,
+                  "--pdur": `${c.dur}s`,
+                  "--pdelay": `-${c.delay}s`,
+                  "--cscale": c.scale,
+                }}
+                aria-hidden="true"
+              >
+                <span className="mqfx-citizen__body" />
+              </span>
+            ))
+          : null}
+        {world.ambient
+          ? (world.ambient.vents || []).map((v, i) => (
+              <span key={`vent${i}`} className="mqfx-vent" style={{ left: v.x }} aria-hidden="true">
+                <i className="mqfx-vent__puff mqfx-vent__puff--a" />
+                <i className="mqfx-vent__puff mqfx-vent__puff--b" />
+              </span>
+            ))
+          : null}
+        {world.ambient
+          ? (world.ambient.doorQueues || []).map((q, i) => (
+              <span
+                key={`dq${i}`}
+                className="mqfx-citizen mqfx-citizen--queued"
+                style={{ left: q.x, "--cscale": 0.56 }}
+                aria-hidden="true"
+              >
+                <span className="mqfx-citizen__body" />
+              </span>
+            ))
+          : null}
+        {world.ambient && world.ambient.plazaX != null ? (
+          <span className="mqfx-plazalife" style={{ left: world.ambient.plazaX }} aria-hidden="true">
+            <i className="mqfx-plazalife__arc mqfx-plazalife__arc--a" />
+            <i className="mqfx-plazalife__arc mqfx-plazalife__arc--b" />
+            <i className="mqfx-plazalife__arc mqfx-plazalife__arc--c" />
+            <i className="mqfx-plazalife__sitter mqfx-plazalife__sitter--a" />
+            <i className="mqfx-plazalife__sitter mqfx-plazalife__sitter--b" />
+            <i className="mqfx-plazalife__busker" />
+          </span>
+        ) : null}
+
+        {/* today's sparks — chest-core motes bobbing at two heights */}
+        {sparks
+          .filter((s) => !collectedSparks.includes(s.i))
+          .map((s) => (
+            <span
+              key={`spk${s.i}`}
+              className={`mqfx-spark${s.air ? " mqfx-spark--air" : ""}`}
+              style={{ left: s.x, "--d": `${(s.i * 0.4) % 2.4}s` }}
+              aria-hidden="true"
+            />
+          ))}
+
         {/* juice layer — pooled particles/rings live here (Phase 1) */}
         <div ref={fxLayerRef} className="mqfx-layer" aria-hidden="true" />
 
@@ -566,11 +888,11 @@ export default function WorldScene({
 
         <div
           ref={charRef}
-          className={`mqw-char ${walking ? "mqw-char--walk" : "mqw-char--idle"}${facing === -1 ? " mqw-char--face-left" : ""}${airborne ? " mqw-char--air" : ""}`}
+          className={`mqw-char ${walking ? "mqw-char--walk" : "mqw-char--idle"}${facing === -1 ? " mqw-char--face-left" : ""}${airborne ? " mqw-char--air" : ""}${running ? " mqw-char--run" : ""}`}
           aria-hidden="true"
         >
           <div className="mqw-char__flip" style={{ marginLeft: -25 }}>
-            <PlayerSprite glow={playerGlow} />
+            <PlayerSprite glow={playerGlow} boots={playerBoots} />
           </div>
           {streetAllies.map((a, i) => (
             <div
@@ -590,8 +912,83 @@ export default function WorldScene({
         </div>
       </div>
 
+      {/* near foreground plane — camera-close silhouettes at parallax 1.22 */}
+      {(world.near || []).length ? (
+        <div
+          ref={nearRef}
+          className="mqfx-near"
+          aria-hidden="true"
+          style={{ width: `calc(100% + ${Math.round(world.width * 0.22)}px)` }}
+        >
+          {world.near.map((n, i) => (
+            <span
+              key={i}
+              className={`mqfx-nearitem mqfx-nearitem--${n.kind}`}
+              style={{ left: n.x }}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {/* weather-near — in front of the world, parallax rain + ripples */}
+      {weather.kind !== "clear" ? (
+        <div
+          className={`mqfx-weather mqfx-weather--near mqfx-wx-${weather.kind}`}
+          aria-hidden="true"
+        >
+          {wet ? <span className="mqfx-rainsheet mqfx-rainsheet--near" /> : null}
+          {wet
+            ? [8, 24, 41, 58, 74, 90].map((left, i) => (
+                <span
+                  key={i}
+                  className="mqfx-wxripple"
+                  style={{ left: `${left}%`, "--d": `${(i * 0.65) % 1.9}s` }}
+                />
+              ))
+            : null}
+          {weather.kind === "fogdrift" ? <span className="mqfx-fogspan mqfx-fogspan--c" /> : null}
+        </div>
+      ) : null}
+
       <div className="mqw-haze" aria-hidden="true" />
       <div className="mqw-ground" aria-hidden="true" />
+
+      {/* wet asphalt — neon reflections + crosswalks scroll with the camera
+          inside the viewport-fixed ground band (Phase 4) */}
+      <div className="mqfx-groundfx" aria-hidden="true">
+        <div ref={groundRef} className="mqfx-groundfx__strip" style={{ width: world.width }}>
+          {(world.props || [])
+            .filter((p) => p.type === "lamp")
+            .map((p, i) => (
+              <span
+                key={`lr${i}`}
+                className="mqfx-reflect mqfx-reflect--lamp"
+                style={{ left: p.x, "--r-color": p.color || "#00F0FF" }}
+              />
+            ))}
+          {(world.buildings || [])
+            .filter((b) => !b.locked && (b.glowState === "lit" || b.glowState === "radiant" || b.next))
+            .map((b) => (
+              <span
+                key={`br${b.id}`}
+                className={`mqfx-reflect mqfx-reflect--door${b.glowState === "radiant" ? " mqfx-reflect--big" : ""}`}
+                style={{ left: Math.round(b.x + b.w / 2), "--r-color": b.color }}
+              />
+            ))}
+          {(world.buildings || []).map((b) => (
+            <span
+              key={`cw${b.id}`}
+              className="mqfx-crosswalk"
+              style={{ left: Math.round(b.x + b.w / 2) }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* the cinematic trio — grade, vignette, grain (static, viewport-fixed) */}
+      <div className="mqfx-grade" aria-hidden="true" />
+      <div className="mqfx-vignette" aria-hidden="true" />
+      <div className="mqfx-grain" aria-hidden="true" />
 
       {/* cinematic letterbox bars — Camera II; Phase 7 drives them */}
       <div className="mqfx-letterbox mqfx-letterbox--top" aria-hidden="true" />
@@ -619,9 +1016,42 @@ export default function WorldScene({
         </div>
       ) : null}
 
+      {/* street audio chip — mute + volume, persisted (Phase 8) */}
+      <div className="mqfx-audio">
+        <button
+          type="button"
+          className="mqfx-audio__btn"
+          aria-label={sound.muted ? "Unmute the street" : "Mute the street"}
+          onClick={sound.toggleMute}
+        >
+          {sound.muted ? "🔇" : "🔊"}
+        </button>
+        {!sound.muted ? (
+          <input
+            className="mqfx-audio__vol"
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={sound.volume}
+            onChange={(e) => sound.setVolume(e.target.value)}
+            aria-label="Street volume"
+          />
+        ) : null}
+        <button
+          type="button"
+          className="mqfx-audio__fx"
+          onClick={cycleQuality}
+          aria-label={`Effects quality: ${qualityPref}. Tap to change.`}
+        >
+          FX·{qualityPref.toUpperCase()}
+        </button>
+      </div>
+
       {bonks > 0 && (world.enemies || []).length ? (
         <div className="mqw-bonks" aria-hidden="true">
           🤡 ×{bonks} squashed
+          {comboBest > 1 ? <span className="mqfx-bonks__best"> · best ×{comboBest}</span> : null}
         </div>
       ) : null}
     </div>

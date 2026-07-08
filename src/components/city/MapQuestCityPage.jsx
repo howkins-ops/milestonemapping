@@ -10,7 +10,19 @@ import { buildCityWorld, STORY_ORDER } from "./cityWorld.js";
 import useJourney from "./useJourney.js";
 import HometownJourney from "./hometown/HometownJourney.jsx";
 import SpireIgnition from "./SpireIgnition.jsx";
-import { markIgnitionSeen } from "./journeyStore.js";
+import { markIgnitionSeen, litDistrictIds } from "./journeyStore.js";
+import useCinematics from "./useCinematics.js";
+import { getDailyEvent, getDailySparks, getStreetFinds } from "./world/streetEvents.js";
+import {
+  collectSpark,
+  sparksCollectedToday,
+  markSecret,
+  addOdometer,
+  hasMilestone,
+  loadStreet,
+} from "./streetStore.js";
+import { todayKey } from "./world/daySeed.js";
+import { REWARD } from "./world/worldFxTuning.js";
 import CitizenCard from "./CitizenCard.jsx";
 import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
@@ -111,6 +123,7 @@ export default function MapQuestCityPage({
   const [codexOpen, setCodexOpen] = useState(false); // the Mask Codex panel
   const [courtFinale, setCourtFinale] = useState(false); // fifth evolution
   const fxApi = useRef(null); // Living City — imperative scene FX handle
+  const cine = useCinematics(fxApi, { guideColor: THE_GUIDE.color }); // Phase 7
 
   // ── The Mask Court (Pokémon encounter layer) ────────────────────────────
   const masks = useMasks();
@@ -170,12 +183,15 @@ export default function MapQuestCityPage({
     onPowerOn: (id) => {
       const d = DISTRICTS.find((x) => x.id === id);
       if (!d) return;
-      if (fxApi.current) fxApi.current.erupt(id); // the building performs
-      celebrate({
-        variant: "project",
-        title: `${d.name.toUpperCase()} POWERS ON`,
-        subtitle: "A new district joins the grid.",
-        detail: "The city grows as you do.",
+      // the directed shot: letterbox → pan → eruption → title card — then
+      // the celebration toast rides in after the camera work (Phase 7)
+      cine.powerOn({ id: d.id, name: d.name, color: d.color }).then(() => {
+        celebrate({
+          variant: "project",
+          title: `${d.name.toUpperCase()} POWERS ON`,
+          subtitle: "A new district joins the grid.",
+          detail: "The city grows as you do.",
+        });
       });
     },
     onLit: (id) => {
@@ -193,7 +209,11 @@ export default function MapQuestCityPage({
     onSpireOpen: () => {
       addXP(XP_VALUES.cityFirstVisit || 25, "GATE 2 — the Spire opens");
       unlockAchievement("spire_open");
-      setIgnition(true);
+      // the city salutes first: pan to the Spire, every lit beacon answers
+      // in story order — THEN the ignition overlay (Phase 7)
+      const litSet = new Set(litDistrictIds());
+      const litInOrder = STORY_ORDER.filter((sid) => litSet.has(sid));
+      cine.spireSalute(world, litInOrder).then(() => setIgnition(true));
     },
   });
 
@@ -359,6 +379,111 @@ export default function MapQuestCityPage({
     },
   });
 
+  // ── Living City rewards (Phase 9): sparks, finds, odometer, event ───────
+  const streetDay = todayKey();
+  const nextStopB = world.buildings.find((b) => b.id === journey.nextStopId);
+  const sparksData = useMemo(
+    () => getDailySparks(world.width, { litFrontierX: nextStopB ? nextStopB.x : 0 }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [world.width, journey.nextStopId, streetDay]
+  );
+  const [collected, setCollected] = useState(() => sparksCollectedToday());
+  const [foundSecretIds, setFoundSecretIds] = useState(() => Object.keys(loadStreet().secrets));
+  const [boots, setBoots] = useState(() => hasMilestone("street_25k"));
+  const streetFinds = useMemo(() => getStreetFinds(world), [world]);
+
+  const handleCollectSpark = (i) => {
+    const { firstTime, count, sweep } = collectSpark(i, sparksData.count, streetDay);
+    if (!firstTime) return;
+    setCollected((c) => [...c, i]);
+    addXP(REWARD.sparkXP, "Street spark"); // +1, daily-capped by the fixed spawn count
+    if (fxApi.current) {
+      fxApi.current.sparkPing(count);
+      fxApi.current.toast(`✦ ${count}/${sparksData.count}`, "#00F0FF");
+    }
+    if (sweep) {
+      addXP(REWARD.sweepXP, "STREET SWEEP — every spark today");
+      unlockAchievement("street_sweep");
+      if (fxApi.current) fxApi.current.toast("STREET SWEEP ✦ EVERY SPARK", "#FFD166", { big: true });
+    }
+  };
+
+  const handleSecretFind = (secret) => {
+    const { firstTime } = markSecret(secret.id);
+    if (!firstTime) return;
+    setFoundSecretIds((s) => [...s, secret.id]);
+    unlockAchievement(`street_find_${secret.id}`);
+    if (fxApi.current) {
+      fxApi.current.burstAt(secret.x, secret.air ? 84 : 12, "spark", 6, "#FFD166");
+      fxApi.current.toast(secret.line, "#FFD166", { big: true });
+    }
+  };
+
+  // odometer — write-behind every 2s of walking (and on pagehide)
+  const odoRef = useRef({ buf: 0, timer: 0 });
+  const flushOdometer = () => {
+    const o = odoRef.current;
+    o.timer = 0;
+    if (o.buf <= 0) return;
+    const px = o.buf;
+    o.buf = 0;
+    const { fresh } = addOdometer(px);
+    for (const m of fresh) {
+      unlockAchievement(m.key);
+      if (m.key === "street_25k") setBoots(true); // first cosmetic — the boot trim
+      if (fxApi.current) fxApi.current.toast(m.label, "#FFD166", { big: true });
+    }
+  };
+  const flushRef = useRef(flushOdometer);
+  flushRef.current = flushOdometer;
+  useEffect(() => {
+    const onHide = () => flushRef.current();
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      flushRef.current();
+    };
+  }, []);
+
+  // the daily street event — one toast at entry, once per day per session
+  useEffect(() => {
+    if (journey.world !== "city") return undefined;
+    const ev = getDailyEvent();
+    if (!ev) return undefined;
+    try {
+      if (sessionStorage.getItem("mq_event_seen") === streetDay) return undefined;
+      sessionStorage.setItem("mq_event_seen", streetDay);
+    } catch {
+      /* announce anyway */
+    }
+    const t = setTimeout(() => {
+      if (fxApi.current) fxApi.current.toast(`${ev.name} — ${ev.line}`, ev.color, { big: true });
+    }, 1600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journey.world]);
+
+  // ── Living City stride wrapper ──────────────────────────────────────────
+  // One walk hook feeds them all: the mask encounter engine, the cinema
+  // observer (zone cards / whispers / Spire dread) — and the odometer.
+  const spireSealed = !journey.spireOpen && !journey.legacy;
+  const handleStride = (dxAbs, x) => {
+    engine.onStride(dxAbs, x);
+    cine.onStride(x, world, { spireSealed });
+    odoRef.current.buf += dxAbs;
+    if (!odoRef.current.timer) {
+      odoRef.current.timer = setTimeout(() => flushRef.current(), REWARD.odometerFlushMs);
+    }
+  };
+
+  // the Spire hum rides the scene's sound layer (Phase 8)
+  useEffect(() => {
+    cine.spireHumRef.current = (on) => {
+      if (fxApi.current && fxApi.current.spireHum) fxApi.current.spireHum(on);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Boss stages materialize at their chapter's end (soft gate) ──────────
   // Chapter complete (legacy users are past training — always complete)
   // AND ≥1 wild fight won → the mask looms beside the arch + one toast, once.
@@ -483,7 +608,14 @@ export default function MapQuestCityPage({
           reducedMotion={reducedMotion}
           persistKey={POSITION_KEY}
           fxApiRef={fxApi}
-          onStride={engine.onStride}
+          onStride={handleStride}
+          sparks={sparksData.sparks}
+          collectedSparks={collected}
+          onCollectSpark={handleCollectSpark}
+          secrets={streetFinds}
+          foundSecrets={foundSecretIds}
+          onSecretFind={handleSecretFind}
+          playerBoots={boots}
           maskLurkers={maskLurkers}
           streetAllies={evolvedAllies}
           fogOpacity={masks.courtClaimed ? 0.5 : 1}

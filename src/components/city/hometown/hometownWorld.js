@@ -260,6 +260,7 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
       locked: false,
       next: isNext(0),
       disabled: !active(0),
+      facadeFx: "chimney", // warm smoke — home is where the fire is lit
     },
     {
       id: "letter-desk",
@@ -274,6 +275,7 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
       locked: false,
       next: isNext(1),
       disabled: !active(1),
+      facadeFx: "laundry", // the line sways — someone still lives here
     },
     {
       id: "workshop",
@@ -288,6 +290,7 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
       locked: false,
       next: isNext(2),
       disabled: !active(2),
+      facadeFx: "windmill", // the old workshop's tired turbine
     },
     {
       id: "father-porch",
@@ -302,6 +305,7 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
       locked: false,
       next: false,
       disabled: true, // the porch is scenery — you talk to The Father himself
+      facadeFx: "porchmoths", // moths circling the porch lamp
     },
   ];
 
@@ -341,5 +345,24 @@ export function buildHometownWorld({ stationsDone = {}, spawnAtRoad = false } = 
     ],
     buildings,
     npcs,
+    // Living City systems, themed warm (contract audit — the hometown
+    // inherits the new optional keys instead of being broken by them)
+    near: [
+      { x: 340, kind: "planter" },
+      { x: 700, kind: "stand" },
+      { x: 1000, kind: "cable" },
+      { x: 1320, kind: "planter" },
+    ],
+    ambient: {
+      citizens: [
+        { x: 620, patrol: 60, dur: 52, delay: 4, scale: 0.56 },
+        { x: 1100, patrol: 80, dur: 64, delay: 12, scale: 0.6 },
+      ],
+      vents: [],
+      doorQueues: [],
+      plazaX: null, // no plaza in the hometown — the porch is the plaza
+      tramCount: 0,
+      droneCount: 0,
+    },
   };
 }

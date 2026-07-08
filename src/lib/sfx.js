@@ -1299,3 +1299,341 @@ export function stopVoiceLine() {
     }
   } catch { /* silent */ }
 }
+
+// ═══════════ MAPQUEST STREET (Living City · Phase 8) ═══════════
+// The sound of the city — everything synthesized, nothing recorded, all
+// gesture-gated by the shared context resume. One-shots ride the main
+// compressor bus; the ambient beds ride a duckable street bus so dialogs
+// can pull the city back −8dB (sfxDuck) without touching the verbs.
+
+let streetBus = null; // duckable bed bus
+let streetDucked = false;
+let streetLevel = 1; // player volume (street audio chip)
+
+function getStreetBus(c) {
+  if (!streetBus) {
+    streetBus = c.createGain();
+    streetBus.gain.value = streetLevel;
+    streetBus.connect(bus);
+  }
+  return streetBus;
+}
+
+function applyStreetGain(c) {
+  if (!streetBus || !c) return;
+  const v = Math.max(0.0001, streetLevel * (streetDucked ? 0.4 : 1)); // −8dB duck
+  try {
+    streetBus.gain.setTargetAtTime(v, c.currentTime, 0.12);
+  } catch { /* silent */ }
+}
+
+// Duck the ambient beds while any dialog/battle overlay is open. (The Mask
+// Court's overlays are welcome to call this too.)
+export function sfxDuck(on) {
+  try {
+    streetDucked = Boolean(on);
+    if (ctx) applyStreetGain(ctx);
+  } catch { /* silent */ }
+}
+
+// Street volume chip (0..1, persisted by streetStore at the call site).
+export function sfxStreetLevel(v) {
+  try {
+    const n = Number(v);
+    streetLevel = Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : streetLevel;
+    if (ctx) applyStreetGain(ctx);
+  } catch { /* silent */ }
+}
+
+// ---------- street verb one-shots ----------
+
+// Footstep — filtered noise tick, two pitches alternating with the feet.
+export function sfxFootstep(foot = false, run = false, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, {
+      hp: foot ? 900 : 700,
+      lp: foot ? 2600 : 2100,
+      duration: 0.035,
+      gain: run ? 0.07 : 0.045,
+    });
+  } catch { /* silent */ }
+}
+
+// Jump — a soft noise sweep up.
+export function sfxJumpWhoosh(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.1;
+    const t = c.currentTime;
+    f.frequency.setValueAtTime(400, t);
+    f.frequency.exponentialRampToValueAtTime(2200, t + 0.16);
+    const g = env(c, { gain: 0.09, attack: 0.02, duration: 0.18 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.24);
+  } catch { /* silent */ }
+}
+
+// Landing — sine drop + noise tap; weight scales with fall speed (0..1).
+export function sfxLandThud(weight = 0.4, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const w = Math.max(0.1, Math.min(1, weight));
+    subDrop(c, { from: 110 + w * 50, to: 42, duration: 0.1 + w * 0.08, gain: 0.1 + w * 0.22 });
+    crack(c, { hp: 300, lp: 1600, duration: 0.04 + w * 0.03, gain: 0.06 + w * 0.1 });
+  } catch { /* silent */ }
+}
+
+// Chain pop — pitch climbs with each stomp chain link.
+export function sfxChainPop(chain = 1, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const n = Math.min(8, Math.max(1, chain));
+    const f0 = 520 * Math.pow(1.122, n - 1); // up a step per link
+    blip(c, { from: f0, to: f0 * 1.4, duration: 0.09, type: "triangle", gain: 0.1 });
+  } catch { /* silent */ }
+}
+
+// Door chime — every district gets a signature interval (hash of its id).
+export function sfxDoorChime(districtId = "", settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    let h = 0;
+    const s = String(districtId);
+    for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    const base = 392 + (h % 5) * 58; // G4-ish family
+    const intervals = [1.25, 1.333, 1.5, 1.6, 1.2];
+    const iv = intervals[h % intervals.length];
+    blip(c, { from: base, to: base, duration: 0.22, type: "triangle", gain: 0.11 });
+    blip(c, { from: base * iv, to: base * iv, duration: 0.34, type: "triangle", gain: 0.1, start: 0.13 });
+  } catch { /* silent */ }
+}
+
+// Power-on — a rising swell as the building floods with light.
+export function sfxPowerOnSwell(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const t = c.currentTime;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(240, t);
+    f.frequency.exponentialRampToValueAtTime(3600, t + 0.9);
+    const g = env(c, { gain: 0.18, attack: 0.4, duration: 1.1 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 1.2);
+    [261.63, 329.63, 392.0].forEach((fr, i) => {
+      blip(c, { from: fr, to: fr * 2, duration: 0.8, type: "sine", gain: 0.06, start: 0.2 + i * 0.12 });
+    });
+    subDrop(c, { from: 50, to: 110, duration: 0.8, gain: 0.14, start: 0.1 });
+  } catch { /* silent */ }
+}
+
+// Spark pickup — glass ping walking up a pentatonic ladder with the combo.
+export function sfxSparkPickup(comboIdx = 0, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const penta = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.7, 1318.5];
+    const f0 = penta[Math.min(penta.length - 1, Math.max(0, comboIdx))];
+    blip(c, { from: f0, to: f0, duration: 0.16, type: "sine", gain: 0.12 });
+    blip(c, { from: f0 * 2, to: f0 * 2, duration: 0.1, type: "triangle", gain: 0.04, start: 0.01 });
+    crack(c, { hp: 5000, lp: 11000, duration: 0.05, gain: 0.05 });
+  } catch { /* silent */ }
+}
+
+// Zone sting — the same 3-note motif, transposed per zone.
+export function sfxZoneSting(zoneIdx = 0, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const root = 220 * Math.pow(1.0595, (zoneIdx * 2) % 12);
+    [1, 1.5, 2].forEach((m, i) => {
+      blip(c, { from: root * m, to: root * m, duration: 0.32 - i * 0.06, type: "triangle", gain: 0.09, start: i * 0.13 });
+    });
+  } catch { /* silent */ }
+}
+
+// ---------- street ambient beds (duckable via sfxDuck) ----------
+
+// The city bed: two detuned drones + a slow traffic wash + a sparse pluck
+// on one shared clock. Night adds a distant siren swell (~90s, −24dB).
+// theme "hometown" = warm pad + crickets instead. ≤ 6 oscillators total.
+export function sfxStreetBedLoop(todKey = "night", theme = "city", settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const street = getStreetBus(c);
+    const isHome = theme === "hometown";
+    const night = todKey === "night";
+    const h = makeLoop(c, (cc, master) => {
+      try {
+        master.disconnect();
+      } catch { /* not yet connected */ }
+      master.connect(street); // beds ride the duckable street bus
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = isHome ? 520 : 420;
+      lp.connect(master);
+      const droneF = isHome ? [98, 98.5, 147] : night ? [55, 55.35, 110] : [73.4, 73.8, 110];
+      const oscs = droneF.map((f, i) => {
+        const o = cc.createOscillator();
+        o.type = i < 2 ? "sine" : "triangle";
+        o.frequency.value = f;
+        const og = cc.createGain();
+        og.gain.value = i < 2 ? 0.32 : 0.1;
+        o.connect(og).connect(lp);
+        o.start();
+        return o;
+      });
+      // traffic wash / night air
+      const wash = noise(cc);
+      const washBp = cc.createBiquadFilter();
+      washBp.type = "bandpass";
+      washBp.frequency.value = isHome ? 2600 : 700;
+      washBp.Q.value = 0.4;
+      const washLfo = cc.createOscillator();
+      washLfo.frequency.value = 0.07;
+      const washLfoG = cc.createGain();
+      washLfoG.gain.value = isHome ? 500 : 260;
+      washLfo.connect(washLfoG).connect(washBp.frequency);
+      const washG = cc.createGain();
+      washG.gain.value = isHome ? 0.02 : 0.045;
+      wash.connect(washBp).connect(washG).connect(master);
+      wash.start();
+      washLfo.start();
+      // sparse pluck / crickets on one shared clock
+      let beats = 0;
+      const tick = () => {
+        beats += 1;
+        if (isHome) {
+          // cricket: tiny high noise bursts, most ticks
+          if (Math.random() < 0.65) {
+            const t = cc.currentTime;
+            const p = noise(cc);
+            const hpF = cc.createBiquadFilter();
+            hpF.type = "bandpass";
+            hpF.frequency.value = 4300 + Math.random() * 800;
+            hpF.Q.value = 6;
+            const g = cc.createGain();
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+            p.connect(hpF).connect(g).connect(master);
+            p.start(t);
+            p.stop(t + 0.1);
+          }
+          return;
+        }
+        // sparse random-walk pluck — one note every few ticks
+        if (Math.random() < 0.22) {
+          const scale = [261.63, 311.13, 349.23, 392, 466.16];
+          const f = scale[Math.floor(Math.random() * scale.length)] * (night ? 0.5 : 1);
+          const t = cc.currentTime;
+          const o = cc.createOscillator();
+          o.type = "triangle";
+          o.frequency.value = f;
+          const g = cc.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.045, t + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+          o.connect(g).connect(master);
+          o.start(t);
+          o.stop(t + 1.2);
+        }
+        // distant siren swell every ~90s at night (−24dB territory)
+        if (night && beats % 36 === 0) {
+          const t = cc.currentTime;
+          const o = cc.createOscillator();
+          o.type = "sine";
+          o.frequency.setValueAtTime(620, t);
+          o.frequency.exponentialRampToValueAtTime(830, t + 1.4);
+          o.frequency.exponentialRampToValueAtTime(600, t + 2.8);
+          const g = cc.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.012, t + 1.2);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 3);
+          o.connect(g).connect(master);
+          o.start(t);
+          o.stop(t + 3.1);
+        }
+      };
+      return { nodes: [...oscs, wash, washLfo], tick, tickMs: 2500 };
+    });
+    h.setLevel(0.12);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+// Weather layer: rain rides the street bus so it ducks with the bed.
+// Thunder NEVER (startle law — this is a safe world).
+export function sfxStreetRainLoop(intensity = 0.12, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const street = getStreetBus(c);
+    const h = makeLoop(c, (cc, master) => {
+      try {
+        master.disconnect();
+      } catch { /* not yet connected */ }
+      master.connect(street);
+      const src = noise(cc);
+      const hp = cc.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 1100;
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 6000;
+      src.connect(hp).connect(lp).connect(master);
+      src.start();
+      return { nodes: [src] };
+    });
+    h.setLevel(Math.max(0.02, Math.min(0.3, intensity)));
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+// The sealed Spire's hum — low 55+82Hz drone, capped very quiet (≈ −20dB).
+export function sfxSpireHumLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const street = getStreetBus(c);
+    const h = makeLoop(c, (cc, master) => {
+      try {
+        master.disconnect();
+      } catch { /* not yet connected */ }
+      master.connect(street);
+      const oscs = [55, 82.4].map((f, i) => {
+        const o = cc.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        const g = cc.createGain();
+        g.gain.value = i === 0 ? 0.5 : 0.3;
+        o.connect(g).connect(master);
+        o.start();
+        return o;
+      });
+      return { nodes: oscs };
+    });
+    h.setLevel(0.09);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}

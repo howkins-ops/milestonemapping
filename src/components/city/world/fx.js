@@ -211,5 +211,61 @@ function toast(viewportEl, text, color = "#00F0FF", { x = null, y = null, big = 
   }
 }
 
-const fx = { burst, ring, shake, flash, hitstop, toast, motionOk };
+/* ── Title card (Phase 7 — zone cards + power-on shots) ────────────────── */
+
+function titleCard(viewportEl, { title, sub = "", color = "#00F0FF", ms = 2000 } = {}) {
+  try {
+    if (!viewportEl || viewportEl.querySelector(":scope > .mqfx-titlecard")) return;
+    const node = document.createElement("div");
+    node.className = "mqfx-titlecard";
+    node.setAttribute("role", "status");
+    node.style.setProperty("--c", color);
+    const t = document.createElement("span");
+    t.className = "mqfx-titlecard__title";
+    t.textContent = title;
+    node.appendChild(t);
+    if (sub) {
+      const s = document.createElement("span");
+      s.className = "mqfx-titlecard__sub";
+      s.textContent = sub;
+      node.appendChild(s);
+    }
+    if (!motionOk(viewportEl)) node.classList.add("is-still");
+    viewportEl.appendChild(node);
+    setTimeout(() => {
+      node.classList.add("is-out");
+      setTimeout(() => node.remove(), 400);
+    }, ms);
+  } catch {
+    /* fx is garnish */
+  }
+}
+
+/* ── Door iris (Phase 7 — a radial wipe into the district) ─────────────── */
+
+function iris(viewportEl, { x, y, color = "#00F0FF", reverse = false, ms = 350 } = {}) {
+  try {
+    if (!viewportEl) return;
+    if (!motionOk(viewportEl)) return; // reduced motion: straight cut
+    let node = viewportEl.querySelector(":scope > .mqfx-iris");
+    if (!node) {
+      node = document.createElement("div");
+      node.className = "mqfx-iris";
+      node.setAttribute("aria-hidden", "true");
+      viewportEl.appendChild(node);
+    }
+    node.style.setProperty("--ix", `${Math.round(x)}px`);
+    node.style.setProperty("--iy", `${Math.round(y)}px`);
+    node.style.setProperty("--c", color);
+    node.style.setProperty("--ms", `${ms}ms`);
+    node.classList.remove("is-in", "is-out");
+    void node.offsetWidth;
+    node.classList.add(reverse ? "is-out" : "is-in");
+    setTimeout(() => node.classList.remove("is-in", "is-out"), ms + 80);
+  } catch {
+    /* fx is garnish */
+  }
+}
+
+const fx = { burst, ring, shake, flash, hitstop, toast, titleCard, iris, motionOk };
 export default fx;

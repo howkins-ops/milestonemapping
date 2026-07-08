@@ -1,5 +1,8 @@
 import { QUARTER_META } from "./cityDistricts.js";
 import { TIER_HEIGHT_PCT, layoutRow } from "./world/worldConfig.js";
+import { seedFor, todayKey } from "./world/daySeed.js";
+import { LIFE } from "./world/worldFxTuning.js";
+import { getDailyEvent } from "./world/streetEvents.js";
 
 // ════════════════════════════════════════════════════════════════════════
 // MAPQUEST CITY — street geography + the story order (ACT 1 · the training)
@@ -46,6 +49,28 @@ const ARCH_GAP = 44;
 const ZONE_GAP = 72;
 
 const WIDTH_BY_ID = { "alchemist-spire": SPIRE_W };
+
+// Living City (Phase 10): every district's signature facade rig — the
+// thing you can name it by from across the street. Rendered by WorldScene
+// as one small CSS-animated element (mqfx-fx--*), glow grammar, ≤ 80px.
+const FACADE_FX = {
+  "daily-nexus": "dayflip",
+  "war-rooms": "radar",
+  "war-council": "orbit",
+  "identity-forge": "hammer",
+  "vision-tower": "searchlight",
+  "the-academy": "holobooks",
+  "formula-athenaeum": "helix",
+  observatory: "domeglint",
+  "pressure-forge": "bellows",
+  "shadow-sanctum": "aura",
+  "cup-springs": "pour",
+  "blaze-lab": "tesla",
+  "guild-quarter": "banner",
+  "hall-of-champions": "laurel",
+  "the-vault": "wheel",
+  "alchemist-spire": "crown",
+};
 
 // Street zones west → east. Building order inside each zone follows
 // STORY_ORDER so the story walk never doubles back — and the sealed Spire
@@ -188,6 +213,7 @@ export function buildCityWorld(
         locked: Boolean(d.locked),
         next: Boolean(d.next),
         sealed: Boolean(d.sealed),
+        facadeFx: FACADE_FX[d.id] || null,
       });
 
       // The district's Guide stands just west of the door (not for the
@@ -239,6 +265,93 @@ export function buildCityWorld(
 
   const width = cursor + 240;
 
+  // ── Living City (Phase 4): near-foreground plane + billboards ──────────
+  // Deterministic street furniture for the 1.22 parallax plane — index
+  // math only, no RNG. Pillars are rare and narrow, and nothing on the
+  // near plane sits within 60px of a door center (tap-target law).
+  const near = [];
+  const doorXs = buildings.map((b) => Math.round(b.x + b.w / 2));
+  const NEAR_KINDS = ["hydrant", "planter", "cable", "stand", "planter", "hydrant", "cable", "pillar"];
+  for (let nx = 360, ni = 0; nx < width - 220; nx += 290 + (ni % 3) * 140, ni += 1) {
+    const kind = NEAR_KINDS[ni % NEAR_KINDS.length];
+    const clearance = kind === "pillar" ? 120 : 60;
+    if (doorXs.every((dx) => Math.abs(dx - nx) > clearance)) {
+      near.push({ x: nx, kind });
+    }
+  }
+
+  // Billboards: two per zone stretch in the zone accent; one rotating
+  // district-glyph hologram over the plaza.
+  for (let ai = 0; ai < arches.length; ai += 1) {
+    const a = arches[ai];
+    props.push({ type: "billboard", x: a.x + 250, color: a.accent, text: a.label.split(" ")[0] });
+    props.push({ type: "billboard", x: a.x + 560, color: a.accent, text: "MQ·" + (ai + 1) });
+  }
+  props.push({ type: "holo", x: 540 });
+
+  // ── Living City (Phase 9): the daily street event bends the config ─────
+  // HATER RUSH: clown count ×2, all patrols faster. QUIET MORNING: no
+  // clowns, citizens ×2. Pure config changes — nothing blocked, ever.
+  const streetEvent = getDailyEvent();
+  if (streetEvent && streetEvent.id === "hater-rush") {
+    const originals = [...enemies];
+    for (const e of originals) {
+      e.dur = Math.max(2.4, (e.dur || 4.6) * 0.7);
+      addClown(e.x + 120, Math.max(48, (e.patrol || 80) - 12));
+    }
+  } else if (streetEvent && streetEvent.id === "quiet-morning") {
+    enemies.length = 0;
+  }
+
+  // ── Living City (Phase 6): ambient life, scaled by lit progress ────────
+  // Population = the player's progress made visible. Citizens cluster
+  // around LIT districts (day-seeded offsets — same city all day, fresh
+  // city tomorrow). All of it renders as CSS patrol loops (zero JS).
+  const day = todayKey();
+  const litBuildings = buildings.filter(
+    (b) => !b.locked && (b.glowState === "lit" || b.glowState === "radiant")
+  );
+  const litN = litBuildings.length;
+  const quietDay = Boolean(streetEvent && streetEvent.id === "quiet-morning");
+  const citizenCount = Math.min(
+    LIFE.citizenCap,
+    (LIFE.citizenBase + litN * LIFE.citizenPerLit) * (quietDay ? 2 : 1)
+  );
+  const citizens = [];
+  for (let i = 0; i < citizenCount; i += 1) {
+    // anchor to a lit district when there is one; the plaza otherwise
+    const anchor = litN ? litBuildings[i % litN] : null;
+    const ax = anchor ? anchor.x + anchor.w / 2 : 470;
+    const off = Math.round((seedFor(day, `cit${i}`) - 0.5) * 460);
+    citizens.push({
+      x: Math.max(140, Math.min(width - 140, ax + off)),
+      patrol: 40 + Math.round(seedFor(day, `citp${i}`) * 80),
+      dur: 30 + Math.round(seedFor(day, `citd${i}`) * 40),
+      delay: Math.round(seedFor(day, `citl${i}`) * 20),
+      scale: 0.52 + (i % 3) * 0.05,
+    });
+  }
+
+  // steam vents at 4 seeded street points (doubled puffs during rain)
+  const vents = [0.16, 0.4, 0.63, 0.86].map((f, i) => ({
+    x: Math.round(width * f + (seedFor(day, `vent${i}`) - 0.5) * 120),
+  }));
+
+  // radiant districts queue a citizen at the door 1 day in 3 — the city
+  // wants in where the fire is
+  const doorQueues = buildings
+    .filter((b) => b.glowState === "radiant" && seedFor(day, `q${b.id}`) < 0.34)
+    .map((b) => ({ x: Math.round(b.x + b.w / 2) - 42 }));
+
+  const ambient = {
+    citizens,
+    vents,
+    doorQueues,
+    plazaX: 470,
+    tramCount: Math.min(LIFE.tramMax, 1 + Math.floor(litN / 6)),
+    droneCount: 2,
+  };
+
   return {
     id: "city",
     label: "MapQuest City — the walkable street",
@@ -258,6 +371,8 @@ export function buildCityWorld(
     enemies,
     maskDens,
     maskZones,
+    near,
+    ambient,
   };
 }
 

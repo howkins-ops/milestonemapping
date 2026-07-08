@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CAMERA } from "./worldFxTuning.js";
+import { CAMERA, RUN } from "./worldFxTuning.js";
 
 // ════════════════════════════════════════════════════════════════════════
 // MAPQUEST WORLD — the walk engine
@@ -34,12 +34,15 @@ export default function useWorldEngine({
   onStride, // (dxAbs) px actually walked this frame — encounter-engine hook
   onJump, // () — takeoff (jump only, not stomp bounces) — juice hook
   onLand, // (impactVy, { fromBounce }) — touchdown — juice hook
+  onStep, // (foot, isRun) — one footstep per RUN.stepPx walked
+  onSkid, // () — direction reversed at run speed
 }) {
   const viewportRef = useRef(null);
   const layerRef = useRef(null);
   const farRef = useRef(null);
   const midRef = useRef(null);
   const nearRef = useRef(null); // near foreground plane (parallax 1.22)
+  const groundRef = useRef(null); // ground detail strip (reflections, 1.0)
   const charRef = useRef(null);
 
   const [nearTarget, setNearTarget] = useState(null);
@@ -47,6 +50,7 @@ export default function useWorldEngine({
   const [facing, setFacing] = useState(1);
   const [heldDir, setHeldDir] = useState(0); // for control button styling only
   const [airborne, setAirborne] = useState(false);
+  const [running, setRunning] = useState(false); // held ≥ RUN.holdMs → gear shift
 
   // Everything the loop touches lives in refs so the loop never re-binds.
   const sim = useRef({
@@ -72,6 +76,12 @@ export default function useWorldEngine({
     zoom: 1,
     zoomTarget: 1,
     pan: null, // { x, ms, hold, holdUntil, resolve } — cinematic override
+    // ── The Seeker (Phase 5) ──────────────────────────────────────────────
+    heldAt: 0, // when the current direction press began
+    runActive: false,
+    glideV: 0, // px/s — 200ms decel glide after releasing a run
+    stepAcc: 0, // px walked since the last footstep
+    stepFoot: false, // alternating footstep flag
   });
 
   const cfg = useRef({});
@@ -86,6 +96,8 @@ export default function useWorldEngine({
     onStride,
     onJump,
     onLand,
+    onStep,
+    onSkid,
     nearTargetId: nearTarget ? nearTarget.id : null,
   };
 
@@ -142,6 +154,8 @@ export default function useWorldEngine({
       midRef.current.style.transform = `translate3d(${r2(-cameraX * c.parallax.mid + offX * 0.7)}px,${r2(offY * 0.7)}px,0)${zs}`;
     if (nearRef.current)
       nearRef.current.style.transform = `translate3d(${r2(-cameraX * (c.parallax.near || 1.22) + offX * 1.15)}px,${r2(offY)}px,0)${zs}`;
+    if (groundRef.current)
+      groundRef.current.style.transform = `translate3d(${r2(-cameraX + offX)}px,0,0)`;
     if (charRef.current)
       charRef.current.style.transform = `translate3d(${s.x}px,${-s.y}px,0)`;
   };
@@ -208,13 +222,36 @@ export default function useWorldEngine({
     const dt = frozen ? 0 : Math.min(now - (s.last || now), DT_CAP) / 1000;
     s.last = now;
 
-    if ((s.dir !== 0 || s.airborne) && !c.paused) {
+    if ((s.dir !== 0 || s.airborne || s.glideV !== 0) && !c.paused) {
       if (s.dir !== 0) {
+        // hold a direction long enough and the walk breaks into a run
+        const isRun = now - s.heldAt >= RUN.holdMs;
+        if (isRun !== s.runActive) {
+          s.runActive = isRun;
+          setRunning(isRun);
+        }
+        const spd = isRun ? RUN.speed : c.speed;
         const prevX = s.x;
-        s.x = Math.max(minX, Math.min(maxX, s.x + s.dir * c.speed * dt));
-        if (c.onStride && s.x !== prevX) c.onStride(Math.abs(s.x - prevX));
+        s.x = Math.max(minX, Math.min(maxX, s.x + s.dir * spd * dt));
+        const dx = Math.abs(s.x - prevX);
+        if (c.onStride && dx) c.onStride(dx);
+        // footsteps — one per RUN.stepPx, alternating feet (audio hook)
+        if (dx && !s.airborne) {
+          s.stepAcc += dx;
+          while (s.stepAcc >= RUN.stepPx) {
+            s.stepAcc -= RUN.stepPx;
+            s.stepFoot = !s.stepFoot;
+            if (c.onStep) c.onStep(s.stepFoot, isRun);
+          }
+        }
         // walking cancels a cinematic pan — real life first
-        if (s.pan && s.x !== prevX) cancelPan();
+        if (s.pan && dx) cancelPan();
+      } else if (s.glideV !== 0) {
+        // released at a run — 200ms decel glide instead of a hard stop
+        const prevX = s.x;
+        s.x = Math.max(minX, Math.min(maxX, s.x + s.glideV * dt));
+        s.glideV *= Math.max(0, 1 - dt * (1000 / RUN.decelMs));
+        if (Math.abs(s.glideV) < 24 || s.x === prevX) s.glideV = 0;
       }
       if (s.airborne) {
         s.vy -= GRAVITY * dt;
@@ -261,7 +298,7 @@ export default function useWorldEngine({
     paint(now);
 
     const busy =
-      ((s.dir !== 0 || s.airborne) && !c.paused) || cameraBusy(now);
+      ((s.dir !== 0 || s.airborne || s.glideV !== 0) && !c.paused) || cameraBusy(now);
     if (busy && !document.hidden) {
       s.raf = requestAnimationFrame(frame);
     } else {
@@ -273,7 +310,7 @@ export default function useWorldEngine({
     const s = sim.current;
     if (
       !s.raf &&
-      (((s.dir !== 0 || s.airborne) && !cfg.current.paused) ||
+      (((s.dir !== 0 || s.airborne || s.glideV !== 0) && !cfg.current.paused) ||
         cameraBusy(performance.now())) &&
       !document.hidden
     ) {
@@ -298,7 +335,11 @@ export default function useWorldEngine({
     if (s.dir === dir) return;
     s.dir = dir;
     if (dir !== 0) {
+      s.heldAt = performance.now();
+      s.glideV = 0; // new input eats the glide
       if (s.facing !== dir) {
+        // reversing at run speed → the skid beat (scene plays the pose)
+        if (s.runActive && cfg.current.onSkid) cfg.current.onSkid();
         s.facing = dir;
         setFacing(dir);
       }
@@ -311,7 +352,13 @@ export default function useWorldEngine({
   const release = () => {
     const s = sim.current;
     if (s.dir === 0) return;
+    // released mid-run → glide out over RUN.decelMs (a gear, not a brake)
+    if (s.runActive) s.glideV = s.facing * RUN.speed;
     s.dir = 0;
+    if (s.runActive) {
+      s.runActive = false;
+      setRunning(false);
+    }
     setWalking(false);
     setHeldDir(0);
   };
@@ -502,12 +549,14 @@ export default function useWorldEngine({
     farRef,
     midRef,
     nearRef,
+    groundRef,
     charRef,
     nearTarget,
     walking,
     facing,
     heldDir,
     airborne,
+    running,
     controls,
     getX,
     reducedMotion,

@@ -292,15 +292,35 @@ PERF:    { animNodesFull: 90, animNodesLite: 40 }
 
 | Phase | Name | Status | Verified | Notes |
 |---|---|---|---|---|
-| 1 | Juice Core | ⬜ | ⬜ | |
-| 2 | Camera II | ⬜ | ⬜ | |
-| 3 | Living Sky | ⬜ | ⬜ | |
-| 4 | Deep Street | ⬜ | ⬜ | |
-| 5 | Seeker Alive | ⬜ | ⬜ | |
-| 6 | City Breathes | ⬜ | ⬜ | |
-| 7 | Cinema & Story | ⬜ | ⬜ | |
-| 8 | Sound of the City | ⬜ | ⬜ | |
-| 9 | Rewarded Walking | ⬜ | ⬜ | |
-| 10 | Showpieces + Ship | ⬜ | ⬜ | |
+| 1 | Juice Core | ✅ built 2026-07-07 | ✅ compiles | `fx.js` pool (24 nodes) + `engine.freeze` + all verbs wired (coil/apex/fall/land/stomp-chain/door-flare/erupt); shake prefers `controls.addShake` |
+| 2 | Camera II | ✅ built 2026-07-07 | ✅ compiles | smoothing lerp 7 · look-ahead 0.40/0.50 eased · layer shake offsets · `panTo()` promise (walk cancels, reduced-motion jump-cuts) · zoom on the translate3d string · letterbox bars |
+| 3 | Living Sky | ✅ built 2026-07-07 | ✅ compiles | 4 tod palettes + celestial (moon/clouds/47s shooting star) + `weather.js` day-seeded (rain/drizzle/fog/embers/starfall) + grade/vignette/grain trio; fog thins ×0.6 over mask banks; hometown = fireflies/amber moon |
+| 4 | Deep Street | ✅ built 2026-07-07 | ✅ compiles | `nearRef` 1.22 plane (`world.near`, door-clearance enforced in generator) · wet-asphalt reflections in a camera-scrolled ground strip (`groundRef`) · lamp cones · dual window grids + 18s flicker · billboards + plaza holo · curb/crosswalks |
+| 5 | Seeker Alive | ✅ built 2026-07-07 | ✅ compiles | articulated sprite (cloak/arms/head/eyes, rim light, <4KB) · idle breathe/blink/head-turn/14s CSS fidget · run (hold 650ms → 470px/s, zoom 0.97, streaks, CSS ghost) · skid · 200ms decel glide · `onStep` every 34px |
+| 6 | City Breathes | ✅ built 2026-07-07 | ✅ compiles | citizens 2+lit (cap 14) clustered at lit doors, day-seeded · trams on mid rail (1–3 by progress) · 2 drones / 3 dawn birds · 4 steam vents (rain ×2) · radiant door queues (1-in-3 days) · plaza arcs/sitters/busker · tod sleep cycle |
+| 7 | Cinema & Story | ✅ built 2026-07-07 | ✅ compiles | `useCinematics` cineLock · power-on shot ≤3.5s (letterbox→pan→erupt→title slam, celebrate after) · 7 zone cards once-ever (streetStore) · door iris · Spire dread ≤600px (grade+cracks+hum) · 5 Guide whispers · GATE-2 beacon salute before `SpireIgnition` |
+| 8 | Sound of the City | ✅ built 2026-07-07 | ✅ compiles | sfx.js extended: footstep/whoosh/thud/chain-pop/door-chime (hashed interval per district)/power-swell/spark-penta/zone sting · tod+theme bed (≤6 osc, night siren ~90s, hometown crickets) · rain bed · 55+82Hz Spire hum · `sfxDuck` −8dB (offered to Mask overlays) · HUD chip mute+volume, gesture-armed |
+| 9 | Rewarded Walking | ✅ built 2026-07-07 | ✅ compiles | 12 day-seeded sparks (east-biased, ⅓ air) +1XP capped, Street Sweep +15XP · stomp combos ×2/×3 "CIRCUS CLOSED", best persisted on 🤡 chip · odometer (write-behind 2s + pagehide; 1/5/25/100km achievements, boots at 25km) · daily events (HATER RUSH / METEOR NIGHT / QUIET MORNING) · 3 street finds w/ lore |
+| 10 | Showpieces + Ship | ✅ built 2026-07-07 | ⚠ static audit only | 16 city facade rigs + 4 hometown warm rigs (`facadeFx`, radiant/dim/locked scaling) · FULL/LITE/AUTO tiers (chip `FX·` button, `mqfx_quality`, ≤4-core demote) · hometown inherits near/ambient keys · runtime E2E + 6× trace NOT run (session was no-browser by Jon's order) — see punch list below |
 
 *Build order is the phase order. Phase 1 + 2 are the foundation everything else consumes — do not skip ahead of them.*
+
+### Ship-gate audit record (2026-07-07, build-only session — Jon barred Playwright/screenshots)
+
+**Passing by construction / static audit:**
+- `npm run build` green after every phase (10/10).
+- Idle-rAF law: loop still exits when `dir==0 && !airborne && glideV==0` and camera settled/no shake/no pan/zoom done. Camera settles within ~1s of idle.
+- Determinism: zero `Math.random()` in render paths (only the pre-existing quip pick + audio synthesis, both event-driven). All ambient/weather/sparks/events ride `daySeed.seedFor`.
+- Reduced motion: all three gates kill every animation (cityWorld.css `* { animation: none }` covers all in-viewport mqfx nodes); fx.js pool refuses to spawn (`motionOk`); `panTo` jump-cuts; letterbox transition gated; static poses keep states readable.
+- Buttons law: every FX layer `pointer-events:none`; near-plane pillars generated ≥120px from door centers; buildings/NPCs/prompt untouched.
+- No new deps, no canvas/WebGL, Sora/Manrope only, all new CSS in `cityWorldFx.css` (mqfx-*), engine changes additive (no restructure).
+- Animated box-shadow: one 2×6px glint (small-element exemption). No animated filter anywhere.
+
+**Punch list for the next session (needs a browser):**
+1. DevTools 6× CPU trace, full-street walk, max population + rain + FULL — verify no scripted frame >16ms; `getAnimations()` count (static estimate ≈85–100 FULL viewport-visible; LITE ≈35 — trim citizens/vents first if over).
+2. Play the full E2E script (§Phase 10.6) incl. fresh save + 15/15 mock + all four tods (fake clock in `cityAtmosphere.getTimeOfDay`).
+3. Audio: confirm cold-load silence, mute <100ms, duck behavior under Mask battles.
+4. Tuning passes: camera lerp/look-ahead feel, rain sheet opacity at dusk, citizen density at 15/15.
+5. Offer `fx.js` + `sfxDuck` to the Mask session's overlays (built as public APIs for them).
+
+**Tuning constants** live in `src/components/city/world/worldFxTuning.js` (CAMERA/JUICE/RUN/SKY/LIFE/REWARD/PERF) — tweak there first. No art gaps: everything shipped in CSS/SVG, zero image assets needed.
