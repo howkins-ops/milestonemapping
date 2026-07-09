@@ -16,7 +16,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEnv, generateSound } from './lib/eleven.js';
-import { CHEERS, HYPE, STINGERS } from '../src/data/fullCourtCrowd.js';
+import { CHEERS, HYPE, STINGERS, REACTS, AMBIENT } from '../src/data/fullCourtCrowd.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 loadEnv();
@@ -45,8 +45,10 @@ let tracks = [];
 if (!only || only === 'cheer' || only === 'cheers') tracks = tracks.concat(CHEERS);
 if (!only || only === 'hype') tracks = tracks.concat(HYPE);
 if (!only || only === 'stingers' || only === 'stinger') tracks = tracks.concat(STINGERS);
+if (!only || only === 'react' || only === 'reacts') tracks = tracks.concat(REACTS);
+if (!only || only === 'ambient' || only === 'bed') tracks = tracks.concat([AMBIENT]);
 if (!tracks.length) {
-  console.error(`✗ Nothing to bake for --only ${only}. Use: cheer | hype | stingers`);
+  console.error(`✗ Nothing to bake for --only ${only}. Use: cheer | hype | stingers | react | ambient`);
   process.exit(1);
 }
 

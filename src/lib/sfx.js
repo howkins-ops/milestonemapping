@@ -586,6 +586,103 @@ export function playArenaStinger(src, opts = {}) {
   return playSample(src, { volume: 0.85, shared: false, ...opts });
 }
 
+// ---- Reactive on-court crowd BED (real murmur; volume tracks your run) ----
+// One looping mp3 whose volume is driven live by the game: rejections hush it,
+// good doors lift it (setCrowdEnergy). It has its OWN mute — the 🔊 on the
+// scoreboard — so a rep can silence just the background without killing the
+// cheers/hype. Volume eases toward its target via a short JS tween; if the mp3
+// is missing it simply stays silent (no synth fallback — the old synth bed is
+// exactly what we're replacing).
+const BED_MUTE_KEY = "fullcourt_bed_muted";
+const BED_REST = 0.05; // resting murmur
+const BED_MAX = 0.2;   // full-house energy
+let bedEl = null;
+let bedTween = null;
+let bedTarget = BED_REST; // desired volume before the mute gate
+let bedMuted = false;
+try {
+  if (typeof localStorage !== "undefined" && localStorage.getItem(BED_MUTE_KEY) === "1") bedMuted = true;
+} catch { /* default unmuted */ }
+
+function bedEase() {
+  clearInterval(bedTween);
+  bedTween = setInterval(() => {
+    if (!bedEl) {
+      clearInterval(bedTween);
+      bedTween = null;
+      return;
+    }
+    const goal = bedMuted ? 0 : bedTarget;
+    const cur = bedEl.volume;
+    const d = goal - cur;
+    if (Math.abs(d) < 0.004) {
+      try { bedEl.volume = Math.max(0, Math.min(1, goal)); } catch { /* silent */ }
+      clearInterval(bedTween);
+      bedTween = null;
+      return;
+    }
+    try { bedEl.volume = Math.max(0, Math.min(1, cur + d * 0.18)); } catch { /* silent */ }
+  }, 45);
+}
+
+// Start the looping bed (call on tip-off / when back on the court).
+export function startCrowdBed(src, { settings } = {}) {
+  try {
+    if (!enabled) return null;
+    if (settings && settings.soundEnabled === false) return null;
+    if (typeof Audio === "undefined") return null;
+    getCtx(); // nudge the autoplay policy awake
+    stopCrowdBed();
+    const a = new Audio(src);
+    a.loop = true;
+    a.volume = 0;
+    bedEl = a;
+    bedTarget = BED_REST;
+    const p = a.play();
+    if (p && typeof p.catch === "function") p.catch(() => { /* silent — no synth fallback for the bed */ });
+    bedEase();
+    return { stop: stopCrowdBed };
+  } catch {
+    return null;
+  }
+}
+
+// Drive crowd energy 0..1 (typically heat / target). Rejection → ~0 → hush.
+export function setCrowdEnergy(v) {
+  const e = Math.max(0, Math.min(1, Number(v) || 0));
+  bedTarget = BED_REST + e * (BED_MAX - BED_REST);
+  if (bedEl) bedEase();
+}
+
+export function stopCrowdBed() {
+  clearInterval(bedTween);
+  bedTween = null;
+  try {
+    if (bedEl) {
+      bedEl.pause();
+      bedEl.currentTime = 0;
+    }
+  } catch { /* silent */ }
+  bedEl = null;
+}
+
+// The scoreboard's tiny 🔊/🔇 — mutes JUST the background bed (cheers/hype/
+// stingers still fire). Persisted so it sticks across games.
+export function isCrowdBedMuted() {
+  return bedMuted;
+}
+export function setCrowdBedMuted(m) {
+  bedMuted = !!m;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(BED_MUTE_KEY, bedMuted ? "1" : "0");
+  } catch { /* silent */ }
+  if (bedEl) bedEase();
+  return bedMuted;
+}
+export function toggleCrowdBedMuted() {
+  return setCrowdBedMuted(!bedMuted);
+}
+
 // ---------- arena one-shots ----------
 
 // The game buzzer — end-of-quarter / end-of-game horn. Harsh dissonant

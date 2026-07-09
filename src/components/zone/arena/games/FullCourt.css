@@ -2264,3 +2264,25 @@
 @media (prefers-reduced-motion: reduce) {
   .fc-getloud { animation: none; }
 }
+
+/* tiny 🔊/🔇 chip — mutes ONLY the reactive background crowd bed (cheers, hype
+   and stingers still fire). Sits in the score chips row next to HEAT / BEST. */
+.fc-bedmute {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid var(--zn-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-soft);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s var(--ease-out), filter 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
+}
+.fc-bedmute:active { transform: scale(0.9); }
+.fc-bedmute--off { opacity: 0.55; filter: grayscale(0.4); }

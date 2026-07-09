@@ -121,7 +121,51 @@ export const STINGERS = [
   },
 ];
 
-export const CROWD_TRACKS = [...CHEERS, ...HYPE, ...STINGERS];
+// Short "you hear them" reactions — the crowd gives an appreciative cheer when
+// you land a good pitch (not a full sale). Medium energy, a few variants so a
+// run of good doors doesn't repeat the same clap.
+export const REACTS = [
+  {
+    id: "react-goodpitch-1",
+    label: "Nice-pitch applause",
+    secs: 4,
+    influence: 0.4,
+    prompt:
+      "A home basketball crowd giving a short appreciative cheer and a warm round of applause for a good play — a few thousand fans whooping and clapping with approval, encouraging and positive, a quick swell that settles back down.",
+  },
+  {
+    id: "react-goodpitch-2",
+    label: "Ooh then cheer",
+    secs: 4,
+    influence: 0.4,
+    prompt:
+      "A crowd reacting to a slick move — a rising 'ooooh' of interest turning into approving cheers, claps and a couple of whistles, warm and impressed, medium energy, then easing off.",
+  },
+  {
+    id: "react-goodpitch-3",
+    label: "Building applause",
+    secs: 4,
+    influence: 0.4,
+    prompt:
+      "Scattered cheers from an arena crowd building into a solid round of applause with a few excited shouts and whistles, a supportive home-crowd reaction to a nice play, brief and encouraging.",
+  },
+];
+
+// The reactive BACKGROUND BED — one continuous low arena murmur that loops
+// under gameplay. Its VOLUME is driven live by your heat (rejections drop it to
+// a hush; good doors lift it). No music — just the hum of a full gym. Max 22s.
+export const AMBIENT = {
+  id: "ambient-crowd",
+  label: "Arena murmur bed",
+  secs: 22,
+  influence: 0.3,
+  prompt:
+    "A steady low background ambience of a packed indoor basketball arena between plays — a continuous soft murmur of a big crowd, distant chatter and hum, the odd faint clap and a far-off whistle, no music, calm and even, the quiet baseline energy of a full gym.",
+};
+
+export const AMBIENT_ID = AMBIENT.id;
+
+export const CROWD_TRACKS = [...CHEERS, ...HYPE, ...STINGERS, ...REACTS, AMBIENT];
 
 /** Public path to the pre-baked mp3 for any crowd/hype/stinger id. */
 export const crowdAudioPath = (id) => `/audio/fullcourt/crowd/${id}.mp3`;
@@ -139,6 +183,9 @@ export const pickCheer = (exceptId) => pickFrom(CHEERS, exceptId);
 
 /** A random get-loud hype chant (for the GET LOUD button). */
 export const pickHype = (exceptId) => pickFrom(HYPE, exceptId);
+
+/** A random short good-pitch applause ("you hear them"). */
+export const pickReact = (exceptId) => pickFrom(REACTS, exceptId);
 
 /** Look up a stinger by id (air horn / whistle). */
 export const stinger = (id) => STINGERS.find((s) => s.id === id) || null;

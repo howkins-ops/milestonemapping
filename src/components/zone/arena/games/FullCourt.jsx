@@ -65,11 +65,18 @@ import {
   playCrowdSample,
   playArenaStinger,
   stopCrowd,
+  startCrowdBed,
+  setCrowdEnergy,
+  stopCrowdBed,
+  isCrowdBedMuted,
+  toggleCrowdBedMuted,
 } from "../../../../lib/sfx.js";
 import {
   crowdAudioPath,
   pickCheer,
   pickHype,
+  pickReact,
+  AMBIENT_ID,
 } from "../../../../data/fullCourtCrowd.js";
 import { slamHeavy } from "../../../../lib/haptics.js";
 import { createLineAudio, playLine, stopNarration } from "../../../../lib/voiceOver.js";
@@ -336,8 +343,24 @@ export default function FullCourt({ go, initialFullscreen = false }) {
   // lull. Track the last id so back-to-back picks never repeat.
   const lastCheerRef = useRef(null);
   const lastHypeRef = useRef(null);
+  const lastReactRef = useRef(null); // last good-pitch cheer id (avoid repeats)
   const [hyping, setHyping] = useState(false); // GET LOUD cooldown (one 15s chant at a time)
   const hypeTimer = useRef(null);
+  // The scoreboard's tiny 🔊/🔇 for the background crowd bed only (persisted).
+  const [bedMuted, setBedMuted] = useState(() => {
+    try {
+      return isCrowdBedMuted();
+    } catch {
+      return false;
+    }
+  });
+  const toggleBedMute = useCallback(() => {
+    try {
+      setBedMuted(toggleCrowdBedMuted());
+    } catch {
+      /* silent */
+    }
+  }, []);
 
   const loadSeason = useCallback(async () => {
     if (!userId) {
@@ -752,8 +775,10 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     doBuzzer(next, effort);
   }, [phase, game, endsAt, schedule, doBuzzer]);
 
-  // On-court crowd ambiance (handoff #8) — a soft arena bed while you play,
-  // hushed on pause / between quarters / when sound is off.
+  // On-court crowd BED — a REAL low arena murmur while you play (not the old
+  // synth drone). Its volume reacts to your run: rejections hush it, good doors
+  // lift it (driven by setCrowdEnergy in doLog). Hushed on pause / between
+  // quarters / when sound is off; the 🔊 scoreboard toggle can silence it too.
   useEffect(() => {
     if (phase !== "playing" || paused || settings?.soundEnabled === false) {
       try {
@@ -766,7 +791,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
     }
     if (!ambientRef.current) {
       try {
-        ambientRef.current = sfxCrowdLoop(settings);
+        ambientRef.current = startCrowdBed(crowdAudioPath(AMBIENT_ID), { settings });
       } catch {
         /* silence is fine */
       }
@@ -789,6 +814,7 @@ export default function FullCourt({ go, initialFullscreen = false }) {
         /* silent */
       }
       stopCrowd();
+      stopCrowdBed();
     },
     []
   );
@@ -1089,6 +1115,20 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       });
       if (next === game) return; // unknown outcome / finished
       const ev = next.lastEvent;
+      // Crowd BED reacts to the run — heat drives its volume: a rejection zeroes
+      // heat so the crowd hushes; good doors lift it. A `goodPitch` that isn't a
+      // sale also earns a short "you hear them" cheer in the landing block below.
+      const goodPitch =
+        ev?.outcome === "full_pitch" ||
+        ev?.outcome === "value_build" ||
+        ev?.outcome === "price_drop" ||
+        ev?.outcome === "pitch" ||
+        ev?.outcome === "objection";
+      try {
+        setCrowdEnergy(Math.min(1, next.heat / 5));
+      } catch {
+        /* silent */
+      }
       if (ev?.targetSmashed) {
         try {
           playArenaStinger(crowdAudioPath("stinger-airhorn"), {
@@ -1113,8 +1153,17 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       setTimeout(() => {
         if (!aliveRef.current) return;
         // Door-to-door SALE → the whole arena erupts (real 15s crowd cheer),
-        // whether or not this sale also crossed a milestone dunk tier.
-        if (ev?.isSale) crowdCheer();
+        // whether or not this sale also crossed a milestone dunk tier. A good
+        // pitch (not a sale) gets a shorter appreciative cheer you actually hear.
+        if (ev?.isSale) {
+          crowdCheer();
+        } else if (goodPitch && !tier && !ev?.targetSmashed && !ev?.buzzerBeater) {
+          const r = pickReact(lastReactRef.current);
+          if (r) {
+            lastReactRef.current = r.id;
+            playArenaStinger(crowdAudioPath(r.id), { volume: 0.55, settings });
+          }
+        }
         if (tier) {
           showDunk(tier);
           return;
@@ -1140,11 +1189,6 @@ export default function FullCourt({ go, initialFullscreen = false }) {
       const isBigMoment =
         !!tier || ev?.isSale || ev?.targetSmashed || ev?.buzzerBeater;
       if (!isBigMoment) {
-        const goodPitch =
-          ev?.outcome === "full_pitch" ||
-          ev?.outcome === "value_build" ||
-          ev?.outcome === "pitch" ||
-          ev?.outcome === "objection";
         coachCadenceRef.current += 1;
         if (goodPitch && Math.random() < 0.4) {
           coachCadenceRef.current = 0;
@@ -1579,6 +1623,16 @@ export default function FullCourt({ go, initialFullscreen = false }) {
               🔥 HEAT · {game ? game.heat : 0}
             </span>
             <span className="fc-best">🏆 BEST {Math.max(seasonBest, game ? game.points : 0)}</span>
+            <button
+              type="button"
+              className={`fc-bedmute ${bedMuted ? "fc-bedmute--off" : ""}`}
+              onClick={toggleBedMute}
+              aria-pressed={bedMuted}
+              aria-label={bedMuted ? "Crowd background off — tap to unmute" : "Crowd background on — tap to mute"}
+              title={bedMuted ? "Crowd background muted" : "Mute crowd background"}
+            >
+              {bedMuted ? "🔇" : "🔊"}
+            </button>
           </div>
           {/* hydration — hold the cup to drink, one per quarter (#9) */}
           <HydrationCup
