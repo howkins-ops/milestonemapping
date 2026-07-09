@@ -255,7 +255,7 @@ export default function Hoops({ go, initialFullscreen = false }) {
     } catch (e) { /* season logging never blocks the game */ }
   }, []);
   return (
-    <div style={{ position: "fixed", top: "calc(var(--safe-top, 0px) + 56px)", bottom: "calc(var(--bottom-nav-h, 64px) + var(--safe-bottom, 0px))", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
+    <div style={{ position: "fixed", top: "var(--safe-top, 0px)", bottom: "var(--safe-bottom, 0px)", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@500;600;700&family=Orbitron:wght@700;900&display=swap');
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
@@ -305,6 +305,10 @@ export default function Hoops({ go, initialFullscreen = false }) {
         @keyframes bubble { 0%{transform:translateY(72px);opacity:0} 20%{opacity:1} 100%{transform:translateY(2px);opacity:0} }
         .seg { font-family:'Orbitron',monospace; }
         .noscroll::-webkit-scrollbar{display:none}
+        /* This is a full-screen game, not a modal: while HOOPS is mounted, hide the
+           Zone overlay's close (✕) so it doesn't read as a dismissible overlay. The
+           game's own "Back to Arena" button is the exit. Auto-restored on unmount. */
+        .zone-app__close { display: none !important; }
       `}</style>
       {/* exit back to the Zone Arena (launched fullscreen from the HOOPS button) */}
       {go && (
@@ -666,9 +670,10 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   // Real reactive crowd BED under gameplay — its volume rises with your streak
   // (and a nudge when In The Zone); hushed on pause / between quarters / sound off.
   useEffect(() => {
-    if (!running || paused) { snd.bedStop(); return undefined; }
-    snd.bedStart();
-    return () => snd.bedStop();
+    // Background crowd/arena bed removed — Jon found the continuous ambience
+    // distracting. Discrete reactions (swish, roar, cheers on big plays) still fire.
+    snd.bedStop();
+    return undefined;
   }, [running, paused, snd]);
   useEffect(() => {
     snd.bedEnergy(Math.min(1, (streak / 8) * (inZone ? 1 : 0.85)));
@@ -925,6 +930,16 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     setNameInput(""); setNameModal(false);
   };
 
+  // GOT NAME is a one-tap point now — no typing required. Logs the "got the
+  // name" rep instantly (counts toward NAMES, awards the same points).
+  const takeName = () => {
+    if (!running || paused) return;
+    setTally((t) => ({ ...t, names: t.names + 1 }));
+    const gain = Math.round(25 * quarterBonus * (inZone ? 1.15 : 1));
+    setScore((s) => s + gain); setNetSwish((n) => n + 1); setFlash((f) => f + 1);
+    spawnFloatie(`GOT THE NAME +${gain}`, GOLD); snd.chord([587,784],0.22); snd.roar(0.35);
+  };
+
   // DRINK — consume water from your bottle, gain energy. Needs water in the bottle.
   const sip = () => {
     if (water <= 0) {
@@ -968,14 +983,12 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
       {urgency === 3 && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>{[...Array(5)].map((_, i) => <div key={i} style={{ position: "absolute", top: `${14+i*17}%`, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${FIRE},transparent)`, animation: `speedline ${0.5+i*0.1}s infinite` }} />)}</div>}
       <Ambience />
 
-      {/* PAUSE — floating on the crowd, upper-left below the jumbotron */}
-      <button onClick={() => setPaused((p) => !p)} style={{ position: "absolute", top: 210, left: 10, zIndex: 50, width: 40, height: 40, borderRadius: 10, background: "rgba(8,5,16,0.85)", border: `1.5px solid ${V}`, color: "#fff", cursor: "pointer", fontFamily: "'Orbitron',monospace", fontWeight: 700, fontSize: 14, backdropFilter: "blur(3px)", boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>{paused ? "▶" : "❚❚"}</button>
-
-      {/* compact utility cluster — upper-right below the jumbotron */}
+      {/* compact utility cluster — pinned upper-right below the jumbotron (pause lives here, under the speed toggle) */}
       <div style={{ position: "absolute", top: 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
         <button onClick={() => setStatsOpen(true)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>STATS</button>
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
         <button onClick={() => setTimeScale((t) => t === 1 ? 60 : 1)} title="Game speed — real time vs fast" style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>{timeScale === 1 ? "1×" : "60×"}</button>
+        <button onClick={() => setPaused((p) => !p)} title={paused ? "Resume" : "Pause"} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 13, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)", border: `1.5px solid ${V}` }}>{paused ? "▶" : "❚❚"}</button>
       </div>
 
       <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} />
@@ -1069,8 +1082,8 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
       </div>
 
       {/* ===== LIVE STAT LINE — real-time counters + records to chase ===== */}
-      <div style={{ position: "absolute", bottom: 152, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 144, boxSizing: "border-box",
-        transform: "scale(0.9)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
+      <div style={{ position: "absolute", bottom: 190, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 144, boxSizing: "border-box",
+        transform: "scale(0.99)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
         background: "rgba(8,5,16,0.94)", border: "1.5px solid rgba(168,85,247,0.45)", borderRadius: 11, padding: "6px 9px",
         backdropFilter: "blur(4px)", boxShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
         <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7.5, letterSpacing: "1.5px", color: V_GLOW, textAlign: "center", marginBottom: 4, borderBottom: "1px solid rgba(168,85,247,0.25)", paddingBottom: 3 }}>YOUR NUMBERS</div>
@@ -1096,7 +1109,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
         {[{ id: "slam", short: "SLAMMED", sub: "SHOT DOWN", pts: 0, color: RED, make: 0 }, { id: "name", short: "GOT NAME", sub: "NOT INTERESTED", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
           const isName = a.id === "name";
           return (
-            <button key={a.id} onClick={() => isName ? setNameModal(true) : takeShot(a)} disabled={!running || paused} style={{
+            <button key={a.id} onClick={() => isName ? takeName() : takeShot(a)} disabled={!running || paused} style={{
               width: "100%", padding: "7px 8px", borderRadius: 11, cursor: running ? "pointer" : "default",
               background: a.id === "close" ? `linear-gradient(160deg,rgba(6,40,20,0.92),${GREEN}22)` : isName ? "linear-gradient(160deg,rgba(40,30,10,0.92),rgba(168,85,247,0.14))" : "rgba(20,11,36,0.9)",
               border: `1.5px solid ${a.color}`, color: "#fff",
@@ -1489,10 +1502,12 @@ function Crowd({ flash }) {
     // mix law-of-probability + hype signs, all readable
     const ALL_SIGNS = [...LAW_SIGNS, ...SIGNS];
     // exactly 14 STILL signs placed at fixed spots across the crowd (row, x-fraction)
+    // Signs pulled off the far-left band (0.08–0.20) so they don't hide behind
+    // the action-button column; spread across center with a few on the right.
     const SIGN_SPOTS = [
-      [2, 0.12], [3, 0.62], [4, 0.40], [5, 0.85], [6, 0.20],
-      [7, 0.55], [8, 0.08], [9, 0.78], [10, 0.34], [11, 0.90],
-      [12, 0.16], [13, 0.66], [14, 0.46], [15, 0.82],
+      [2, 0.32], [3, 0.62], [4, 0.40], [5, 0.85], [6, 0.38],
+      [7, 0.55], [8, 0.28], [9, 0.78], [10, 0.34], [11, 0.90],
+      [12, 0.44], [13, 0.66], [14, 0.46], [15, 0.82],
     ];
     const built = rowDefs.map((r, ri) => {
       const fans = [];
