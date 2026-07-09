@@ -72,6 +72,11 @@ export const fullcourtSeason = ({ userId }) =>
 export const fullcourtH2H = ({ partnerId }) =>
   rpc("az_fullcourt_h2h", { p_partner: partnerId });
 
+// Invite a visible Zone friend to a live HOOPS match — drops a `match_invite`
+// notification carrying the shared match code (realtime-delivered + inboxed).
+export const hoopsInvite = ({ partnerId, matchCode }) =>
+  rpc("az_hoops_invite", { p_partner: partnerId, p_match_code: matchCode });
+
 /* ---------------- dawn patrol ---------------- */
 
 export const dawnState = ({ squadId }) =>

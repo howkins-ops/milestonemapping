@@ -51,6 +51,8 @@ function describe(n) {
       };
     case "challenge_join":
       return { icon: "🏆", text: `${name} joined ${p.title || "a challenge"}`, target: "challenges", param: n.ref_id || null };
+    case "match_invite":
+      return { icon: "🏀", text: `${name} challenged you to HOOPS — tap to join`, target: "hoops", matchCode: p.match_code || null };
     case "squad_join":
       return { icon: "🛡️", text: `${name} joined ${p.squad_name || "your squad"}`, target: "squad" };
     case "system":
@@ -69,6 +71,8 @@ export default function NotificationRow({ n, go }) {
       type="button"
       className={`zn-row${unread ? " zn-row--accent" : ""}`}
       onClick={() => {
+        // a HOOPS challenge stashes the match code so the game auto-joins on open
+        if (d.matchCode) { try { localStorage.setItem("hoops_pending_invite", d.matchCode); } catch (e) { /* ignore */ } }
         if (d.target && go) go(d.target, d.param || null);
       }}
     >

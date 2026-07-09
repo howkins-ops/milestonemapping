@@ -1,0 +1,331 @@
+/* Coaching break — the beloved end-of-quarter experience, lifted verbatim from
+   Full Court so the new HOOPS game keeps it exactly. Buzzer "read" takeover +
+   RESET / HYPE locker room. Uses the app's global theme vars (--font-display,
+   --text-*, --zn-border, --zfire*), which resolve app-wide. Namespace: fc-*. */
+
+@keyframes fc-critpulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+@keyframes fc-cinein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fc-cinedrop {
+  from { transform: translateY(22px) scale(0.96); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes fc-breathe {
+  0%, 100% { transform: scale(0.82); opacity: 0.7; }
+  45% { transform: scale(1.06); opacity: 1; }
+  60% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes fc-coachpulse {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.12); }
+  24% { transform: scale(1.04); }
+}
+@keyframes fc-capin {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- quarter-end celebration (broadcast takeover) ---------- */
+.fc-cine {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(6, 4, 16, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow-y: auto;
+  animation: fc-cinein 0.3s var(--ease-out);
+}
+.fc-cine__glow {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(closest-side at 50% 18%, rgba(255, 209, 102, 0.22), transparent 70%),
+    radial-gradient(closest-side at 20% 85%, rgba(123, 44, 255, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.fc-cine__inner {
+  position: relative;
+  width: min(440px, 100%);
+  text-align: center;
+  margin: auto;
+  animation: fc-cinedrop 0.45s var(--ease-out);
+}
+.fc-cine__siren {
+  font-size: 34px;
+  animation: fc-critpulse 0.6s ease-in-out 5;
+}
+.fc-cine__label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 8vw, 40px);
+  letter-spacing: 2px;
+  color: #ffd166;
+  text-shadow: 0 0 26px rgba(255, 209, 102, 0.55);
+  margin-top: 4px;
+}
+.fc-cine__score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(52px, 16vw, 76px);
+  line-height: 1;
+  color: var(--text-main);
+  text-shadow: 0 0 30px var(--zfire-glow, rgba(255, 122, 24, 0.5));
+  margin-top: 6px;
+}
+.fc-cine__stat {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+  margin-top: 8px;
+}
+.fc-cine__won { color: #3ddc84; }
+.fc-cine__readlbl {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 18px 0 8px;
+}
+.fc-cine__reads {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.fc-read {
+  border: 1px solid var(--zn-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11.5px;
+  line-height: 1.25;
+  padding: 10px 6px;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), border-color 0.15s, color 0.15s;
+}
+.fc-read small {
+  display: block;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 9px;
+  color: var(--text-soft);
+  margin-top: 3px;
+}
+.fc-read__glyph {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.fc-read--on {
+  border-color: var(--zfire, #ff7a18);
+  background: var(--zfire-soft, rgba(255, 122, 24, 0.12));
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+.fc-cine__lenrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+.fc-cine__lenlbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.fc-len {
+  border: 1px solid var(--zn-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12.5px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.fc-len--on {
+  border-color: #ffd166;
+  color: #ffd166;
+  background: rgba(255, 209, 102, 0.1);
+}
+.fc-cine__flavors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fc-flavor {
+  border-radius: 14px;
+  padding: 14px 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14.5px;
+  letter-spacing: 1px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), box-shadow 0.15s;
+}
+.fc-flavor:active { transform: scale(0.97); }
+.fc-flavor small {
+  display: block;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+.fc-flavor__glyph {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+.fc-flavor--reset {
+  border: 1px solid rgba(60, 200, 255, 0.5);
+  background: linear-gradient(160deg, rgba(30, 90, 140, 0.45), rgba(18, 30, 64, 0.6));
+  box-shadow: 0 0 22px rgba(60, 200, 255, 0.12);
+}
+.fc-flavor--hype {
+  border: 1px solid rgba(255, 122, 24, 0.55);
+  background: linear-gradient(160deg, rgba(140, 52, 10, 0.5), rgba(64, 22, 10, 0.6));
+  box-shadow: 0 0 22px rgba(255, 122, 24, 0.14);
+}
+.fc-cine__skip {
+  display: inline-block;
+  margin-top: 14px;
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------- locker room (break) ---------- */
+.fc-locker {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  overflow-y: auto;
+  animation: fc-cinein 0.5s var(--ease-out);
+}
+.fc-locker--reset {
+  background:
+    radial-gradient(closest-side at 50% 30%, rgba(50, 130, 190, 0.28), transparent 75%),
+    rgba(4, 8, 18, 0.96);
+}
+.fc-locker--hype {
+  background:
+    radial-gradient(closest-side at 50% 30%, rgba(200, 82, 16, 0.3), transparent 75%),
+    rgba(14, 5, 2, 0.96);
+}
+.fc-locker__inner {
+  width: min(420px, 100%);
+  text-align: center;
+  margin: auto;
+}
+.fc-locker__eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 18px;
+}
+.fc-locker__ringwrap {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 0 auto;
+}
+.fc-locker__ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.fc-locker__ringbg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 5;
+}
+.fc-locker__ringfg {
+  fill: none;
+  stroke: #ffd166;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s linear;
+}
+.fc-locker--reset .fc-locker__ringfg { stroke: #5ec8ff; }
+.fc-locker__orb {
+  position: absolute;
+  inset: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, rgba(150, 220, 255, 0.5), rgba(40, 110, 190, 0.25) 60%, transparent 75%);
+  animation: fc-breathe 8s ease-in-out infinite;
+}
+.fc-locker__pulse {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  animation: fc-coachpulse 0.9s ease-in-out infinite;
+}
+.fc-locker__count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -34px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  color: var(--text-main);
+}
+.fc-locker__caption {
+  min-height: 3.2em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16.5px;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin: 52px 0 0;
+  animation: fc-capin 0.45s var(--ease-out);
+}
+.fc-locker--hype .fc-locker__caption {
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.fc-locker__skip {
+  margin-top: 22px;
+  background: none;
+  border: 1px solid var(--zn-border);
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12.5px;
+  padding: 9px 18px;
+  cursor: pointer;
+}

@@ -13,7 +13,7 @@ import React from "react";
 import TheVow from "./games/TheVow.jsx";
 import BossForge from "./games/BossForge.jsx";
 import ChainOfFire from "./games/ChainOfFire.jsx";
-import FullCourt from "./games/FullCourt.jsx";
+import Hoops from "./games/Hoops.jsx";
 import TheDuel from "./games/TheDuel.jsx";
 import Ascension from "./games/Ascension.jsx";
 import DawnRaid from "./games/DawnRaid.jsx";
@@ -86,10 +86,10 @@ export const ARENA_GAMES = [
   },
   {
     key: "full_court",
-    title: "Full Court",
-    tagline: "Play your sales day like four quarters of ball. Buzzer, odds engine, season stats.",
+    title: "Hoops",
+    tagline: "Play your sales day like four quarters of ball. Every knock is a shot; every close is a dunk.",
     scope: "solo",
-    Component: FullCourt,
+    Component: Hoops,
     glyph: glyph(
       circle(12, 12, 9),
       "M3 12h18M12 3v18",
