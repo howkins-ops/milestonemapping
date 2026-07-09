@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 
 const PRIMARY_TABS = [
   { id: "dashboard", label: "Command", art: "/assets/nav/nav-command.png" },
@@ -10,8 +10,31 @@ const PRIMARY_TABS = [
 ];
 
 export default function BottomNav({ currentPage, onNavigate }) {
+  const navRef = useRef(null);
+
+  // Publish the nav's TRUE rendered height (incl. its own safe-area padding) so
+  // every screen reserves exactly enough clearance — no matter how labels wrap
+  // or how tall the bumped center tab renders. Beats the hardcoded token guess.
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const apply = () =>
+      document.documentElement.style.setProperty(
+        "--bottom-nav-h",
+        `${Math.round(el.offsetHeight)}px`
+      );
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, []);
+
   return (
-    <nav className="bottom-nav" aria-label="Main navigation">
+    <nav ref={navRef} className="bottom-nav" aria-label="Main navigation">
       <div className="bottom-nav__inner">
         {PRIMARY_TABS.map((tab) => (
           <button

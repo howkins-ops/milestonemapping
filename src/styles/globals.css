@@ -58,8 +58,10 @@
 
   --sidebar-w: 232px;
 
-  /* Fixed bottom nav height — content must reserve this much clearance. */
-  --bottom-nav-h: 58px;
+  /* Fixed bottom nav height — content must reserve this much clearance.
+     First-paint fallback only; BottomNav.jsx overwrites this with the nav's
+     true measured height at runtime, so clearance is always exact. */
+  --bottom-nav-h: 64px;
 
   /* Device safe areas (Dynamic Island / notch / home indicator).
      Use these instead of raw env() so every surface stays consistent. */
@@ -484,6 +486,18 @@ button {
 }
 [data-reduced-motion="true"] .app-topbar__game .app-topbar__icon-box svg,
 [data-reduced-motion="true"] .app-topbar__game .tb-ball { animation: none; }
+/* the realistic leather ball reads best a touch larger + warmer tile */
+.app-topbar__game .app-topbar__icon-box--ball svg { width: 26px; height: 26px; }
+.app-topbar__icon-box--ball {
+  border-color: rgba(240, 150, 70, 0.32);
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 162, 74, 0.18), transparent 60%),
+    rgba(14, 8, 4, 0.95);
+}
+.app-topbar__game:hover .app-topbar__icon-box--ball {
+  border-color: rgba(255, 170, 90, 0.6);
+  box-shadow: 0 0 20px rgba(240, 140, 60, 0.28);
+}
 
 /* ── Diamond dropdown ── */
 .topbar-dropdown {
@@ -2518,7 +2532,9 @@ button {
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 120;
+  /* Above the full-screen overlay apps (Zone / Iron / Journal all sit at
+     z-index 900) so toasts fired from inside them stay visible. */
+  z-index: 1010;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -2652,7 +2668,10 @@ button {
 .celebration {
   position: fixed;
   inset: 0;
-  z-index: 110;
+  /* Above the full-screen overlay apps (Zone / Iron / Journal = z-index 900),
+     so a celebration fired from inside the Zone shows immediately instead of
+     firing invisibly and re-surfacing over the shell after the Zone closes. */
+  z-index: 1005;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5736,7 +5755,7 @@ h4,
 
 @media (max-width: 420px) {
   :root {
-    --bottom-nav-h: 56px;
+    --bottom-nav-h: 62px;
   }
 
   .app-topbar__rank {

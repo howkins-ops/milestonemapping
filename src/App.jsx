@@ -95,6 +95,9 @@ function AppContent({ signOut }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [workoutOpen, setWorkoutOpen] = useState(false);
+  // The Zone is its own full-screen app (sibling of The Iron / Field Journal):
+  // it opens as an overlay above the shell, not as a bottom-nav page.
+  const [zoneOpen, setZoneOpen] = useState(false);
   // Roster deep-links into the Zone Arena. `zoneInitial` sets ZonePage's landing
   // view/param on mount; `zoneNonce` forces a fresh mount so a launch works even
   // when the user is already sitting on the Zone. Normal navigate() clears it so
@@ -108,6 +111,29 @@ function AppContent({ signOut }) {
     window.addEventListener("mm:open-iron", openIron);
     return () => window.removeEventListener("mm:open-iron", openIron);
   }, []);
+
+  // Lock the shell behind the Zone app + let Escape close it (mirrors the
+  // Iron / Journal full-screen modes).
+  useEffect(() => {
+    if (!zoneOpen) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      // Don't tear the whole Zone out from under someone who's mid-typing
+      // (e.g. a half-written mission in DeclareMission / a proof caption) —
+      // when a field is focused, let it own Escape instead of discarding text.
+      const el = document.activeElement;
+      const tag = el && el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (el && el.isContentEditable)) return;
+      setZoneOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [zoneOpen]);
 
   const [booting, setBooting] = useState(() => {
     if (!settings.introEnabled) return false;
@@ -132,7 +158,17 @@ function AppContent({ signOut }) {
     setBooting(false);
   };
 
+  // Raise the Zone app. Every existing entry point still calls
+  // navigate("zone") / onNavigate("zone"), so navigate() intercepts that id
+  // below and routes it here — no caller changes needed anywhere.
+  const openZone = () => {
+    setZoneInitial(null);
+    setZoneNonce((n) => n + 1);
+    setZoneOpen(true);
+  };
+
   const navigate = (page) => {
+    if (page === "zone") { openZone(); return; }
     setSelectedProjectId(null);
     setSelectedMilestoneId(null);
     setRpgWorldProjectId(null);
@@ -146,9 +182,9 @@ function AppContent({ signOut }) {
   // partner/friends). navigate() clears zoneInitial; we re-set it in the same
   // batch (last write wins) and bump the nonce so ZonePage remounts fresh.
   const openZoneView = (view, param = null) => {
-    navigate("zone");
     setZoneInitial({ view, param });
     setZoneNonce((n) => n + 1);
+    setZoneOpen(true);
   };
 
   const openProject = (id) => {
@@ -266,18 +302,6 @@ function AppContent({ signOut }) {
         return <FillYourCup />;
       case "anger":
         return <AngerGymPage />;
-      case "zone":
-        return (
-          <Suspense fallback={null}>
-            <ZonePage
-              key={`zone-${zoneNonce}`}
-              initialView={zoneInitial?.view}
-              initialParam={zoneInitial?.param}
-              onNavigate={navigate}
-              onOpenMapQuest={openMapQuest}
-            />
-          </Suspense>
-        );
       case "blaze":
         return <BlazeRealTrainingOS />;
       case "profile":
@@ -363,6 +387,7 @@ function AppContent({ signOut }) {
         onOpenJournal={() => setJournalOpen(true)}
         onOpenWorkout={() => setWorkoutOpen(true)}
         onOpenGame={() => openZoneView("hoops")}
+        onOpenZone={openZone}
       >
         {/* Keyed by page: navigating away from a crashed page auto-recovers. */}
         <ErrorBoundary key={currentPage} onReset={() => navigate("dashboard")}>
@@ -388,6 +413,31 @@ function AppContent({ signOut }) {
           <Suspense fallback={null}>
             <WorkoutMode open onClose={() => setWorkoutOpen(false)} />
           </Suspense>
+        </ErrorBoundary>
+      )}
+      {zoneOpen && (
+        <ErrorBoundary onReset={() => setZoneOpen(false)}>
+          <div className="zone-app" role="dialog" aria-modal="true" aria-label="The Zone">
+            <button
+              type="button"
+              className="zone-app__close"
+              onClick={() => setZoneOpen(false)}
+              aria-label="Close the Zone"
+            >
+              ✕
+            </button>
+            <div className="zone-app__scroll">
+              <Suspense fallback={null}>
+                <ZonePage
+                  key={`zoneapp-${zoneNonce}`}
+                  initialView={zoneInitial?.view}
+                  initialParam={zoneInitial?.param}
+                  onNavigate={(page) => { setZoneOpen(false); navigate(page); }}
+                  onOpenMapQuest={() => { setZoneOpen(false); openMapQuest(); }}
+                />
+              </Suspense>
+            </div>
+          </div>
         </ErrorBoundary>
       )}
     </>

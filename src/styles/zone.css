@@ -26,6 +26,62 @@
 .zone-root[data-fire="inferno"] { --zfire: #FF3B5C; --zfire-glow: rgba(255,59,92,0.45);  --zfire-soft: rgba(255,59,92,0.12); }
 .zone-root[data-fire="phoenix"] { --zfire: #D11EFF; --zfire-glow: rgba(209,30,255,0.50); --zfire-soft: rgba(209,30,255,0.13); }
 
+/* ---------- The Zone as its own full-screen app ----------
+   Mounts above the shell (sibling of The Iron / Field Journal). Provides the
+   fixed backdrop + scroll surface, plus a floating close control since the
+   bottom nav is hidden in this mode. .zone-root already self-centers and pads,
+   so the scroll wrapper only adds safe-area insets — never re-constrains width. */
+.zone-app {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background:
+    radial-gradient(125% 82% at 50% -12%, rgba(34, 6, 52, 0.92), transparent 60%),
+    #06010e;
+  animation: zone-app-in 340ms var(--ease-out) both;
+}
+.zone-app__scroll {
+  width: 100%;
+  min-height: 100%;
+  padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
+}
+.zone-app__close {
+  position: fixed;
+  top: calc(10px + var(--safe-top));
+  right: calc(12px + var(--safe-right));
+  /* above the sticky Forge-Dock tab bar (.zn-tabs, z-index 30) so the primary
+     exit control never hides behind it once the Zone is scrolled */
+  z-index: 40;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 4, 20, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text-main, #fff);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
+  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+.zone-app__close:hover { background: rgba(32, 10, 48, 0.9); border-color: rgba(255, 255, 255, 0.28); }
+.zone-app__close:active { transform: scale(0.92); }
+@keyframes zone-app-in {
+  from { opacity: 0; transform: scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zone-app { animation: none; }
+}
+
 /* ---------- header — hero title + living flame ---------- */
 .zn-head { display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin: 8px 2px 18px; }
 .zn-head__titlewrap { min-width: 0; animation: zn-head-in 720ms var(--ease-out) both; }

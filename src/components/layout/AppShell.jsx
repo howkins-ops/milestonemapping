@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import BottomNav from "./BottomNav.jsx";
 import MoreSheet from "./MoreSheet.jsx";
+import HoopsBallIcon from "./HoopsBallIcon.jsx";
 import AnimatedBackground from "./AnimatedBackground.jsx";
 import SyncStatus from "../ui/SyncStatus.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
@@ -12,7 +13,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, onOpenZone, children }) {
   const { profile, syncStatus } = useAppData();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -42,21 +43,28 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
+                {onOpenZone && (
+                  <button
+                    type="button"
+                    className={`app-topbar__profile-btn app-topbar__zone ${currentPage === "zone" ? "is-active" : ""}`}
+                    onClick={onOpenZone}
+                    aria-label="Open The Zone — your accountability world"
+                  >
+                    <span className="app-topbar__icon-box" aria-hidden="true">
+                      <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src="/assets/nav/nav-zone.png" alt="" />
+                    </span>
+                    <span className="app-topbar__btn-label">Zone</span>
+                  </button>
+                )}
                 {onOpenGame && (
                   <button
                     type="button"
                     className="app-topbar__profile-btn app-topbar__game"
                     onClick={onOpenGame}
-                    aria-label="Play Full Court — start your game day"
+                    aria-label="Play Hoops — start your game day"
                   >
-                    <span className="app-topbar__icon-box" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                        <g className="tb-ball">
-                          <circle cx="12" cy="12" r="9" />
-                          <path d="M3 12h18M12 3v18" />
-                          <path d="M5.2 5.2C8 8 8 16 5.2 18.8M18.8 5.2C16 8 16 16 18.8 18.8" />
-                        </g>
-                      </svg>
+                    <span className="app-topbar__icon-box app-topbar__icon-box--ball" aria-hidden="true">
+                      <HoopsBallIcon />
                     </span>
                     <span className="app-topbar__btn-label">Hoops</span>
                   </button>
@@ -87,17 +95,8 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
                     <span className="app-topbar__btn-label">Journal</span>
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={`app-topbar__profile-btn app-topbar__rewards ${currentPage === "rewards" ? "is-active" : ""}`}
-                  onClick={() => onNavigate("rewards")}
-                  aria-label="Rewards vault"
-                >
-                  <span className="app-topbar__icon-box" aria-hidden="true">
-                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.rewards} alt="" />
-                  </span>
-                  <span className="app-topbar__btn-label">Rewards</span>
-                </button>
+                {/* Rewards (trophy) lives in the Menu sheet — removed from the top
+                    bar to de-clutter the right cluster. Re-add via app-topbar__rewards. */}
                 <button
                   type="button"
                   className="app-topbar__profile-btn"

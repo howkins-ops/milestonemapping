@@ -38,12 +38,34 @@ export function joinLiveMatch(code, opts = {}) {
   let lastLine = null;
   const roster = new Map(); // id -> line (most recent broadcast per opponent)
 
+  // Echo our own state to a peer the first time we hear from them. Broadcast
+  // does NOT replay messages sent before a peer subscribed, so the player who
+  // joined FIRST (always the host who mints the code) would otherwise stay
+  // invisible to the player who joined SECOND (the invited friend) — their
+  // lobby would sit forever on "waiting for your opponent." Guarding on a
+  // brand-new id makes the handshake symmetric AND self-terminating: I echo
+  // only the first time I see you, so your echo-of-my-echo (I'm already in
+  // your roster) doesn't bounce back, and the loop dies in one round-trip.
+  const announce = () => {
+    try {
+      channel.send({
+        type: "broadcast",
+        event: "line",
+        payload: lastLine || { id: me.id, name: me.name, points: 0, doors: 0, sales: 0 },
+      });
+    } catch {
+      /* best-effort */
+    }
+  };
+
   channel
     .on("broadcast", { event: "line" }, ({ payload }) => {
       if (!payload || payload.id === me.id) return;
+      const isNew = !roster.has(payload.id);
       roster.set(payload.id, payload);
       opts.onOpponent?.(payload);
       opts.onPresence?.(Array.from(roster.values()));
+      if (isNew) announce(); // let the newcomer learn we're already here
     })
     .on("broadcast", { event: "bye" }, ({ payload }) => {
       if (!payload || payload.id === me.id) return;
@@ -51,14 +73,7 @@ export function joinLiveMatch(code, opts = {}) {
       opts.onPresence?.(Array.from(roster.values()));
     })
     .subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        // announce ourselves so an opponent already in the room re-sends state
-        try {
-          channel.send({ type: "broadcast", event: "line", payload: lastLine || { id: me.id, name: me.name, points: 0, doors: 0, sales: 0 } });
-        } catch {
-          /* best-effort */
-        }
-      }
+      if (status === "SUBSCRIBED") announce(); // an opponent already here will echo back
     });
 
   return {

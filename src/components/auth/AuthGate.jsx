@@ -406,6 +406,30 @@ export default function AuthGate({ children }) {
         <div style={{ ...S.q4, ...(isNarrow ? S.q4Mobile : null) }}>
           <div style={S.glowBar} />
 
+          {isNarrow && (
+            <div style={S.loginBrand}>
+              <img src={BRAND_LOGO_SRC} alt="Milestone Mapping" style={S.loginBrandImg} />
+            </div>
+          )}
+
+          {/* One-tap switch between signing in and creating an account. */}
+          <div style={S.authTabs}>
+            <button
+              type="button"
+              style={{ ...S.authTab, ...(mode !== "signup" ? S.authTabActive : {}) }}
+              onClick={() => { setMode("login"); setError(""); setInfo(""); }}
+            >
+              SIGN IN
+            </button>
+            <button
+              type="button"
+              style={{ ...S.authTab, ...(mode === "signup" ? S.authTabActive : {}) }}
+              onClick={() => { setMode("signup"); setError(""); setInfo(""); }}
+            >
+              CREATE ACCOUNT
+            </button>
+          </div>
+
           <h3 style={S.loginTitle}>{loginTitle}</h3>
           <p style={S.loginSub}>{loginSub}</p>
 
@@ -422,7 +446,7 @@ export default function AuthGate({ children }) {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="commander@mission.co"
                 required
-                autoFocus
+                autoFocus={!isNarrow}
                 autoComplete="email"
               />
             </label>
@@ -466,23 +490,16 @@ export default function AuthGate({ children }) {
             </button>
           </form>
 
-          <div style={S.loginFooter}>
-            {mode === "login" && (
-              <>
-                <button style={S.link} onClick={() => { setMode("signup"); setError(""); setInfo(""); }}>Create account</button>
-                <span style={S.divider}>·</span>
+          {mode !== "signup" && (
+            <div style={S.loginFooter}>
+              {mode === "login" && (
                 <button style={S.link} onClick={() => { setMode("reset"); setError(""); setInfo(""); }}>Forgot password?</button>
-              </>
-            )}
-            {mode === "signup" && (
-              <button style={S.link} onClick={() => { setMode("login"); setError(""); setInfo(""); }}>
-                Already have an account? Sign in
-              </button>
-            )}
-            {mode === "reset" && (
-              <button style={S.link} onClick={() => { setMode("login"); setError(""); setInfo(""); }}>Back to sign in</button>
-            )}
-          </div>
+              )}
+              {mode === "reset" && (
+                <button style={S.link} onClick={() => { setMode("login"); setError(""); setInfo(""); }}>← Back to sign in</button>
+              )}
+            </div>
+          )}
 
           <button style={S.guestBtn} onClick={enterGuest}>
             Continue without an account →
@@ -596,7 +613,7 @@ const S = {
     justifyContent: "center",
   },
   q3Mobile: {
-    order: 1,
+    order: 2,
     gridColumn: "auto",
     gridRow: "auto",
     padding: "1.1rem 1.1rem 0.95rem",
@@ -616,17 +633,22 @@ const S = {
     position: "relative",
   },
   q4Mobile: {
-    order: 2,
+    order: 1,
     gridColumn: "auto",
     gridRow: "auto",
-    padding: "1.05rem 1.15rem 1.25rem",
+    padding: "calc(1.25rem + var(--safe-top)) 1.15rem 1.5rem",
     justifyContent: "center",
-    minHeight: "calc(100dvh - 200px)",
+    // Own the first screen so the login card sits dead-centered; marketing
+    // (Q3, Q1) scrolls in below. Subtract the root's ~0.75rem gutter so the
+    // card centers in the visible viewport rather than pushing slightly long.
+    minHeight: "calc(100dvh - 1.5rem)",
   },
 
   // Logo
   logo: { display: "flex", alignItems: "center", marginBottom: "1.9rem" },
-  logoMobile: { marginBottom: "1.35rem" },
+  // The login card carries the logo on mobile, so hide the marketing block's
+  // large duplicate to keep the below-the-fold content tight.
+  logoMobile: { display: "none" },
   logoImage: {
     display: "block",
     width: "min(286px, 75%)",
@@ -641,7 +663,7 @@ const S = {
   // Headline
   headline: {
     margin: "0 0 0.5rem",
-    fontSize: "clamp(1.6rem, 3vw, 2.6rem)",
+    fontSize: "clamp(1.35rem, 4.5vw, 2.6rem)",
     fontWeight: 900,
     color: "#ffffff",
     lineHeight: 1.12,
@@ -655,10 +677,10 @@ const S = {
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
   },
-  tealBar: { width: "2.4rem", height: "2px", background: "#1de8ff", borderRadius: "1px", margin: "0 0 1.4rem" },
+  tealBar: { width: "2.4rem", height: "2px", background: "#1de8ff", borderRadius: "1px", margin: "0 0 1rem" },
 
   // Features
-  features: { display: "flex", flexDirection: "column", gap: "0.85rem", marginBottom: "1.8rem" },
+  features: { display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "1.1rem" },
   feature: { display: "flex", alignItems: "flex-start", gap: "0.7rem" },
   featureIcon: {
     flexShrink: 0,
@@ -693,7 +715,7 @@ const S = {
 
   // Enter the Map
   enterTitle: { margin: "0 0 0.35rem", fontSize: "1.45rem", fontWeight: 900, color: "#ffffff", letterSpacing: "0.04em", fontFamily: "'Sora','Manrope',sans-serif" },
-  enterSub:   { margin: "0 0 1.4rem", fontSize: "0.78rem", color: "rgba(234,251,255,0.45)", lineHeight: 1.55 },
+  enterSub:   { margin: "0 0 1rem", fontSize: "0.78rem", color: "rgba(234,251,255,0.45)", lineHeight: 1.55 },
 
   // Journey steps
   journey: { display: "flex", alignItems: "center", marginBottom: "0" },
@@ -731,6 +753,40 @@ const S = {
     height: "2px",
     background: "linear-gradient(90deg, transparent, #1de8ff, #8b5cff, transparent)",
   },
+  // Login-card logo (mobile) + Sign in / Create account tabs
+  loginBrand: { display: "flex", justifyContent: "center", width: "100%", maxWidth: "340px", marginBottom: "1.1rem" },
+  loginBrandImg: { display: "block", width: "min(150px, 46%)", maxHeight: "96px", objectFit: "contain" },
+  authTabs: {
+    display: "flex",
+    width: "100%",
+    maxWidth: "340px",
+    marginBottom: "1rem",
+    padding: "3px",
+    gap: "3px",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(29,232,255,0.14)",
+    borderRadius: "9px",
+  },
+  authTab: {
+    flex: 1,
+    padding: "0.55rem 0.4rem",
+    background: "none",
+    border: "none",
+    borderRadius: "7px",
+    color: "rgba(234,251,255,0.5)",
+    fontSize: "0.66rem",
+    fontWeight: 800,
+    letterSpacing: "0.09em",
+    cursor: "pointer",
+    fontFamily: "'Sora','Manrope',sans-serif",
+    transition: "color 160ms, background 160ms",
+  },
+  authTabActive: {
+    background: "linear-gradient(135deg, #1de8ff, #8b5cff)",
+    color: "#000",
+    boxShadow: "0 0 16px rgba(139,92,255,0.35)",
+  },
+
   loginLogo: { display: "flex", alignItems: "center", marginBottom: "1rem", width: "100%", maxWidth: "340px" },
   loginLogoImage: {
     display: "block",

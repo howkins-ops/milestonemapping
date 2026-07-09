@@ -122,7 +122,7 @@
   z-index: 1;
   max-width: 520px;
   margin: 0 auto;
-  padding: 18px 16px 110px;
+  padding: 18px 16px calc(110px + var(--safe-bottom));
 }
 
 /* ── gold foil: animated sheen on titles/emblems (brand golds) ── */
