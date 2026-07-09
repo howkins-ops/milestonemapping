@@ -5,7 +5,7 @@ import DensityMeter from "./DensityMeter.jsx";
 import TempoTimer from "./TempoTimer.jsx";
 import SegmentTracker from "./SegmentTracker.jsx";
 import ExerciseHowTo from "./ExerciseHowTo.jsx";
-import ExerciseImg from "./ExerciseImg.jsx";
+import ExerciseHero from "./ExerciseHero.jsx";
 import HL from "./HL.jsx";
 import SessionBriefing, { blockTitle, protocolLine, KIND_BLURBS } from "./SessionBriefing.jsx";
 import { assessBlock, suggestWeight } from "./engine/autoDifficulty.js";
@@ -386,9 +386,9 @@ function RoundsBlock({ block, phase, lastWeights, bestPRs, settings, aBlockMax, 
         {wall && <span className="iw-session-pr-hint"> · wall: {wall.weight} lbs</span>}
         {isCloser && aBlockMax > 0 && <span className="iw-session-pr-hint"> · {block.lightPctOfA?.[0]}–{block.lightPctOfA?.[1]}% of your bookend</span>}
       </div>
-      <ExerciseImg name={ex.name} className="iw-exi-live" />
+      <ExerciseHero name={ex.name} />
       {move && <div className="iw-al-movecue">✦ signature move — {move.genericName}. <HL text={move.cue} /></div>}
-      <ExerciseHowTo key={`${ex.name}-${exIdx}-${round}`} name={ex.name} defaultOpen={neverLifted} />
+      <ExerciseHowTo key={`${ex.name}-${exIdx}-${round}`} name={ex.name} defaultOpen={neverLifted} showImage={false} />
       {block.note && <div className="iw-al-fastline"><HL text={block.note} /></div>}
 
       {doneSets > 0 && (
@@ -467,8 +467,8 @@ function TotalRepsBlock({ block, lastWeights, settings, logSet, logged, onDone }
     <div className="iw-al-blockplay">
       <div className="iw-eyebrow">block {block.key} · the count</div>
       <h2 className="iw-display iw-session-lift">{ex.name}</h2>
-      <ExerciseImg name={ex.name} className="iw-exi-live" />
-      <ExerciseHowTo name={ex.name} defaultOpen={neverLifted} />
+      <ExerciseHero name={ex.name} />
+      <ExerciseHowTo name={ex.name} defaultOpen={neverLifted} showImage={false} />
       <div className="iw-al-totalreps">
         <span className="iw-al-tr-num">{done}</span>
         <span className="iw-al-tr-slash">/</span>
@@ -598,8 +598,8 @@ function DensityBlock({ block, phase, lastWeights, settings, logSet, onDone }) {
       <DensityMeter volume={vol} ghostVolume={ghost} capacity={capacity} run={run} />
       <h2 className="iw-display iw-session-lift">{ex.name}</h2>
       <div className="iw-session-target">{weights[ex.name] > 0 ? `${weights[ex.name]} lbs` : "bodyweight"} · {block.repsPerTurn} a turn</div>
-      <ExerciseImg name={ex.name} className="iw-exi-live" />
-      <ExerciseHowTo key={ex.name} name={ex.name} />
+      <ExerciseHero name={ex.name} />
+      <ExerciseHowTo key={ex.name} name={ex.name} showImage={false} />
       <div className="iw-work-steppers">
         <Stepper label="reps this turn" value={reps} min={1} max={12} onChange={setReps} wide />
       </div>

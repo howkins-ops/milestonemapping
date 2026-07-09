@@ -10,7 +10,7 @@ import { exerciseInfo } from "./data/exercises.js";
    `title`/`meta` overrides let the briefing use exercise rows as heads.
    Renders nothing when the name isn't in the library (custom lifts). */
 
-export default function ExerciseHowTo({ name, title, meta, defaultOpen = false }) {
+export default function ExerciseHowTo({ name, title, meta, defaultOpen = false, showImage = true }) {
   const info = exerciseInfo(name);
   const [open, setOpen] = useState(defaultOpen);
   if (!info) return null;
@@ -29,7 +29,7 @@ export default function ExerciseHowTo({ name, title, meta, defaultOpen = false }
           {(title || meta) && (
             <div className="iw-howto-tags">{info.muscles} · {info.equipment}</div>
           )}
-          <ExerciseImg name={name} className="iw-exi-howto" />
+          {showImage && <ExerciseImg name={name} className="iw-exi-howto" />}
           <p className="iw-howto-setup"><HL text={info.setup} /></p>
           <ol className="iw-howto-steps">
             {info.steps.map((s, i) => (

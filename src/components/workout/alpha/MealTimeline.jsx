@@ -183,17 +183,27 @@ export default function MealTimeline({ alpha, addXP, settings }) {
                   .map((shelf) => [shelf, s.picks[shelf]])
                   .filter(([, items]) => items && items.length);
                 if (!plated.length) return null;
+                const n = plated.length;
+                /* lay the portions out on the plate: single center, otherwise
+                   evenly spaced on a ring (2 = a diagonal, 3 = a triangle,
+                   4 = a diamond) so nothing ever spills past the rim */
+                const ring = n <= 1 ? 0 : n === 2 ? 30 : 34;
                 return (
                   <>
                     <div className="iw-mt-plate" aria-hidden="true">
-                      <div className="iw-mt-dish">
-                        {plated.map(([shelf, items], k) => (
-                          <span key={shelf} className={`iw-mt-portion iw-mt-portion-${shelf}`}
-                            style={{ animationDelay: `${120 + k * 90}ms` }}>
-                            <span className="iw-mt-portion-glyph">{SHELF_GLYPH[shelf]}</span>
-                            <FoodImg name={items[0]} className="iw-mt-portion-img" />
-                          </span>
-                        ))}
+                      <div className={`iw-mt-dish iw-mt-dish-n${n}`}>
+                        {plated.map(([shelf, items], k) => {
+                          const ang = (-90 + k * (360 / n)) * (Math.PI / 180);
+                          const px = Math.round(Math.cos(ang) * ring);
+                          const py = Math.round(Math.sin(ang) * ring);
+                          return (
+                            <span key={shelf} className={`iw-mt-portion iw-mt-portion-${shelf}`}
+                              style={{ "--px": `${px}px`, "--py": `${py}px`, animationDelay: `${120 + k * 90}ms` }}>
+                              <span className="iw-mt-portion-glyph">{SHELF_GLYPH[shelf]}</span>
+                              <FoodImg name={items[0]} className="iw-mt-portion-img" />
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                     {plated.map(([shelf, items]) => (

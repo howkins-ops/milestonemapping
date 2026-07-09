@@ -143,7 +143,7 @@
   z-index: 1;
   max-width: 560px;
   margin: 0 auto;
-  padding: 20px 18px 120px;
+  padding: 20px 18px calc(120px + var(--safe-bottom));
 }
 
 .iw-eyebrow {
@@ -1238,51 +1238,54 @@
 
 .iw-food-img { display: block; }
 
-/* today's plate — an actual dish of food, portions pop in */
-.iw-mt-plate { display: flex; justify-content: center; margin: 12px 0 6px; }
+/* today's plate — an actual dish of food, portions pop in on a ring
+   (center · diagonal · triangle · diamond) so nothing spills past the rim */
+.iw-mt-plate { display: flex; justify-content: center; margin: 14px 0 8px; }
 .iw-mt-dish {
   position: relative;
-  width: 158px; height: 158px;
+  width: 190px; height: 190px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 40%, #2b2f33, #191b1e 68%, #0d0e10),
     #131416;
-  border: 5px solid rgba(232, 228, 218, 0.12);
-  box-shadow: inset 0 5px 16px rgba(0, 0, 0, 0.55), inset 0 -2px 6px rgba(255, 255, 255, 0.04), 0 10px 24px rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 18px;
+  border: 6px solid rgba(232, 228, 218, 0.12);
+  box-shadow: inset 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 -2px 6px rgba(255, 255, 255, 0.04), 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 .iw-mt-dish::after {
   content: "";
   position: absolute;
-  inset: 9px;
+  inset: 11px;
   border-radius: 50%;
   border: 1px solid rgba(232, 228, 218, 0.06);
   pointer-events: none;
 }
 .iw-mt-portion {
-  position: relative;
-  width: 56px; height: 56px;
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 50px; height: 50px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
   place-items: center;
-  font-size: 27px;
+  font-size: 24px;
   background: rgba(0, 0, 0, 0.32);
   border: 2px solid rgba(232, 228, 218, 0.14);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
   animation: iwPlatePop 440ms cubic-bezier(.2, 1.3, .4, 1) both;
 }
+/* a lone portion sits dead-center and can run a touch larger */
+.iw-mt-dish-n1 .iw-mt-portion { width: 66px; height: 66px; font-size: 32px; }
 .iw-mt-portion-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .iw-mt-portion-protein { border-color: rgba(224, 96, 74, 0.55); }
 .iw-mt-portion-free-veg { border-color: rgba(96, 194, 116, 0.55); }
 .iw-mt-portion-carb { border-color: rgba(232, 172, 74, 0.55); }
 .iw-mt-portion-fat { border-color: rgba(232, 204, 118, 0.55); }
-@keyframes iwPlatePop { from { opacity: 0; transform: scale(0.3) translateY(8px); } to { opacity: 1; transform: none; } }
+/* the pop keeps the ring offset (--px/--py) at every keyframe so the
+   portions animate in *where they belong* instead of snapping to center */
+@keyframes iwPlatePop {
+  from { opacity: 0; transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) scale(0.3); }
+  to   { opacity: 1; transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) scale(1); }
+}
 
 /* food chips in the timeline picks + grocery run */
 .iw-mt-items, .iw-al-grocery-shelf { display: flex; flex-wrap: wrap; gap: 6px; }
