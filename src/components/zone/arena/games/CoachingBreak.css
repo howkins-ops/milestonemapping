@@ -31,8 +31,10 @@
 }
 
 /* ---------- quarter-end celebration (broadcast takeover) ---------- */
+/* absolute (not fixed) so it fills the inset HOOPS game area — staying above the
+   app's cement bottom nav, never under it. */
 .fc-cine {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 90;
   display: flex;
@@ -219,7 +221,7 @@
 
 /* ---------- locker room (break) ---------- */
 .fc-locker {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 95;
   display: flex;

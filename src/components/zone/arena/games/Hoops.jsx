@@ -229,7 +229,7 @@ export default function Hoops({ go, initialFullscreen = false }) {
     } catch (e) { /* season logging never blocks the game */ }
   }, []);
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
+    <div style={{ position: "fixed", top: "calc(var(--safe-top, 0px) + 56px)", bottom: "calc(var(--bottom-nav-h, 64px) + var(--safe-bottom, 0px))", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@500;600;700&family=Orbitron:wght@700;900&display=swap');
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
