@@ -26,6 +26,7 @@ const GOLD = "#facc15";
 const GREEN = "#22c55e";
 const FIRE = "#fb7185";
 const WATER = "#38bdf8";
+const RED = "#ef4444";   // hard rejection — SLAMMED / shot down
 const BG = "#0a0714";
 const CARD = "#140b24";
 
@@ -156,12 +157,37 @@ function useHoopsAudio(enabled) {
   );
 }
 
+// ---- resume an in-progress game across a refresh / re-open ----
+// A real-time game spans hours, so we snapshot SOLO progress to localStorage and
+// jump back into it on next open. Live matches aren't persisted (the opponent is
+// realtime). Cleared on finish, on "Back to Arena", and when a fresh game starts.
+const ACTIVE_KEY = "hoops_active_v1";
+const MAX_RESUME_MS = 18 * 60 * 60 * 1000; // don't resume a game older than ~18h
+function loadActiveGame() {
+  try {
+    const raw = localStorage.getItem(ACTIVE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || s.v !== 1 || s.players !== 1 || !(s.clock > 0)) return null;
+    if (s.savedAt && Date.now() - s.savedAt > MAX_RESUME_MS) return null;
+    return s;
+  } catch (e) { return null; }
+}
+function clearActiveGame() {
+  try { localStorage.removeItem(ACTIVE_KEY); } catch (e) {}
+}
+
 export default function Hoops({ go, initialFullscreen = false }) {
-  const [scene, setScene] = useState("intro");
+  // Resume a solo game left in progress (snapshot written during play, below).
+  const resumeRef = useRef(loadActiveGame());
+  const resumed = resumeRef.current;
+  const [scene, setScene] = useState(resumed ? "game" : "intro");
   const [sound, setSound] = useState(true);
   const [players, setPlayers] = useState(1);
   const [finalStats, setFinalStats] = useState(null);
-  const [schedule, setSchedule] = useState(SCHEDULES[0]);
+  const [schedule, setSchedule] = useState(
+    resumed ? (SCHEDULES.find((s) => s.id === resumed.scheduleId) || SCHEDULES[0]) : SCHEDULES[0]
+  );
   const snd = useHoopsAudio(sound);
 
   // ---- live head-to-head (networked multiplayer over Realtime Broadcast) ----
@@ -282,15 +308,15 @@ export default function Hoops({ go, initialFullscreen = false }) {
       `}</style>
       {/* exit back to the Zone Arena (launched fullscreen from the HOOPS button) */}
       {go && (
-        <button onClick={() => go("arena")} aria-label="Back to Arena" title="Back to Arena"
+        <button onClick={() => { clearActiveGame(); resumeRef.current = null; go("arena"); }} aria-label="Back to Arena" title="Back to Arena"
           style={{ position: "absolute", top: 8, left: 8, zIndex: 400, width: 32, height: 32, borderRadius: 9, background: "rgba(8,5,16,0.66)", border: "1px solid rgba(168,85,247,0.5)", color: "#fff", cursor: "pointer", fontSize: 14, lineHeight: 1, backdropFilter: "blur(3px)" }}>✕</button>
       )}
       {scene === "intro" && <Presenter onDone={() => { snd.chord([440,660,880],0.3); snd.roar(0.3); setScene("menu"); }} snd={snd} />}
       {scene === "menu" && <Menu onPlay={()=>{setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("schedule");}} onMulti={()=>{ snd.chord([523,659,784],0.25); setScene("lobby"); }} onHow={()=>setScene("howto")} sound={sound} setSound={setSound} />}
       {scene === "lobby" && <Lobby match={match} opponent={opponent} meName={meRef.current.name} onSetName={(n)=>{ meRef.current.name = n || "Rep"; }} onHost={()=>startLive(makeMatchCode(), true)} onJoin={(code)=>startLive(code, false)} onLeave={endLive} onStart={()=>{ setPlayers(2); snd.chord([523,659,784,988],0.3); setScene("schedule"); }} onBack={()=>{ endLive(); setScene("menu"); }} />}
-      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene(match ? "lobby" : "menu")} />}
+      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ clearActiveGame(); resumeRef.current = null; setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene(match ? "lobby" : "menu")} />}
       {scene === "howto" && <HowTo onBack={()=>setScene("menu")} />}
-      {scene === "game" && <Arena players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />}
+      {scene === "game" && <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />}
       {scene === "final" && <FinalScreen stats={finalStats} players={players} opponent={opponent} onMenu={()=>{ endLive(); setScene("menu"); }} onReplay={()=>setScene(match ? "lobby" : "schedule")} />}
     </div>
   );
@@ -519,15 +545,16 @@ function HowTo({ onBack }) {
 const RIM_TOP = 96;
 const RELEASE_BOTTOM_PCT = 0.30;
 
-function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) {
+function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, resume }) {
   const QSEC = (schedule ? schedule.hrs : 2) * 60 * 60;   // quarter length from schedule
   const windows = schedule ? schedule.windows : ["Q1","Q2","Q3","Q4"];
-  const [score, setScore] = useState(0);
-  const [quarter, setQuarter] = useState(1);
-  const [clock, setClock] = useState(QSEC);
-  const [running, setRunning] = useState(false);
-  const [countdown, setCountdown] = useState("READY");   // whistle countdown before tip-off
+  const [score, setScore] = useState(resume ? resume.score : 0);
+  const [quarter, setQuarter] = useState(resume ? resume.quarter : 1);
+  const [clock, setClock] = useState(resume ? resume.clock : QSEC);
+  const [running, setRunning] = useState(!!resume);
+  const [countdown, setCountdown] = useState(resume ? null : "READY");   // whistle countdown before tip-off
   useEffect(() => {
+    if (resume) return undefined;   // resumed game is already running — skip the tip-off
     const seq = [
       [900,  "3"], [1800, "2"], [2700, "1"],
       [3400, "TIP OFF!"], [4200, null],
@@ -539,12 +566,15 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
     }, t));
     return () => timers.forEach(clearTimeout);
   }, []);
-  const [timeScale, setTimeScale] = useState(60);
-  const [streak, setStreak] = useState(0);
-  const [energy, setEnergy] = useState(70);    // drains from the clock; drinking refills it
-  const [water, setWater] = useState(100);     // water level in your bottle; drinking empties it
-  const [cups, setCups] = useState(0);         // cups of water drank today (health tracker)
-  const [bottles, setBottles] = useState(3);   // spare bottles you carry (lives)
+  // 1 = real time: 1 game-second per real second, so a 2-hour (7200s) quarter
+  // runs a full 2 real hours (buzzer-to-buzzer sales window). The speed toggle
+  // below can bump to 60× (a ~2-min quarter) for demos/testing.
+  const [timeScale, setTimeScale] = useState(1);
+  const [streak, setStreak] = useState(resume ? resume.streak : 0);
+  const [energy, setEnergy] = useState(resume ? resume.energy : 70);    // drains from the clock; drinking refills it
+  const [water, setWater] = useState(resume ? resume.water : 100);     // water level in your bottle; drinking empties it
+  const [cups, setCups] = useState(resume ? resume.cups : 0);         // cups of water drank today (health tracker)
+  const [bottles, setBottles] = useState(resume ? resume.bottles : 3);   // spare bottles you carry (lives)
   const [refillFlash, setRefillFlash] = useState(0);
   const [lifeGain, setLifeGain] = useState(0);   // triggers +1 LIFE celebration
   const [reward, setReward] = useState(null);   // {text, big, color} big centered callout
@@ -556,8 +586,8 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
   const [paused, setPaused] = useState(false);
   const [nameModal, setNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
-  const [names, setNames] = useState([]);
-  const [accuracy, setAccuracy] = useState(0);
+  const [names, setNames] = useState(resume && Array.isArray(resume.names) ? resume.names : []);
+  const [accuracy, setAccuracy] = useState(resume ? resume.accuracy : 0);
   const madeRef = useRef(0);
   const attemptsRef = useRef(0);
   const sipsThisHourRef = useRef(0);   // did they drink this game-hour?
@@ -566,9 +596,9 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
 
   // ---- live stat tracker: attempts + makes per action, plus names/cups ----
   const emptyTally = () => ({
-    knock:{a:0,m:0}, pitch:{a:0,m:0}, price:{a:0,m:0}, close:{a:0,m:0}, names:0,
+    knock:{a:0,m:0}, pitch:{a:0,m:0}, price:{a:0,m:0}, close:{a:0,m:0}, slam:{a:0,m:0}, names:0,
   });
-  const [tally, setTally] = useState(emptyTally());     // running (whole game)
+  const [tally, setTally] = useState(resume && resume.tally ? resume.tally : emptyTally());     // running (whole game)
   const [records, setRecords] = useState({ knock: 0, close: 0, names: 0, score: 0 }); // personal bests
   // load saved records once
   useEffect(() => {
@@ -579,6 +609,33 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
   }, []);
   const qStartRef = useRef({ tally: emptyTally(), score: 0, cups: 0 }); // snapshot at quarter start
   const quarterScoresRef = useRef([]);  // per-quarter points for the box score
+  // On resume, restore the non-state refs from the saved snapshot.
+  useEffect(() => {
+    if (!resume) return;
+    madeRef.current = resume.made || 0;
+    attemptsRef.current = resume.attempts || 0;
+    sipsRef.current = resume.sips || 0;
+    if (Array.isArray(resume.quarterScores)) quarterScoresRef.current = resume.quarterScores;
+    if (resume.qStart) qStartRef.current = resume.qStart;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Persist an in-progress SOLO game each tick so a refresh / re-open resumes it.
+  // Live matches aren't saved (the opponent is realtime). Cleared by the parent
+  // on finish / "Back to Arena" / starting a fresh game.
+  useEffect(() => {
+    if (players !== 1 || match) return;         // solo only
+    if (!running || clock <= 0) return;         // not before tip-off / after the buzzer
+    try {
+      localStorage.setItem(ACTIVE_KEY, JSON.stringify({
+        v: 1, scheduleId: schedule && schedule.id, players,
+        score, quarter, clock, streak, energy, water, cups, bottles,
+        tally, names, accuracy,
+        made: madeRef.current, attempts: attemptsRef.current,
+        quarterScores: quarterScoresRef.current, sips: sipsRef.current,
+        qStart: qStartRef.current, savedAt: Date.now(),
+      }));
+    } catch (e) { /* storage blocked/full — non-fatal */ }
+  }, [players, match, running, clock, quarter, score, streak, energy, water, cups, bottles, tally, names, accuracy, schedule]);
   const [report, setReport] = useState(null);           // legacy stat report (unused — replaced by the coaching break)
   const [breakInfo, setBreakInfo] = useState(null);     // coaching-break payload: { quarter, read, statLine, isFinal }
   const [statsOpen, setStatsOpen] = useState(false);    // live box-score overlay
@@ -918,7 +975,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
       <div style={{ position: "absolute", top: 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
         <button onClick={() => setStatsOpen(true)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>STATS</button>
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
-        <button onClick={() => setTimeScale((t) => t === 60 ? 300 : 60)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>{timeScale === 60 ? "1×" : "5×"}</button>
+        <button onClick={() => setTimeScale((t) => t === 1 ? 60 : 1)} title="Game speed — real time vs fast" style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>{timeScale === 1 ? "1×" : "60×"}</button>
       </div>
 
       <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} />
@@ -1005,14 +1062,15 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
               <div style={{ height: "100%", width: `${water}%`, borderRadius: 4, transition: "width .3s", background: `linear-gradient(90deg,#0ea5e9,#7dd3fc)`, boxShadow: `0 0 6px ${WATER}` }} />
             </div>
           </div>
-          <button onClick={sip} title="Drink water — refill energy" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, animation: water <= 0 ? "shake 0.6s infinite" : "none" }}>
-            <WaterBottle key={refillFlash} fill={water} thirsty={water < 20} scale={1.3} />
+          <button onClick={sip} title="Drink water — refill energy" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, animation: "none" }}>
+            <WaterBottle key={refillFlash} fill={water} thirsty={water < 20} scale={1.08} />
           </button>
         </div>
       </div>
 
       {/* ===== LIVE STAT LINE — real-time counters + records to chase ===== */}
-      <div style={{ position: "absolute", bottom: 138, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 144, boxSizing: "border-box",
+      <div style={{ position: "absolute", bottom: 152, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 144, boxSizing: "border-box",
+        transform: "scale(0.9)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
         background: "rgba(8,5,16,0.94)", border: "1.5px solid rgba(168,85,247,0.45)", borderRadius: 11, padding: "6px 9px",
         backdropFilter: "blur(4px)", boxShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
         <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7.5, letterSpacing: "1.5px", color: V_GLOW, textAlign: "center", marginBottom: 4, borderBottom: "1px solid rgba(168,85,247,0.25)", paddingBottom: 3 }}>YOUR NUMBERS</div>
@@ -1035,7 +1093,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
 
       {/* ===== ACTION COLUMN — floating vertical stack overlaid on the side ===== */}
       <div style={{ position: "absolute", bottom: 20, [handed === "left" ? "left" : "right"]: 8, zIndex: 30, display: "flex", flexDirection: "column", gap: 5, width: 100 }}>
-        {[{ id: "name", short: "GOT NAME", sub: "NOT INTERESTED", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
+        {[{ id: "slam", short: "SLAMMED", sub: "SHOT DOWN", pts: 0, color: RED, make: 0 }, { id: "name", short: "GOT NAME", sub: "NOT INTERESTED", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
           const isName = a.id === "name";
           return (
             <button key={a.id} onClick={() => isName ? setNameModal(true) : takeShot(a)} disabled={!running || paused} style={{
@@ -1051,7 +1109,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: handed === "left" ? "flex-start" : "flex-end", gap: 1, lineHeight: 1 }}>
                 <span style={{ fontWeight: 700, fontSize: 8, color: isName ? "#e7d9a8" : "#cbb8e8", letterSpacing: "0.3px" }}>{a.short}</span>
                 {a.sub && <span style={{ fontWeight: 600, fontSize: 6, color: "#9d8bc0", letterSpacing: "0.2px" }}>({a.sub})</span>}
-                <span className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 15 }}>+{a.pts}</span>
+                <span className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 15 }}>{a.id === "slam" ? "0" : `+${a.pts}`}</span>
               </div>
             </button>
           );
@@ -1076,7 +1134,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
           background: `linear-gradient(160deg,${WATER}30,${WATER}12)`, border: `2px solid ${WATER}`, color: "#e6f8ff",
           opacity: running && !paused ? 1 : 0.5, boxShadow: water <= 0 ? `0 0 14px ${WATER}` : `0 2px 8px rgba(0,0,0,0.5)`,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6, backdropFilter: "blur(3px)",
-          animation: water <= 0 ? "shake 0.6s infinite" : "none",
+          animation: "none",
         }}>
           <span style={{ fontSize: 14 }}>💧</span>
           <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "2px", textShadow: `0 0 8px ${WATER}` }}>DRINK</span>
@@ -1091,7 +1149,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd }) 
           <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 14, color: "#c9bce6", textAlign: "center", maxWidth: 300, marginBottom: 30, padding: "0 20px" }}>
             You're walking doors in the heat all day. Drink water to keep your energy up — aim for a cup every hour. A hydrated brain closes more.
           </div>
-          <div key={countdown} className="seg" style={{ fontWeight: 900, fontSize: countdown === "TIP OFF!" ? "clamp(34px,11vw,64px)" : "clamp(80px,26vw,180px)", color: "#fff",
+          <div key={countdown} className="seg" style={{ fontWeight: 900, fontSize: countdown === "TIP OFF!" ? "clamp(34px,11vw,64px)" : countdown === "READY" ? "clamp(72px,23.4vw,162px)" : "clamp(80px,26vw,180px)", color: "#fff",
             WebkitTextStroke: `2px ${V_DEEP}`, textShadow: `0 0 50px ${V}, 0 0 14px #fff`, animation: "stampIn 0.5s ease-out" }}>{countdown}</div>
           <div style={{ fontFamily: "'Oswald',sans-serif", fontSize: 11, letterSpacing: "3px", color: "#6b5b88", marginTop: 20 }}>▶ FOUR QUARTERS · BUZZER TO BUZZER</div>
         </div>
@@ -1307,7 +1365,7 @@ function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZon
   const clockColor = urgency === 3 ? "#ff2d55" : urgency === 2 ? FIRE : "#fff";
   return (
     <div style={{ position: "absolute", top: 10, left: "50%", width: "92vw", maxWidth: 460, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
-      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)` }}>
+      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(0.9)", transformOrigin: "top center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 6 }}>
           <Phoenix size={16} /><div className="seg" style={{ fontWeight: 900, fontSize: 11, letterSpacing: "2px" }}>MILESTONE <span style={{ color: V_GLOW }}>MAPPING</span></div>
         </div>
@@ -1315,7 +1373,7 @@ function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZon
           <Panel label="STREAK"><div className="seg" style={{ fontSize: 26, fontWeight: 900, color: streak >= 5 ? FIRE : "#fff", textShadow: streak >= 5 ? `0 0 14px ${FIRE}` : "none" }}>{streak}</div><div style={{ fontSize: 8, color: streakTier ? V_GLOW : "#6b5b88", letterSpacing: "1px", fontWeight: 700, minHeight: 10 }}>{streakTier ? streakTier.name : "IN A ROW"}</div></Panel>
           <div style={{ textAlign: "center", background: "#050310", borderRadius: 9, padding: "4px 3px", border: "1px solid rgba(168,85,247,0.25)" }}>
             <div style={{ fontSize: 8, letterSpacing: "2px", color: "#8b7ba8", fontWeight: 700 }}>CURRENT SCORE</div>
-            <div className="seg" style={{ fontSize: "clamp(30px,9vw,48px)", fontWeight: 900, lineHeight: 1, textShadow: `0 0 20px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
+            <div className="seg" style={{ fontSize: "clamp(27px,8.1vw,43px)", fontWeight: 900, lineHeight: 1, textShadow: `0 0 20px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
             <div style={{ fontSize: 9, letterSpacing: "3px", color: V_GLOW, fontWeight: 700 }}>POINTS</div>
           </div>
           <Panel label="ACCURACY"><div className="seg" style={{ fontSize: 20, fontWeight: 900, color: V_GLOW }}>{accuracy}%</div><div style={{ fontSize: 8, color: "#6b5b88", letterSpacing: "1px" }}>{hotZone ? "🔥 HOT ×2" : `×${quarterBonus}`}</div></Panel>
@@ -1958,6 +2016,7 @@ function ActionIcon({ id, color, size = 20 }) {
     price: (<><path d="M4 14 L9 9 L13 12 L20 5" {...stroke} /><path d="M20 5 h-4 M20 5 v4" {...stroke} /></>),                            // trend
     close: (<><path d="M12 3 l2.5 5 5.5 .8 -4 4 1 5.5 -5-2.7 -5 2.7 1-5.5 -4-4 5.5-.8 Z" {...stroke} fill={color} fillOpacity="0.25" /></>), // star
     name:  (<><circle cx="12" cy="8" r="3.5" {...stroke} /><path d="M5 20 c0-4 3.5-6 7-6 s7 2 7 6" {...stroke} /></>),                    // person
+    slam:  (<><rect x="6" y="3" width="12" height="18" rx="1" {...stroke} /><path d="M8.5 8.5 l7 7 M15.5 8.5 l-7 7" {...stroke} /></>),   // door slammed shut (X)
   };
   return <svg viewBox="0 0 24 24" width={s} height={s} style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}>{icons[id]}</svg>;
 }
@@ -2084,11 +2143,13 @@ function IntroScene({ scene }) {
   if (scene === "bumper") return (
     <>
       <div style={{ fontFamily: "'Oswald',sans-serif", fontSize: 12, letterSpacing: "5px", color: "#6b7bb0", marginBottom: 20 }}>A GAME BY</div>
-      <CompanyLogo size={200} animate />
-      <div style={{ marginTop: 8, animation: "rise 0.7s 0.5s both" }}>
-        <div style={{ fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: "clamp(20px,6vw,34px)", letterSpacing: "5px", background: "linear-gradient(180deg,#fff,#cbd5e1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>MILESTONE</div>
-        <div style={{ fontFamily: "'Orbitron',monospace", fontWeight: 700, fontSize: "clamp(12px,4vw,20px)", letterSpacing: "8px", color: "#60a5fa", marginTop: 2 }}>MAPPING</div>
-      </div>
+      {/* Real Milestone Mapping brand mark (same asset as the dashboard hero).
+          The PNG already contains the "MILESTONE MAPPING" wordmark, so no text below it. */}
+      <img
+        src="/assets/brand/milestone-mapping-logo-v2.png"
+        alt="Milestone Mapping"
+        style={{ display: "block", width: "min(260px, 78vw)", height: "auto", objectFit: "contain", margin: "0 auto", filter: "drop-shadow(0 0 26px rgba(129,140,248,0.35))", animation: "rise 0.8s both" }}
+      />
     </>
   );
 

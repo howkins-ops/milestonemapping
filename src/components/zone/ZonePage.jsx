@@ -20,6 +20,7 @@ import MessagesHub from "./messages/MessagesHub.jsx";
 import ZoneProfile from "./profile/ZoneProfile.jsx";
 import ReportsPanel from "./reports/ReportsPanel.jsx";
 import ArenaHome from "./arena/ArenaHome.jsx";
+import { getArenaGame } from "./arena/arenaGames.js";
 import RosterSheet from "../layout/RosterSheet.jsx";
 import MapQuestCityPage from "../city/MapQuestCityPage.jsx";
 import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
@@ -100,29 +101,40 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
 
   const isProofOverlay = overlay && overlay.kind === "proof";
 
+  // A game is actively being played when Hoops is fullscreen OR any arena game
+  // is mounted (view "arena" with a real game key — not the arena hub). In that
+  // case hide the Zone's own header + tab bar so the game owns the whole screen.
+  // getArenaGame(null) is falsy, so the arena hub keeps its nav. Each game brings
+  // its own exit (Hoops "Back to Arena", others' zn-back); Escape also closes the app.
+  const gameActive = gameFullscreen || (view === "arena" && !!getArenaGame(viewParam));
+
   return (
     <div className="zone-root" data-fire={fire.key}>
       <EmberCanvas tint={fire.tint} />
       {/* HOOPS launches its own basketball splash (in FullCourt) — skip the
           Zone reveal on that path so the two cinematics don't collide. */}
       {!bootHoops && <ArenaIntro />}
-      <header className="zn-head">
-        <div className="zn-head__titlewrap">
-          <h1 className="zn-head__title" data-text="The Zone">The Zone</h1>
-          <p className="zn-head__sub">
-            @{member.username} · {fire.label} fire
-          </p>
-        </div>
-        <span className="zn-head__crest" aria-hidden="true">
-          <img src="/assets/nav/nav-zone.png" alt="" />
-        </span>
-      </header>
+      {!gameActive && (
+        <>
+          <header className="zn-head">
+            <div className="zn-head__titlewrap">
+              <h1 className="zn-head__title" data-text="The Zone">The Zone</h1>
+              <p className="zn-head__sub">
+                @{member.username} · {fire.label} fire
+              </p>
+            </div>
+            <span className="zn-head__crest" aria-hidden="true">
+              <img src="/assets/nav/nav-zone.png" alt="" />
+            </span>
+          </header>
 
-      <ZoneNav
-        view={gameFullscreen ? "hoops" : view === "arena" ? "squad" : view}
-        go={go}
-        onOpenRoster={() => setRosterOpen(true)}
-      />
+          <ZoneNav
+            view={view === "arena" ? "squad" : view}
+            go={go}
+            onOpenRoster={() => setRosterOpen(true)}
+          />
+        </>
+      )}
 
       {view === "home" && <ZoneHome go={go} openDeclare={openDeclare} openProof={openProof} />}
       {view === "city" && (

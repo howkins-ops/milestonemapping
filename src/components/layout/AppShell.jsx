@@ -13,7 +13,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, onOpenZone, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, children }) {
   const { profile, syncStatus } = useAppData();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -43,19 +43,8 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
 
               <div className="app-topbar__right">
                 <SyncStatus status={syncStatus} />
-                {onOpenZone && (
-                  <button
-                    type="button"
-                    className={`app-topbar__profile-btn app-topbar__zone ${currentPage === "zone" ? "is-active" : ""}`}
-                    onClick={onOpenZone}
-                    aria-label="Open The Zone — your accountability world"
-                  >
-                    <span className="app-topbar__icon-box" aria-hidden="true">
-                      <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src="/assets/nav/nav-zone.png" alt="" />
-                    </span>
-                    <span className="app-topbar__btn-label">Zone</span>
-                  </button>
-                )}
+                {/* The Zone lives in the bottom nav (opens the full-screen Zone app);
+                    its top-bar button was removed to keep this cluster uncluttered. */}
                 {onOpenGame && (
                   <button
                     type="button"
