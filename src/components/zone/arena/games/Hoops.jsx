@@ -26,7 +26,7 @@ const GOLD = "#facc15";
 const GREEN = "#22c55e";
 const FIRE = "#fb7185";
 const WATER = "#38bdf8";
-const RED = "#ef4444";   // hard rejection — SLAMMED / shot down
+const SPOKE = "#94a3b8";   // neutral slate — SPOKE TO (no name yet): tracked, worth 0
 const BG = "#0a0714";
 const CARD = "#140b24";
 
@@ -193,7 +193,12 @@ export default function Hoops({ go, initialFullscreen = false }) {
   // Resume a solo game left in progress (snapshot written during play, below).
   const resumeRef = useRef(loadActiveGame());
   const resumed = resumeRef.current;
-  const [scene, setScene] = useState(resumed ? "game" : "intro");
+  // A game left in progress lands on the MENU (with Rejoin / Start New), not
+  // straight back into play — leaving the screen keeps it running; only the
+  // in-game End Game button (or Start New) stops it.
+  const [scene, setScene] = useState(resumed ? "menu" : "intro");
+  const [hasResume, setHasResume] = useState(!!resumed);   // drives the Rejoin/Start-New menu
+  const [confirmEnd, setConfirmEnd] = useState(false);     // in-game "End Game" confirm overlay
   const [sound, setSound] = useState(true);
   const [players, setPlayers] = useState(1);
   // 'phone' | 'ipad' — picked every session on the device-select screen (not persisted).
@@ -299,7 +304,7 @@ export default function Hoops({ go, initialFullscreen = false }) {
         @keyframes riseFade { 0%{opacity:0;transform:translate(-50%,10px) scale(.8)} 18%{opacity:1;transform:translate(-50%,-8px) scale(1.15)} 100%{opacity:0;transform:translate(-50%,-70px) scale(1)} }
         @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-6px,3px)} 50%{transform:translate(6px,-3px)} 75%{transform:translate(-4px,-4px)} }
         @keyframes windup { 0%{transform:translateX(-50%) translateY(0)} 40%{transform:translateX(-50%) translateY(8px)} 100%{transform:translateX(-50%) translateY(0)} }
-        @keyframes rimHang { 0%,100%{transform:translateX(-50%) translateY(-122px) rotate(-2.5deg)} 50%{transform:translateX(-50%) translateY(-118px) rotate(2.5deg)} }
+        @keyframes rimHang { 0%,100%{transform:translateX(-50%) translateY(-106px) rotate(-2.5deg)} 50%{transform:translateX(-50%) translateY(-102px) rotate(2.5deg)} }
         @keyframes confettiFall { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(115vh) rotate(540deg);opacity:.7} }
         @keyframes stampIn { 0%{opacity:0;transform:scale(2.4) rotate(-8deg)} 60%{opacity:1;transform:scale(0.92) rotate(2deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
         @keyframes spinSlow { to{transform:translate(-50%,-50%) rotate(360deg)} }
@@ -342,30 +347,54 @@ export default function Hoops({ go, initialFullscreen = false }) {
            game's own "Back to Arena" button is the exit. Auto-restored on unmount. */
         .zone-app__close { display: none !important; }
       `}</style>
-      {/* exit back to the Zone Arena (launched fullscreen from the HOOPS button) */}
+      {/* exit back to the Zone Arena (launched fullscreen from the HOOPS button).
+          Leaving does NOT end the game — the snapshot survives and keeps running in
+          real time; you re-enter to Rejoin. Only End Game / Start New stops it. */}
       {go && (
-        <button onClick={() => { clearActiveGame(); resumeRef.current = null; go("arena"); }} aria-label="Back to Arena" title="Back to Arena"
+        <button onClick={() => go("arena")} aria-label="Back to Arena" title="Back to Arena — game keeps running"
           style={{ position: "absolute", top: 8, left: 8, zIndex: 400, width: 32, height: 32, borderRadius: 9, background: "rgba(8,5,16,0.66)", border: "1px solid rgba(168,85,247,0.5)", color: "#fff", cursor: "pointer", fontSize: 14, lineHeight: 1, backdropFilter: "blur(3px)" }}>✕</button>
       )}
+      {/* deliberate End Game — the only way to stop a running game (the ✕ just leaves) */}
+      {scene === "game" && (
+        <button onClick={() => setConfirmEnd(true)} aria-label="End game" title="End game"
+          style={{ position: "absolute", top: 166, right: 8, zIndex: 400, padding: "6px 11px", borderRadius: 9, background: "rgba(40,8,12,0.72)", border: "1px solid rgba(239,68,68,0.6)", color: "#fecaca", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "1px", fontFamily: "'Oswald',sans-serif", backdropFilter: "blur(3px)" }}>END GAME</button>
+      )}
+      {confirmEnd && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,10,0.72)", backdropFilter: "blur(4px)" }}>
+          <div style={{ width: "min(320px,86%)", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: "1.5px solid rgba(239,68,68,0.5)", borderRadius: 16, padding: "22px 20px", textAlign: "center", boxShadow: "0 0 40px rgba(0,0,0,0.7)" }}>
+            <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 19, letterSpacing: "1px", color: "#fff", marginBottom: 8 }}>END THIS GAME?</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 14, color: "#b6a9d4", marginBottom: 18, lineHeight: 1.4 }}>The quarter clock stops for good — this game can’t be resumed.</div>
+            <button onClick={() => { clearActiveGame(); resumeRef.current = null; setHasResume(false); endLive(); setConfirmEnd(false); setScene("menu"); }}
+              style={{ width: "100%", padding: "13px", marginBottom: 8, borderRadius: 12, cursor: "pointer", background: "linear-gradient(90deg,#7f1d1d,#ef4444)", border: "1.5px solid rgba(239,68,68,0.8)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: "1.5px", textTransform: "uppercase" }}>End Game</button>
+            <button onClick={() => setConfirmEnd(false)}
+              style={{ width: "100%", padding: "12px", borderRadius: 12, cursor: "pointer", background: "rgba(168,85,247,0.1)", border: "1.5px solid rgba(168,85,247,0.4)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "1.5px", textTransform: "uppercase" }}>Keep Playing</button>
+          </div>
+        </div>
+      )}
       {scene === "intro" && <Presenter onDone={() => { snd.chord([440,660,880],0.3); snd.roar(0.3); setScene("menu"); }} snd={snd} />}
-      {scene === "menu" && <Menu onPlay={()=>{setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("deviceselect");}} onMulti={()=>{ snd.chord([523,659,784],0.25); setScene("lobby"); }} onHow={()=>setScene("howto")} sound={sound} setSound={setSound} />}
+      {scene === "menu" && <Menu
+        resumeAvailable={hasResume}
+        resumeLabel={hasResume && resumeRef.current ? `Q${resumeRef.current.quarter} · ${fmt(Math.ceil(resumeRef.current.clock))} left` : ""}
+        onResume={()=>{ const fresh = loadActiveGame(); if (fresh) resumeRef.current = fresh; setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("game"); }}
+        onStartNew={()=>{ if (typeof window !== "undefined" && !window.confirm("Start a new game? Your game in progress will be discarded.")) return; clearActiveGame(); resumeRef.current = null; setHasResume(false); setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("deviceselect"); }}
+        onPlay={()=>{setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("deviceselect");}} onMulti={()=>{ snd.chord([523,659,784],0.25); setScene("lobby"); }} onHow={()=>setScene("howto")} sound={sound} setSound={setSound} />}
       {scene === "lobby" && <Lobby match={match} opponent={opponent} meName={meRef.current.name} onSetName={(n)=>{ meRef.current.name = n || "Rep"; }} onHost={()=>startLive(makeMatchCode(), true)} onJoin={(code)=>startLive(code, false)} onLeave={endLive} onStart={()=>{ setPlayers(2); snd.chord([523,659,784,988],0.3); setScene("deviceselect"); }} onBack={()=>{ endLive(); setScene("menu"); }} />}
       {scene === "deviceselect" && <DeviceSelect onPick={(d)=>{ setDevice(d); snd.chord([523,659,784,988],0.3); setScene("schedule"); }} onBack={()=>setScene(match ? "lobby" : "menu")} />}
-      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ clearActiveGame(); resumeRef.current = null; setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene("deviceselect")} />}
+      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; setHasResume(false); } setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene("deviceselect")} />}
       {scene === "howto" && <HowTo onBack={()=>setScene("menu")} />}
       {scene === "game" && (device === "ipad" ? (
         <IpadStage frame={frame}>
-          <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+          <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
         </IpadStage>
       ) : (
-        <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+        <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
       ))}
       {scene === "final" && <FinalScreen stats={finalStats} players={players} opponent={opponent} onMenu={()=>{ endLive(); setScene("menu"); }} onReplay={()=>setScene(match ? "lobby" : "schedule")} />}
     </div>
   );
 }
 
-function Menu({ onPlay, onMulti, onHow, sound, setSound }) {
+function Menu({ resumeAvailable, resumeLabel, onResume, onStartNew, onPlay, onMulti, onHow, sound, setSound }) {
   const Btn = ({ children, onClick, primary }) => (
     <button onClick={onClick} style={{ width: 270, padding: "15px 20px", margin: "6px 0", cursor: "pointer", background: primary ? `linear-gradient(90deg,${V_DEEP},${V})` : "rgba(168,85,247,0.08)", border: `1.5px solid ${primary ? V_GLOW : "rgba(168,85,247,0.4)"}`, borderRadius: 12, color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: 17, letterSpacing: "2px", textTransform: "uppercase", boxShadow: primary ? "0 0 24px rgba(168,85,247,0.5)" : "none" }}>{children}</button>
   );
@@ -376,7 +405,16 @@ function Menu({ onPlay, onMulti, onHow, sound, setSound }) {
       <div style={{ height: 26 }} />
       <LawPanel />
       <div style={{ height: 18 }} />
-      <Btn primary onClick={onPlay}>Start Game</Btn>
+      {resumeAvailable ? (
+        <>
+          {/* a game is still running (you left it) — rejoin it, or discard + start fresh */}
+          <Btn primary onClick={onResume}>Rejoin Game</Btn>
+          {resumeLabel && <div style={{ marginTop: -2, marginBottom: 4, fontFamily: "'Rajdhani',sans-serif", fontSize: 12, letterSpacing: "1.5px", color: "#b6a9d4", textTransform: "uppercase" }}>{resumeLabel}</div>}
+          <Btn onClick={onStartNew}>Start New Game</Btn>
+        </>
+      ) : (
+        <Btn primary onClick={onPlay}>Start Game</Btn>
+      )}
       <Btn onClick={onMulti}>Multiplayer · Live</Btn>
       <Btn onClick={onHow}>How to Play</Btn>
       <button onClick={() => setSound(!sound)} style={{ marginTop: 14, background: "none", border: "none", color: "#7c6b96", fontSize: 12, letterSpacing: "2px", cursor: "pointer", fontWeight: 600 }}>SOUND: {sound ? "ON" : "OFF"}</button>
@@ -469,26 +507,8 @@ function Lobby({ match, opponent, meName, onSetName, onHost, onJoin, onLeave, on
   );
 }
 
-// live opponent scoreboard — their points climb + a "BUCKET" flash on every make
-function OpponentBar({ opponent, oppFx, myScore }) {
-  const pts = opponent?.points ?? 0;
-  const lead = myScore - pts;
-  return (
-    <div style={{ position: "absolute", top: 166, left: "50%", transform: "translateX(-50%)", zIndex: 22, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 9, padding: "5px 13px", borderRadius: 999, background: "rgba(8,5,16,0.85)", border: `1.5px solid ${oppFx ? GREEN : "rgba(236,72,153,0.5)"}`, backdropFilter: "blur(4px)", boxShadow: oppFx ? `0 0 18px ${GREEN}` : "0 2px 8px rgba(0,0,0,0.5)", transition: "border-color .2s, box-shadow .2s" }}>
-        <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: "1px", color: "#ec4899", whiteSpace: "nowrap" }}>🆚 {(opponent?.name || "OPPONENT").slice(0, 12)}</span>
-        <span className="seg" style={{ fontWeight: 900, fontSize: 18, color: "#fff" }}>{pts.toLocaleString()}</span>
-        {opponent && <span style={{ fontSize: 8, color: "#9d8bc0", fontWeight: 700, whiteSpace: "nowrap" }}>{opponent.doors ?? 0}d·{opponent.sales ?? 0}s</span>}
-        {opponent && <span style={{ fontSize: 8.5, fontWeight: 800, color: lead >= 0 ? GREEN : FIRE, whiteSpace: "nowrap" }}>{lead >= 0 ? `+${lead} YOU` : `${-lead} THEM`}</span>}
-        {oppFx && (
-          <div style={{ position: "absolute", top: -24, left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap", fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 14, color: oppFx.kind === "dunk" ? GOLD : GREEN, textShadow: `0 0 12px ${oppFx.kind === "dunk" ? GOLD : GREEN}`, animation: "riseFade 1.5s forwards" }}>
-            🏀 {oppFx.kind === "dunk" ? "THEY DUNKED" : "BUCKET"} +{oppFx.gain}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// (OpponentBar retired — the rival's live score now lives on the jumbotron's AWAY
+//  side as a real HOME-vs-AWAY scoreboard; see Jumbotron's multiplayer branch.)
 
 // ===== law-of-probability motivational panel (graffiti-cool) =====
 function LawPanel() {
@@ -649,10 +669,10 @@ function HowTo({ onBack }) {
   );
 }
 
-const RIM_TOP = 96;
+const RIM_TOP = 112;   // rim distance from the top of the play zone (lowered rig; drives ball landing)
 const RELEASE_BOTTOM_PCT = 0.30;
 
-function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, resume }) {
+function Arena({ players, schedule, snd, match, opponent, meName, publishLine, onEnd, resume }) {
   const QSEC = (schedule ? schedule.hrs : 2) * 60 * 60;   // quarter length from schedule
   const windows = schedule ? schedule.windows : ["Q1","Q2","Q3","Q4"];
   const [score, setScore] = useState(resume ? resume.score : 0);
@@ -792,6 +812,11 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   const [pubTick, setPubTick] = useState(0);
   const [oppFx, setOppFx] = useState(null);
   const oppSeqRef = useRef(-1);
+  // mirror the opponent's shot on your screen so you can SEE them play — their
+  // shooter winds up / dunks, a ball arcs from their side, and a pink "+N" pops.
+  const [oppShoot, setOppShoot] = useState(false);
+  const [oppBall, setOppBall] = useState(null);
+  const [oppFloaties, setOppFloaties] = useState([]);
   const qWonRef = useRef(0); // quarters with a close, for the season stat sheet
 
   const streakTier = [...STREAK_TIERS].reverse().find((t) => streak >= t.at);
@@ -820,17 +845,23 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     const s = lastShotRef.current;
     publishLine({ points: score, doors: tally.knock.a, sales: tally.close.m, quarter, over: false, seq: s.seq, made: s.made, kind: s.kind, gain: s.gain });
   }, [pubTick, quarter, match, publishLine, score, tally]);
-  // opponent scored → flash their scoreboard + a small crowd react
+  // opponent took a shot (seq advanced) → mirror their throw on your screen so you
+  // can SEE them play; on a make also flash their pill, pop a pink "+N", and cheer.
   useEffect(() => {
     if (!opponent || opponent.seq == null || opponent.seq === oppSeqRef.current) return;
     const first = oppSeqRef.current === -1;
     oppSeqRef.current = opponent.seq;
-    if (!first && opponent.made) {
+    if (first) return;   // the first line is just the initial sync, not a live shot
+    const kind = opponent.kind || "shot";
+    playOppShot(kind, !!opponent.made);   // show the throw whether they made it or not
+    if (opponent.made) {
       const id = ++idRef.current;
-      setOppFx({ id, gain: opponent.gain || 0, kind: opponent.kind });
+      setOppFx({ id, gain: opponent.gain || 0, kind });
       setTimeout(() => setOppFx((f) => (f && f.id === id ? null : f)), 1500);
+      spawnOppFloatie(`+${opponent.gain || 0}`, "#ec4899");
       try { snd.react(); } catch (e) {}
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opponent, snd]);
 
   // ---- recompute the derived clock from the wall-clock anchor ----
@@ -982,6 +1013,22 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     lastHourRef.current = 0; sipsThisHourRef.current = 0; setDryHourWarn(false);
   };
   const spawnFloatie = (text, color) => { const id = ++idRef.current; setFloaties((f) => [...f, { id, text, color }]); setTimeout(() => setFloaties((f) => f.filter((x) => x.id !== id)), 1500); };
+  const spawnOppFloatie = (text, color) => { const id = ++idRef.current; setOppFloaties((f) => [...f, { id, text, color }]); setTimeout(() => setOppFloaties((f) => f.filter((x) => x.id !== id)), 1500); };
+  // Reconstruct the opponent's throw from their published line (kind/made). Visual
+  // mirror only — their score already rides in via opponent.points on the pill.
+  const playOppShot = (kind, made) => {
+    // Windup, then a ball that arcs from the opponent's side (~64%) to the central
+    // rim. A dunk is shown as a GOLD ball to the rim (not a leap), so the rival is
+    // never seen slamming empty air beside the hoop.
+    const isDunk = kind === "dunk";
+    setOppShoot(true);
+    setTimeout(() => {
+      setOppShoot(false);
+      const bid = ++idRef.current;
+      setOppBall({ id: bid, color: isDunk ? GOLD : (made ? GREEN : "#8b7ba8"), made: isDunk ? true : made, kind, second: true });
+      setTimeout(() => setOppBall((b) => (b && b.id === bid ? null : b)), 1160);
+    }, 240);
+  };
 
   // ---- DOPAMINE: big centered reward callout + confetti burst + edge pulse ----
   const popReward = (text, color, big) => {
@@ -1108,6 +1155,16 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     setNameInput(""); setNameModal(false);
   };
 
+  // SPOKE TO — a conversation happened but no name yet. A tracked, 0-point rung on
+  // the funnel toward the name; no streak reset, no accuracy hit — there's no loss
+  // column here.
+  const takeSpoke = () => {
+    if (!running) return;
+    setTally((t) => ({ ...t, slam: { a: t.slam.a + 1, m: t.slam.m } }));
+    spawnFloatie("SPOKE TO — GET THE NAME", SPOKE);
+    snd.beep(430, 0.12, "sine", 0.12);
+  };
+
   // GOT NAME is a one-tap point now — no typing required. Logs the "got the
   // name" rep instantly (counts toward NAMES, awards the same points).
   const takeName = () => {
@@ -1165,28 +1222,24 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
       <div style={{ position: "absolute", top: 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
         <button onClick={() => setStatsOpen(true)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>STATS</button>
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
-        <button onClick={() => setTimeScale((t) => t === 1 ? 60 : 1)} title="Game speed — real time vs fast" style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>{timeScale === 1 ? "1×" : "60×"}</button>
       </div>
 
-      <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} />
-      {match && <OpponentBar opponent={opponent} oppFx={oppFx} myScore={score} />}
+      <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} multiplayer={!!match} opponent={opponent} oppFx={oppFx} meName={meName} />
 
       <div style={{ position: "absolute", top: 200, left: 0, right: 0, bottom: 72, overflow: "hidden" }}>
         <Crowd flash={flash} />
         <Court />
         <HoopAssembly netSwish={netSwish} rimShake={rimShake} />
         <Shooter big shooting={shooting} fatigued={thirsty} inZone={inZone} dunk={dunk} dunkPhase={dunkPhase} />
-        {players === 2 && <Shooter big second shooting={false} />}
+        {players === 2 && <Shooter big second shooting={oppShoot} />}
         {ball && <Ball ball={ball} />}
+        {oppBall && <Ball ball={oppBall} />}
         {/* confetti burst from center court */}
         {confetti.map((p) => (
           <div key={p.id} style={{ position: "absolute", left: "50%", top: "44%", width: p.size, height: p.size, background: p.color, borderRadius: 2, zIndex: 14, pointerEvents: "none",
             animation: "confettiFly 1.1s ease-out forwards",
             "--tx": `${p.dx}px`, "--ty": `${p.dy}px`,
             boxShadow: `0 0 6px ${p.color}` }} />
-        ))}
-        {floaties.map((f) => (
-          <div key={f.id} style={{ position: "absolute", left: "50%", top: 4, fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 24, color: f.color, textShadow: `0 0 16px ${f.color}`, animation: "riseFade 1.5s forwards", pointerEvents: "none", whiteSpace: "nowrap", zIndex: 15 }}>{f.text}</div>
         ))}
         {/* BIG reward callout, centered — brand colors, clean + high-contrast */}
         {reward && (
@@ -1209,6 +1262,17 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
           </div>
         )}
       </div>
+
+      {/* reward pops — rendered at the Arena root (above the jumbotron z20 + backboard z4,
+          and outside the play-area's overflow clip) so button feedback is never hidden */}
+      {floaties.map((f) => (
+        <div key={f.id} style={{ position: "absolute", left: "50%", top: 204, fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 24, color: f.color, textShadow: `0 0 16px ${f.color}`, animation: "riseFade 1.5s forwards", pointerEvents: "none", whiteSpace: "nowrap", zIndex: 210 }}>{f.text}</div>
+      ))}
+      {/* opponent's floating "+N" — anchored to their side (their shooter sits at ~64%)
+          and tinted pink so there's no confusion about whose points are whose */}
+      {oppFloaties.map((f) => (
+        <div key={f.id} style={{ position: "absolute", left: "70%", top: 210, fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 19, color: f.color, textShadow: `0 0 14px ${f.color}`, animation: "riseFade 1.5s forwards", pointerEvents: "none", whiteSpace: "nowrap", zIndex: 210 }}>{f.text}</div>
+      ))}
 
       {/* screen-edge reward glow pulse */}
       {edgePulse > 0 && (
@@ -1283,10 +1347,10 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
 
       {/* ===== ACTION COLUMN — floating vertical stack overlaid on the side ===== */}
       <div style={{ position: "absolute", bottom: 20, [handed === "left" ? "left" : "right"]: 8, zIndex: 30, display: "flex", flexDirection: "column", gap: 5, width: 100 }}>
-        {[{ id: "slam", short: "SLAMMED", sub: "SHOT DOWN", pts: 0, color: RED, make: 0 }, { id: "name", short: "GOT NAME", sub: "NOT INTERESTED", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
+        {[{ id: "slam", short: "SPOKE TO", sub: "NO NAME", pts: 0, color: SPOKE, make: 0 }, { id: "name", short: "GOT NAME", sub: "SPOKE TO", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
           const isName = a.id === "name";
           return (
-            <button key={a.id} onClick={() => isName ? takeName() : takeShot(a)} disabled={!running} style={{
+            <button key={a.id} onClick={() => a.id === "slam" ? takeSpoke() : isName ? takeName() : takeShot(a)} disabled={!running} style={{
               width: "100%", padding: "7px 8px", borderRadius: 11, cursor: running ? "pointer" : "default",
               background: a.id === "close" ? `linear-gradient(160deg,rgba(6,40,20,0.92),${GREEN}22)` : isName ? "linear-gradient(160deg,rgba(40,30,10,0.92),rgba(168,85,247,0.14))" : "rgba(20,11,36,0.9)",
               border: `1.5px solid ${a.color}`, color: "#fff",
@@ -1535,11 +1599,11 @@ function JumbotronTicker({ side = "left" }) {
   useEffect(() => { const t = setInterval(() => setI((n) => (n + 1) % TICKER_ADS.length), 4200); return () => clearInterval(t); }, []);
   const ad = TICKER_ADS[i];
   return (
-    <div style={{ flex: 1, minWidth: 0, height: 62, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+    <div style={{ flex: 1, minWidth: 0, height: 72, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
       <div key={i} style={{ animation: "tickerIn 0.55s cubic-bezier(.2,.9,.3,1)", width: "100%", padding: "0 2px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-        <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7, letterSpacing: "1.5px", color: "#7c6b96", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ad.tag}</div>
-        <div className="seg" style={{ fontWeight: 900, fontSize: 16, color: ad.c, textShadow: `0 0 10px ${ad.c}`, whiteSpace: "nowrap", lineHeight: 1 }}>{ad.big}</div>
-        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 8, color: "#b6a9d4", lineHeight: 1.25, whiteSpace: "nowrap" }}>
+        <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 8, letterSpacing: "1.5px", color: "#7c6b96", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ad.tag}</div>
+        <div className="seg" style={{ fontWeight: 900, fontSize: 20, color: ad.c, textShadow: `0 0 10px ${ad.c}`, whiteSpace: "nowrap", lineHeight: 1 }}>{ad.big}</div>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 9, color: "#b6a9d4", lineHeight: 1.25, whiteSpace: "nowrap" }}>
           <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{ad.l1}</div>
           <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{ad.l2}</div>
         </div>
@@ -1549,29 +1613,68 @@ function JumbotronTicker({ side = "left" }) {
   );
 }
 
-function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, quarterBonus, urgency, windows = [] }) {
+function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, quarterBonus, urgency, windows = [], multiplayer = false, opponent, oppFx, meName }) {
   const clockColor = urgency === 3 ? "#ff2d55" : urgency === 2 ? FIRE : "#fff";
+  // multiplayer HOME-vs-AWAY derived values (harmless in solo: opponent is undefined)
+  const PINK = "#ec4899";                       // rival tint — matches the on-court floaties
+  const oppPts = opponent?.points ?? 0;
+  const lead = score - oppPts;
+  const mpTotal = score + oppPts;
+  const myShare = mpTotal ? (score / mpTotal) * 100 : 50;   // 0–0 tip-off → 50/50, never NaN
+  const leadColor = lead > 0 ? V_GLOW : lead < 0 ? PINK : "#8b7ba8";
+  const oppFlash = multiplayer && !!oppFx;
   return (
-    <div style={{ position: "absolute", top: 10, left: "50%", width: "92%", maxWidth: 460, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
-      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(0.9)", transformOrigin: "top center" }}>
+    <div style={{ position: "absolute", top: 10, left: "50%", width: "92%", maxWidth: 480, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
+      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(0.98)", transformOrigin: "top center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 6 }}>
           <Phoenix size={16} /><div className="seg" style={{ fontWeight: 900, fontSize: 11, letterSpacing: "2px" }}>MILESTONE <span style={{ color: V_GLOW }}>MAPPING</span></div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr", gap: 6 }}>
-          <Panel label="STREAK"><div className="seg" style={{ fontSize: 26, fontWeight: 900, color: streak >= 5 ? FIRE : "#fff", textShadow: streak >= 5 ? `0 0 14px ${FIRE}` : "none" }}>{streak}</div><div style={{ fontSize: 8, color: streakTier ? V_GLOW : "#6b5b88", letterSpacing: "1px", fontWeight: 700, minHeight: 10 }}>{streakTier ? streakTier.name : "IN A ROW"}</div></Panel>
-          <div style={{ textAlign: "center", background: "#050310", borderRadius: 9, padding: "4px 3px", border: "1px solid rgba(168,85,247,0.25)" }}>
-            <div style={{ fontSize: 8, letterSpacing: "2px", color: "#8b7ba8", fontWeight: 700 }}>CURRENT SCORE</div>
-            <div className="seg" style={{ fontSize: "clamp(27px,8.1vw,43px)", fontWeight: 900, lineHeight: 1, textShadow: `0 0 20px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
-            <div style={{ fontSize: 9, letterSpacing: "3px", color: V_GLOW, fontWeight: 700 }}>POINTS</div>
+        {multiplayer ? (
+          /* ---- MULTIPLAYER: HOME (you) · MOMENTUM · AWAY (rival) — a real scoreboard ---- */
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.25fr 1fr", gap: 6, alignItems: "stretch" }}>
+            {/* HOME — YOU */}
+            <div style={{ textAlign: "center", background: "#050310", borderRadius: 9, padding: "4px 3px", border: "1px solid rgba(168,85,247,0.35)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: 8, letterSpacing: "1px", color: V_GLOW, fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{(meName || "YOU").slice(0, 10)}</div>
+              <div className="seg" style={{ fontSize: "clamp(24px,7vw,38px)", fontWeight: 900, lineHeight: 1, color: "#fff", textShadow: `0 0 18px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
+              <div style={{ fontSize: 7.5, color: "#8b7ba8", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>🔥{streak} · {accuracy}%</div>
+            </div>
+            {/* MIDDLE — momentum tug-of-war bar */}
+            <div style={{ textAlign: "center", background: "#050310", borderRadius: 9, padding: "5px 6px", border: "1px solid rgba(168,85,247,0.2)", display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+              <div className="seg" style={{ fontWeight: 900, fontSize: 15, color: leadColor, textShadow: lead !== 0 ? `0 0 12px ${leadColor}` : "none", lineHeight: 1, whiteSpace: "nowrap" }}>{lead === 0 ? "TIED" : `▲ ${Math.abs(lead)} UP`}</div>
+              <div style={{ position: "relative", height: 8, borderRadius: 5, overflow: "hidden", background: "#1a1030", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg, ${V} 0%, ${V} ${myShare}%, ${PINK} ${myShare}%, ${PINK} 100%)`, transition: "background 0.5s ease" }} />
+                <div style={{ position: "absolute", top: -2, bottom: -2, left: `${myShare}%`, width: 2, marginLeft: -1, background: "#fff", boxShadow: "0 0 8px #fff, 0 0 4px #fff", transition: "left 0.5s ease" }} />
+              </div>
+              <div style={{ fontSize: 7, letterSpacing: "2px", color: "#6b5b88", fontWeight: 700 }}>MOMENTUM</div>
+            </div>
+            {/* AWAY — RIVAL (absorbs the old pill's BUCKET reaction) */}
+            <div style={{ position: "relative", textAlign: "center", background: "#050310", borderRadius: 9, padding: "4px 3px", border: `1px solid ${oppFlash ? GREEN : "rgba(236,72,153,0.4)"}`, boxShadow: oppFlash ? `0 0 16px ${GREEN}` : "none", transition: "border-color .2s, box-shadow .2s", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              {oppFlash && (
+                <div style={{ position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap", fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 11, color: oppFx.kind === "dunk" ? GOLD : GREEN, textShadow: `0 0 10px ${oppFx.kind === "dunk" ? GOLD : GREEN}`, animation: "riseFade 1.5s forwards", pointerEvents: "none" }}>🏀 {oppFx.kind === "dunk" ? "THEY DUNKED" : "BUCKET"} +{oppFx.gain}</div>
+              )}
+              <div style={{ fontSize: 8, letterSpacing: "1px", color: PINK, fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{(opponent?.name || "RIVAL").slice(0, 10)}</div>
+              <div className="seg" style={{ fontSize: "clamp(24px,7vw,38px)", fontWeight: 900, lineHeight: 1, color: "#fff", textShadow: `0 0 18px ${PINK},0 0 3px #fff` }}>{oppPts.toLocaleString()}</div>
+              <div style={{ fontSize: 7.5, color: "#9d8bc0", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{opponent ? `${opponent.doors ?? 0}d·${opponent.sales ?? 0}s` : "waiting…"}</div>
+            </div>
           </div>
-          <Panel label="ACCURACY"><div className="seg" style={{ fontSize: 20, fontWeight: 900, color: V_GLOW }}>{accuracy}%</div><div style={{ fontSize: 8, color: "#6b5b88", letterSpacing: "1px" }}>{hotZone ? "🔥 HOT ×2" : `×${quarterBonus}`}</div></Panel>
-        </div>
+        ) : (
+          /* ---- SOLO: STREAK · CURRENT SCORE · ACCURACY (unchanged) ---- */
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr 1fr", gap: 6 }}>
+            <Panel label="STREAK"><div className="seg" style={{ fontSize: 26, fontWeight: 900, color: streak >= 5 ? FIRE : "#fff", textShadow: streak >= 5 ? `0 0 14px ${FIRE}` : "none" }}>{streak}</div><div style={{ fontSize: 8, color: streakTier ? V_GLOW : "#6b5b88", letterSpacing: "1px", fontWeight: 700, minHeight: 10 }}>{streakTier ? streakTier.name : "IN A ROW"}</div></Panel>
+            <div style={{ textAlign: "center", background: "#050310", borderRadius: 9, padding: "4px 3px", border: "1px solid rgba(168,85,247,0.25)" }}>
+              <div style={{ fontSize: 8, letterSpacing: "2px", color: "#8b7ba8", fontWeight: 700 }}>CURRENT SCORE</div>
+              <div className="seg" style={{ fontSize: "clamp(27px,8.1vw,43px)", fontWeight: 900, lineHeight: 1, textShadow: `0 0 20px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
+              <div style={{ fontSize: 9, letterSpacing: "3px", color: V_GLOW, fontWeight: 700 }}>POINTS</div>
+            </div>
+            <Panel label="ACCURACY"><div className="seg" style={{ fontSize: 20, fontWeight: 900, color: V_GLOW }}>{accuracy}%</div><div style={{ fontSize: 8, color: "#6b5b88", letterSpacing: "1px" }}>{hotZone ? "🔥 HOT ×2" : `×${quarterBonus}`}</div></Panel>
+          </div>
+        )}
         <div style={{ marginTop: 6, background: "#050310", borderRadius: 9, padding: "6px 6px", border: "1px solid rgba(168,85,247,0.2)" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 5, marginBottom: 1 }}>{[1,2,3,4].map((q) => <span key={q} className="seg" style={{ fontWeight: 900, fontSize: 11, padding: "1px 6px", borderRadius: 4, color: q === quarter ? "#050310" : "#5b4b78", background: q === quarter ? V_GLOW : "transparent" }}>Q{q}</span>)}</div>
           <div style={{ fontSize: 7, letterSpacing: "2px", color: "#6b5b88", fontWeight: 700, textAlign: "center" }}>TIME LEFT IN QUARTER{windows[quarter-1] ? ` · ${windows[quarter-1]}` : ""}</div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <JumbotronTicker side="left" />
-            <div className="seg" style={{ fontSize: "clamp(22px,6.5vw,36px)", fontWeight: 900, color: clockColor, textShadow: urgency >= 2 ? `0 0 20px ${clockColor}` : "none", animation: urgency === 3 ? "flare 0.5s infinite" : "none", flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(clock)}</div>
+            <div className="seg" style={{ fontSize: "clamp(15px,4.4vw,24px)", fontWeight: 900, color: clockColor, textShadow: urgency >= 2 ? `0 0 20px ${clockColor}` : "none", animation: urgency === 3 ? "flare 0.5s infinite" : "none", flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(clock)}</div>
             <JumbotronTicker side="right" />
           </div>
         </div>
@@ -2012,7 +2115,7 @@ function Court() {
 // ============================================================
 function HoopAssembly({ netSwish, rimShake }) {
   return (
-    <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%) perspective(400px) rotateX(8deg)", zIndex: 4, width: 170, display: "flex", flexDirection: "column", alignItems: "center", animation: rimShake ? "shake 0.3s" : "none" }}>
+    <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%) perspective(400px) rotateX(8deg)", zIndex: 4, width: 170, display: "flex", flexDirection: "column", alignItems: "center", animation: rimShake ? "shake 0.3s" : "none" }}>
       {/* SOLID backboard */}
       <div style={{ position: "relative", width: 138, height: 84, borderRadius: 6, background: "linear-gradient(160deg,#f4f4f6 0%,#d7d9e2 55%,#b9bcca 100%)", border: `3px solid #fff`, boxShadow: `0 0 22px ${V}66, inset 0 -6px 14px rgba(0,0,0,0.15)` }}>
         {/* team color band */}
@@ -2053,7 +2156,7 @@ function Shooter({ second, shooting, fatigued, inZone, dunk, dunkPhase, big }) {
   const shoe     = inZone ? GOLD : (second ? "#38bdf8" : "#fff");
   const shoeSole = "#e8542a";
   // vertical lift for the dunk: crouch, explode up to the rim, hang, drop
-  const lift = dunkPhase === "jump" ? "-118px" : dunkPhase === "hang" ? "-122px" : dunkPhase === "drop" ? "0px" : "0px";
+  const lift = dunkPhase === "jump" ? "-102px" : dunkPhase === "hang" ? "-106px" : dunkPhase === "drop" ? "0px" : "0px";
   const liftTrans = dunkPhase === "jump" ? "transform 0.5s cubic-bezier(.2,.8,.3,1)"
                   : dunkPhase === "drop" ? "transform 0.42s cubic-bezier(.5,0,.8,.5)"
                   : dunkPhase === "hang" ? "transform 0.2s" : "transform 0.3s";
@@ -2153,31 +2256,36 @@ function Ball({ ball }) {
     const el = ref.current; if (!el) return;
     const parent = el.parentElement;
     const zoneH = parent ? parent.clientHeight : 400;
+    const zoneW = parent ? parent.clientWidth : 300;
     const startBottom = zoneH * RELEASE_BOTTOM_PCT;
     const rimBottom = zoneH - RIM_TOP;
     const riseToRim = rimBottom - startBottom;
     const dropThrough = 42;
     const made = ball.made; const dunk = ball.kind === "dunk";
+    // opponent ball is released from their side (~64%) and drifts to the central rim
+    // (50%); for the local ball driftPx is 0, so its arc is unchanged.
+    const driftPx = ball.second ? (0.50 - 0.64) * zoneW : 0;
+    const tx = (basePct, frac) => `calc(${basePct}% + ${(driftPx * frac).toFixed(1)}px)`;
     const frames = made
       ? [
-          { offset: 0,    transform: `translate(-50%, 0) scale(0.85)`, opacity: 1 },
-          { offset: 0.48, transform: `translate(-50%, ${-(riseToRim + 46)}px) scale(1.05)`, opacity: 1 },
-          { offset: 0.66, transform: `translate(-50%, ${-riseToRim}px) scale(0.98)`, opacity: 1 },
-          { offset: 0.82, transform: `translate(-50%, ${-(riseToRim - dropThrough*0.6)}px) scale(0.85)`, opacity: 1 },
-          { offset: 1,    transform: `translate(-50%, ${-(riseToRim - dropThrough)}px) scale(0.7)`, opacity: 0 },
+          { offset: 0,    transform: `translate(${tx(-50,0)}, 0) scale(0.85)`, opacity: 1 },
+          { offset: 0.48, transform: `translate(${tx(-50,0.7)}, ${-(riseToRim + 46)}px) scale(1.05)`, opacity: 1 },
+          { offset: 0.66, transform: `translate(${tx(-50,1)}, ${-riseToRim}px) scale(0.98)`, opacity: 1 },
+          { offset: 0.82, transform: `translate(${tx(-50,1)}, ${-(riseToRim - dropThrough*0.6)}px) scale(0.85)`, opacity: 1 },
+          { offset: 1,    transform: `translate(${tx(-50,1)}, ${-(riseToRim - dropThrough)}px) scale(0.7)`, opacity: 0 },
         ]
       : [
-          { offset: 0,    transform: `translate(-50%, 0) scale(0.85)`, opacity: 1 },
-          { offset: 0.48, transform: `translate(-50%, ${-(riseToRim + 30)}px) scale(1.05)`, opacity: 1 },
-          { offset: 0.66, transform: `translate(-38%, ${-riseToRim}px) scale(0.95)`, opacity: 1 },
-          { offset: 0.78, transform: `translate(-20%, ${-(riseToRim+12)}px) scale(0.95)`, opacity: 1 },
-          { offset: 1,    transform: `translate(60%, ${-(riseToRim - 100)}px) scale(0.82)`, opacity: 0 },
+          { offset: 0,    transform: `translate(${tx(-50,0)}, 0) scale(0.85)`, opacity: 1 },
+          { offset: 0.48, transform: `translate(${tx(-50,0.7)}, ${-(riseToRim + 30)}px) scale(1.05)`, opacity: 1 },
+          { offset: 0.66, transform: `translate(${tx(-38,1)}, ${-riseToRim}px) scale(0.95)`, opacity: 1 },
+          { offset: 0.78, transform: `translate(${tx(-20,1)}, ${-(riseToRim+12)}px) scale(0.95)`, opacity: 1 },
+          { offset: 1,    transform: `translate(${tx(60,1)}, ${-(riseToRim - 100)}px) scale(0.82)`, opacity: 0 },
         ];
     const anim = el.animate(frames, { duration: dunk ? 720 : 880, easing: "cubic-bezier(.3,.6,.4,1)", fill: "forwards" });
     return () => anim.cancel();
   }, [ball]);
   return (
-    <div ref={ref} style={{ position: "absolute", bottom: `${RELEASE_BOTTOM_PCT*100}%`, left: "50%", zIndex: 9, pointerEvents: "none" }}>
+    <div ref={ref} style={{ position: "absolute", bottom: `${RELEASE_BOTTOM_PCT*100}%`, left: ball.second ? "64%" : "50%", zIndex: 9, pointerEvents: "none" }}>
       <div style={{ width: 24, height: 24, borderRadius: "50%", background: ball.kind === "dunk" ? `radial-gradient(circle at 35% 30%,${GOLD},#b45309)` : "radial-gradient(circle at 35% 30%,#ff9d4d,#c2410c)", boxShadow: `0 0 16px ${ball.color}`, position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(90deg,transparent 47%,rgba(0,0,0,0.45) 48%,rgba(0,0,0,0.45) 52%,transparent 53%)" }} />
         <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(0deg,transparent 47%,rgba(0,0,0,0.45) 48%,rgba(0,0,0,0.45) 52%,transparent 53%)" }} />
@@ -2206,7 +2314,7 @@ function ActionIcon({ id, color, size = 20 }) {
     price: (<><path d="M4 14 L9 9 L13 12 L20 5" {...stroke} /><path d="M20 5 h-4 M20 5 v4" {...stroke} /></>),                            // trend
     close: (<><path d="M12 3 l2.5 5 5.5 .8 -4 4 1 5.5 -5-2.7 -5 2.7 1-5.5 -4-4 5.5-.8 Z" {...stroke} fill={color} fillOpacity="0.25" /></>), // star
     name:  (<><circle cx="12" cy="8" r="3.5" {...stroke} /><path d="M5 20 c0-4 3.5-6 7-6 s7 2 7 6" {...stroke} /></>),                    // person
-    slam:  (<><rect x="6" y="3" width="12" height="18" rx="1" {...stroke} /><path d="M8.5 8.5 l7 7 M15.5 8.5 l-7 7" {...stroke} /></>),   // door slammed shut (X)
+    slam:  (<><path d="M4 5 h16 v10 h-9 l-4 4 v-4 H4 Z" {...stroke} /></>),                                                              // spoke to (speech bubble)
   };
   return <svg viewBox="0 0 24 24" width={s} height={s} style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}>{icons[id]}</svg>;
 }
