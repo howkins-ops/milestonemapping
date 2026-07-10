@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import ExerciseHowTo from "./ExerciseHowTo.jsx";
 import HL from "./HL.jsx";
 import { exerciseInfo } from "./data/exercises.js";
+import BlockArt from "./BlockArt.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    MISSION BRIEFING — the wizard's first screen.
@@ -127,7 +128,7 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
             {i > 0 && <span className="iw-al-sm-arrow" aria-hidden="true">→</span>}
             <div className="iw-al-sm-chip">
               <span className="iw-al-sm-key">{b.key}</span>
-              <span className="iw-al-sm-glyph" aria-hidden="true">{KIND_GLYPHS[b.kind]}</span>
+              <BlockArt kind={b.kind} className="iw-al-sm-art" label={blockTitle(b)} />
               <span className="iw-al-sm-kind">{blockTitle(b)}</span>
             </div>
           </React.Fragment>
@@ -150,6 +151,7 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
           <div key={`${b.key}-${b.exercises[0]?.name}`} className="iw-al-brief-block">
             <div className="iw-al-brief-blockhead">
               <span className="iw-al-brief-key">{b.key}</span>
+              <BlockArt kind={b.kind} className="iw-al-brief-art" label={blockTitle(b)} />
               <span className="iw-al-brief-blocktitle">{blockTitle(b)}</span>
             </div>
             <div className="iw-al-brief-protocol"><HL text={protocolLine(b)} /></div>

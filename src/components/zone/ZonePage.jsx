@@ -28,7 +28,7 @@ import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
 // The Accountability Zone — its own world inside the app.
 // Gates: no supabase/user → ZoneGate; no zone identity → onboarding; else the Zone.
 // Milestone City lives here as its own tab — the Zone is the city's population.
-export default function ZonePage({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
+export default function ZonePage({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initialParam }) {
   const { userId } = useAppData();
   if (!supabase || !userId) return <ZoneGate />;
   return (
@@ -36,6 +36,7 @@ export default function ZonePage({ onNavigate, onOpenMapQuest, initialView, init
       <ZoneInner
         onNavigate={onNavigate}
         onOpenMapQuest={onOpenMapQuest}
+        onCloseZone={onCloseZone}
         initialView={initialView}
         initialParam={initialParam}
       />
@@ -43,7 +44,7 @@ export default function ZonePage({ onNavigate, onOpenMapQuest, initialView, init
   );
 }
 
-function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
+function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initialParam }) {
   const { loading, error, state, member, fire, refreshState } = useZoneCtx();
   // "hoops" is a launch sentinel from the main-page basketball button: land
   // straight on Full Court in fullscreen. Everything else lands as-routed.
@@ -55,6 +56,16 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
 
   const go = useCallback((next, param = null) => {
+    // Launched straight from the main-screen HOOPS button (bootHoops): the game is
+    // the only thing in this overlay, so its "Back to Arena" exit (go("arena"))
+    // should close the whole Zone and drop the user back on the main screen —
+    // NOT strand them inside the Accountability Zone's Arena hub. Every other path
+    // into Hoops (Arena grid, friend-invite) leaves bootHoops false and lands in
+    // the Arena as before.
+    if (bootHoops && next === "arena" && onCloseZone) {
+      onCloseZone();
+      return;
+    }
     if (next === "hoops") {
       setGameFullscreen(true);
       setView("arena");
@@ -66,7 +77,7 @@ function ZoneInner({ onNavigate, onOpenMapQuest, initialView, initialParam }) {
     setView(next);
     setViewParam(param);
     window.scrollTo({ top: 0 });
-  }, []);
+  }, [bootHoops, onCloseZone]);
 
   const openDeclare = useCallback(() => setOverlay("declare"), []);
   const openProof = useCallback((param = null) => setOverlay({ kind: "proof", param }), []);

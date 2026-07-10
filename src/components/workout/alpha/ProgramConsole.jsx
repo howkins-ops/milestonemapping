@@ -9,6 +9,7 @@ import { daySlot, weekGrid, dayIdxFromDate } from "./engine/scheduler.js";
 import ExerciseImg from "./ExerciseImg.jsx";
 import { exerciseInfo } from "./data/exercises.js";
 import AlphaDisclaimer from "./AlphaDisclaimer.jsx";
+import BlockArt from "./BlockArt.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    THE PROGRAM — the full campaign console, on the main nav.
@@ -296,6 +297,7 @@ function WorkoutBreakdown({ workout }) {
             <div key={`${b.key}-${b.exercises[0]?.name}`} className="iw-al-brief-block">
               <div className="iw-al-brief-blockhead">
                 <span className="iw-al-brief-key">{b.key}</span>
+                <BlockArt kind={b.kind} className="iw-al-brief-art" label={blockTitle(b)} />
                 <span className="iw-al-brief-blocktitle">{blockTitle(b)}</span>
               </div>
               <div className="iw-al-brief-protocol"><HL text={protocolLine(b)} /></div>

@@ -2017,6 +2017,29 @@
   font-weight: 800;
   font-size: 12px;
 }
+.iw-block-art {
+  flex: none;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 36%, rgba(255, 255, 255, 0.06));
+  background:
+    radial-gradient(85% 85% at 50% 20%, color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 15%, transparent), transparent 72%),
+    rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), 0 0 18px color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 14%, transparent);
+}
+.iw-block-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.12) contrast(1.06);
+}
+.iw-al-brief-art {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
 .iw-al-brief-blocktitle {
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
@@ -2033,10 +2056,18 @@
 
 /* block intro gate */
 .iw-al-blockintro {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(232, 228, 218, 0.14);
   border-radius: 16px;
   padding: 20px 16px;
   background: linear-gradient(170deg, #17191c, #0f1012);
+}
+.iw-al-blockintro-art {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  margin: 0 0 14px;
 }
 .iw-al-blockintro .iw-al-brief-protocol { margin-top: 6px; }
 .iw-al-intro-chips { margin: 10px 0; }
@@ -2918,6 +2949,11 @@
   font-weight: 800;
   font-size: 13px;
   color: var(--iw-al-accent, #ff8a4d);
+}
+.iw-al-sm-art {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
 }
 .iw-al-sm-glyph { font-size: 13px; color: #e8e4da; }
 .iw-al-sm-kind { font-size: 11.5px; font-weight: 700; color: #c7c2b6; }

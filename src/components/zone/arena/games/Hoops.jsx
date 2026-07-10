@@ -357,7 +357,7 @@ export default function Hoops({ go, initialFullscreen = false }) {
       {/* deliberate End Game — the only way to stop a running game (the ✕ just leaves) */}
       {scene === "game" && (
         <button onClick={() => setConfirmEnd(true)} aria-label="End game" title="End game"
-          style={{ position: "absolute", top: 166, right: 8, zIndex: 400, padding: "6px 11px", borderRadius: 9, background: "rgba(40,8,12,0.72)", border: "1px solid rgba(239,68,68,0.6)", color: "#fecaca", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "1px", fontFamily: "'Oswald',sans-serif", backdropFilter: "blur(3px)" }}>END GAME</button>
+          style={{ position: "absolute", top: device === "phone" ? 250 : 166, right: 8, zIndex: 400, padding: "6px 11px", borderRadius: 9, background: "rgba(40,8,12,0.72)", border: "1px solid rgba(239,68,68,0.6)", color: "#fecaca", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "1px", fontFamily: "'Oswald',sans-serif", backdropFilter: "blur(3px)" }}>END GAME</button>
       )}
       {confirmEnd && (
         <div style={{ position: "absolute", inset: 0, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,10,0.72)", backdropFilter: "blur(4px)" }}>
@@ -384,10 +384,10 @@ export default function Hoops({ go, initialFullscreen = false }) {
       {scene === "howto" && <HowTo onBack={()=>setScene("menu")} />}
       {scene === "game" && (device === "ipad" ? (
         <IpadStage frame={frame}>
-          <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+          <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} device={device} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
         </IpadStage>
       ) : (
-        <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+        <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} meName={meRef.current.name} device={device} publishLine={publishLine} onEnd={(stats)=>{ if (players === 1) { clearActiveGame(); resumeRef.current = null; } setHasResume(!!resumeRef.current); setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
       ))}
       {scene === "final" && <FinalScreen stats={finalStats} players={players} opponent={opponent} onMenu={()=>{ endLive(); setScene("menu"); }} onReplay={()=>setScene(match ? "lobby" : "schedule")} />}
     </div>
@@ -672,7 +672,7 @@ function HowTo({ onBack }) {
 const RIM_TOP = 112;   // rim distance from the top of the play zone (lowered rig; drives ball landing)
 const RELEASE_BOTTOM_PCT = 0.30;
 
-function Arena({ players, schedule, snd, match, opponent, meName, publishLine, onEnd, resume }) {
+function Arena({ players, schedule, snd, match, opponent, meName, publishLine, onEnd, resume, device }) {
   const QSEC = (schedule ? schedule.hrs : 2) * 60 * 60;   // quarter length from schedule
   const windows = schedule ? schedule.windows : ["Q1","Q2","Q3","Q4"];
   const [score, setScore] = useState(resume ? resume.score : 0);
@@ -1219,7 +1219,7 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       <Ambience />
 
       {/* compact utility cluster — pinned upper-right below the jumbotron (no pause: the clock never stops once tip-off happens) */}
-      <div style={{ position: "absolute", top: 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
+      <div style={{ position: "absolute", top: device === "phone" ? 300 : 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
         <button onClick={() => setStatsOpen(true)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>STATS</button>
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
       </div>
@@ -1323,23 +1323,23 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       </div>
 
       {/* ===== LIVE STAT LINE — real-time counters + records to chase ===== */}
-      <div style={{ position: "absolute", bottom: 190, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 144, boxSizing: "border-box",
-        transform: "scale(0.99)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
-        background: "rgba(8,5,16,0.94)", border: "1.5px solid rgba(168,85,247,0.45)", borderRadius: 11, padding: "6px 9px",
+      <div style={{ position: "absolute", bottom: 190, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 158, boxSizing: "border-box",
+        transform: "scale(1.0)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
+        background: "rgba(8,5,16,0.94)", border: "1.5px solid rgba(168,85,247,0.45)", borderRadius: 11, padding: "7px 10px",
         backdropFilter: "blur(4px)", boxShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
-        <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7.5, letterSpacing: "1.5px", color: V_GLOW, textAlign: "center", marginBottom: 4, borderBottom: "1px solid rgba(168,85,247,0.25)", paddingBottom: 3 }}>YOUR NUMBERS</div>
+        <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: "2px", color: "#fff", textShadow: "0 0 8px rgba(168,85,247,0.95), 0 0 2px rgba(168,85,247,0.95)", textAlign: "center", marginBottom: 5, borderBottom: "1px solid rgba(168,85,247,0.35)", paddingBottom: 3 }}>YOUR NUMBERS</div>
         {[
-          { lbl: "KNOCKED",  val: tally.knock.a,  rec: records.knock, c: V },
+          { lbl: "KNOCKED",  val: tally.knock.a,  rec: records.knock, c: "#c084fc" },
           { lbl: "PITCHED",  val: tally.pitch.a,  rec: null,          c: "#38bdf8" },
-          { lbl: "INTERESTED", val: tally.price.a, rec: null,         c: "#22d3ee" },
-          { lbl: "SALES",    val: tally.close.m,  rec: records.close, c: GREEN },
-          { lbl: "NAMES",    val: tally.names,    rec: records.names, c: GOLD },
+          { lbl: "INTERESTED", val: tally.price.a, rec: null,         c: "#fb7185" },
+          { lbl: "SALES",    val: tally.close.m,  rec: records.close, c: "#34d399" },
+          { lbl: "NAMES",    val: tally.names,    rec: records.names, c: "#facc15" },
         ].map((s) => (
-          <div key={s.lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4, marginBottom: 2 }}>
-            <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: 7, letterSpacing: "0.2px", color: "#9d8bc0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.lbl}</span>
+          <div key={s.lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4, marginBottom: 2.5 }}>
+            <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7.7, letterSpacing: "0.3px", color: s.c, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.lbl}</span>
             <span style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
-              <span className="seg" style={{ fontWeight: 900, fontSize: 12, color: s.c, lineHeight: 1 }}>{s.val}</span>
-              {s.rec != null && <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6, color: s.val > s.rec ? GOLD : "#6b5b88", fontWeight: 700, minWidth: 16, textAlign: "left" }}>{s.val > s.rec ? "★PR" : `/${s.rec}`}</span>}
+              <span className="seg" style={{ fontWeight: 900, fontSize: 13.5, color: s.c, textShadow: `0 0 6px ${s.c}`, lineHeight: 1 }}>{s.val}</span>
+              {s.rec != null && <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6.6, color: s.val > s.rec ? GOLD : "#6b5b88", fontWeight: 700, minWidth: 17, textAlign: "left" }}>{s.val > s.rec ? "★PR" : `/${s.rec}`}</span>}
             </span>
           </div>
         ))}
@@ -1594,9 +1594,7 @@ const TICKER_ADS = [
   { tag: "THE NAME",    big: "REMEMBER", l1: "A neighbor's name",      l2: "beats 1,000 calls.",      c: "#22d3ee" },
   { tag: "STAY HOT",    big: "HYDRATE",  l1: "A hydrated brain",       l2: "closes more.",            c: "#38bdf8" },
 ];
-function JumbotronTicker({ side = "left" }) {
-  const [i, setI] = useState(side === "left" ? 0 : 6);   // stagger the two sides
-  useEffect(() => { const t = setInterval(() => setI((n) => (n + 1) % TICKER_ADS.length), 4200); return () => clearInterval(t); }, []);
+function JumbotronTicker({ i = 0 }) {
   const ad = TICKER_ADS[i];
   return (
     <div style={{ flex: 1, minWidth: 0, height: 72, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
@@ -1615,6 +1613,9 @@ function JumbotronTicker({ side = "left" }) {
 
 function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, quarterBonus, urgency, windows = [], multiplayer = false, opponent, oppFx, meName }) {
   const clockColor = urgency === 3 ? "#ff2d55" : urgency === 2 ? FIRE : "#fff";
+  // both jumbotron tickers share ONE index so left & right show the SAME tip together
+  const [tickI, setTickI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTickI((n) => (n + 1) % TICKER_ADS.length), 4200); return () => clearInterval(t); }, []);
   // multiplayer HOME-vs-AWAY derived values (harmless in solo: opponent is undefined)
   const PINK = "#ec4899";                       // rival tint — matches the on-court floaties
   const oppPts = opponent?.points ?? 0;
@@ -1624,8 +1625,8 @@ function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZon
   const leadColor = lead > 0 ? V_GLOW : lead < 0 ? PINK : "#8b7ba8";
   const oppFlash = multiplayer && !!oppFx;
   return (
-    <div style={{ position: "absolute", top: 10, left: "50%", width: "92%", maxWidth: 480, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
-      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(0.98)", transformOrigin: "top center" }}>
+    <div style={{ position: "absolute", top: 10, left: "50%", width: "94%", maxWidth: 504, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
+      <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(1.0)", transformOrigin: "top center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 6 }}>
           <Phoenix size={16} /><div className="seg" style={{ fontWeight: 900, fontSize: 11, letterSpacing: "2px" }}>MILESTONE <span style={{ color: V_GLOW }}>MAPPING</span></div>
         </div>
@@ -1673,9 +1674,9 @@ function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZon
           <div style={{ display: "flex", justifyContent: "center", gap: 5, marginBottom: 1 }}>{[1,2,3,4].map((q) => <span key={q} className="seg" style={{ fontWeight: 900, fontSize: 11, padding: "1px 6px", borderRadius: 4, color: q === quarter ? "#050310" : "#5b4b78", background: q === quarter ? V_GLOW : "transparent" }}>Q{q}</span>)}</div>
           <div style={{ fontSize: 7, letterSpacing: "2px", color: "#6b5b88", fontWeight: 700, textAlign: "center" }}>TIME LEFT IN QUARTER{windows[quarter-1] ? ` · ${windows[quarter-1]}` : ""}</div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <JumbotronTicker side="left" />
-            <div className="seg" style={{ fontSize: "clamp(15px,4.4vw,24px)", fontWeight: 900, color: clockColor, textShadow: urgency >= 2 ? `0 0 20px ${clockColor}` : "none", animation: urgency === 3 ? "flare 0.5s infinite" : "none", flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(clock)}</div>
-            <JumbotronTicker side="right" />
+            <JumbotronTicker i={tickI} />
+            <div className="seg" style={{ fontSize: "clamp(17px,4.9vw,27px)", fontWeight: 900, color: clockColor, textShadow: urgency >= 2 ? `0 0 20px ${clockColor}` : "none", animation: urgency === 3 ? "flare 0.5s infinite" : "none", flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(clock)}</div>
+            <JumbotronTicker i={tickI} />
           </div>
         </div>
       </div>

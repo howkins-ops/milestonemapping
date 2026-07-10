@@ -63,11 +63,14 @@ function GameCard({ game, index, onPick }) {
           {meta.label}
         </span>
         <span className="arn-card__portrait" aria-hidden="true">
+          <img className="arn-card__image" src={game.image} alt="" loading="lazy" />
           <span className="arn-card__aura" />
           <span className="arn-glyph">{game.glyph}</span>
         </span>
         <span className="arn-card__title">{game.title}</span>
-        <span className="arn-card__tag">{game.tagline}</span>
+        <span className="arn-card__tag">{game.short || game.tagline}</span>
+        <span className="arn-card__summary">{game.summary}</span>
+        <span className="arn-card__benefit">{game.benefit}</span>
         <span className="arn-card__enter" aria-hidden="true">
           Enter →
         </span>

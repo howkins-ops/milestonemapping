@@ -64,15 +64,19 @@ export default function RosterSheet({ open, onClose, onPickGame, onPickView }) {
                   style={{ "--rt": accent, "--i": i }}
                   onClick={() => onPickGame?.(game.key)}
                 >
-                  <span className="roster-tile__glyph" aria-hidden="true">
-                    {game.glyph}
+                  <span className="roster-tile__media" aria-hidden="true">
+                    <img src={game.image} alt="" loading="lazy" />
+                    <span className="roster-tile__glyph">
+                      {game.glyph}
+                    </span>
                   </span>
                   <span className="roster-tile__text">
                     <span className="roster-tile__toprow">
                       <span className="roster-tile__title">{game.title}</span>
                       <span className="roster-scope">{SCOPE_LABEL[game.scope] || game.scope}</span>
                     </span>
-                    <span className="roster-tile__tag">{game.tagline}</span>
+                    <span className="roster-tile__tag">{game.short || game.tagline}</span>
+                    <span className="roster-tile__explain">{game.summary}</span>
                   </span>
                   <span className="roster-tile__arrow" aria-hidden="true">→</span>
                 </button>

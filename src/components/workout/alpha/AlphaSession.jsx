@@ -8,6 +8,7 @@ import ExerciseHowTo from "./ExerciseHowTo.jsx";
 import ExerciseHero from "./ExerciseHero.jsx";
 import HL from "./HL.jsx";
 import SessionBriefing, { blockTitle, protocolLine, KIND_BLURBS } from "./SessionBriefing.jsx";
+import BlockArt from "./BlockArt.jsx";
 import { assessBlock, suggestWeight } from "./engine/autoDifficulty.js";
 import { blockVolume, workCapacity, bumpPrompt, beatsPrevious } from "./engine/densityEngine.js";
 import { moveByName } from "./data/moves.js";
@@ -221,6 +222,7 @@ export default function AlphaSession({ workout, phase, bestPRs, lastWeights, set
 function BlockIntroCard({ block, index, count, onBegin }) {
   return (
     <div className="iw-al-blockintro iw-drop-in">
+      <BlockArt kind={block.kind} className="iw-al-blockintro-art" label={blockTitle(block)} />
       <div className="iw-eyebrow">block {block.key} · {index + 1} of {count}</div>
       <h2 className="iw-display iw-session-lift">{blockTitle(block)}</h2>
       <div className="iw-al-brief-protocol"><HL text={protocolLine(block)} /></div>

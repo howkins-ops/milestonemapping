@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import AuthGate from "./components/auth/AuthGate.jsx";
 import AppShell from "./components/layout/AppShell.jsx";
 import BootSequence from "./components/layout/BootSequence.jsx";
@@ -166,6 +166,10 @@ function AppContent({ signOut }) {
     setZoneNonce((n) => n + 1);
     setZoneOpen(true);
   };
+
+  // Stable so ZonePage's `go` router (which closes the overlay when Hoops was
+  // launched from the main-screen button) keeps a constant identity.
+  const closeZone = useCallback(() => setZoneOpen(false), []);
 
   const navigate = (page) => {
     if (page === "zone") { openZone(); return; }
@@ -434,6 +438,7 @@ function AppContent({ signOut }) {
                   initialParam={zoneInitial?.param}
                   onNavigate={(page) => { setZoneOpen(false); navigate(page); }}
                   onOpenMapQuest={() => { setZoneOpen(false); openMapQuest(); }}
+                  onCloseZone={closeZone}
                 />
               </Suspense>
             </div>
