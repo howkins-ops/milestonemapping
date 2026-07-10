@@ -55,8 +55,9 @@ export default function AlphaToday({ alpha, onStartWorkout, onOpenRoad, onOpenZo
             {STYLE_LABEL[workout.style] || workout.style} · {blockCount(workout)} block
             {blockCount(workout) === 1 ? "" : "s"}
           </span>
-          <button className="iw-btn-ember iw-btn-wide iw-al-today-go" onClick={() => onStartWorkout(workout.id)}>
-            ▶ Start workout
+          <button className="iw-btn-ember iw-btn-forge iw-btn-wide iw-al-today-go" onClick={() => onStartWorkout(workout.id)}>
+            <span className="iw-btn-main">ENTER THE 45</span>
+            <span className="iw-btn-sub">today's session is live</span>
           </button>
         </div>
       ) : slot?.kind === "cardio" ? (

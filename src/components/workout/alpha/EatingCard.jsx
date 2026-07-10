@@ -34,7 +34,7 @@ export default function EatingCard({ state, slot, dayLabel, onOpenCalculator, on
   const surplus = m.calories > m.maintenance;
 
   return (
-    <div className="iw-al-card">
+    <div className="iw-al-card iw-al-zone-card iw-al-eating-card">
       <div className="iw-al-card-head">
         <span className="iw-eyebrow">today · {dayLabel} · the eating equation</span>
         <span className={`iw-chip ${isWorkoutDay ? "iw-chip-ember" : ""}`}>

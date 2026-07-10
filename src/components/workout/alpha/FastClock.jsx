@@ -41,7 +41,7 @@ export default function FastClock({ alpha, phase, addXP, settings }) {
   };
 
   return (
-    <div className="iw-al-card">
+    <div className="iw-al-card iw-al-zone-card iw-al-fast-card">
       <div className="iw-al-card-head">
         <span className="iw-eyebrow iw-al-card-title">fast / eat clock · {windowLabel}</span>
         {streak > 0 && <span className="iw-chip iw-chip-ember">🔥 {streak}</span>}

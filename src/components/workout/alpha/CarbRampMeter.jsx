@@ -15,7 +15,7 @@ export default function CarbRampMeter({ state }) {
   const notes = PHASES.prime.eating.carbNotes || [];
   const note = notes[Math.min(state.week, 4) - 1];
   return (
-    <div className="iw-al-card">
+    <div className="iw-al-card iw-al-zone-card iw-al-ramp-card">
       <div className="iw-eyebrow iw-al-card-title">the carb ramp · training days</div>
       <div className="iw-al-ramp">
         {TIERS.map((t) => {

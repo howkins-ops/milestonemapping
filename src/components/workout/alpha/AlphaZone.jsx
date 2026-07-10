@@ -62,7 +62,12 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
       </div>
 
       {/* TODAY */}
-      <div className="iw-al-card iw-al-todaycard">
+      <div className="iw-al-card iw-al-zone-card iw-al-todaycard">
+        <div className="iw-al-today-plate" aria-hidden="true">
+          <span className="iw-al-today-plate-ring" />
+          <span className="iw-al-today-plate-core" />
+          <span className="iw-al-today-plate-cut" />
+        </div>
         <div className="iw-al-card-head">
           <span className="iw-eyebrow">today · {DAY_LABELS[todayIdx]}</span>
           <span className="iw-al-todaytags">
@@ -73,6 +78,10 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
 
         {slot?.kind === "workout" && slot.workout && (
           <>
+            <div className="iw-al-today-status">
+              <span className="iw-al-status-dot" aria-hidden="true" />
+              <span>session armed</span>
+            </div>
             <div className="iw-al-today-name">{slot.workout.name}</div>
             <div className="iw-al-today-blocks">
               {slot.workout.blocks.map((b) => (
@@ -89,8 +98,9 @@ export default function AlphaZone({ alpha, workoutData, addXP, settings, onStart
                 </span>
               ))}
             </div>
-            <button className="iw-btn-ember iw-btn-wide" onClick={() => onStartWorkout(slot.workout.id)}>
-              ⚡ START — {slot.workout.name}
+            <button className="iw-btn-ember iw-btn-forge iw-btn-wide" onClick={() => onStartWorkout(slot.workout.id)}>
+              <span className="iw-btn-main">ENTER THE 45</span>
+              <span className="iw-btn-sub">{slot.workout.name}</span>
             </button>
           </>
         )}

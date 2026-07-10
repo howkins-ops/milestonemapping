@@ -176,8 +176,9 @@ export default function SessionBriefing({ workout, phase, lastWeights, onStart }
         opening lift. Train within your range and stop if anything sharp shows up.
       </p>
 
-      <button className="iw-btn-ember iw-btn-wide" onClick={onStart}>
-        ▶ START WORKOUT <span className="iw-btn-sub">· step under the bar</span>
+      <button className="iw-btn-ember iw-btn-forge iw-btn-wide" onClick={onStart}>
+        <span className="iw-btn-main">ENTER THE 45</span>
+        <span className="iw-btn-sub">step under the bar</span>
       </button>
     </div>
   );

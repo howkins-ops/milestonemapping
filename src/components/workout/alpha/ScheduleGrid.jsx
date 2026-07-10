@@ -22,7 +22,7 @@ export default function ScheduleGrid({ phaseId, week, sessions }) {
   );
 
   return (
-    <div className="iw-al-card">
+    <div className="iw-al-card iw-al-zone-card iw-al-schedule-card">
       <div className="iw-eyebrow iw-al-card-title">this week · week {week} of 4</div>
       <div className="iw-al-weeklist">
         {days.map((s, di) => {

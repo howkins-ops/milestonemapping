@@ -451,11 +451,12 @@ export default function IronWorkout({ onExit, startOpen = false }) {
       </div>
 
       {(alpha.state.flags.crossingDone || plans.length > 0) && (
-        <button className="iw-btn-ember iw-btn-wide" onClick={() => {
+        <button className="iw-btn-ember iw-btn-forge iw-btn-wide" onClick={() => {
           if (alpha.state.flags.crossingDone || plans.length === 0) go({ name: "today" });
           else go({ name: "plan", id: (lastSession && plans.find((p) => p.id === lastSession.plan_id)?.id) || plans[0].id });
         }}>
-          ⚡ start today&apos;s workout
+          <span className="iw-btn-main">ENTER THE 45</span>
+          <span className="iw-btn-sub">today&apos;s session is ready</span>
         </button>
       )}
 
@@ -702,7 +703,10 @@ function PlanPage({ plan, onBack, onEdit, onStart }) {
       </div>
 
       {exercises.length > 0 && (
-        <button className="iw-btn-ember iw-btn-wide" onClick={onStart}>⚡ start session</button>
+        <button className="iw-btn-ember iw-btn-forge iw-btn-wide" onClick={onStart}>
+          <span className="iw-btn-main">ENTER THE 45</span>
+          <span className="iw-btn-sub">step under the bar</span>
+        </button>
       )}
 
       <div className="iw-eyebrow iw-shelf-label">the lifts</div>
@@ -974,4 +978,3 @@ function HoldControl({ seconds, onLog, settings }) {
     </div>
   );
 }
-

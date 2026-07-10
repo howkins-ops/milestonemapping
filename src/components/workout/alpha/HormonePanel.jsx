@@ -28,7 +28,7 @@ export default function HormonePanel({ alpha, addXP, settings, compact = false }
   };
 
   return (
-    <div className="iw-al-card">
+    <div className="iw-al-card iw-al-zone-card iw-al-hormone-card">
       <div className="iw-al-card-head">
         <span className="iw-eyebrow iw-al-card-title">the hormone codex</span>
         <span className="iw-chip">{cond} condition</span>
