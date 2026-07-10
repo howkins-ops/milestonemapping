@@ -168,8 +168,20 @@ function loadActiveGame() {
     const raw = localStorage.getItem(ACTIVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
+    // s.clock is the RAW game-seconds left at save time (always > 0 when persisted).
     if (!s || s.v !== 1 || s.players !== 1 || !(s.clock > 0)) return null;
     if (s.savedAt && Date.now() - s.savedAt > MAX_RESUME_MS) return null;
+    // ---- advance the clock for the real time the app was closed ----
+    // The quarter runs in real wall-clock time, so a closed game keeps ticking.
+    // Rebuild the anchor from clock + savedAt + timeScale on the next open.
+    const ts = s.timeScale || 1;
+    const gap = s.savedAt ? ((Date.now() - s.savedAt) / 1000) * ts : 0; // game-secs elapsed while closed
+    const drainGap = Math.min(gap, s.clock) * DRAIN_PER_GAME_SEC;       // energy catches up too
+    s.energy = Math.max(0, (s.energy != null ? s.energy : 70) - drainGap);
+    const advanced = s.clock - gap;
+    if (advanced <= 0) { s.clock = 0; s.resumeEnded = true; } // quarter ended while away → resume into the break
+    else { s.clock = advanced; }
+    s.timeScale = ts;
     return s;
   } catch (e) { return null; }
 }
@@ -184,6 +196,26 @@ export default function Hoops({ go, initialFullscreen = false }) {
   const [scene, setScene] = useState(resumed ? "game" : "intro");
   const [sound, setSound] = useState(true);
   const [players, setPlayers] = useState(1);
+  // 'phone' | 'ipad' — picked every session on the device-select screen (not persisted).
+  // A resumed game skips the picker, so seed it once from a screen-size sniff.
+  const [device, setDevice] = useState(() =>
+    resumed && typeof window !== "undefined" && Math.min(window.innerWidth, window.innerHeight) >= 768 ? "ipad" : "phone"
+  );
+  // Live size of the game's own frame (inside the safe-area insets) — drives the
+  // iPad "portrait stage" fit-to-height scale. Measured off the root via ResizeObserver.
+  const rootRef = useRef(null);
+  const [frame, setFrame] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return undefined;
+    const measure = () => setFrame({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    let ro;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("orientationchange", measure); };
+  }, []);
   const [finalStats, setFinalStats] = useState(null);
   const [schedule, setSchedule] = useState(
     resumed ? (SCHEDULES.find((s) => s.id === resumed.scheduleId) || SCHEDULES[0]) : SCHEDULES[0]
@@ -255,7 +287,7 @@ export default function Hoops({ go, initialFullscreen = false }) {
     } catch (e) { /* season logging never blocks the game */ }
   }, []);
   return (
-    <div style={{ position: "fixed", top: "var(--safe-top, 0px)", bottom: "var(--safe-bottom, 0px)", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
+    <div ref={rootRef} style={{ position: "fixed", top: "var(--safe-top, 0px)", bottom: "var(--safe-bottom, 0px)", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@500;600;700&family=Orbitron:wght@700;900&display=swap');
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
@@ -316,11 +348,18 @@ export default function Hoops({ go, initialFullscreen = false }) {
           style={{ position: "absolute", top: 8, left: 8, zIndex: 400, width: 32, height: 32, borderRadius: 9, background: "rgba(8,5,16,0.66)", border: "1px solid rgba(168,85,247,0.5)", color: "#fff", cursor: "pointer", fontSize: 14, lineHeight: 1, backdropFilter: "blur(3px)" }}>✕</button>
       )}
       {scene === "intro" && <Presenter onDone={() => { snd.chord([440,660,880],0.3); snd.roar(0.3); setScene("menu"); }} snd={snd} />}
-      {scene === "menu" && <Menu onPlay={()=>{setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("schedule");}} onMulti={()=>{ snd.chord([523,659,784],0.25); setScene("lobby"); }} onHow={()=>setScene("howto")} sound={sound} setSound={setSound} />}
-      {scene === "lobby" && <Lobby match={match} opponent={opponent} meName={meRef.current.name} onSetName={(n)=>{ meRef.current.name = n || "Rep"; }} onHost={()=>startLive(makeMatchCode(), true)} onJoin={(code)=>startLive(code, false)} onLeave={endLive} onStart={()=>{ setPlayers(2); snd.chord([523,659,784,988],0.3); setScene("schedule"); }} onBack={()=>{ endLive(); setScene("menu"); }} />}
-      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ clearActiveGame(); resumeRef.current = null; setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene(match ? "lobby" : "menu")} />}
+      {scene === "menu" && <Menu onPlay={()=>{setPlayers(1); endLive(); snd.chord([523,659,784],0.25); setScene("deviceselect");}} onMulti={()=>{ snd.chord([523,659,784],0.25); setScene("lobby"); }} onHow={()=>setScene("howto")} sound={sound} setSound={setSound} />}
+      {scene === "lobby" && <Lobby match={match} opponent={opponent} meName={meRef.current.name} onSetName={(n)=>{ meRef.current.name = n || "Rep"; }} onHost={()=>startLive(makeMatchCode(), true)} onJoin={(code)=>startLive(code, false)} onLeave={endLive} onStart={()=>{ setPlayers(2); snd.chord([523,659,784,988],0.3); setScene("deviceselect"); }} onBack={()=>{ endLive(); setScene("menu"); }} />}
+      {scene === "deviceselect" && <DeviceSelect onPick={(d)=>{ setDevice(d); snd.chord([523,659,784,988],0.3); setScene("schedule"); }} onBack={()=>setScene(match ? "lobby" : "menu")} />}
+      {scene === "schedule" && <ScheduleSelect onPick={(s)=>{ clearActiveGame(); resumeRef.current = null; setSchedule(s); snd.chord([523,659,784,988],0.3); setScene("game"); }} onBack={()=>setScene("deviceselect")} />}
       {scene === "howto" && <HowTo onBack={()=>setScene("menu")} />}
-      {scene === "game" && <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />}
+      {scene === "game" && (device === "ipad" ? (
+        <IpadStage frame={frame}>
+          <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+        </IpadStage>
+      ) : (
+        <Arena resume={resumeRef.current} players={players} schedule={schedule} snd={snd} match={match} opponent={opponent} publishLine={publishLine} onEnd={(stats)=>{ clearActiveGame(); resumeRef.current = null; setFinalStats(stats); logHoopsGame(stats); setScene("final"); }} />
+      ))}
       {scene === "final" && <FinalScreen stats={finalStats} players={players} opponent={opponent} onMenu={()=>{ endLive(); setScene("menu"); }} onReplay={()=>setScene(match ? "lobby" : "schedule")} />}
     </div>
   );
@@ -481,6 +520,70 @@ function LawPanel() {
   );
 }
 
+// ===== iPad "portrait stage" ==================================================
+// The Arena is a stack of absolutely-positioned, phone-tuned pixels with no central
+// scale knob. On iPad we render it onto a fixed design canvas (phone-shaped) that is
+// centered and transform-scaled to fill the screen height — so the whole game grows
+// as one crisp unit instead of floating small. Held upright, it fills top-to-bottom.
+const IPAD_DW = 430;   // design width  — the phone width the game was tuned for
+const IPAD_DH = 924;   // design height — portrait, ~iPhone content box
+function IpadStage({ frame, children }) {
+  const ready = frame && frame.w > 0 && frame.h > 0;
+  // fit-contain: fills height on a tall portrait iPad; never clips in landscape.
+  const s = ready ? Math.min(frame.w / IPAD_DW, frame.h / IPAD_DH) : 1;
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "50%", left: "50%", width: IPAD_DW, height: IPAD_DH,
+        transform: `translate(-50%,-50%) scale(${s})`, transformOrigin: "center center" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ===== device picker — shown after Start Game / Tip Off, before the day schedule =====
+// A small styled device glyph reads clearer than an emoji (no real tablet emoji).
+const DeviceGlyph = ({ w, h, accent }) => (
+  <div style={{ width: w, height: h, margin: "2px auto 14px", borderRadius: Math.round(w * 0.18), border: `2.5px solid ${accent}`, background: `${accent}14`, boxShadow: `0 0 18px ${accent}44`, position: "relative" }}>
+    <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", width: Math.round(w * 0.3), height: 3, borderRadius: 2, background: accent }} />
+  </div>
+);
+function DeviceSelect({ onPick, onBack }) {
+  const CARDS = [
+    { id: "phone", name: "iPHONE", accent: WATER, gw: 46, gh: 82, blurb: "Standard size", sub: "Hold it upright" },
+    { id: "ipad",  name: "iPAD",   accent: V,     gw: 74, gh: 96, blurb: "Bigger court · fills the screen", sub: "Hold it upright" },
+  ];
+  return (
+    <div className="noscroll" style={{ position: "absolute", inset: 0, overflowY: "auto", background: `radial-gradient(ellipse at 50% 0%, #160c2a, ${BG} 65%)`, padding: "26px 16px 40px" }}>
+      <Ambience />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+        <button onClick={onBack} style={{ ...ctrlBtn, minWidth: 34 }}>←</button>
+        <div className="seg" style={{ fontWeight: 900, fontSize: 22, letterSpacing: "2px" }}>CHOOSE YOUR SCREEN</div>
+      </div>
+      <div style={{ color: "#8b7ba8", fontSize: 12, letterSpacing: "2px", marginBottom: 18, fontFamily: "'Oswald',sans-serif", fontWeight: 600 }}>PICK YOUR DEVICE · SIZES THE COURT TO FIT</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12, maxWidth: 460, margin: "0 auto" }}>
+        {CARDS.map((c) => (
+          <button key={c.id} onClick={() => onPick(c.id)} style={{
+            textAlign: "center", padding: "26px 14px 22px", borderRadius: 18, cursor: "pointer",
+            background: "linear-gradient(180deg, rgba(20,11,36,0.9), #0c0718)", border: `2px solid ${c.accent}`,
+            boxShadow: `0 0 22px ${c.accent}33`, color: "#fff", transition: "transform .1s",
+          }}
+          onMouseDown={(e)=>e.currentTarget.style.transform="scale(0.97)"}
+          onMouseUp={(e)=>e.currentTarget.style.transform="scale(1)"}>
+            <DeviceGlyph w={c.gw} h={c.gh} accent={c.accent} />
+            <div className="seg" style={{ fontWeight: 900, fontSize: 22, letterSpacing: "1px", color: c.accent, textShadow: `0 0 14px ${c.accent}` }}>{c.name}</div>
+            <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: "1px", color: "#e6e0f5", marginTop: 8 }}>{c.blurb}</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: "1px", color: "#9d8bc0", marginTop: 3 }}>{c.sub}</div>
+          </button>
+        ))}
+      </div>
+      <div style={{ textAlign: "center", marginTop: 22, color: "#6b5b88", fontSize: 12, letterSpacing: "1px", fontFamily: "'Rajdhani',sans-serif", fontWeight: 600 }}>
+        On iPad the court scales up to fill your screen. You can change this next time you start a game.
+      </div>
+    </div>
+  );
+}
+
 function ScheduleSelect({ onPick, onBack }) {
   return (
     <div className="noscroll" style={{ position: "absolute", inset: 0, overflowY: "auto", background: `radial-gradient(ellipse at 50% 0%, #160c2a, ${BG} 65%)`, padding: "26px 16px 40px" }}>
@@ -565,7 +668,13 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     ];
     if (snd) setTimeout(() => snd.whistle(), 100);   // real ref whistle
     const timers = seq.map(([t, v]) => setTimeout(() => {
-      if (v === null) { setCountdown(null); setRunning(true); if (snd) snd.roar(0.5); }
+      if (v === null) {
+        // tip-off: anchor the wall-clock timer to this instant
+        anchorRef.current = { atMs: Date.now(), gameClock: QSEC, timeScale: 1 };
+        lastDrainElapsedRef.current = 0; quarterEndedRef.current = false;
+        lastHourRef.current = 0; sipsThisHourRef.current = 0;
+        setCountdown(null); setRunning(true); if (snd) snd.roar(0.5);
+      }
       else { setCountdown(v); if (snd && v !== "TIP OFF!") snd.beep(700, 0.12, "sine", 0.12); }
     }, t));
     return () => timers.forEach(clearTimeout);
@@ -573,7 +682,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   // 1 = real time: 1 game-second per real second, so a 2-hour (7200s) quarter
   // runs a full 2 real hours (buzzer-to-buzzer sales window). The speed toggle
   // below can bump to 60× (a ~2-min quarter) for demos/testing.
-  const [timeScale, setTimeScale] = useState(1);
+  const [timeScale, setTimeScale] = useState(resume && resume.timeScale ? resume.timeScale : 1);
   const [streak, setStreak] = useState(resume ? resume.streak : 0);
   const [energy, setEnergy] = useState(resume ? resume.energy : 70);    // drains from the clock; drinking refills it
   const [water, setWater] = useState(resume ? resume.water : 100);     // water level in your bottle; drinking empties it
@@ -587,7 +696,6 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   const sipsRef = useRef(0);
   const [floaties, setFloaties] = useState([]);
   const [warn, setWarn] = useState(null);
-  const [paused, setPaused] = useState(false);
   const [nameModal, setNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [names, setNames] = useState(resume && Array.isArray(resume.names) ? resume.names : []);
@@ -613,6 +721,15 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   }, []);
   const qStartRef = useRef({ tally: emptyTally(), score: 0, cups: 0 }); // snapshot at quarter start
   const quarterScoresRef = useRef([]);  // per-quarter points for the box score
+  // ---- wall-clock-anchored quarter clock ----
+  // The clock is DERIVED from an anchor, never decremented, so it survives iOS
+  // suspending the tab (screen lock / app background) — on return we recompute
+  // from real elapsed time. anchor = { atMs, gameClock, timeScale }: the real
+  // timestamp, game-seconds left at that instant, and the scale in force since.
+  const anchorRef = useRef({ atMs: Date.now(), gameClock: resume ? resume.clock : QSEC, timeScale: resume && resume.timeScale ? resume.timeScale : 1 });
+  const lastDrainElapsedRef = useRef(resume ? QSEC - resume.clock : 0); // game-secs-into-quarter drain was last applied at
+  const quarterEndedRef = useRef(false);   // fire the end-of-quarter path exactly once
+  const buildReportRef = useRef(null);     // always-fresh buildReport for the stable recompute
   // On resume, restore the non-state refs from the saved snapshot.
   useEffect(() => {
     if (!resume) return;
@@ -621,6 +738,22 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     sipsRef.current = resume.sips || 0;
     if (Array.isArray(resume.quarterScores)) quarterScoresRef.current = resume.quarterScores;
     if (resume.qStart) qStartRef.current = resume.qStart;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // On resume, seed the clock anchor / hour tracker OR — if the quarter's time ran
+  // out while the app was closed — drop straight into that quarter's coaching break.
+  // Runs after the ref-restore effect above so qStartRef is populated for buildReport.
+  useEffect(() => {
+    if (!resume) return;
+    if (resume.resumeEnded || resume.clock <= 0) {
+      setRunning(false);
+      quarterEndedRef.current = true;
+      setTimeout(() => buildReportRef.current && buildReportRef.current(), 300);
+    } else {
+      anchorRef.current = { atMs: Date.now(), gameClock: resume.clock, timeScale: resume.timeScale || 1 };
+      lastDrainElapsedRef.current = QSEC - resume.clock;
+      lastHourRef.current = Math.floor((QSEC - resume.clock) / 3600);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Persist an in-progress SOLO game each tick so a refresh / re-open resumes it.
@@ -632,14 +765,14 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     try {
       localStorage.setItem(ACTIVE_KEY, JSON.stringify({
         v: 1, scheduleId: schedule && schedule.id, players,
-        score, quarter, clock, streak, energy, water, cups, bottles,
+        score, quarter, clock, timeScale, streak, energy, water, cups, bottles,
         tally, names, accuracy,
         made: madeRef.current, attempts: attemptsRef.current,
         quarterScores: quarterScoresRef.current, sips: sipsRef.current,
         qStart: qStartRef.current, savedAt: Date.now(),
       }));
     } catch (e) { /* storage blocked/full — non-fatal */ }
-  }, [players, match, running, clock, quarter, score, streak, energy, water, cups, bottles, tally, names, accuracy, schedule]);
+  }, [players, match, running, clock, timeScale, quarter, score, streak, energy, water, cups, bottles, tally, names, accuracy, schedule]);
   const [report, setReport] = useState(null);           // legacy stat report (unused — replaced by the coaching break)
   const [breakInfo, setBreakInfo] = useState(null);     // coaching-break payload: { quarter, read, statLine, isFinal }
   const [statsOpen, setStatsOpen] = useState(false);    // live box-score overlay
@@ -674,7 +807,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     // distracting. Discrete reactions (swish, roar, cheers on big plays) still fire.
     snd.bedStop();
     return undefined;
-  }, [running, paused, snd]);
+  }, [running, snd]);
   useEffect(() => {
     snd.bedEnergy(Math.min(1, (streak / 8) * (inZone ? 1 : 0.85)));
   }, [streak, inZone, snd]);
@@ -700,34 +833,74 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     }
   }, [opponent, snd]);
 
-  useEffect(() => {
-    if (!running || paused) return;
-    const iv = setInterval(() => {
-      setClock((c) => {
-        const n = c - timeScale;
-        // ---- hydration is driven by the GAME clock, not wall-clock ----
-        // elapsed game-seconds since quarter start
-        const elapsed = QSEC - Math.max(0, n);
-        const secIntoHour = elapsed % 3600;          // 0..3599 within current hour
-        const hourBlock = Math.floor(elapsed / 3600); // 0 = first hour, 1 = second
-        // if we crossed into a new hour, reset the "did they drink" tracker
-        if (hourBlock !== lastHourRef.current) {
-          lastHourRef.current = hourBlock;
-          sipsThisHourRef.current = 0;
-          setDryHourWarn(false);
-        }
-        // last 10 game-minutes of the hour with no water this hour => warn
-        if (secIntoHour > 3000 && sipsThisHourRef.current === 0) setDryHourWarn(true);
-        else if (sipsThisHourRef.current > 0) setDryHourWarn(false);
+  // ---- recompute the derived clock from the wall-clock anchor ----
+  // Pure function of the anchor + refs (stable across renders); called from the
+  // interval, the pause/timeScale effects, and on visibility return. It reads the
+  // anchor's OWN timeScale, never the live state, so a mid-quarter toggle can't race.
+  const recomputeClock = useCallback(() => {
+    const now = Date.now();
+    const a = anchorRef.current;
+    const gameElapsed = ((now - a.atMs) / 1000) * a.timeScale; // game-secs burned since the anchor
+    const rawRemaining = a.gameClock - gameElapsed;            // may go <= 0
+    const qElapsed = QSEC - Math.max(0, rawRemaining);         // game-secs into the quarter (monotonic)
+    // ---- hydration: same hour-block / dry-hour rules, driven off game-elapsed ----
+    const secIntoHour = qElapsed % 3600;
+    const hourBlock = Math.floor(qElapsed / 3600);
+    if (hourBlock !== lastHourRef.current) {
+      lastHourRef.current = hourBlock;
+      sipsThisHourRef.current = 0;
+      setDryHourWarn(false);
+    }
+    if (secIntoHour > 3000 && sipsThisHourRef.current === 0) setDryHourWarn(true);
+    else if (sipsThisHourRef.current > 0) setDryHourWarn(false);
+    // ---- energy: drain only the delta since the last recompute, so it catches up
+    // after a background/close gap (drinking still refills energy separately) ----
+    const drain = (qElapsed - lastDrainElapsedRef.current) * DRAIN_PER_GAME_SEC;
+    if (drain > 0) { setEnergy((e) => Math.max(0, e - drain)); lastDrainElapsedRef.current = qElapsed; }
+    // ---- end of quarter: test raw remaining, fire exactly once ----
+    if (rawRemaining <= 0) {
+      if (!quarterEndedRef.current) {
+        quarterEndedRef.current = true;
+        setClock(0); setRunning(false);
+        setTimeout(() => buildReportRef.current && buildReportRef.current(), 300);
+      }
+      return;
+    }
+    setClock(Math.max(0, Math.ceil(rawRemaining))); // integer: keeps the 1-beep/sec + save cadence
+  }, [QSEC]);
 
-        if (n <= 0) { setRunning(false); setTimeout(() => buildReport(), 300); return 0; }
-        return n;
-      });
-      // drain proportional to game-time: exactly 100% over one game-hour
-      setEnergy((e) => Math.max(0, e - DRAIN_PER_GAME_SEC * timeScale));
-    }, 1000);
+  // Drive the derived clock on a light interval (smooth UI + hydration/energy).
+  // The math is anchored to wall time, so it survives iOS suspending the tab.
+  // There is NO pause — once tip-off happens the game clock never stops.
+  useEffect(() => {
+    if (!running) return;
+    const iv = setInterval(recomputeClock, 250);
+    recomputeClock();                 // sync immediately on (re)start
     return () => clearInterval(iv);
-  }, [running, paused, timeScale, quarter, onEnd]);
+  }, [running, recomputeClock]);
+
+  // Speed toggle (1×/60×): re-anchor at the OLD scale, then stamp the NEW scale.
+  useEffect(() => {
+    if (!running) return;
+    const now = Date.now();
+    const a = anchorRef.current;
+    const remaining = Math.max(0, a.gameClock - ((now - a.atMs) / 1000) * a.timeScale);
+    anchorRef.current = { atMs: now, gameClock: remaining, timeScale };
+    setClock(Math.max(0, Math.ceil(remaining)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeScale]);
+
+  // Screen lock / app switch suspends timers; on return, snap the clock forward to
+  // real elapsed time (and fire the end path if the quarter expired while hidden).
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!running) return;
+      recomputeClock();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [running, recomputeClock]);
 
   useEffect(() => {
     if (clock === 0) return;
@@ -761,6 +934,8 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     const read = qCloses > 0 ? "won" : atts < 6 ? "slump" : "rough";
     setBreakInfo({ quarter, read, isFinal: quarter >= 4, statLine: { score: qScore, doors: diff.knock.a, sales: qCloses } });
   };
+  // Keep the recompute helper pointed at a fresh buildReport (the interval is stable).
+  buildReportRef.current = buildReport;
 
   const advanceQuarter = () => {
     // snapshot current totals as the new quarter's baseline
@@ -800,6 +975,9 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
     }
     // record this quarter's score for the box score
     quarterScoresRef.current.push(score - (quarterScoresRef.current.reduce((s,v)=>s+v,0)));
+    // anchor the new quarter's clock to now (carry the live speed)
+    anchorRef.current = { atMs: Date.now(), gameClock: QSEC, timeScale };
+    lastDrainElapsedRef.current = 0; quarterEndedRef.current = false;
     setQuarter((q) => q + 1); setClock(QSEC); setRunning(true); setWarn(null);
     lastHourRef.current = 0; sipsThisHourRef.current = 0; setDryHourWarn(false);
   };
@@ -832,7 +1010,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   };
 
   const takeShot = (a) => {
-    if (!running || paused || busyRef.current) return;
+    if (!running || busyRef.current) return;
     const kind = a.id === "close" ? "dunk" : a.id === "pitch" ? "auto" : "shot";
 
     // ---- CLOSE = a real dunk: jump, grab the rim, hang ~2s, drop ----
@@ -933,7 +1111,7 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
   // GOT NAME is a one-tap point now — no typing required. Logs the "got the
   // name" rep instantly (counts toward NAMES, awards the same points).
   const takeName = () => {
-    if (!running || paused) return;
+    if (!running) return;
     setTally((t) => ({ ...t, names: t.names + 1 }));
     const gain = Math.round(25 * quarterBonus * (inZone ? 1.15 : 1));
     setScore((s) => s + gain); setNetSwish((n) => n + 1); setFlash((f) => f + 1);
@@ -983,12 +1161,11 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
       {urgency === 3 && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>{[...Array(5)].map((_, i) => <div key={i} style={{ position: "absolute", top: `${14+i*17}%`, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${FIRE},transparent)`, animation: `speedline ${0.5+i*0.1}s infinite` }} />)}</div>}
       <Ambience />
 
-      {/* compact utility cluster — pinned upper-right below the jumbotron (pause lives here, under the speed toggle) */}
+      {/* compact utility cluster — pinned upper-right below the jumbotron (no pause: the clock never stops once tip-off happens) */}
       <div style={{ position: "absolute", top: 210, right: 10, zIndex: 50, display: "flex", flexDirection: "column", gap: 5 }}>
         <button onClick={() => setStatsOpen(true)} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>STATS</button>
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
         <button onClick={() => setTimeScale((t) => t === 1 ? 60 : 1)} title="Game speed — real time vs fast" style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }}>{timeScale === 1 ? "1×" : "60×"}</button>
-        <button onClick={() => setPaused((p) => !p)} title={paused ? "Resume" : "Pause"} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 13, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)", border: `1.5px solid ${V}` }}>{paused ? "▶" : "❚❚"}</button>
       </div>
 
       <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} />
@@ -1109,11 +1286,11 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
         {[{ id: "slam", short: "SLAMMED", sub: "SHOT DOWN", pts: 0, color: RED, make: 0 }, { id: "name", short: "GOT NAME", sub: "NOT INTERESTED", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
           const isName = a.id === "name";
           return (
-            <button key={a.id} onClick={() => isName ? takeName() : takeShot(a)} disabled={!running || paused} style={{
+            <button key={a.id} onClick={() => isName ? takeName() : takeShot(a)} disabled={!running} style={{
               width: "100%", padding: "7px 8px", borderRadius: 11, cursor: running ? "pointer" : "default",
               background: a.id === "close" ? `linear-gradient(160deg,rgba(6,40,20,0.92),${GREEN}22)` : isName ? "linear-gradient(160deg,rgba(40,30,10,0.92),rgba(168,85,247,0.14))" : "rgba(20,11,36,0.9)",
               border: `1.5px solid ${a.color}`, color: "#fff",
-              opacity: running && !paused ? 1 : 0.5,
+              opacity: running ? 1 : 0.5,
               boxShadow: a.id === "close" ? `0 0 12px ${GREEN}55, 0 2px 8px rgba(0,0,0,0.5)` : `0 2px 8px rgba(0,0,0,0.5)`,
               display: "flex", alignItems: "center", gap: 7, backdropFilter: "blur(3px)",
               flexDirection: handed === "left" ? "row" : "row-reverse", textAlign: handed === "left" ? "left" : "right",
@@ -1142,10 +1319,10 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
             <span style={{ fontWeight: 600, fontSize: 6, color: "#9d8bc0", letterSpacing: "0.2px" }}>FILL BOTTLE</span>
           </div>
         </button>
-        <button onClick={sip} disabled={!running || paused} style={{
+        <button onClick={sip} disabled={!running} style={{
           width: "100%", padding: "11px 8px", borderRadius: 11, cursor: "pointer",
           background: `linear-gradient(160deg,${WATER}30,${WATER}12)`, border: `2px solid ${WATER}`, color: "#e6f8ff",
-          opacity: running && !paused ? 1 : 0.5, boxShadow: water <= 0 ? `0 0 14px ${WATER}` : `0 2px 8px rgba(0,0,0,0.5)`,
+          opacity: running ? 1 : 0.5, boxShadow: water <= 0 ? `0 0 14px ${WATER}` : `0 2px 8px rgba(0,0,0,0.5)`,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6, backdropFilter: "blur(3px)",
           animation: "none",
         }}>
@@ -1185,8 +1362,6 @@ function Arena({ players, schedule, snd, match, opponent, publishLine, onEnd, re
           </div>
         </div>
       )}
-
-      {paused && <div style={{ position: "absolute", inset: 0, zIndex: 70, background: "rgba(5,3,12,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}><div className="seg" style={{ fontWeight: 900, fontSize: 42, letterSpacing: "6px" }}>PAUSED</div><button onClick={() => setPaused(false)} style={{ marginTop: 16, padding: "12px 30px", borderRadius: 30, background: `linear-gradient(90deg,${V_DEEP},${V})`, border: "none", color: "#fff", fontWeight: 700, letterSpacing: "2px", cursor: "pointer" }}>RESUME</button></div>}
 
       {statsOpen && <LiveStats tally={tally} cups={cups} accuracy={accuracy} score={score} onClose={() => setStatsOpen(false)} />}
       {breakInfo && (
@@ -1377,7 +1552,7 @@ function JumbotronTicker({ side = "left" }) {
 function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, quarterBonus, urgency, windows = [] }) {
   const clockColor = urgency === 3 ? "#ff2d55" : urgency === 2 ? FIRE : "#fff";
   return (
-    <div style={{ position: "absolute", top: 10, left: "50%", width: "92vw", maxWidth: 460, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
+    <div style={{ position: "absolute", top: 10, left: "50%", width: "92%", maxWidth: 460, zIndex: 20, animation: "floatBoard 5s ease-in-out infinite" }}>
       <div style={{ borderRadius: 16, padding: "8px 10px 10px", background: "linear-gradient(180deg,#160c2a,#0b0718)", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,237,0.5), inset 0 0 26px rgba(0,0,0,0.6)`, transform: "scale(0.9)", transformOrigin: "top center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 6 }}>
           <Phoenix size={16} /><div className="seg" style={{ fontWeight: 900, fontSize: 11, letterSpacing: "2px" }}>MILESTONE <span style={{ color: V_GLOW }}>MAPPING</span></div>
