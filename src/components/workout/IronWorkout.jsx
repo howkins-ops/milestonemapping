@@ -293,7 +293,7 @@ export function CreedVisual({ v }) {
 }
 
 /* ═══════════════ MAIN ═══════════════ */
-export default function IronWorkout({ onExit, startOpen = false }) {
+export default function IronWorkout({ onExit, startOpen = false, onRecommit }) {
   const { userId, settings, addXP } = useAppData();
   const {
     plans, sessions, prs, creedSeen,
@@ -633,6 +633,7 @@ export default function IronWorkout({ onExit, startOpen = false }) {
           <AlphaMode key={`al${pageKey}`} alpha={alpha} workoutData={workoutData}
             initialView={alphaEntry}
             onImmersiveChange={setAlphaImmersive}
+            onRecommit={onRecommit}
             onOpenFridge={() => go({ name: "fridge" })} />
         )}
         {view.name === "program" && (

@@ -2,6 +2,7 @@ import React from "react";
 import MealTimeline from "./MealTimeline.jsx";
 import { daySlot, dayIdxFromDate } from "./engine/scheduler.js";
 import { PHASES } from "./data/phases.js";
+import RecommitLauncher from "../../zone/recommit/RecommitLauncher.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    TODAY — the right-now hub. ADHD-first: one screen that answers
@@ -25,7 +26,7 @@ function blockCount(workout) {
   return Array.isArray(workout?.blocks) ? workout.blocks.length : 0;
 }
 
-export default function AlphaToday({ alpha, onStartWorkout, onOpenRoad, onOpenZone, onOpenCheat }) {
+export default function AlphaToday({ alpha, onStartWorkout, onOpenRoad, onOpenZone, onOpenCheat, onRecommit }) {
   const { state } = alpha;
   const phase = PHASES[state.phase];
   const slot = daySlot(state.phase, state.week, dayIdxFromDate());
@@ -103,6 +104,13 @@ export default function AlphaToday({ alpha, onStartWorkout, onOpenRoad, onOpenZo
           <span className="iw-al-today-door-sub">bosses · cheat · calculator</span>
         </button>
       </div>
+
+      {/* Broke your word? One tap into the Zone's Recommit ritual. */}
+      {onRecommit && (
+        <div className="iw-al-today-section">
+          <RecommitLauncher onClick={onRecommit} />
+        </div>
+      )}
     </div>
   );
 }

@@ -80,13 +80,14 @@ function Glyph({ name }) {
 // Friends is its own tab (people asked "how do I add a friend?") — one tap
 // to the search + your circle, right next to Squad.
 // Chat now folds Inbox in (Chats + Alerts sub-tabs), freeing a slot for the
-// Roster tab — the games launcher (opens the roster sheet, not a view swap).
+// Games tab (key stays "roster") — the games launcher that opens the roster
+// sheet, not a view swap.
 const TABS = [
   { key: "home", label: "Home" },
   { key: "friends", label: "Friends" },
   { key: "squad", label: "Squad" },
   { key: "messages", label: "Chat" },
-  { key: "roster", label: "Roster" },
+  { key: "roster", label: "Games" },
   { key: "profile", label: "You" },
 ];
 

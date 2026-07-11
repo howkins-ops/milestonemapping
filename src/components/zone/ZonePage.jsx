@@ -47,13 +47,21 @@ export default function ZonePage({ onNavigate, onOpenMapQuest, onCloseZone, init
 function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initialParam }) {
   const { loading, error, state, member, fire, refreshState } = useZoneCtx();
   // "hoops" is a launch sentinel from the main-page basketball button: land
-  // straight on Full Court in fullscreen. Everything else lands as-routed.
+  // straight on Full Court in fullscreen. "recommit" is a sentinel from the
+  // dashboard / IRON Today integrity card: land on Home with the Recommit
+  // ritual open. Everything else lands as-routed.
   const bootHoops = initialView === "hoops";
-  const [view, setView] = useState(bootHoops ? "arena" : initialView || "home");
+  const bootRecommit = initialView === "recommit";
+  const [view, setView] = useState(
+    bootHoops ? "arena" : bootRecommit ? "home" : initialView || "home"
+  );
   const [viewParam, setViewParam] = useState(bootHoops ? "full_court" : initialParam ?? null);
   const [gameFullscreen, setGameFullscreen] = useState(bootHoops);
   const [rosterOpen, setRosterOpen] = useState(false);
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
+  // One-shot: the deep-link intent opens the Recommit ritual on first Home
+  // render only — leaving and returning to Home must not reopen it.
+  const [recommitPending, setRecommitPending] = useState(bootRecommit);
 
   const go = useCallback((next, param = null) => {
     // Launched straight from the main-screen HOOPS button (bootHoops): the game is
@@ -147,7 +155,15 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
         </>
       )}
 
-      {view === "home" && <ZoneHome go={go} openDeclare={openDeclare} openProof={openProof} />}
+      {view === "home" && (
+        <ZoneHome
+          go={go}
+          openDeclare={openDeclare}
+          openProof={openProof}
+          recommitIntent={recommitPending}
+          onRecommitConsumed={() => setRecommitPending(false)}
+        />
+      )}
       {view === "city" && (
         <MapQuestCityPage
           onNavigate={onNavigate}

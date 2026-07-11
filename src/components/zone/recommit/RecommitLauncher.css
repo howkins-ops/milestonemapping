@@ -1,0 +1,60 @@
+/* Recommit to Integrity — external launcher card (dashboard + IRON Today).
+   Self-contained so it looks identical wherever it's placed. Ember/fire accent
+   ties it to the Zone's fire sub-brand without pulling in zone.css. */
+.recommit-launcher {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 15px 16px;
+  margin: 0 0 14px;
+  border-radius: 18px;
+  cursor: pointer;
+  font-family: inherit;
+  color: #F2F0F4;
+  border: 1px solid rgba(255, 122, 26, 0.42);
+  background:
+    radial-gradient(130% 100% at 88% -20%, rgba(255, 122, 26, 0.16), transparent 55%),
+    linear-gradient(180deg, #14090a, #0a0712);
+  box-shadow: 0 10px 28px -14px rgba(255, 122, 26, 0.55), inset 0 0 30px -24px rgba(255, 122, 26, 0.6);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.recommit-launcher:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 122, 26, 0.8);
+  box-shadow: 0 16px 34px -14px rgba(255, 122, 26, 0.65), inset 0 0 30px -20px rgba(255, 122, 26, 0.7);
+}
+.recommit-launcher:focus-visible { outline: 2px solid #FF7A1A; outline-offset: 2px; }
+
+.recommit-launcher__flame {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 40% 30%, rgba(255, 122, 26, 0.28), rgba(255, 59, 92, 0.14) 55%, rgba(10, 7, 18, 0.9));
+  box-shadow: inset 0 0 18px rgba(255, 122, 26, 0.25);
+}
+.recommit-launcher__text { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.recommit-launcher__kicker {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #FF9A4A;
+}
+.recommit-launcher__title {
+  font-size: 15.5px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #F2F0F4;
+}
+.recommit-launcher__sub {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: rgba(242, 240, 244, 0.62);
+}

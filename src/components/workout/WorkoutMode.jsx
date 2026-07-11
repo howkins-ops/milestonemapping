@@ -87,7 +87,7 @@ function ChalkDust({ active }) {
   return <canvas ref={canvasRef} className="iwm-dust" aria-hidden="true" />;
 }
 
-export default function WorkoutMode({ open, onClose }) {
+export default function WorkoutMode({ open, onClose, onRecommit }) {
   const { settings } = useAppData();
   const reduced = Boolean(settings.reducedMotion) ||
     (typeof window !== "undefined" &&
@@ -210,7 +210,7 @@ export default function WorkoutMode({ open, onClose }) {
 
       {phase === "open" && (
         <div className="iwm-stage">
-          <IronWorkout startOpen onExit={requestClose} />
+          <IronWorkout startOpen onExit={requestClose} onRecommit={onRecommit} />
         </div>
       )}
     </div>

@@ -719,6 +719,45 @@
 .zn-phoenix__next { font-size: 11.5px; color: var(--text-soft); margin-top: 3px; }
 .zn-ash { filter: grayscale(1) brightness(0.75); }
 
+/* ---------- your standing (replaces the streak-ring + phoenix egg) ---------- */
+.zn-standing__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.zn-standing .zn-stat { padding: 4px 2px 8px; }
+.zn-standing__den { font-size: 15px; font-weight: 700; color: var(--text-soft); margin-left: 1px; }
+.zn-standing__level { font-size: 17px; letter-spacing: 0.3px; color: var(--zfire); text-shadow: 0 0 16px var(--zfire-glow); }
+.zn-standing__bar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 4px 0 10px; }
+.zn-standing__seg {
+  height: 7px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
+}
+.zn-standing__seg.on { background: var(--zfire); box-shadow: 0 0 8px var(--zfire-glow); }
+.zn-standing__hint { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; margin: 0; text-align: center; }
+.zn-standing--ash { border-color: rgba(255, 255, 255, 0.12); }
+.zn-standing__ashrow { display: flex; align-items: center; gap: 12px; }
+.zn-standing__ashicon { width: 46px; height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.zn-standing__ashicon .zn-icon-img { width: 40px; height: 40px; }
+.zn-standing__ashtitle { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main); }
+.zn-standing__ashsub { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; margin-top: 2px; }
+
+/* ---------- integrity (recommit) card ---------- */
+.zn-card--integrity {
+  border-color: rgba(255, 122, 26, 0.4);
+  background:
+    radial-gradient(130% 100% at 88% -20%, rgba(255, 122, 26, 0.14), transparent 55%),
+    var(--zn-card);
+}
+.zn-integrity__head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.zn-integrity__glyph {
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 40% 30%, rgba(255, 122, 26, 0.28), rgba(255, 59, 92, 0.12) 55%, rgba(11, 2, 16, 0.9));
+  box-shadow: inset 0 0 18px rgba(255, 122, 26, 0.22);
+}
+.zn-integrity__glyph .zn-icon-img { width: 24px; height: 24px; }
+.zn-integrity__title { font-family: var(--font-display); font-size: 16px; font-weight: 800; line-height: 1.2; color: var(--text-main); margin: 2px 0 0; }
+.zn-integrity__body { font-size: 13.5px; color: var(--text-soft); line-height: 1.55; margin: 0 0 14px; }
+.zn-integrity__cta { background: linear-gradient(120deg, #FF7A1A, #FF3B5C); }
+
 /* ---------- leaderboard ---------- */
 .zn-lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .zn-lb-row:last-child { border-bottom: none; }

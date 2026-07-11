@@ -267,6 +267,81 @@ function FrogChar({ mood = "staring", holdFrac = 0 }) {
   );
 }
 
+/* ============================================================
+   <ChompCinema/> — the money shot. A giant mouth EATS the frog:
+   jaws open → tongue grabs it → CHOMP (flash + shake) → the lump
+   gulps down the throat → lick + burp → sunrise. Pure transform/
+   opacity on a single 2.5s timeline; parts stay in sync because
+   every element runs one animation of the same duration.
+   ============================================================ */
+function ChompCinema({ text, reduce }) {
+  return (
+    <div className={`frog-chomp ${reduce ? "is-reduced" : ""}`} role="presentation">
+      <div className="frog-chomp__shake">
+        <span className="frog-chomp__cap">“{text}”</span>
+
+        <svg className="frog-chomp__maw" viewBox="0 0 240 260" aria-hidden="true">
+          {/* dark gullet */}
+          <ellipse className="chomp__gullet" cx="120" cy="130" rx="78" ry="62" />
+          {/* tongue */}
+          <ellipse className="chomp__tongue" cx="120" cy="166" rx="52" ry="30" />
+
+          {/* the throat gulp — hidden until the chomp */}
+          <g className="chomp__gulp">
+            <rect className="chomp__neck" x="96" y="150" width="48" height="110" rx="20" />
+            <ellipse className="chomp__lump" cx="120" cy="150" rx="24" ry="18" />
+          </g>
+
+          {/* the frog being eaten */}
+          <g className="chomp__frog">
+            <path
+              className="chomp__leg"
+              d="M96 150q-12 10 -22 6 M144 150q12 10 22 6"
+            />
+            <ellipse cx="120" cy="134" rx="30" ry="26" fill="#4bc47e" />
+            <ellipse cx="120" cy="142" rx="18" ry="14" fill="#eafff0" />
+            <circle cx="107" cy="114" r="11" fill="#6fe0a0" />
+            <circle cx="133" cy="114" r="11" fill="#6fe0a0" />
+            <circle cx="107" cy="115" r="6" fill="#ffd166" />
+            <circle cx="107" cy="115" r="3.1" fill="#10241a" />
+            <circle cx="133" cy="115" r="6" fill="#ffd166" />
+            <circle cx="133" cy="115" r="3.1" fill="#10241a" />
+            <path
+              d="M109 132q11 7 22 0"
+              stroke="#10281c"
+              strokeWidth="2.4"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
+
+          {/* lower jaw */}
+          <g className="chomp__lower">
+            <path className="chomp__lip" d="M14 140Q120 268 226 140Q120 202 14 140Z" />
+            <path
+              className="chomp__teeth"
+              d="M26 156 44 132 62 156 80 132 98 156 116 132 134 156 152 132 170 156 188 132 206 156 214 162 26 162Z"
+            />
+          </g>
+          {/* upper jaw */}
+          <g className="chomp__upper">
+            <path className="chomp__lip" d="M14 120Q120 -8 226 120Q120 58 14 120Z" />
+            <path
+              className="chomp__teeth"
+              d="M26 104 44 128 62 104 80 128 98 104 116 128 134 104 152 128 170 104 188 128 206 104 214 98 26 98Z"
+            />
+          </g>
+        </svg>
+
+        <span className="frog-chomp__flash" aria-hidden="true" />
+        <span className="frog-chomp__word frog-chomp__word--chomp">CHOMP!</span>
+        <span className="frog-chomp__word frog-chomp__word--gulp">GULP</span>
+        <span className="frog-chomp__word frog-chomp__word--burp">…burp 🌅</span>
+      </div>
+    </div>
+  );
+}
+
 export default function EatTheFrog({ go }) {
   const { member } = useZoneCtx();
   const { celebrate, pushToast } = useAppData();
@@ -284,6 +359,7 @@ export default function EatTheFrog({ go }) {
   const [weight, setWeight] = useState(0);
   const [ripples, setRipples] = useState([]);
   const [justAte, setJustAte] = useState(false);
+  const [eating, setEating] = useState(false);
   const holdRaf = useRef(null);
   const holdPt = useRef({ x: 0, y: 0 });
   const holdStep = useRef(0); // haptic/audio ramp index during a hold
@@ -634,51 +710,90 @@ export default function EatTheFrog({ go }) {
     if (!swallowed) return;
 
     const newStreak = stats.streak + 1;
-    setJustAte(true);
-    setTimeout(() => aliveRef.current && setJustAte(false), 2600);
+    const milestone =
+      newStreak === 7 || newStreak === 30 || newStreak > Math.max(1, stats.best);
+    const before9 = at.getHours() < 9;
     stopAmbient();
+    setJustAte(true);
+    setTimeout(() => aliveRef.current && setJustAte(false), 3000);
 
-    try {
-      sfxSwish(); // tongue snatch
-      sfxSplat();
-      sfxCoin();
-      if (newStreak === 7 || newStreak === 30 || newStreak > Math.max(1, stats.best)) {
-        sfxPhoenix();
-      }
-      if (!reduce) setTimeout(() => aliveRef.current && sfxRainbow(), 420); // sunrise swell
-    } catch {
-      /* silent */
-    }
-    slamHeavy();
-    try {
-      burst(holdPt.current.x, holdPt.current.y, MINT);
-      if (!reduce) {
-        burst(holdPt.current.x - 46, holdPt.current.y + 8, MINT);
-        burst(holdPt.current.x + 46, holdPt.current.y + 8, MINT);
-      }
-    } catch {
-      /* confetti optional */
-    }
-    // splash ripples at the frog's base
-    const host = heroRef.current;
-    if (host) {
-      const rect = host.getBoundingClientRect();
-      spawnRipple(rect.width / 2, rect.height * 0.72, true);
-      if (!reduce) spawnRipple(rect.width / 2 - 40, rect.height * 0.72, false);
-    }
-    celebrate?.({
-      variant: "reward",
-      title: "FROG EATEN 🐸",
-      subtitle: `Hardest thing first — day ${newStreak} of the streak.`,
-      detail: witnessSay("frog_eaten", { name: myName, streak: newStreak, today: k }).line,
-    });
-    if (at.getHours() < 9) {
-      pushToast?.({
-        type: "success",
-        title: "🌅 Before 9AM",
-        message: "That frog counts double — post a real proof and raid the Dawn board.",
+    const fireReward = () => {
+      celebrate?.({
+        variant: "reward",
+        title: "FROG EATEN 🐸",
+        subtitle: `Hardest thing first — day ${newStreak} of the streak.`,
+        detail: witnessSay("frog_eaten", { name: myName, streak: newStreak, today: k }).line,
       });
-    }
+      if (before9) {
+        pushToast?.({
+          type: "success",
+          title: "🌅 Before 9AM",
+          message: "That frog counts double — post a real proof and raid the Dawn board.",
+        });
+      }
+    };
+
+    // roll the CHOMP cinema — the frog actually gets eaten on screen. The eaten
+    // scene mounts underneath and is revealed when the overlay clears.
+    setEating(true);
+    const sched = (fn, ms) =>
+      setTimeout(() => {
+        if (aliveRef.current) fn();
+      }, ms);
+
+    sched(() => {
+      try {
+        sfxSwish(); // tongue lash grabs the frog
+      } catch {
+        /* silent */
+      }
+      tapLight();
+    }, 200);
+    sched(() => {
+      // THE CHOMP
+      try {
+        sfxSplat();
+        if (milestone) sfxPhoenix();
+      } catch {
+        /* silent */
+      }
+      slamHeavy();
+      tapMedium();
+      try {
+        burst(window.innerWidth / 2, window.innerHeight * 0.42, MINT);
+        if (!reduce) {
+          burst(window.innerWidth / 2 - 60, window.innerHeight * 0.42, MINT);
+          burst(window.innerWidth / 2 + 60, window.innerHeight * 0.42, MINT);
+        }
+      } catch {
+        /* confetti optional */
+      }
+    }, 1060);
+    sched(() => {
+      try {
+        sfxBubble(); // the gulp travelling down
+      } catch {
+        /* silent */
+      }
+      tapLight();
+    }, 1240);
+    sched(() => {
+      try {
+        sfxCoin();
+        if (!reduce) sfxRainbow(); // satisfied swell → sunrise
+      } catch {
+        /* silent */
+      }
+    }, 1620);
+    sched(() => {
+      const host = heroRef.current;
+      if (host) {
+        const rect = host.getBoundingClientRect();
+        spawnRipple(rect.width / 2, rect.height * 0.72, true);
+      }
+      fireReward();
+    }, 2350);
+    sched(() => setEating(false), 2600);
   }, [commit, stats.streak, stats.best, burst, celebrate, pushToast, myName, spawnRipple, stopAmbient, reduce]);
 
   const cancelHold = useCallback(() => {
@@ -1033,6 +1148,9 @@ export default function EatTheFrog({ go }) {
         </ul>
         {stats.best > 1 && <p className="frog-best">🏆 Best streak · {stats.best} days</p>}
       </div>
+
+      {/* ---------------- CHOMP CINEMA (the frog gets eaten) ---------------- */}
+      {eating && <ChompCinema text={entry?.text || "that frog"} reduce={reduce} />}
     </div>
   );
 }

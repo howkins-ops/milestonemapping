@@ -4,8 +4,8 @@ import { fetchFeed } from "../../../lib/zoneService.js";
 import { getCategory, ZONE_ICONS } from "../../../lib/zoneFire.js";
 import Witness from "../witness/Witness.jsx";
 import Recommit from "../recommit/Recommit.jsx";
-import FireDial from "./FireDial.jsx";
-import PhoenixStage from "./PhoenixStage.jsx";
+import RecommitCard from "../recommit/RecommitCard.jsx";
+import StandingStrip from "./StandingStrip.jsx";
 import SquadFireMeter from "./SquadFireMeter.jsx";
 import UserChip from "../shared/UserChip.jsx";
 import ZoneIcon from "../shared/ZoneIcon.jsx";
@@ -17,13 +17,22 @@ const ACTION_CARD_IMAGES = {
   friends: "/assets/zone/action-cards/friends.png",
 };
 
-// Zone Home: the Witness, today's mission, the two big CTAs, fire + phoenix,
-// squad momentum, partner strip, and a live feed preview.
-export default function ZoneHome({ go, openDeclare, openProof }) {
+// Zone Home: the Witness, today's mission + the two big CTAs, the integrity
+// (recommit) card, your standing, squad momentum, partner strip, and a live
+// feed preview. `recommitIntent` opens the Recommit ritual on arrival (deep
+// links from the dashboard / IRON Today land here with it set).
+export default function ZoneHome({ go, openDeclare, openProof, recommitIntent = false, onRecommitConsumed }) {
   const { member, todayMission, todayProofCount, partner, lastNotification } = useZoneCtx();
   const [preview, setPreview] = useState([]);
-  const [recommitOpen, setRecommitOpen] = useState(false);
+  const [recommitOpen, setRecommitOpen] = useState(Boolean(recommitIntent));
   const [feedBump, setFeedBump] = useState(0);
+
+  // The deep-link intent is one-shot: mark it consumed so returning to Home
+  // later doesn't reopen the ritual.
+  useEffect(() => {
+    if (recommitIntent) onRecommitConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -79,22 +88,11 @@ export default function ZoneHome({ go, openDeclare, openProof }) {
         />
       </div>
 
-      {/* The quiet door back — Shift One */}
-      <button
-        type="button"
-        className="zn-btn zn-btn--ghost zn-btn--small zn-recommit-door"
-        onClick={() => setRecommitOpen(true)}
-      >
-        Broke your word somewhere? → Recommit
-      </button>
+      {/* Integrity — the recommit door, now a real card */}
+      <RecommitCard onOpen={() => setRecommitOpen(true)} />
 
-      {/* Fire + Phoenix */}
-      <div className="zn-card">
-        <div className="zn-2col" style={{ alignItems: "center" }}>
-          <FireDial />
-          <PhoenixStage onRecommit={() => setRecommitOpen(true)} />
-        </div>
-      </div>
+      {/* Your standing — streak, week's fire, level (Phoenix only shows in ash) */}
+      <StandingStrip onRecommit={() => setRecommitOpen(true)} />
 
       <SquadFireMeter go={go} />
 

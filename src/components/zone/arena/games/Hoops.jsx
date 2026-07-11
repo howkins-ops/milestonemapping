@@ -547,14 +547,18 @@ function LawPanel() {
 // as one crisp unit instead of floating small. Held upright, it fills top-to-bottom.
 const IPAD_DW = 430;   // design width  — the phone width the game was tuned for
 const IPAD_DH = 924;   // design height — portrait, ~iPhone content box
+const IPAD_WIDEN = 1.18; // extra horizontal stretch so the court fills the wider iPad screen
 function IpadStage({ frame, children }) {
   const ready = frame && frame.w > 0 && frame.h > 0;
   // fit-contain: fills height on a tall portrait iPad; never clips in landscape.
   const s = ready ? Math.min(frame.w / IPAD_DW, frame.h / IPAD_DH) : 1;
+  // Height sets the base scale; widen X by 18% so the narrow phone canvas spreads
+  // across the iPad's extra width instead of leaving big side margins.
+  const sx = Math.min(s * IPAD_WIDEN, ready ? frame.w / IPAD_DW : s);
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "50%", left: "50%", width: IPAD_DW, height: IPAD_DH,
-        transform: `translate(-50%,-50%) scale(${s})`, transformOrigin: "center center" }}>
+        transform: `translate(-50%,-50%) scale(${sx}, ${s})`, transformOrigin: "center center" }}>
         {children}
       </div>
     </div>

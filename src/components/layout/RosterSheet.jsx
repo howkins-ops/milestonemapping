@@ -46,7 +46,7 @@ export default function RosterSheet({ open, onClose, onPickGame, onPickView }) {
         className="more-sheet roster-sheet"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Arena roster"
+        aria-label="Games"
       >
         <div className="more-sheet__handle" />
         <p className="more-sheet__kicker">The Squad Arena</p>

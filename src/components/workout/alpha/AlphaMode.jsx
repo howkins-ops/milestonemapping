@@ -30,7 +30,7 @@ import "../../../styles/alpha.css";
    `onImmersiveChange` hides the global nav during cinematic play.
    ═══════════════════════════════════════════════════════════════ */
 
-export default function AlphaMode({ alpha, workoutData, initialView = null, onImmersiveChange, onOpenFridge }) {
+export default function AlphaMode({ alpha, workoutData, initialView = null, onImmersiveChange, onOpenFridge, onRecommit }) {
   const { settings, addXP } = useAppData();
   const { state } = alpha;
 
@@ -163,6 +163,7 @@ export default function AlphaMode({ alpha, workoutData, initialView = null, onIm
           onStartWorkout={(workoutId) => go({ name: "session", workoutId })}
           onOpenRoad={() => go({ name: "map" })}
           onOpenZone={() => go({ name: "zone" })}
+          onRecommit={onRecommit}
           onOpenCheat={() => go({ name: "cheat" })} />
       )}
 

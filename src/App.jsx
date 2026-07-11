@@ -191,6 +191,12 @@ function AppContent({ signOut }) {
     setZoneOpen(true);
   };
 
+  // Integrity card (dashboard + IRON Today): land in the Zone with the Recommit
+  // ritual open. From IRON we close the workout overlay first so the Zone owns
+  // the screen.
+  const openRecommit = () => openZoneView("recommit");
+  const openRecommitFromWorkout = () => { setWorkoutOpen(false); openZoneView("recommit"); };
+
   const openProject = (id) => {
     setRpgWorldProjectId(null);
     setSelectedProjectId(id);
@@ -276,6 +282,7 @@ function AppContent({ signOut }) {
             onOpenProject={openProject}
             onOpenMapQuest={openMapQuest}
             onOpenWorkout={() => setWorkoutOpen(true)}
+            onRecommit={openRecommit}
           />
         );
       case "daily":
@@ -354,6 +361,7 @@ function AppContent({ signOut }) {
             onOpenProject={openProject}
             onOpenMapQuest={openMapQuest}
             onOpenWorkout={() => setWorkoutOpen(true)}
+            onRecommit={openRecommit}
           />
         );
     }
@@ -415,7 +423,7 @@ function AppContent({ signOut }) {
       {workoutOpen && (
         <ErrorBoundary onReset={() => setWorkoutOpen(false)}>
           <Suspense fallback={null}>
-            <WorkoutMode open onClose={() => setWorkoutOpen(false)} />
+            <WorkoutMode open onClose={() => setWorkoutOpen(false)} onRecommit={openRecommitFromWorkout} />
           </Suspense>
         </ErrorBoundary>
       )}
