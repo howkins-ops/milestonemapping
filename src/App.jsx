@@ -65,6 +65,7 @@ function lazyWithReload(name, factory) {
 const ZonePage = lazyWithReload("zone", () => import("./components/zone/ZonePage.jsx"));
 const FieldJournalMode = lazyWithReload("journal", () => import("./components/journal/FieldJournalMode.jsx"));
 const WorkoutMode = lazyWithReload("workout", () => import("./components/workout/WorkoutMode.jsx"));
+const ClearDayMode = lazyWithReload("clearday", () => import("./components/clearday/ClearDayMode.jsx"));
 const TheCrossing = lazyWithReload("crossing", () => import("./components/onboarding/TheCrossing.jsx"));
 
 // Dark hold — shown for the instant between boot and the Crossing gate settling.
@@ -95,6 +96,7 @@ function AppContent({ signOut }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [workoutOpen, setWorkoutOpen] = useState(false);
+  const [clearDayOpen, setClearDayOpen] = useState(false);
   // The Zone is its own full-screen app (sibling of The Iron / Field Journal):
   // it opens as an overlay above the shell, not as a bottom-nav page.
   const [zoneOpen, setZoneOpen] = useState(false);
@@ -110,6 +112,13 @@ function AppContent({ signOut }) {
     const openIron = () => setWorkoutOpen(true);
     window.addEventListener("mm:open-iron", openIron);
     return () => window.removeEventListener("mm:open-iron", openIron);
+  }, []);
+
+  // deep links into CLEARDAY (urge SOS entry points anywhere in the app)
+  useEffect(() => {
+    const openClearDay = () => setClearDayOpen(true);
+    window.addEventListener("mm:open-clearday", openClearDay);
+    return () => window.removeEventListener("mm:open-clearday", openClearDay);
   }, []);
 
   // Lock the shell behind the Zone app + let Escape close it (mirrors the
@@ -398,6 +407,7 @@ function AppContent({ signOut }) {
         onOpenSOS={() => setSosOpen(true)}
         onOpenJournal={() => setJournalOpen(true)}
         onOpenWorkout={() => setWorkoutOpen(true)}
+        onOpenClearDay={() => setClearDayOpen(true)}
         onOpenGame={() => openZoneView("hoops")}
         onOpenZone={openZone}
       >
@@ -424,6 +434,13 @@ function AppContent({ signOut }) {
         <ErrorBoundary onReset={() => setWorkoutOpen(false)}>
           <Suspense fallback={null}>
             <WorkoutMode open onClose={() => setWorkoutOpen(false)} onRecommit={openRecommitFromWorkout} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {clearDayOpen && (
+        <ErrorBoundary onReset={() => setClearDayOpen(false)}>
+          <Suspense fallback={null}>
+            <ClearDayMode open onClose={() => setClearDayOpen(false)} />
           </Suspense>
         </ErrorBoundary>
       )}

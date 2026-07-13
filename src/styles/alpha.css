@@ -2694,6 +2694,37 @@
   border-radius: 999px; padding: 5px 12px;
 }
 
+/* ═══════════════ "ate this" per-meal check-off ═══════════════ */
+.iw-mt-ate {
+  width: 100%; margin-top: 10px; padding: 10px; border-radius: 10px; cursor: pointer;
+  font-size: 12.5px; font-weight: 800; letter-spacing: 0.02em; color: #c7c2b6;
+  background: rgba(232, 228, 218, 0.03);
+  border: 1px solid rgba(232, 228, 218, 0.18);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.iw-mt-ate.is-done {
+  color: #0d0e10;
+  background: var(--iw-al-accent, #ff6a2b);
+  border-color: var(--iw-al-accent, #ff6a2b);
+}
+.iw-mt-slot.is-eaten .iw-mt-card {
+  border-color: color-mix(in srgb, var(--iw-al-accent, #ff6a2b) 45%, transparent);
+  box-shadow: inset 3px 0 0 var(--iw-al-accent, #ff6a2b);
+}
+
+.iw-al-card-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.iw-mt-progress {
+  display: inline-flex; align-items: center;
+  padding: 6px 12px; border-radius: 999px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.02em; color: #b5b0a3;
+  border: 1px solid rgba(232, 228, 218, 0.2);
+}
+.iw-mt-progress.is-full {
+  color: #0d0e10;
+  background: var(--iw-al-accent, #ff6a2b);
+  border-color: var(--iw-al-accent, #ff6a2b);
+}
+
 /* ═══════════════ post-to-Zone confirm sheet ═══════════════ */
 .iw-al-postsheet {
   position: sticky; bottom: 12px; z-index: 5;

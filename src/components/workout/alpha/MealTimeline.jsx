@@ -64,6 +64,24 @@ export default function MealTimeline({ alpha, addXP, settings }) {
   const todayKey = photoDateKey();
   const todayPhotos = dayPhotos(photos, todayKey);
 
+  const eaten = state.flags.mealsEaten || {};
+  const todayEaten = eaten[todayKey] || {};
+
+  const toggleEaten = (blockId, title) => {
+    const cur = alpha.state.flags.mealsEaten || {};
+    const day = cur[todayKey] || {};
+    const now = !day[blockId];
+    alpha.patchState({
+      flags: { ...alpha.state.flags, mealsEaten: { ...cur, [todayKey]: { ...day, [blockId]: now } } },
+    });
+    if (now) {
+      alpha.logEvent("meal_eaten", { date: todayKey, blockId });
+      sfxMagnetClack(settings);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch { /* silent */ }
+      if (addXP) addXP(3, `${title} — logged`);
+    }
+  };
+
   const pinMealPhoto = async (blockId, title, file) => {
     if (!file) return;
     setBusyBlock(blockId);
@@ -144,9 +162,21 @@ export default function MealTimeline({ alpha, addXP, settings }) {
           <div className="iw-al-card iw-mt-ledger" style={{ "--iw-al-accent": phase?.accent }}>
             <div className="iw-al-card-head">
               <span className="iw-eyebrow">today&apos;s food</span>
-              <span className={`iw-chip ${data.isWorkoutDay ? "iw-chip-ember" : ""}`}>
-                {data.isWorkoutDay ? "training day" : "rest day"}
-              </span>
+              <div className="iw-al-card-chips">
+                {(() => {
+                  const meals = data.slots.filter((s) => s.macros);
+                  if (!meals.length) return null;
+                  const done = meals.filter((s) => todayEaten[s.id]).length;
+                  return (
+                    <span className={`iw-mt-progress ${done >= meals.length ? "is-full" : ""}`}>
+                      {done} / {meals.length} meals eaten
+                    </span>
+                  );
+                })()}
+                <span className={`iw-chip ${data.isWorkoutDay ? "iw-chip-ember" : ""}`}>
+                  {data.isWorkoutDay ? "training day" : "rest day"}
+                </span>
+              </div>
             </div>
             <div className="iw-al-macros">
               <div className="iw-al-macro"><span className="iw-al-macro-num">{data.macros.calories.toLocaleString()}</span><span className="iw-al-macro-label">calories</span></div>
@@ -163,7 +193,7 @@ export default function MealTimeline({ alpha, addXP, settings }) {
 
       <div className="iw-mt-rail">
         {data.slots.map((s) => (
-          <div key={s.id} className={`iw-mt-slot iw-mt-slot-${s.id}`}>
+          <div key={s.id} className={`iw-mt-slot iw-mt-slot-${s.id} ${s.macros && todayEaten[s.id] ? "is-eaten" : ""}`}>
             <div className="iw-mt-time">
               <span className="iw-mt-icon" aria-hidden="true">{s.icon}</span>
               <span className="iw-mt-when">{s.time}</span>
@@ -222,6 +252,16 @@ export default function MealTimeline({ alpha, addXP, settings }) {
                   </>
                 );
               })()}
+              {s.macros && (
+                <button
+                  type="button"
+                  className={`iw-mt-ate ${todayEaten[s.id] ? "is-done" : ""}`}
+                  aria-pressed={!!todayEaten[s.id]}
+                  onClick={() => toggleEaten(s.id, s.title)}
+                >
+                  {todayEaten[s.id] ? "✓ ate this" : "mark as eaten"}
+                </button>
+              )}
               {s.macros && (
                 <MealPhoto photo={todayPhotos[s.id]} busy={busyBlock === s.id}
                   onPick={(file) => pinMealPhoto(s.id, s.title, file)} />

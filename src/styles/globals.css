@@ -7570,6 +7570,60 @@ body.iw-mode-on .app-shell {
 }
 
 /* ============================================================
+   CLEARDAY — topbar trigger (mode itself lives in clearday.css,
+   lazy-loaded). A tiny dawn: horizon line + rising half-sun.
+   ============================================================ */
+
+.app-topbar__clearday { position: relative; }
+.app-topbar__clearday .cd-mini {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(178deg, #0a0f16 55%, #12203a 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(94, 157, 240, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 200ms var(--ease-out, ease-out), box-shadow 200ms;
+}
+.app-topbar__clearday .cd-mini::before {
+  /* the horizon */
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 10px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(94, 157, 240, 0.95), transparent);
+}
+.app-topbar__clearday .cd-mini-sun {
+  position: absolute;
+  bottom: 10px;
+  width: 13px;
+  height: 6.5px;
+  border-radius: 13px 13px 0 0;
+  background: linear-gradient(180deg, #7fb3f5, #2d5a8a);
+  box-shadow: 0 0 9px rgba(94, 157, 240, 0.85);
+  animation: cdMiniDawn 6s ease-in-out infinite;
+}
+@keyframes cdMiniDawn {
+  0%, 55%, 100% { transform: translateY(0); filter: brightness(1); }
+  72%, 84% { transform: translateY(-1.5px); filter: brightness(1.35); }
+}
+.app-topbar__clearday:hover .cd-mini {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(94, 157, 240, 0.7),
+    0 0 18px rgba(94, 157, 240, 0.3);
+}
+.app-topbar__clearday:active .cd-mini { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-topbar__clearday .cd-mini-sun { animation: none; }
+}
+
+/* ============================================================
    ALPHA MODE — Sunday Review → Stockpile link card
    (lives in globals because WeeklyReviewPage ships in the main
    bundle; the Stockpile itself is inside the lazy IRON chunk)

@@ -13,7 +13,7 @@ const TOPBAR_ICONS = {
   profile: "/assets/topbar/topbar-profile.png",
 };
 
-export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, children }) {
+export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, onOpenClearDay, children }) {
   const { profile, syncStatus } = useAppData();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -69,6 +69,19 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
                       <span className="iw-mini-num">45</span>
                     </span>
                     <span className="app-topbar__btn-label">Iron</span>
+                  </button>
+                )}
+                {onOpenClearDay && (
+                  <button
+                    type="button"
+                    className="app-topbar__profile-btn app-topbar__clearday"
+                    onClick={onOpenClearDay}
+                    aria-label="Open CLEARDAY"
+                  >
+                    <span className="cd-mini" aria-hidden="true">
+                      <span className="cd-mini-sun" />
+                    </span>
+                    <span className="app-topbar__btn-label">Clear</span>
                   </button>
                 )}
                 {onOpenJournal && (

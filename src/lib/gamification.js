@@ -20,6 +20,12 @@ export const XP_VALUES = {
   waveRidden: 20,
   // The Crossing — one-time onboarding vow seal
   crossingComplete: 150,
+  // CLEARDAY — identity-first recovery
+  cleardayOnboard: 100,
+  cleardayBattleWon: 40,
+  cleardayDailyRep: 15,
+  cleardayClearDay: 25,
+  cleardaySlipRecovered: 30,
   // Milestone City
   cityFirstVisit: 50,
   cityDailySweep: 15,
