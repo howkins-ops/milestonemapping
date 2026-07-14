@@ -26,6 +26,8 @@ export const XP_VALUES = {
   cleardayDailyRep: 15,
   cleardayClearDay: 25,
   cleardaySlipRecovered: 30,
+  cleardayIncant: 20,
+  cleardayContract: 25,
   // Milestone City
   cityFirstVisit: 50,
   cityDailySweep: 15,

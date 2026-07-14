@@ -60,23 +60,23 @@ export default function ClearDaySun({ variant = "emblem" }) {
     >
       <defs>
         <linearGradient id={core} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f0b45e" />
-          <stop offset="55%" stopColor="#5e9df0" />
-          <stop offset="100%" stopColor="#2d5a8a" />
+          <stop offset="0%" stopColor="#ffc46b" />
+          <stop offset="55%" stopColor="#7fb4ff" />
+          <stop offset="100%" stopColor="#35619e" />
         </linearGradient>
         <radialGradient id={corona} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(94,157,240,0.55)" />
-          <stop offset="55%" stopColor="rgba(94,157,240,0.12)" />
-          <stop offset="100%" stopColor="rgba(94,157,240,0)" />
+          <stop offset="0%" stopColor="rgba(127,180,255,0.55)" />
+          <stop offset="55%" stopColor="rgba(127,180,255,0.12)" />
+          <stop offset="100%" stopColor="rgba(127,180,255,0)" />
         </radialGradient>
         <linearGradient id={horizon} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="rgba(94,157,240,0)" />
-          <stop offset="50%" stopColor="#5e9df0" />
-          <stop offset="100%" stopColor="rgba(94,157,240,0)" />
+          <stop offset="0%" stopColor="rgba(127,180,255,0)" />
+          <stop offset="50%" stopColor="#7fb4ff" />
+          <stop offset="100%" stopColor="rgba(127,180,255,0)" />
         </linearGradient>
         <linearGradient id={ray} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stopColor="#f0b45e" />
-          <stop offset="100%" stopColor="rgba(94,157,240,0)" />
+          <stop offset="0%" stopColor="#ffc46b" />
+          <stop offset="100%" stopColor="rgba(127,180,255,0)" />
         </linearGradient>
         {!mini && (
           <filter id={glow} x="-40%" y="-40%" width="180%" height="180%">

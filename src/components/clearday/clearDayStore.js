@@ -15,14 +15,14 @@ export const TRACKS = {
     id: "weed",
     label: "Weed",
     noun: "the pen",
-    color: "#5fcf8e",
+    color: "#7be495",
     identitySeed: "I'm a man with healthy lungs and clear mornings.",
   },
   porn: {
     id: "porn",
     label: "Porn",
     noun: "the screen",
-    color: "#a78bfa",
+    color: "#b49bff",
     identitySeed: "I'm a man whose desire belongs to real life, fully present with a real person.",
   },
 };
@@ -50,8 +50,10 @@ const DEFAULT_STATE = {
     porn: { relapse: "", clear: "" },
   },
   triggers: { weed: [], porn: [] }, // strings
-  battles: [], // urge battle log, newest first: { day, track, won, beats, seconds, t }
+  battles: [], // urge battle log, newest first: { day, track, won, beats, seconds, rating?, t }
   closedDays: {}, // { [dayNum]: "clear" | "slip" }
+  contracts: {}, // { [dayNum]: { signedAt: ISO, sig: dataURL|null } } — the daily signed contract
+  seenLies: { weed: [], porn: [] }, // last-shown seed-lie ids (anti-repeat, cap 8)
   curriculumDone: [], // day numbers with the daily rep cast
   freedomAudit: [], // strings — what's been reclaimed
   futureLetters: [], // { fromDay, deliverDay, text, openedAt }
@@ -80,6 +82,31 @@ function obj(v) {
 }
 function arr(v) {
   return Array.isArray(v) ? v : [];
+}
+
+/* Keep every contract's signedAt forever, but drop the signature image
+   payload after ~2 weeks so localStorage never bloats. Standalone date
+   math (normalize runs before dayNumber is usable). */
+function pruneContracts(contracts, p) {
+  const out = {};
+  let today = 1;
+  if (typeof p.startedAt === "string") {
+    const [y, m, d] = p.startedAt.split("-").map(Number);
+    const start = new Date(y, (m || 1) - 1, d || 1);
+    const now = new Date();
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    today = Math.max(1, Math.floor((nowDay - start) / 86400000) + 1);
+  }
+  Object.keys(contracts).forEach((k) => {
+    const c = contracts[k];
+    if (!c || typeof c !== "object") return;
+    const dayNum = Number(k);
+    out[k] = {
+      signedAt: typeof c.signedAt === "string" ? c.signedAt : null,
+      sig: dayNum >= today - 14 && typeof c.sig === "string" ? c.sig : null,
+    };
+  });
+  return out;
 }
 
 function normalize(parsed) {
@@ -123,6 +150,11 @@ function normalize(parsed) {
     triggers: { weed: arr(trig.weed), porn: arr(trig.porn) },
     battles: arr(p.battles).filter((b) => b && typeof b === "object"),
     closedDays: obj(p.closedDays),
+    contracts: pruneContracts(obj(p.contracts), p),
+    seenLies: {
+      weed: arr(obj(p.seenLies).weed).filter((s) => typeof s === "string").slice(-8),
+      porn: arr(obj(p.seenLies).porn).filter((s) => typeof s === "string").slice(-8),
+    },
     curriculumDone: arr(p.curriculumDone).filter((n) => Number.isFinite(n)),
     freedomAudit: arr(p.freedomAudit).filter((s) => typeof s === "string"),
     futureLetters: arr(p.futureLetters).filter((l) => l && typeof l === "object"),
@@ -326,14 +358,55 @@ export function closeOutDay(result) {
   return { firstTime: true, state };
 }
 
+/* ── the daily contract ───────────────────────────────────────────────── */
+
+// Sign today's contract: records the signature, then closes the day clear.
+// Idempotent through closeOutDay — a signed or already-closed day never
+// double-counts.
+export function signDailyContract(sigDataUrl = null) {
+  const state = loadClearDay();
+  const day = dayNumber(state);
+  if (!state.contracts[day]) {
+    state.contracts = {
+      ...state.contracts,
+      [day]: { signedAt: new Date().toISOString(), sig: typeof sigDataUrl === "string" ? sigDataUrl : null },
+    };
+    save(state);
+  }
+  return closeOutDay("clear");
+}
+
+/* ── mask-duel anti-repeat memory ─────────────────────────────────────── */
+
+export function markLiesSeen(track, ids) {
+  const state = loadClearDay();
+  const key = track === "porn" ? "porn" : "weed";
+  const clean = (Array.isArray(ids) ? ids : []).filter((s) => typeof s === "string");
+  if (!clean.length) return state;
+  state.seenLies = {
+    ...state.seenLies,
+    [key]: [...state.seenLies[key], ...clean].slice(-8),
+  };
+  save(state);
+  return state;
+}
+
 /* ── urge battles ─────────────────────────────────────────────────────── */
 
-export function logBattle({ track, won, beats, seconds }) {
+export function logBattle({ track, won, beats, seconds, rating }) {
   const state = loadClearDay();
   state.stats.battlesTotal += 1;
   if (won) state.stats.battlesWon += 1;
   state.battles = [
-    { day: dayNumber(state), track: track || "all", won: Boolean(won), beats: Number(beats) || 0, seconds: Number(seconds) || 0, t: Date.now() },
+    {
+      day: dayNumber(state),
+      track: track || "all",
+      won: Boolean(won),
+      beats: Number(beats) || 0,
+      seconds: Number(seconds) || 0,
+      rating: Number.isFinite(rating) ? rating : null,
+      t: Date.now(),
+    },
     ...state.battles,
   ].slice(0, 200);
   if (won) {

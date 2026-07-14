@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { SEED_LIES, TRACK_META } from "./clearDayData.js";
+import { markLiesSeen } from "./clearDayStore.js";
 import {
   sfxMaskAmbush, sfxShatter, sfxCritStrike, sfxPop, sfxHalo,
-  sfxPhoenix, sfxWhoosh, sfxNamingStrike, sfxCoin,
+  sfxPhoenix, sfxWhoosh, sfxNamingStrike, sfxCoin, sfxIgnite, sfxFireLoop,
 } from "../../lib/sfx.js";
 import cdFx from "./cdFx.js";
-import { slamHeavy } from "../../lib/haptics.js";
+import { slamHeavy, tapMedium } from "../../lib/haptics.js";
 
 /* ═══════════════════════════════════════════════════════════════
    THE URGE BATTLE — CLEARDAY's centerpiece set-piece.
@@ -165,7 +166,7 @@ function StaticStorm({ settings, onDone }) {
       if (spawnClock > spawnEvery && st.orbs.length < 5) { spawn(); spawnClock = 0; }
       ctx.clearRect(0, 0, W, H);
       // faint static field
-      ctx.fillStyle = "rgba(94,157,240,0.04)";
+      ctx.fillStyle = "rgba(127,180,255,0.04)";
       for (let i = 0; i < 14; i++) {
         ctx.fillRect(Math.random() * W, Math.random() * H, 2 * dpr, 2 * dpr);
       }
@@ -262,6 +263,81 @@ function MaskFigure({ cracked, name }) {
   );
 }
 
+/* ── BURN IT OFF — 40s physical burst (repeatable starter dose) ──────── */
+const BURN_MOVES = [
+  { k: "squats", label: "SQUATS", line: "Deep and fast. Count them out loud." },
+  { k: "pushups", label: "PUSHUPS", line: "Chest to floor. Knees are fine. Go." },
+  { k: "highknees", label: "HIGH KNEES", line: "Sprint on the spot. Arms pumping." },
+  { k: "coldwater", label: "COLD WATER", line: "Face and wrists under cold water. (Skip this one if you have a heart condition.)" },
+];
+
+function BurnItOff({ settings, color, onDone }) {
+  const [move, setMove] = useState(null);
+  const [left, setLeft] = useState(40);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!move || done) return undefined;
+    sfxFireLoop(settings);
+    const iv = setInterval(() => {
+      setLeft((s) => {
+        const n = s - 1;
+        if (n % 5 === 0 && n > 0) {
+          const W = window.innerWidth || 390;
+          const H = window.innerHeight || 844;
+          cdFx.burst(W * (0.3 + Math.abs(Math.sin(n)) * 0.4), H * 0.72, "ember", 6 + Math.round((40 - n) / 5), color);
+        }
+        if (n <= 0) {
+          clearInterval(iv);
+          setDone(true);
+          cdFx.flare(color);
+          slamHeavy();
+          sfxIgnite(settings);
+        }
+        return Math.max(0, n);
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [move, done]);
+
+  if (!move) {
+    return (
+      <div className="cdb-act">
+        <div className="cdb-act-eyebrow">BURN IT OFF · PICK YOUR FIRE</div>
+        <div className="cdb-burn-moves">
+          {BURN_MOVES.map((m) => (
+            <button key={m.k} type="button" className="cdb-burn-move" onClick={() => setMove(m)}>
+              <span className="cdb-burn-move-label">{m.label}</span>
+              <span className="cdb-burn-move-line">{m.line}</span>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="cdb-ghostline" onClick={onDone}>not now — keep moving →</button>
+      </div>
+    );
+  }
+  return (
+    <div className="cdb-act cdb-burn">
+      <div className="cdb-act-eyebrow">BURNING · {move.label}</div>
+      {!done ? (
+        <>
+          <div className="cdb-burn-ring" style={{ "--p": `${((40 - left) / 40) * 360}deg`, "--bc": color }}>
+            <span className="cdb-burn-count">{left}</span>
+          </div>
+          <p className="cdb-p cdb-burn-line">{move.line}</p>
+          <button type="button" className="cdb-ghostline" onClick={onDone}>enough — move on →</button>
+        </>
+      ) : (
+        <>
+          <h2 className="cdb-h">BURNED.<br />That's a rep.</h2>
+          <p className="cdb-p">The window this buys is short — back to work while it's open. Want another round later? It's always here.</p>
+          <button type="button" className="cdb-big-btn" onClick={onDone}>KEEP MOVING →</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══ THE BATTLE ═══════════════════════════════════════════════════════ */
 
 export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave, saveCard, saveTapeFn }) {
@@ -278,32 +354,50 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
     setAct((a) => a + 1);
   }, []);
 
-  /* act 1 duel state */
+  /* act 1 duel state — user cards mix with fresh seeds; seenLies keeps
+     the same lies from repeating battle after battle (compat shim maps
+     old single-comeback cards onto the multi-comeback shape) */
   const deck = useMemo(() => {
-    const own = (S.cards[track] || []).filter((c) => c.lie && c.comeback);
+    const own = (S.cards[track] || [])
+      .filter((c) => c.lie && (c.comeback || (Array.isArray(c.comebacks) && c.comebacks.length)))
+      .map((c) => ({ id: null, lie: c.lie, comebacks: Array.isArray(c.comebacks) && c.comebacks.length ? c.comebacks : [c.comeback] }));
     const seeds = SEED_LIES[track] || SEED_LIES.weed;
-    const pool = own.length >= 3 ? own : [...own, ...seeds].slice(0, 6);
-    return pool.sort(() => Math.random() - 0.5).slice(0, 3);
-  }, [S.cards, track]);
+    const seen = (S.seenLies && S.seenLies[track]) || [];
+    let fresh = seeds.filter((s) => !seen.includes(s.id));
+    if (fresh.length < 3) fresh = seeds; // pool ran dry — recycle
+    const pool = [...own, ...fresh].sort(() => Math.random() - 0.5).slice(0, 3);
+    return pool.map((c) => ({
+      ...c,
+      answer: c.comebacks[Math.floor(Math.random() * c.comebacks.length)],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track]);
+  useEffect(() => {
+    try { markLiesSeen(track, deck.map((d) => d.id).filter(Boolean)); } catch { /* memory is garnish */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [duelIdx, setDuelIdx] = useState(0);
   const [duelMode, setDuelMode] = useState("pick"); // pick | type | cracked
   const [typed, setTyped] = useState("");
   const allComebacks = useMemo(() => {
     const seeds = SEED_LIES[track] || SEED_LIES.weed;
-    return [...(S.cards[track] || []), ...seeds].map((c) => c.comeback).filter(Boolean);
+    const own = (S.cards[track] || []).map((c) => (Array.isArray(c.comebacks) ? c.comebacks : [c.comeback]));
+    return [...own.flat(), ...seeds.flatMap((s) => s.comebacks)].filter(Boolean);
   }, [S.cards, track]);
 
   const duelOptions = useMemo(() => {
     const current = deck[duelIdx];
     if (!current) return [];
-    const decoys = allComebacks.filter((c) => c !== current.comeback).sort(() => Math.random() - 0.5).slice(0, 2);
-    return [current.comeback, ...decoys].sort(() => Math.random() - 0.5);
+    const decoys = [...new Set(allComebacks.filter((c) => !current.comebacks.includes(c)))]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    return [current.answer, ...decoys].sort(() => Math.random() - 0.5);
   }, [deck, duelIdx, allComebacks]);
 
   const answerDuel = (comeback, e) => {
     const current = deck[duelIdx];
     if (!current) return;
-    if (comeback === current.comeback) {
+    if (comeback === current.answer) {
       sfxShatter(settings);
       shake(rootRef.current);
       if (e && fxRef.current) {
@@ -337,28 +431,46 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
     }, 700);
   };
 
-  /* act 3 defusion state */
+  /* interlude between Static Storm and defusion: rate the urge, and if
+     it's still roaring (≥8) offer BURN IT OFF (research: acute exercise
+     is the biggest acute craving-dropper — CLEARDAY-3-RESEARCH.md §3) */
+  const [interlude, setInterlude] = useState(null); // null | "rate" | "burnoffer" | "burn"
+  const ratingRef = useRef(null);
+  const rateUrge = (n) => {
+    ratingRef.current = n;
+    tapMedium();
+    if (n >= 8) setInterlude("burnoffer");
+    else { setInterlude(null); advance(); }
+  };
+
+  /* act 3 defusion state — SHATTER IT: the thought becomes glass; every
+     tap is a real motor act on the thought-object (Briñol 2013: physical
+     destruction works, imagining it does nothing) */
   const [thought, setThought] = useState("");
-  const [defusePhase, setDefusePhase] = useState("type"); // type | drain
-  const [drain, setDrain] = useState(0);
-  const drainRef = useRef(null);
-  const startDrain = () => {
-    if (drainRef.current) return;
-    drainRef.current = setInterval(() => {
-      setDrain((d) => {
-        const nd = d + 1.4;
-        if (nd >= 100) {
-          clearInterval(drainRef.current);
-          drainRef.current = null;
-        }
-        return Math.min(100, nd);
-      });
-    }, 180);
+  const [defusePhase, setDefusePhase] = useState("type"); // type | shatter
+  const [shatterTaps, setShatterTaps] = useState(0);
+  const [collapsed, setCollapsed] = useState(false);
+  const shatterWords = useMemo(() => thought.trim().split(/\s+/).filter(Boolean), [thought]);
+  const SHATTER_TARGET = Math.min(14, Math.max(10, shatterWords.length * 2));
+  const crackLevel = collapsed ? 3 : Math.min(3, Math.ceil((shatterTaps / SHATTER_TARGET) * 3));
+
+  const onShatterTap = (e) => {
+    if (collapsed) return;
+    const next = shatterTaps + 1;
+    setShatterTaps(next);
+    if (next % 3 === 0) { sfxCritStrike(settings); shake(rootRef.current); }
+    else sfxShatter(settings);
+    if (fxRef.current && e && e.clientX != null) {
+      const rect = fxRef.current.getBoundingClientRect();
+      burst(fxRef.current, e.clientX - rect.left, e.clientY - rect.top, "rgba(201,205,232,0.9)", 7);
+    }
+    if (next >= SHATTER_TARGET) {
+      setCollapsed(true);
+      slamHeavy();
+      sfxShatter(settings);
+      if (e && e.clientX != null) cdFx.ring(e.clientX, e.clientY, meta.color);
+    }
   };
-  const stopDrain = () => {
-    if (drainRef.current) { clearInterval(drainRef.current); drainRef.current = null; }
-  };
-  useEffect(() => () => stopDrain(), []);
 
   /* act 4 tape state */
   const tape = S.tape[track] || { relapse: "", clear: "" };
@@ -398,11 +510,11 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
 
   const finishWon = () => {
     const seconds = Math.round((Date.now() - startRef.current) / 1000);
-    onWon({ track, beats: beats + 1, seconds });
+    onWon({ track, beats: beats + 1, seconds, rating: ratingRef.current });
   };
   const leaveEarly = () => {
     const seconds = Math.round((Date.now() - startRef.current) / 1000);
-    onLeave({ track, beats, seconds });
+    onLeave({ track, beats, seconds, rating: ratingRef.current });
   };
 
   const waveProgress = act <= 1 ? 0.35 + act * 0.65 : 1 + (act - 1) * 0.18;
@@ -479,13 +591,50 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
         </div>
       )}
 
-      {/* ACT 2 — STATIC STORM */}
-      {act === 2 && <StaticStorm settings={settings} onDone={() => advance()} />}
+      {/* ACT 2 — STATIC STORM (→ rate the dial → maybe BURN IT OFF) */}
+      {act === 2 && !interlude && <StaticStorm settings={settings} onDone={() => setInterlude("rate")} />}
 
-      {/* ACT 3 — NAME THE LINE (defusion) */}
+      {/* INTERLUDE — check the dial */}
+      {act === 2 && interlude === "rate" && (
+        <div className="cdb-act">
+          <div className="cdb-act-eyebrow">CHECK THE DIAL</div>
+          <h2 className="cdb-h">How loud is it<br />right now?</h2>
+          <p className="cdb-p">Honest number. This is data, not a grade.</p>
+          <div className="cdb-urge-scale">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+              <button key={n} type="button" className={`cdb-urge-num ${n >= 8 ? "cdb-urge-num--hot" : ""}`} onClick={() => rateUrge(n)}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* INTERLUDE — burn it off (offered only when the dial reads ≥8) */}
+      {act === 2 && interlude === "burnoffer" && (
+        <div className="cdb-act">
+          <div className="cdb-act-eyebrow">STILL ROARING</div>
+          <h2 className="cdb-h">Burn it off.<br />40 seconds. Full effort.</h2>
+          <p className="cdb-p">
+            Moving hard is the fastest craving-dropper there is. The window it buys is short —
+            so we go straight back to work while it's open.
+          </p>
+          <button type="button" className="cdb-big-btn" onClick={() => { sfxIgnite(settings); setInterlude("burn"); }}>
+            🔥 BURN IT OFF
+          </button>
+          <button type="button" className="cdb-ghostline" onClick={() => { setInterlude(null); advance(); }}>
+            it dropped — move on →
+          </button>
+        </div>
+      )}
+      {act === 2 && interlude === "burn" && (
+        <BurnItOff settings={settings} color={meta.color} onDone={() => { setInterlude(null); advance(); }} />
+      )}
+
+      {/* ACT 3 — SHATTER IT (defusion by destruction) */}
       {act === 3 && (
         <div className="cdb-act">
-          <div className="cdb-act-eyebrow">ACT · NAME THE LINE</div>
+          <div className="cdb-act-eyebrow">ACT · SHATTER IT</div>
           {defusePhase === "type" && (
             <>
               <h2 className="cdb-h">What is {maskName}<br />saying right now?</h2>
@@ -501,36 +650,49 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
                 type="button"
                 className="cdb-big-btn"
                 disabled={thought.trim().length < 4}
-                onClick={() => { setDefusePhase("drain"); sfxNamingStrike(settings); }}
+                onClick={() => { setDefusePhase("shatter"); sfxNamingStrike(settings); }}
               >
                 CAUGHT IT
               </button>
             </>
           )}
-          {defusePhase === "drain" && (
+          {defusePhase === "shatter" && (
             <>
-              <p className="cdb-p cdb-p--corner">Now look at it for what it is:</p>
-              <div className="cdb-defuse-frame" style={{ opacity: 1 - drain / 130 }}>
-                You are <em>having the thought that</em>
-                <span className="cdb-defuse-thought">“{thought.trim()}”</span>
-                You are not the thought.
-              </div>
-              <div className="cdb-meter">
-                <div className="cdb-meter-label">THE THOUGHT'S GRIP</div>
-                <div className="cdb-meter-track">
-                  <div className="cdb-meter-fill cdb-meter-fill--drain" style={{ width: `${100 - drain}%` }} />
-                </div>
-              </div>
-              <button
-                type="button"
-                className={`cdb-big-btn ${drain < 100 ? "cdb-big-btn--hold" : ""}`}
-                onPointerDown={startDrain}
-                onPointerUp={stopDrain}
-                onPointerLeave={stopDrain}
-                onClick={() => { if (drain >= 100) advance(); }}
+              <p className="cdb-p cdb-p--corner">
+                This is glass, not law. It was never you. You are <em>having the thought that —</em>
+              </p>
+              <div
+                className={`cdb-glass-slab ${collapsed ? "cdb-glass-slab--collapsed" : ""}`}
+                role="button"
+                tabIndex={0}
+                aria-label="Tap to shatter the thought"
+                onPointerDown={onShatterTap}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onShatterTap(e); }}
               >
-                {drain >= 100 ? "IT'S JUST WORDS NOW →" : "HOLD TO DRAIN IT"}
-              </button>
+                {shatterWords.map((w, wi) => (
+                  <span key={wi} className="cdb-glass-word" data-crack={crackLevel}>
+                    {collapsed
+                      ? w.split("").map((ch, ci) => (
+                        <span key={ci} className="cdb-letter" style={{ "--i": (wi * 5 + ci) % 16 }}>{ch}</span>
+                      ))
+                      : w}
+                  </span>
+                ))}
+              </div>
+              {!collapsed ? (
+                <div className="cdb-shatter-hint">
+                  TAP IT — CRACK IT APART · {Math.min(shatterTaps, SHATTER_TARGET)}/{SHATTER_TARGET}
+                </div>
+              ) : (
+                <>
+                  <h2 className="cdb-h cdb-just-words">IT'S JUST WORDS NOW</h2>
+                  <p className="cdb-p">
+                    The urge might still be here. That's fine — it's separate from you now,
+                    and words don't get to cast votes.
+                  </p>
+                  <button type="button" className="cdb-big-btn" onClick={advance}>KEEP MOVING →</button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -612,13 +774,15 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
       {/* ACT 7 — VICTORY */}
       {act >= 7 && (
         <div className="cdb-act cdb-act--victory">
+          <div className="cdb-hitstop" aria-hidden="true" />
           <div className="cdb-stamp">
             <div className="cdb-stamp-inner">VOTE<br />CAST</div>
           </div>
           <h2 className="cdb-h">The wave broke.<br />You didn't.</h2>
           <p className="cdb-p">
-            Urges outlasted: <strong>{(S.stats.battlesWon || 0) + 1}</strong>. Each one doesn't erase the wiring —
-            it builds the thing that beats the wiring: proof you're the one holding the pen now.
+            Urges outlasted: <strong>{(S.stats.battlesWon || 0) + 1}</strong>.
+            {ratingRef.current != null && <> The dial read <strong>{ratingRef.current}/10</strong> mid-battle — and you're standing here anyway.</>}
+            {" "}You ran <strong>{beats + 1}</strong> real moves against it. That's not luck — that's a skill you just built.
           </p>
           <button type="button" className="cdb-big-btn" onClick={finishWon}>
             CLAIM THE VOTE · +1 EVIDENCE

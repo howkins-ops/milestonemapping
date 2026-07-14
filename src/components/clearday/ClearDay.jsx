@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import UrgeBattle from "./UrgeBattle.jsx";
 import DailyTab from "./DailyTab.jsx";
+import Incantation from "./Incantation.jsx";
 import {
   loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
@@ -28,14 +29,14 @@ import { tapLight, tapMedium, slamHeavy, buzzSuccess } from "../../lib/haptics.j
 
 /* ── celebration deck — guaranteed reward, surprising form ──────────── */
 const CEREMONY_DECK = [
-  { line: "Stamped. That's who you are.", color: "#5e9df0", n: 18 },
-  { line: "Evidence, added.", color: "#4fd1c5", n: 16 },
-  { line: "The ledger only fills.", color: "#f0b45e", n: 16 },
-  { line: "One more brick in the man.", color: "#5fcf8e", n: 18 },
-  { line: "Doubt just lost another argument.", color: "#a78bfa", n: 16 },
-  { line: "Filed. Signed. Yours forever.", color: "#5e9df0", n: 20 },
+  { line: "Stamped. That's who you are.", color: "#7fb4ff", n: 18 },
+  { line: "Evidence, added.", color: "#5ce0d3", n: 16 },
+  { line: "The ledger only fills.", color: "#ffc46b", n: 16 },
+  { line: "One more brick in the man.", color: "#7be495", n: 18 },
+  { line: "Doubt just lost another argument.", color: "#b49bff", n: 16 },
+  { line: "Filed. Signed. Yours forever.", color: "#7fb4ff", n: 20 },
 ];
-const CEREMONY_CRIT = { line: "★ CRITICAL VOTE — the comeback rep. Biggest stamp in the book.", color: "#f0b45e", n: 44, crit: true };
+const CEREMONY_CRIT = { line: "★ CRITICAL VOTE — the comeback rep. Biggest stamp in the book.", color: "#ffc46b", n: 44, crit: true };
 
 function Ceremony({ show, onDone }) {
   useEffect(() => {
@@ -44,7 +45,7 @@ function Ceremony({ show, onDone }) {
     const H = window.innerHeight || 844;
     cdFx.burst(W / 2, H / 2, "petal", show.n, show.color);
     if (show.crit) {
-      cdFx.flare("#f0b45e");
+      cdFx.flare("#ffc46b");
       slamHeavy();
     }
     const t = setTimeout(onDone, show.crit ? 2100 : 1500);
@@ -146,7 +147,7 @@ function HorizonCanvas({ day, votes }) {
       ctx.clip();
       const sg = ctx.createLinearGradient(0, horizonY - sunLift - sunR, 0, horizonY);
       sg.addColorStop(0, "#9cc4f7");
-      sg.addColorStop(1, "#2d5a8a");
+      sg.addColorStop(1, "#35619e");
       ctx.fillStyle = sg;
       ctx.beginPath();
       ctx.arc(W / 2, horizonY - sunLift + sunR * 0.2, sunR, 0, Math.PI * 2);
@@ -164,7 +165,7 @@ function HorizonCanvas({ day, votes }) {
         const lx = (0.08 + ((i * 0.618) % 0.84)) * W;
         const ly = horizonY + 10 * dpr + ((i * 37) % (H - horizonY - 20 * dpr));
         const a = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2 + i));
-        ctx.fillStyle = `rgba(240, 180, 94, ${a.toFixed(3)})`;
+        ctx.fillStyle = `rgba(255, 196, 107, ${a.toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(lx, ly, 1.3 * dpr, 0, Math.PI * 2);
         ctx.fill();
@@ -420,7 +421,7 @@ function Onboard({ onDone }) {
 
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
-function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe }) {
+function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab }) {
   const lesson = lessonFor(day);
   const repDone = S.curriculumDone.includes(day);
   const closed = Boolean(S.closedDays[day]);
@@ -444,17 +445,6 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
     }
   };
 
-  const closeClear = () => {
-    const { firstTime } = closeOutDay("clear");
-    if (firstTime) {
-      addXPSafe(XP_VALUES.cleardayClearDay, "Clear day");
-      cdFx.sunrise();
-      buzzSuccess();
-      sfxPhoenix(settings);
-      celebrate();
-    }
-  };
-
   return (
     <div className="cd-page">
       <div className="cd-hero">
@@ -466,17 +456,33 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
         </div>
       </div>
 
-      <button type="button" className="cd-claim-card" onClick={(e) => {
-        castVote("identity", "Did something the man in the Claim would do.");
-        cdFx.burstFrom(e, "ember", 12, "#5e9df0");
-        cdFx.ringFrom(e, "#5e9df0");
-        tapLight();
-        sfxPop(settings);
-        celebrate();
-      }}>
-        <div className="cd-label cd-label--dawn">THE CLAIM · TAP WHEN YOU'VE LIVED IT TODAY</div>
-        <div className="cd-claim-text">{S.identity.statement}</div>
-      </button>
+      {/* per-track laws — each front gets its own daily vote */}
+      {S.tracks.map((t) => {
+        const held = S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t);
+        return (
+          <button
+            key={t}
+            type="button"
+            className={`cd-law-card ${held ? "cd-law-card--held" : ""}`}
+            style={{ "--cd-acc": TRACK_META[t].tintRgb }}
+            disabled={held}
+            onClick={(e) => {
+              castVote("law", `Held the ${TRACK_META[t].label} law today.`, t);
+              cdFx.burstFrom(e, "ember", 10, TRACK_META[t].color);
+              cdFx.ringFrom(e, TRACK_META[t].color);
+              tapLight();
+              sfxPop(settings);
+              celebrate();
+            }}
+          >
+            <div className="cd-label" style={{ color: TRACK_META[t].color }}>
+              {TRACK_META[t].label.toUpperCase()} LAW · {held ? "HELD TODAY" : "TAP WHEN YOU'VE HELD IT TODAY"}
+            </div>
+            <div className="cd-claim-text">{S.laws[t] || TRACK_META[t].lawHint}</div>
+            {held && <span className="cd-law-check" aria-hidden="true">✓</span>}
+          </button>
+        );
+      })}
 
       <button type="button" className="cd-urge-btn" onClick={onBattle}>
         <span className="cd-urge-pulse" aria-hidden="true" />
@@ -548,13 +554,14 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
       )}
 
       {!closed ? (
-        <div className="cd-closeout">
-          <div className="cd-label">CLOSE OUT DAY {day} — honest is the only mode that works</div>
-          <button type="button" className="cd-btn" onClick={closeClear}>A CLEAR DAY</button>
+        <>
+          <button type="button" className="cd-seal-pointer" onClick={() => onGoTab && onGoTab("daily")}>
+            ☀ Day {day} isn't sealed yet — the ritual closes it → Daily
+          </button>
           <button type="button" className="cd-slip-link" onClick={onSlipFlow}>
             It slipped — take me to the comeback
           </button>
-        </div>
+        </>
       ) : (
         <div className="cd-done-line cd-done-line--day">
           {S.closedDays[day] === "clear"
@@ -664,6 +671,104 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
 
 /* ═══ IDENTITY TAB ════════════════════════════════════════════════════ */
 
+/* the identity constellation — one star per belief, per pulse, per rung.
+   The file only fills; the sky only gains stars. */
+function ConstellationCanvas({ S }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return undefined;
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    const W = canvas.width;
+    const H = canvas.height;
+    const still = document.documentElement.dataset.reducedMotion === "true" ||
+      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    // deterministic star field seeded by the evidence counts
+    const stars = [];
+    const seedStar = (i, bright) => {
+      const a = (i * 137.508) % 360; // golden-angle spread
+      const r = 0.18 + ((i * 61) % 100) / 260;
+      stars.push({
+        x: W / 2 + Math.cos((a * Math.PI) / 180) * W * r * 0.46,
+        y: H * 0.52 + Math.sin((a * Math.PI) / 180) * H * r * 0.75,
+        s: (bright ? 2.2 : 1.4) * dpr,
+        b: bright,
+        ph: (i * 0.7) % (Math.PI * 2),
+      });
+    };
+    (S.identity.beliefs || []).forEach((_, i) => seedStar(i + 1, true));
+    (S.pulses || []).forEach((p, i) => seedStar(i + 30, p.value === "clear"));
+    const rungIdx = ["chose", "exuser", "clear"].indexOf(S.rung);
+    for (let i = 0; i <= rungIdx; i++) seedStar(i + 70, true);
+    if (stars.length < 5) for (let i = stars.length; i < 5; i++) seedStar(i + 90, false);
+
+    let raf = 0;
+    let t = 0;
+    let running = true;
+    const draw = () => {
+      if (!running) return;
+      if (document.hidden) { raf = requestAnimationFrame(draw); return; }
+      t += 0.012;
+      ctx.clearRect(0, 0, W, H);
+      // connective lines between the bright stars — the identity taking shape
+      const bright = stars.filter((s) => s.b);
+      ctx.strokeStyle = "rgba(127, 180, 255, 0.16)";
+      ctx.lineWidth = 1 * dpr;
+      ctx.beginPath();
+      bright.forEach((s, i) => { if (i === 0) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); });
+      ctx.stroke();
+      stars.forEach((s) => {
+        const tw = still ? 0.8 : 0.55 + Math.sin(t + s.ph) * 0.35;
+        ctx.fillStyle = s.b ? `rgba(255, 196, 107, ${0.5 + tw * 0.4})` : `rgba(201, 205, 232, ${0.3 + tw * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.s * (0.8 + tw * 0.3), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      if (still) return; // one static frame under reduced motion
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => { running = false; cancelAnimationFrame(raf); };
+  }, [S.identity.beliefs, S.pulses, S.rung]);
+  return <canvas ref={ref} className="cd-constellation" aria-hidden="true" />;
+}
+
+/* one law, editable in place — the Identity tab owns the Laws */
+function LawLine({ track, law, settings }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(law || TRACK_META[track].lawHint);
+  const ok = /i don'?t/i.test(draft) && draft.trim().length >= 10;
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className="cd-seal-law cd-seal-law--edit"
+        style={{ borderColor: `${TRACK_META[track].color}44`, marginTop: 10 }}
+        onClick={() => { setDraft(law || TRACK_META[track].lawHint); setEditing(true); }}
+      >
+        {law || TRACK_META[track].lawHint}
+        <span className="cd-law-edittag">edit</span>
+      </button>
+    );
+  }
+  return (
+    <div style={{ marginTop: 10 }}>
+      <textarea className="cd-input cd-input--sm" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
+      {!ok && draft.trim().length >= 10 && (
+        <div className="cd-nudge">The Law runs on “I don't” — not “I can't,” not “I'm trying.”</div>
+      )}
+      <button type="button" className="cd-btn cd-btn--sm" disabled={!ok}
+        onClick={() => { setLaw(track, draft.trim()); sfxPop(settings); setEditing(false); }}>
+        Re-sign the {TRACK_META[track].label} law
+      </button>
+    </div>
+  );
+}
+
 function IdentityTab({ S, day, settings, celebrate }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(S.identity.statement);
@@ -673,9 +778,12 @@ function IdentityTab({ S, day, settings, celebrate }) {
 
   return (
     <div className="cd-page">
-      <div className="cd-section-head">
-        <h1 className="cd-h1">Who you are</h1>
-        <p className="cd-p cd-p--soft">Not a scoreboard — the evidence file. The label climbs, the file only fills.</p>
+      <div className="cd-identity-hero">
+        <ConstellationCanvas S={S} />
+        <div className="cd-identity-hero-copy">
+          <h1 className="cd-h1">Who you are</h1>
+          <p className="cd-p cd-p--soft">Not a scoreboard — the evidence file. Every star up there is something you did. The sky only fills.</p>
+        </div>
       </div>
 
       <div className="cd-card cd-card--claim">
@@ -733,7 +841,7 @@ function IdentityTab({ S, day, settings, celebrate }) {
               if (opt.v === "holding") {
                 castVote("identity", "Answered the pulse honestly — and honesty is a clear-man move too.");
               }
-              cdFx.ringFrom(e, "#4fd1c5");
+              cdFx.ringFrom(e, "#5ce0d3");
               tapLight();
               sfxPop(settings);
             }}>{opt.label}</button>
@@ -753,14 +861,22 @@ function IdentityTab({ S, day, settings, celebrate }) {
       )}
 
       <div className="cd-card">
-        <div className="cd-label">THE MASK</div>
+        <div className="cd-label">THE MASK &amp; THE LAWS</div>
         <div className="cd-mask-line">Its name is <strong>{S.identity.maskName || "The Mask"}</strong>. It talks; it doesn't vote.</div>
         {S.tracks.map((t) => (
-          <div key={t} className="cd-seal-law" style={{ borderColor: `${TRACK_META[t].color}44`, marginTop: 10 }}>
-            {S.laws[t] || TRACK_META[t].lawHint}
-          </div>
+          <LawLine key={t} track={t} law={S.laws[t]} settings={settings} />
         ))}
       </div>
+
+      {S.freedomAudit.length > 0 && (
+        <div className="cd-card cd-card--why">
+          <div className="cd-label cd-label--amber">WHAT'S ALREADY BACK</div>
+          <div className="cd-chips cd-chips--wrap">
+            {S.freedomAudit.slice(-4).map((f) => <span key={f} className="cd-chip cd-chip--static">◆ {f}</span>)}
+          </div>
+          <div className="cd-cite">the full audit lives in the Vault</div>
+        </div>
+      )}
 
       {(S.doors.dark || S.doors.clear) && (
         <div className="cd-card">
@@ -845,6 +961,9 @@ const VOTE_KINDS = {
   identity: { label: "Identity vote", color: "var(--cd-dawn)" },
   recovery: { label: "The comeback rep", color: "var(--cd-amber)" },
   slip: { label: "Logged honestly", color: "var(--cd-amber)" },
+  law: { label: "Law held", color: "var(--cd-green)" },
+  incant: { label: "Incantation", color: "var(--cd-amber)" },
+  contract: { label: "Contract signed", color: "var(--cd-amber)" },
 };
 
 function Vault({ S, day, settings }) {
@@ -912,7 +1031,14 @@ function Vault({ S, day, settings }) {
             <div key={i} className="cd-ballot-row">
               <span className="cd-ballot-dot" style={{ background: vk.color, boxShadow: `0 0 6px ${vk.color}` }} />
               <div>
-                <div className="cd-ballot-kind" style={{ color: vk.color }}>DAY {v.day} · {vk.label.toUpperCase()}</div>
+                <div className="cd-ballot-kind" style={{ color: vk.color }}>
+                  DAY {v.day} · {vk.label.toUpperCase()}
+                  {v.track && v.track !== "all" && TRACK_META[v.track] && (
+                    <span className="cd-ballot-track" style={{ color: TRACK_META[v.track].color, borderColor: `${TRACK_META[v.track].color}55` }}>
+                      {TRACK_META[v.track].label.toUpperCase()}
+                    </span>
+                  )}
+                </div>
                 <div className="cd-ballot-note">{v.note}</div>
               </div>
             </div>
@@ -930,6 +1056,7 @@ export default function ClearDay({ onExit, settings }) {
   const [tab, setTab] = useState("today");
   const [battle, setBattle] = useState(null); // { track } | "pick"
   const [slip, setSlip] = useState(false);
+  const [incant, setIncant] = useState(false);
   const [ceremony, setCeremony] = useState(null);
   const gamify = useGamification();
   const gamifyRef = useRef(gamify);
@@ -975,14 +1102,14 @@ export default function ClearDay({ onExit, settings }) {
           settings={settings}
           saveCard={(track, lie, comeback) => addCard(track, lie, comeback)}
           saveTapeFn={(track, dark, clearTxt) => saveTape(track, dark, clearTxt)}
-          onWon={({ track, beats, seconds }) => {
-            logBattle({ track, won: true, beats, seconds });
+          onWon={({ track, beats, seconds, rating }) => {
+            logBattle({ track, won: true, beats, seconds, rating });
             addXPSafe(XP_VALUES.cleardayBattleWon, "Urge outlasted");
             setBattle(null);
             celebrate();
           }}
-          onLeave={({ track, beats, seconds }) => {
-            logBattle({ track, won: false, beats, seconds });
+          onLeave={({ track, beats, seconds, rating }) => {
+            logBattle({ track, won: false, beats, seconds, rating });
             setBattle(null);
           }}
           onSlip={() => { setBattle(null); setSlip(true); }}
@@ -1015,10 +1142,19 @@ export default function ClearDay({ onExit, settings }) {
       {!slip && (
         <>
           {tab === "today" && (
-            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} />
+            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} />
           )}
           {tab === "daily" && (
-            <DailyTab S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} />
+            <DailyTab
+              S={S}
+              day={day}
+              settings={settings}
+              celebrate={celebrate}
+              addXPSafe={addXPSafe}
+              onGoTab={setTab}
+              onIncant={() => setIncant(true)}
+              onSlipFlow={() => setSlip(true)}
+            />
           )}
           {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} />}
           {tab === "days" && <Journey S={S} day={day} />}
@@ -1039,6 +1175,18 @@ export default function ClearDay({ onExit, settings }) {
             <button type="button" className="cd-tab cd-tab--exit" onClick={onExit} aria-label="Close CLEARDAY">✕</button>
           </nav>
         </>
+      )}
+
+      {incant && (
+        <Incantation
+          statement={S.identity.statement}
+          settings={settings}
+          onComplete={() => {
+            castVote("incant", "Spoke the claim out loud — three rounds, full voice.");
+            addXPSafe(XP_VALUES.cleardayIncant, "The incantation");
+          }}
+          onClose={() => setIncant(false)}
+        />
       )}
 
       <Ceremony show={ceremony} onDone={() => setCeremony(null)} />

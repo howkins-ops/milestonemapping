@@ -1,22 +1,24 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import {
-  castVote, castDailyRep, closeOutDay, addPulse, currentRun,
-} from "./clearDayStore.js";
-import { lessonFor, LADDER } from "./clearDayData.js";
+import React, { useEffect, useRef } from "react";
+import { castVote, castDailyRep, currentRun } from "./clearDayStore.js";
+import { lessonFor, LADDER, TRACK_META } from "./clearDayData.js";
 import ClearDaySun from "./ClearDaySun.jsx";
+import DailyContract from "./DailyContract.jsx";
 import cdFx from "./cdFx.js";
 import { tapLight, tapMedium, buzzSuccess } from "../../lib/haptics.js";
 import { sfxPop, sfxCoin, sfxPhoenix } from "../../lib/sfx.js";
 import { XP_VALUES } from "../../lib/gamification.js";
 
 /* ═══════════════════════════════════════════════════════════════
-   THE DAILY RITUAL — the identity builder, 60 seconds a day.
-   A checklist lens over the same store actions Today uses: speak
-   the Claim, cast the rep, take the pulse when it's due, close the
-   day. Everything reads existing store fields; nothing here has
-   its own state to drift out of sync. The heavy versions of these
-   moves (full lesson, slip flow, rung upgrades) stay single-homed
-   on their own tabs — this screen links to them.
+   THE DAILY RITUAL — say it, sign it, seal it.
+   Fixed short ceremony, identical every day (ritual = perceived
+   control, CLEARDAY-3-RESEARCH.md §2):
+     1 · THE INCANTATION   speak the claim, 3 rounds, out loud
+     2 · SIGN THE LAWS     one vote per front — weed and porn each
+     3 · TODAY'S REP       the curriculum shortcut
+     4 · THE CONTRACT      today-only, signed by hand, wax-sealed
+   Every done-state derives from the store; nothing here has its
+   own state to drift out of sync. Pulse and Ladder live on
+   Identity — this screen only points at them when they're due.
    ═══════════════════════════════════════════════════════════════ */
 
 function StepCard({ done, accent, label, children }) {
@@ -34,30 +36,25 @@ function StepCard({ done, accent, label, children }) {
   );
 }
 
-export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoTab }) {
+export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoTab, onIncant, onSlipFlow }) {
   const lesson = lessonFor(day);
   const rung = LADDER.find((r) => r.id === S.rung) || LADDER[0];
 
   /* step completion — derived, never stored */
-  const claimDone = S.ballot.some((b) => b.day === day && b.kind === "identity");
+  const incantDone = S.ballot.some((b) => b.day === day && b.kind === "incant");
+  const lawsDone = S.tracks.map((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t));
+  const allLawsDone = lawsDone.length > 0 && lawsDone.every(Boolean);
   const repDone = S.curriculumDone.includes(day);
+  const sealed = Boolean(S.closedDays[day]) || Boolean(S.contracts && S.contracts[day]);
+
   const lastPulse = S.pulses[S.pulses.length - 1];
   const pulseDue = day >= 7 && (!lastPulse || day - lastPulse.day >= 7);
-  const pulseDone = Boolean(lastPulse && day - lastPulse.day < 7);
-  const pulseApplicable = day >= 7;
-  const closed = Boolean(S.closedDays[day]);
-
   const claimableRung = LADDER.find((r) => {
     const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
     return !reached && day >= r.minDay;
   });
 
-  const steps = useMemo(() => {
-    const list = [claimDone, repDone];
-    if (pulseApplicable) list.push(pulseDone || (!pulseDue && S.pulses.length > 0));
-    list.push(closed);
-    return list;
-  }, [claimDone, repDone, pulseApplicable, pulseDone, pulseDue, S.pulses.length, closed]);
+  const steps = [incantDone, allLawsDone, repDone, sealed];
   const doneCount = steps.filter(Boolean).length;
   const allDone = doneCount === steps.length;
 
@@ -65,13 +62,13 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
   const prevDone = useRef(doneCount);
   useEffect(() => {
     if (doneCount === steps.length && prevDone.current < steps.length) {
-      cdFx.sunrise();
+      cdFx.sunrise("#ffc46b");
       buzzSuccess();
       sfxPhoenix(settings);
     }
     prevDone.current = doneCount;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doneCount, steps.length]);
+  }, [doneCount]);
 
   return (
     <div className="cd-page">
@@ -86,33 +83,55 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
             <span key={i} className={`cd-daily-dot ${s ? "cd-daily-dot--on" : ""}`} />
           ))}
         </div>
+        {(pulseDue || claimableRung) && (
+          <button type="button" className="cd-daily-chip" onClick={() => onGoTab("identity")}>
+            {pulseDue ? "the weekly pulse is due" : "a rung is waiting"} → Identity
+          </button>
+        )}
       </div>
 
-      <StepCard done={claimDone} label="1 · SPEAK THE CLAIM — out loud, like you mean it">
+      {/* 1 · THE INCANTATION */}
+      <StepCard done={incantDone} accent="255, 196, 107" label="1 · THE INCANTATION — say it until you believe it">
         <div className="cd-claim-text">{S.identity.statement}</div>
-        {!claimDone ? (
-          <button type="button" className="cd-btn" onClick={(e) => {
-            castVote("identity", `Spoke the claim out loud — day ${day}.`);
-            cdFx.burstFrom(e, "ember", 12, "#5e9df0");
-            cdFx.ringFrom(e, "#5e9df0");
-            tapLight();
-            sfxPop(settings);
-            celebrate();
-          }}>
-            SAID IT — CAST THE VOTE
+        {!incantDone ? (
+          <button type="button" className="cd-btn cd-btn--incant" onClick={() => { tapMedium(); onIncant(); }}>
+            🔊 SPEAK IT — 3 ROUNDS, OUT LOUD
           </button>
         ) : (
-          <button type="button" className="cd-ghost" onClick={(e) => {
-            castVote("identity", "Lived the claim again — extra evidence.");
-            cdFx.ringFrom(e, "#5e9df0");
-            sfxPop(settings);
-          }}>
-            cast another — the ledger only fills
-          </button>
+          <div className="cd-done-line" style={{ textAlign: "left" }}>✓ said until believed · your voice knows the words now</div>
         )}
       </StepCard>
 
-      <StepCard done={repDone} label={`2 · TODAY'S REP — day ${lesson.day}`}>
+      {/* 2 · SIGN THE LAWS — one per front */}
+      <StepCard done={allLawsDone} label="2 · HOLD THE LAWS — one vote per front">
+        {S.tracks.map((t, i) => {
+          const held = lawsDone[i];
+          return (
+            <button
+              key={t}
+              type="button"
+              className={`cd-daily-law ${held ? "cd-daily-law--held" : ""}`}
+              style={{ "--cd-acc": TRACK_META[t].tintRgb }}
+              disabled={held}
+              onClick={(e) => {
+                castVote("law", `Held the ${TRACK_META[t].label} law today.`, t);
+                cdFx.burstFrom(e, "ember", 10, TRACK_META[t].color);
+                cdFx.ringFrom(e, TRACK_META[t].color);
+                tapLight();
+                sfxPop(settings);
+              }}
+            >
+              <span className="cd-daily-law-name" style={{ color: TRACK_META[t].color }}>
+                {TRACK_META[t].label.toUpperCase()} {held ? "· HELD ✓" : ""}
+              </span>
+              <span className="cd-daily-law-text">{S.laws[t] || TRACK_META[t].lawHint}</span>
+            </button>
+          );
+        })}
+      </StepCard>
+
+      {/* 3 · TODAY'S REP */}
+      <StepCard done={repDone} label={`3 · TODAY'S REP — day ${lesson.day}`}>
         <div className="cd-vote-meaning">{lesson.vote}</div>
         <div className="cd-vote-action">→ {lesson.action}</div>
         {!repDone ? (
@@ -134,81 +153,21 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
             </button>
           </>
         ) : (
-          <div className="cd-done-line">✓ vote cast · +1 evidence</div>
+          <div className="cd-done-line" style={{ textAlign: "left" }}>✓ vote cast · +1 evidence</div>
         )}
       </StepCard>
 
-      {pulseApplicable && (pulseDue ? (
-        <StepCard done={false} accent="79, 209, 197" label="3 · THE WEEKLY PULSE — one honest tap">
-          <div className="cd-pulse-q">Right now, which is truer?</div>
-          {[
-            { v: "clear", label: "I'm someone who doesn't do this anymore" },
-            { v: "mostly", label: "I'm mostly that man" },
-            { v: "holding", label: "I'm still holding the door shut" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" className="cd-pulse-opt" onClick={(e) => {
-              addPulse(opt.v);
-              if (opt.v === "holding") {
-                castVote("identity", "Answered the pulse honestly — and honesty is a clear-man move too.");
-              }
-              cdFx.ringFrom(e, "#4fd1c5");
-              tapLight();
-              sfxPop(settings);
-            }}>{opt.label}</button>
-          ))}
-        </StepCard>
-      ) : (
-        <StepCard done={pulseDone || S.pulses.length > 0} accent="79, 209, 197" label="3 · THE WEEKLY PULSE">
-          <div className="cd-done-line" style={{ textAlign: "left", marginTop: 0 }}>
-            {pulseDone ? "✓ taken this week — next one when it's due" : "first pulse lands on day 7"}
-          </div>
-        </StepCard>
-      ))}
-
-      <StepCard done={false} label="THE LADDER — it only goes up">
-        <div className="cd-daily-ladder">
-          {LADDER.map((r) => {
-            const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
-            return (
-              <span key={r.id} className={`cd-daily-rung-chip ${reached ? "cd-daily-rung-chip--on" : ""}`}>
-                {r.label}
-              </span>
-            );
-          })}
-        </div>
-        {claimableRung && (
-          <button type="button" className="cd-btn cd-btn--sm" onClick={() => onGoTab("identity")}>
-            A RUNG IS WAITING →
-          </button>
-        )}
-      </StepCard>
-
-      <StepCard done={closed} label={`${pulseApplicable ? "4" : "3"} · CLOSE DAY ${day} — honest is the only mode`}>
-        {!closed ? (
-          <>
-            <button type="button" className="cd-btn" onClick={() => {
-              const { firstTime } = closeOutDay("clear");
-              if (firstTime) {
-                addXPSafe(XP_VALUES.cleardayClearDay, "Clear day");
-                cdFx.sunrise();
-                buzzSuccess();
-                sfxPhoenix(settings);
-                celebrate();
-              }
-            }}>
-              A CLEAR DAY
-            </button>
-            <button type="button" className="cd-slip-link" onClick={() => onGoTab("today")}>
-              It slipped — the comeback lives on Today
-            </button>
-          </>
-        ) : (
-          <div className="cd-done-line" style={{ textAlign: "left", marginTop: 0 }}>
-            {S.closedDays[day] === "clear"
-              ? `✓ closed clear · ${currentRun(S) || 1} in a row`
-              : "logged honestly — and you're already back"}
-          </div>
-        )}
+      {/* 4 · THE CONTRACT */}
+      <StepCard done={sealed} accent="255, 196, 107" label={`4 · THE CONTRACT — seal day ${day}`}>
+        <DailyContract
+          S={S}
+          day={day}
+          settings={settings}
+          addXPSafe={addXPSafe}
+          xpAmount={XP_VALUES.cleardayContract}
+          onSigned={celebrate}
+          onSlipPath={onSlipFlow}
+        />
       </StepCard>
 
       {allDone && (

@@ -115,6 +115,7 @@ export default function ClearDayMode({ open, onClose }) {
             <div className="cd-aurora--b" />
             <div className="cd-stars--a" />
             <div className="cd-stars--b" />
+            <div className="cd-motes" />
           </div>
           <div className="cd-stage">
             <ClearDay onExit={requestClose} settings={settings} />

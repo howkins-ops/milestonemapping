@@ -14,7 +14,7 @@
 
 const POOL_SIZE = 40;
 const KINDS = new Set(["ember", "spark", "petal", "ray"]);
-const DAWN_PETALS = ["#5e9df0", "#4fd1c5", "#f0b45e", "#eef3f8"];
+const DAWN_PETALS = ["#7fb4ff", "#5ce0d3", "#ffc46b", "#f4f1e8"];
 
 let layerEl = null;
 
@@ -104,7 +104,7 @@ function burst(x, y, kind = "spark", n = 10, color = null) {
 const RING_CAP = 4;
 let ringCount = 0;
 
-function ring(x, y, color = "#5e9df0") {
+function ring(x, y, color = "#7fb4ff") {
   try {
     if (!motionOk() || ringCount >= RING_CAP) return;
     ringCount += 1;
@@ -125,7 +125,7 @@ function ring(x, y, color = "#5e9df0") {
 
 /* ── Sunrise flare — a wash of dawn light from the bottom edge ────────── */
 
-function flare(color = "#5e9df0") {
+function flare(color = "#7fb4ff") {
   try {
     if (!motionOk()) return;
     let node = layerEl.querySelector(":scope > .cdfx-flare");
@@ -146,14 +146,14 @@ function flare(color = "#5e9df0") {
 
 /* ── The full day-won moment ──────────────────────────────────────────── */
 
-function sunrise(color = "#5e9df0") {
+function sunrise(color = "#7fb4ff") {
   try {
     if (!motionOk()) return;
     flare(color);
     const W = window.innerWidth || 390;
     const H = window.innerHeight || 844;
     [0.25, 0.5, 0.75].forEach((fx, i) => {
-      setTimeout(() => burst(W * fx, H * 0.7, "ember", 10, i === 1 ? "#f0b45e" : color), i * 120);
+      setTimeout(() => burst(W * fx, H * 0.7, "ember", 10, i === 1 ? "#ffc46b" : color), i * 120);
     });
   } catch {
     /* fx is garnish */
@@ -171,7 +171,7 @@ function burstFrom(e, kind = "spark", n = 10, color = null) {
   }
 }
 
-function ringFrom(e, color = "#5e9df0") {
+function ringFrom(e, color = "#7fb4ff") {
   try {
     const r = e && e.currentTarget && e.currentTarget.getBoundingClientRect();
     if (!r) return;

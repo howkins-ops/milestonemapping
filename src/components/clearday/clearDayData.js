@@ -11,17 +11,17 @@ export const TRACK_META = {
   weed: {
     id: "weed",
     label: "Weed",
-    color: "#5fcf8e",
-    glow: "rgba(95, 207, 142, 0.95)",
-    tintRgb: "95, 207, 142",
+    color: "#7be495",
+    glow: "rgba(123, 228, 149, 0.95)",
+    tintRgb: "123, 228, 149",
     lawHint: "I don't hit the pen. I'm a man with healthy lungs and clear mornings.",
   },
   porn: {
     id: "porn",
     label: "Porn",
-    color: "#a78bfa",
-    glow: "rgba(167, 139, 250, 0.95)",
-    tintRgb: "167, 139, 250",
+    color: "#b49bff",
+    glow: "rgba(180, 155, 255, 0.95)",
+    tintRgb: "180, 155, 255",
     lawHint: "I don't open that tab. My desire belongs to real life.",
   },
 };
@@ -36,22 +36,112 @@ export function ladderRung(rungId) {
   return LADDER.find((r) => r.id === rungId) || LADDER[0];
 }
 
-// Default permissive lies + comebacks per track. The first two weed lies
-// were mined from Jon's own old conversations — his voice beats generic.
+// Permissive lies + comebacks per track. w01/w02 were mined from Jon's own
+// old conversations — his voice beats generic. The expansion set is built
+// from the documented rationalizations users actually report
+// (CLEARDAY-3-RESEARCH.md §4). Each lie carries 2-3 true answers so the
+// duel never feels scripted.
 export const SEED_LIES = {
   weed: [
-    { lie: "You already bought it — may as well finish it.", comeback: "Sunk cost is the Mask doing math. The money's gone either way. My mornings aren't." },
-    { lie: "One more hit and I'm done for real.", comeback: "“One more” is how every run ended. There is no last one — there's just the next first one." },
-    { lie: "You've earned it after today.", comeback: "I did earn something: a clear night. The pen doesn't pay out — it borrows from tomorrow." },
-    { lie: "You won't sleep without it.", comeback: "That's the rebound talking. My real sleep is coming back — the pen is what broke it." },
-    { lie: "It helps you relax and create.", comeback: "It rents me relief and charges me motivation. I create more in one clear morning." },
+    { id: "w01", lie: "You already bought it — may as well finish it.", comebacks: [
+      "Sunk cost is the Mask doing math. The money's gone either way. My mornings aren't.",
+      "Finishing it doesn't get the money back — it just spends my morning too.",
+    ] },
+    { id: "w02", lie: "One more hit and I'm done for real.", comebacks: [
+      "“One more” is how every run ended. There is no last one — there's just the next first one.",
+      "The last one already happened. I don't reopen a closed door to close it again.",
+    ] },
+    { id: "w03", lie: "You've earned it after today.", comebacks: [
+      "I did earn something: a clear night. The pen doesn't pay out — it borrows from tomorrow.",
+      "I earned a real reward — a meal, a walk, my bed. I don't pay for tonight's relief with tomorrow's morning.",
+    ] },
+    { id: "w04", lie: "You won't sleep without it.", comebacks: [
+      "That's the rebound talking. My real sleep is coming back — the pen is what broke it.",
+      "Weed traded my deep sleep for sedation. These rough nights are my brain rebuilding real sleep.",
+      "The wild dreams are REM coming back online. That's a progress badge, not a problem.",
+    ] },
+    { id: "w05", lie: "It helps you relax and create.", comebacks: [
+      "It rents me relief and charges me motivation. I create more in one clear morning.",
+      "The couch never built anything. My best ideas show up in a clear morning.",
+    ] },
+    { id: "w06", lie: "It's just a plant. It's natural.", comebacks: [
+      "The plant was never the problem — what my evenings became was.",
+      "I don't outsource my calm to smoke, natural or not.",
+    ] },
+    { id: "w07", lie: "One hit tonight, back on track tomorrow.", comebacks: [
+      "One hit sets my sleep clock back to day one. I don't trade two weeks of rebuilding for ten minutes of fog.",
+      "Tomorrow-me inherits whatever tonight-me does. I don't hand him a reset.",
+    ] },
+    { id: "w08", lie: "You could just be a weekend smoker.", comebacks: [
+      "Weekends is exactly where daily started. I don't renegotiate with a habit that already showed me its terms.",
+      "I decided once so I never have to decide again. There's no small print on the Law.",
+    ] },
+    { id: "w09", lie: "Everyone you know smokes.", comebacks: [
+      "Everyone I know isn't trying to get their mornings back. I am.",
+      "I don't vote with the crowd — I vote for who I'm becoming.",
+    ] },
+    { id: "w10", lie: "You're more fun when you're high.", comebacks: [
+      "Fog isn't fun — it's absence. The people who matter get more of me clear.",
+      "I was never more fun. I was just less there.",
+    ] },
+    { id: "w11", lie: "It's been a brutal week. This is medicine.", comebacks: [
+      "Medicine heals. This sedates. My stress is still there in the morning — plus fog.",
+      "Stress wants a real exit: a walk, a shower, a person. Smoke is a locked door painted like one.",
+    ] },
+    { id: "w12", lie: "Nobody would even know.", comebacks: [
+      "I would know. The vote counts most when no one's watching.",
+      "The ballot is mine. I don't cast secret votes against myself.",
+    ] },
   ],
   porn: [
-    { lie: "Just a quick peek. It doesn't count.", comeback: "The peek IS the relapse. The door doesn't open a little." },
-    { lie: "You can't sleep anyway. Might as well.", comeback: "The screen is why I can't sleep. Phone leaves the room — that's the whole move." },
-    { lie: "You've had a hard day. You deserve this.", comeback: "After a hard day I deserve something real. This trades ten minutes for a week of fog." },
-    { lie: "One look won't change anything.", comeback: "One look is a vote. I don't vote against the man I'm building." },
-    { lie: "You'll quit for real tomorrow.", comeback: "Tomorrow-me doesn't exist. There's only this choice, and I don't." },
+    { id: "p01", lie: "Just a quick peek. It doesn't count.", comebacks: [
+      "The peek IS the relapse. The door doesn't open a little.",
+      "There's no such thing as one tab. I don't open doors I've already chosen to close.",
+    ] },
+    { id: "p02", lie: "You can't sleep anyway. Might as well.", comebacks: [
+      "The screen is why I can't sleep. Phone leaves the room — that's the whole move.",
+      "Late-night scrolling is the on-ramp, not a rest stop. My phone sleeps in the kitchen.",
+    ] },
+    { id: "p03", lie: "You've had a hard day. You deserve this.", comebacks: [
+      "After a hard day I deserve something real. This trades ten minutes for a week of fog.",
+      "I deserve better than a 1am shame hangover. I don't reward a hard day by making tomorrow heavier.",
+    ] },
+    { id: "p04", lie: "One look won't change anything.", comebacks: [
+      "One look is a vote. I don't vote against the man I'm building.",
+      "It was never one look. It was one look, then an hour I don't get back.",
+    ] },
+    { id: "p05", lie: "You'll quit for real tomorrow.", comebacks: [
+      "Tomorrow-me doesn't exist. There's only this choice, and I don't.",
+      "Tomorrow signs its own contract. Tonight's is already signed.",
+    ] },
+    { id: "p06", lie: "You already slipped — tonight's a write-off anyway.", comebacks: [
+      "A slip is one frame, not the whole film. The shame spiral is the real relapse.",
+      "I don't turn one bad hour into a bad week. The next clean choice starts now, not tomorrow.",
+    ] },
+    { id: "p07", lie: "It doesn't hurt anyone.", comebacks: [
+      "It quietly costs the connection I'm building — with people, with a partner, with myself.",
+      "I don't trade real intimacy for pixels.",
+    ] },
+    { id: "p08", lie: "You're too stressed to wind down without it.", comebacks: [
+      "Stress wants comfort, and the screen is anesthesia — it numbs the loneliness and then feeds it back to me.",
+      "I don't medicate feelings with a browser. Name the feeling, do the fix.",
+    ] },
+    { id: "p09", lie: "You're alone tonight — nobody would ever know.", comebacks: [
+      "I would know. The vote counts most when no one's watching.",
+      "I don't need witnesses to keep my word.",
+    ] },
+    { id: "p10", lie: "Just check social media for a minute.", comebacks: [
+      "At 11pm, “just checking” is how it always starts. I don't negotiate with the algorithm after curfew.",
+      "The scroll is the runway. I don't taxi toward a takeoff I've cancelled.",
+    ] },
+    { id: "p11", lie: "It's a need. Everyone has needs.", comebacks: [
+      "My desire belongs to real life. The screen doesn't feed the need — it starves it and calls it dinner.",
+      "This isn't desire, it's escape wearing desire's jacket.",
+    ] },
+    { id: "p12", lie: "You'll just feel worse fighting it all night.", comebacks: [
+      "The urge is a wave, not a wall. It peaks and it passes whether I obey it or not.",
+      "Ten minutes of riding it out beats a night of regret. I've outlasted it before.",
+    ] },
   ],
 };
 

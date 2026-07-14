@@ -6,25 +6,25 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --cd-ink: #0b0f14;
-  --cd-ink2: #0f141b;
-  --cd-slate: #161d26;
-  --cd-slate2: #1d2632;
-  --cd-line: #26313d;
-  --cd-line-soft: #1c2530;
-  --cd-mute: #5f6b7a;
-  --cd-soft: #8b98a8;
-  --cd-text: #c3cdd9;
-  --cd-bright: #eef3f8;
-  --cd-dawn: #5e9df0;
-  --cd-dawn-deep: #2d5a8a;
-  --cd-teal: #4fd1c5;
-  --cd-amber: #f0b45e;
-  --cd-rose: #e07a7a;
-  --cd-green: #5fcf8e;
-  --cd-violet: #a78bfa;
-  --cd-weed: #5fcf8e;
-  --cd-porn: #a78bfa;
+  --cd-ink: #0c1022;
+  --cd-ink2: #10152b;
+  --cd-slate: #151b33;
+  --cd-slate2: #1d2440;
+  --cd-line: #262e52;
+  --cd-line-soft: #1e2542;
+  --cd-mute: #6d75a0;
+  --cd-soft: #9aa1c9;
+  --cd-text: #c9cde8;
+  --cd-bright: #f4f1e8;
+  --cd-dawn: #7fb4ff;
+  --cd-dawn-deep: #35619e;
+  --cd-teal: #5ce0d3;
+  --cd-amber: #ffc46b;
+  --cd-rose: #ff7a88;
+  --cd-green: #7be495;
+  --cd-violet: #b49bff;
+  --cd-weed: #7be495;
+  --cd-porn: #b49bff;
 }
 
 /* ── overlay shell ──────────────────────────────────────────────────── */
@@ -33,7 +33,8 @@
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: var(--cd-ink);
+  /* night SKY, not a panel: indigo deepens downward toward a warming horizon */
+  background: linear-gradient(180deg, #0c1022 0%, #10142e 55%, #131637 78%, #1a1c40 100%);
   color: var(--cd-text);
   font-family: var(--font-body, "Manrope", sans-serif);
   overflow: hidden;
@@ -74,6 +75,14 @@
   pointer-events: none;
 }
 
+/* the sunrise is always coming: a low warm glow held at the horizon */
+.cd-atmos::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 130% 42% at 50% 108%, rgba(255, 196, 107, 0.13), transparent 65%);
+}
+
 .cd-aurora--a,
 .cd-aurora--b {
   position: absolute;
@@ -85,13 +94,13 @@
 .cd-aurora--a {
   left: -35vw;
   top: -18vh;
-  background: radial-gradient(closest-side, rgba(45, 90, 138, 0.32), transparent 70%);
+  background: radial-gradient(closest-side, rgba(72, 116, 190, 0.42), transparent 70%);
   animation: cd-aurora-drift-a 26s ease-in-out infinite alternate;
 }
 .cd-aurora--b {
   right: -45vw;
   bottom: -22vh;
-  background: radial-gradient(closest-side, rgba(79, 209, 197, 0.13), transparent 70%);
+  background: radial-gradient(closest-side, rgba(92, 224, 211, 0.18), transparent 70%);
   animation: cd-aurora-drift-b 34s ease-in-out infinite alternate;
 }
 
@@ -110,26 +119,26 @@
 }
 .cd-stars--a {
   background-image:
-    radial-gradient(circle at 12% 14%, rgba(238, 243, 248, 0.75) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 31% 7%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 54% 18%, rgba(197, 219, 248, 0.65) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 71% 9%, rgba(238, 243, 248, 0.45) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 88% 21%, rgba(238, 243, 248, 0.6) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 22% 33%, rgba(197, 219, 248, 0.4) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 63% 36%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 43% 27%, rgba(238, 243, 248, 0.35) 0 0.8px, transparent 1.3px);
+    radial-gradient(circle at 12% 14%, rgba(244, 241, 232, 0.75) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 31% 7%, rgba(244, 241, 232, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 54% 18%, rgba(201, 205, 232, 0.65) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 71% 9%, rgba(244, 241, 232, 0.45) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 88% 21%, rgba(244, 241, 232, 0.6) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 22% 33%, rgba(201, 205, 232, 0.4) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 63% 36%, rgba(244, 241, 232, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 43% 27%, rgba(244, 241, 232, 0.35) 0 0.8px, transparent 1.3px);
   animation: cd-star-twinkle 7s ease-in-out infinite alternate;
 }
 .cd-stars--b {
   background-image:
-    radial-gradient(circle at 8% 26%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 39% 12%, rgba(197, 219, 248, 0.55) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 59% 6%, rgba(238, 243, 248, 0.4) 0 0.9px, transparent 1.4px),
-    radial-gradient(circle at 79% 15%, rgba(238, 243, 248, 0.55) 0 1.1px, transparent 1.7px),
-    radial-gradient(circle at 94% 34%, rgba(197, 219, 248, 0.4) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 17% 45%, rgba(238, 243, 248, 0.3) 0 0.8px, transparent 1.3px),
-    radial-gradient(circle at 84% 44%, rgba(238, 243, 248, 0.35) 0 0.9px, transparent 1.4px),
-    radial-gradient(circle at 49% 41%, rgba(197, 219, 248, 0.3) 0 0.8px, transparent 1.3px);
+    radial-gradient(circle at 8% 26%, rgba(244, 241, 232, 0.5) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 39% 12%, rgba(201, 205, 232, 0.55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 59% 6%, rgba(244, 241, 232, 0.4) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 79% 15%, rgba(244, 241, 232, 0.55) 0 1.1px, transparent 1.7px),
+    radial-gradient(circle at 94% 34%, rgba(201, 205, 232, 0.4) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 17% 45%, rgba(244, 241, 232, 0.3) 0 0.8px, transparent 1.3px),
+    radial-gradient(circle at 84% 44%, rgba(244, 241, 232, 0.35) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 49% 41%, rgba(201, 205, 232, 0.3) 0 0.8px, transparent 1.3px);
   animation: cd-star-twinkle 9s ease-in-out -3s infinite alternate;
 }
 
@@ -146,7 +155,7 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(ellipse 120% 42% at 50% 78%, rgba(45, 90, 138, 0.34), transparent 70%),
+    radial-gradient(ellipse 120% 42% at 50% 78%, rgba(53, 97, 158, 0.34), transparent 70%),
     var(--cd-ink);
 }
 
@@ -240,7 +249,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 35%, rgba(238, 243, 248, 0.35) 50%, transparent 65%);
+  background: linear-gradient(105deg, transparent 35%, rgba(244, 241, 232, 0.35) 50%, transparent 65%);
   transform: translateX(-130%);
   animation: cd-word-sweep 0.5s ease-out 1.5s forwards;
   pointer-events: none;
@@ -260,9 +269,9 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: linear-gradient(165deg, #131a24, #0b0f14);
-  border: 1px solid rgba(94, 157, 240, 0.45);
-  box-shadow: inset 0 0 10px rgba(94, 157, 240, 0.14);
+  background: linear-gradient(165deg, #141b38, #0c1022);
+  border: 1px solid rgba(127, 180, 255, 0.45);
+  box-shadow: inset 0 0 10px rgba(127, 180, 255, 0.14);
   overflow: hidden;
 }
 
@@ -386,7 +395,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-size: 14.5px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  box-shadow: 0 5px 22px rgba(94, 157, 240, 0.22);
+  box-shadow: 0 5px 22px rgba(127, 180, 255, 0.22);
   transition: transform 0.15s var(--ease-out, ease-out), box-shadow 0.15s;
 }
 .cd-btn:hover { transform: translateY(-1px) scale(1.01); }
@@ -400,8 +409,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   transform: none;
 }
 .cd-btn--sm { width: auto; padding: 10px 18px; font-size: 12.5px; margin-top: 10px; }
-.cd-btn--seal { box-shadow: 0 8px 32px rgba(94, 157, 240, 0.4); }
-.cd-btn--rep { background: linear-gradient(135deg, #1d3a2c, #2e6b4a); box-shadow: 0 5px 22px rgba(95, 207, 142, 0.18); }
+.cd-btn--seal { box-shadow: 0 8px 32px rgba(127, 180, 255, 0.4); }
+.cd-btn--rep { background: linear-gradient(135deg, #1d3a2c, #2e6b4a); box-shadow: 0 5px 22px rgba(123, 228, 149, 0.18); }
 
 .cd-ghost {
   background: none;
@@ -427,7 +436,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   outline: none;
   resize: vertical;
 }
-.cd-input:focus { border-color: rgba(94, 157, 240, 0.6); }
+.cd-input:focus { border-color: rgba(127, 180, 255, 0.6); }
 .cd-input::placeholder { color: var(--cd-mute); }
 .cd-input--sm { margin-top: 8px; font-size: 13.5px; padding: 10px 12px; }
 
@@ -435,8 +444,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   margin-top: 8px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(224, 122, 122, 0.09);
-  border: 1px solid rgba(224, 122, 122, 0.3);
+  background: rgba(255, 122, 136, 0.09);
+  border: 1px solid rgba(255, 122, 136, 0.3);
   color: var(--cd-rose);
   font-size: 12.5px;
   line-height: 1.5;
@@ -459,7 +468,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   border-color: var(--cd-dawn);
   color: var(--cd-bright);
 }
-.cd-chip--static { cursor: default; color: var(--cd-amber); border-color: rgba(240, 180, 94, 0.3); }
+.cd-chip--static { cursor: default; color: var(--cd-amber); border-color: rgba(255, 196, 107, 0.3); }
 
 /* ── the aurora card system ─────────────────────────────────────────────
    Every card carries an accent (--cd-acc, RGB triplet) that drives a
@@ -472,7 +481,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 }
 
 .cd-card {
-  --cd-acc: 94, 157, 240;
+  --cd-acc: 127, 180, 255;
   position: relative;
   padding: 16px;
   border-radius: 16px;
@@ -501,7 +510,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
     rgba(var(--cd-acc), 0.55),
     transparent 25%,
     rgba(var(--cd-acc), 0.12) 50%,
-    rgba(79, 209, 197, 0.28) 70%,
+    rgba(92, 224, 211, 0.28) 70%,
     transparent 88%,
     rgba(var(--cd-acc), 0.55)
   );
@@ -518,7 +527,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(105deg, transparent 42%, rgba(238, 243, 248, 0.055) 50%, transparent 58%);
+  background: linear-gradient(105deg, transparent 42%, rgba(244, 241, 232, 0.055) 50%, transparent 58%);
   background-size: 250% 100%;
   background-repeat: no-repeat;
   background-position: 200% 0;
@@ -578,7 +587,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   gap: 4px;
   transition: all 0.15s;
 }
-.cd-track-card--on { border-color: var(--cd-dawn); background: var(--cd-slate2); box-shadow: 0 0 22px rgba(94, 157, 240, 0.15); }
+.cd-track-card--on { border-color: var(--cd-dawn); background: var(--cd-slate2); box-shadow: 0 0 22px rgba(127, 180, 255, 0.15); }
 .cd-track-card--row { flex-direction: row; justify-content: center; margin-bottom: 10px; }
 .cd-track-name { font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 17px; letter-spacing: 2px; }
 .cd-track-sub { font-size: 12.5px; color: var(--cd-soft); }
@@ -611,13 +620,13 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   cursor: pointer;
   transition: all 0.12s;
 }
-.cd-heat-dot--on { background: var(--cd-amber); border-color: var(--cd-amber); box-shadow: 0 0 8px rgba(240, 180, 94, 0.55); }
+.cd-heat-dot--on { background: var(--cd-amber); border-color: var(--cd-amber); box-shadow: 0 0 8px rgba(255, 196, 107, 0.55); }
 
 .cd-seal-card {
   padding: 18px;
   border-radius: 16px;
-  background: linear-gradient(160deg, rgba(45, 90, 138, 0.25), var(--cd-slate));
-  border: 1px solid rgba(94, 157, 240, 0.4);
+  background: linear-gradient(160deg, rgba(53, 97, 158, 0.25), var(--cd-slate));
+  border: 1px solid rgba(127, 180, 255, 0.4);
   margin-bottom: 14px;
 }
 .cd-seal-statement {
@@ -646,12 +655,12 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   height: 210px;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(94, 157, 240, 0.28);
+  border: 1px solid rgba(127, 180, 255, 0.28);
   margin-bottom: 14px;
   box-shadow:
-    inset 0 0 40px rgba(45, 90, 138, 0.18),
+    inset 0 0 40px rgba(53, 97, 158, 0.18),
     0 18px 44px -18px rgba(0, 0, 0, 0.75),
-    0 0 32px -12px rgba(94, 157, 240, 0.35);
+    0 0 32px -12px rgba(127, 180, 255, 0.35);
 }
 .cd-horizon { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cd-hero-copy { position: absolute; left: 16px; right: 16px; bottom: 12px; }
@@ -662,7 +671,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-weight: 800;
   letter-spacing: 1.5px;
   color: var(--cd-bright);
-  text-shadow: 0 0 18px rgba(94, 157, 240, 0.5);
+  text-shadow: 0 0 18px rgba(127, 180, 255, 0.5);
   margin: 3px 0;
 }
 .cd-hero-votes { font-size: 12px; color: var(--cd-soft); }
@@ -675,13 +684,13 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   text-align: left;
   padding: 16px;
   border-radius: 15px;
-  background: linear-gradient(160deg, rgba(45, 90, 138, 0.24), var(--cd-slate)) padding-box;
+  background: linear-gradient(160deg, rgba(53, 97, 158, 0.24), var(--cd-slate)) padding-box;
   border: 1px solid transparent;
   cursor: pointer;
   margin-bottom: 12px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 0 30px rgba(94, 157, 240, 0.08),
+    inset 0 0 30px rgba(127, 180, 255, 0.08),
     0 14px 34px -14px rgba(0, 0, 0, 0.65);
   transition: transform 0.15s ease, box-shadow 0.25s ease;
 }
@@ -696,11 +705,11 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   padding: 1.5px;
   background: conic-gradient(
     from var(--cd-ang, 210deg),
-    rgba(94, 157, 240, 0.85),
-    rgba(79, 209, 197, 0.25) 30%,
-    rgba(94, 157, 240, 0.1) 55%,
-    rgba(240, 180, 94, 0.45) 78%,
-    rgba(94, 157, 240, 0.85)
+    rgba(127, 180, 255, 0.85),
+    rgba(92, 224, 211, 0.25) 30%,
+    rgba(127, 180, 255, 0.1) 55%,
+    rgba(255, 196, 107, 0.45) 78%,
+    rgba(127, 180, 255, 0.85)
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -728,11 +737,11 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   width: 100%;
   padding: 17px;
   border-radius: 15px;
-  border: 1px solid rgba(224, 122, 122, 0.5);
+  border: 1px solid rgba(255, 122, 136, 0.5);
   background: linear-gradient(135deg, #331a1e, #4a2028);
   box-shadow:
-    inset 0 0 24px rgba(224, 122, 122, 0.1),
-    0 10px 30px -12px rgba(224, 122, 122, 0.35);
+    inset 0 0 24px rgba(255, 122, 136, 0.1),
+    0 10px 30px -12px rgba(255, 122, 136, 0.35);
   color: #f2c7c7;
   font-family: var(--font-display, "Sora", sans-serif);
   font-size: 14px;
@@ -745,7 +754,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cd-urge-pulse {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 100% at 50% 50%, rgba(224, 122, 122, 0.16), transparent 70%);
+  background: radial-gradient(ellipse 60% 100% at 50% 50%, rgba(255, 122, 136, 0.16), transparent 70%);
   animation: cd-urge-pulse 2.4s ease-in-out infinite;
   pointer-events: none;
 }
@@ -765,7 +774,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   cursor: pointer;
 }
 .cd-halt--on { border-color: var(--cd-dawn); color: var(--cd-bright); background: var(--cd-slate2); }
-.cd-halt-fix { margin-top: 12px; padding: 12px; border-radius: 11px; background: var(--cd-ink2); border: 1px solid rgba(94, 157, 240, 0.25); }
+.cd-halt-fix { margin-top: 12px; padding: 12px; border-radius: 11px; background: var(--cd-ink2); border: 1px solid rgba(127, 180, 255, 0.25); }
 .cd-halt-line { font-size: 12.5px; color: var(--cd-soft); margin-bottom: 6px; }
 .cd-halt-do { font-size: 13.5px; color: var(--cd-text); line-height: 1.55; }
 
@@ -794,7 +803,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   padding: 12px;
   border-radius: 11px;
   background: var(--cd-ink2);
-  border: 1px solid rgba(94, 157, 240, 0.25);
+  border: 1px solid rgba(127, 180, 255, 0.25);
 }
 .cd-vote-meaning { font-size: 13px; font-style: italic; color: var(--cd-text); line-height: 1.5; }
 .cd-vote-action { font-size: 12.5px; color: var(--cd-soft); margin-top: 6px; }
@@ -810,8 +819,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cd-body-text { font-size: 13px; line-height: 1.6; color: var(--cd-text); margin: 0; }
 
 .cd-card--why {
-  --cd-acc: 240, 180, 94;
-  border: 1px dashed rgba(240, 180, 94, 0.35);
+  --cd-acc: 255, 196, 107;
+  border: 1px dashed rgba(255, 196, 107, 0.35);
   background: var(--cd-ink2);
 }
 .cd-card--why::before { display: none; }
@@ -830,7 +839,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 
 /* ── identity tab ───────────────────────────────────────────────────── */
 
-.cd-card--claim { background: linear-gradient(160deg, rgba(45, 90, 138, 0.25), var(--cd-slate)) padding-box; }
+.cd-card--claim { background: linear-gradient(160deg, rgba(53, 97, 158, 0.25), var(--cd-slate)) padding-box; }
 
 .cd-rung {
   display: flex;
@@ -842,14 +851,14 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   border: 1px solid var(--cd-line-soft);
   margin-bottom: 8px;
 }
-.cd-rung--on { border-color: var(--cd-dawn); box-shadow: 0 0 16px rgba(94, 157, 240, 0.14); }
+.cd-rung--on { border-color: var(--cd-dawn); box-shadow: 0 0 16px rgba(127, 180, 255, 0.14); }
 .cd-rung--past { opacity: 0.55; }
 .cd-rung-label { flex: 1; font-size: 14px; color: var(--cd-text); font-weight: 600; }
 .cd-rung--on .cd-rung-label { color: var(--cd-bright); }
 .cd-rung-tag { font-size: 9.5px; letter-spacing: 1.5px; color: var(--cd-dawn); font-weight: 700; }
 .cd-rung-lock { font-size: 11px; color: var(--cd-mute); }
 
-.cd-card--pulse { --cd-acc: 79, 209, 197; }
+.cd-card--pulse { --cd-acc: 92, 224, 211; }
 .cd-pulse-q { font-family: var(--font-display, "Sora", sans-serif); font-size: 16px; font-weight: 700; color: var(--cd-bright); margin-bottom: 10px; }
 .cd-pulse-opt {
   display: block;
@@ -892,9 +901,9 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-weight: 700;
   margin-bottom: 4px;
 }
-.cd-door--dark { border-color: rgba(224, 122, 122, 0.35); background: rgba(224, 122, 122, 0.05); }
+.cd-door--dark { border-color: rgba(255, 122, 136, 0.35); background: rgba(255, 122, 136, 0.05); }
 .cd-door--dark span { color: var(--cd-rose); }
-.cd-door--clear { border-color: rgba(95, 207, 142, 0.35); background: rgba(95, 207, 142, 0.05); }
+.cd-door--clear { border-color: rgba(123, 228, 149, 0.35); background: rgba(123, 228, 149, 0.05); }
 .cd-door--clear span { color: var(--cd-green); }
 .cd-door-actions { font-size: 12px; color: var(--cd-soft); margin-top: 4px; }
 
@@ -913,7 +922,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   border: 1px solid var(--cd-line);
   cursor: pointer;
 }
-.cd-phase-head--on { border-color: rgba(94, 157, 240, 0.5); }
+.cd-phase-head--on { border-color: rgba(127, 180, 255, 0.5); }
 .cd-phase-name { font-family: var(--font-display, "Sora", sans-serif); font-size: 16px; font-weight: 700; margin-top: 2px; }
 .cd-phase-toggle { color: var(--cd-mute); font-size: 20px; }
 .cd-phase-desc { font-size: 12.5px; color: var(--cd-soft); line-height: 1.55; padding: 10px 4px 6px; }
@@ -927,7 +936,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   background: var(--cd-ink2);
   border: 1px solid var(--cd-line-soft);
 }
-.cd-dayrow--now { background: var(--cd-slate2); border-color: rgba(94, 157, 240, 0.5); }
+.cd-dayrow--now { background: var(--cd-slate2); border-color: rgba(127, 180, 255, 0.5); }
 .cd-dayrow--locked { opacity: 0.45; }
 .cd-dayrow-num { font-family: var(--font-display, "Sora", sans-serif); font-weight: 700; font-size: 12px; width: 22px; flex-shrink: 0; }
 .cd-dayrow-title { font-size: 13.5px; font-weight: 600; color: var(--cd-text); }
@@ -943,7 +952,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 
 .cd-letter { margin-bottom: 10px; }
 .cd-letter-sealed { font-size: 12.5px; color: var(--cd-mute); padding: 10px 12px; border: 1px dashed var(--cd-line); border-radius: 10px; }
-.cd-letter-text { font-size: 13.5px; font-style: italic; color: var(--cd-text); line-height: 1.55; padding: 10px 12px; background: var(--cd-ink2); border-radius: 10px; border: 1px solid rgba(240, 180, 94, 0.25); }
+.cd-letter-text { font-size: 13.5px; font-style: italic; color: var(--cd-text); line-height: 1.55; padding: 10px 12px; background: var(--cd-ink2); border-radius: 10px; border: 1px solid rgba(255, 196, 107, 0.25); }
 .cd-letter-meta { color: var(--cd-mute); font-size: 11px; font-style: normal; }
 
 .cd-ballot-row {
@@ -993,8 +1002,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 }
 .cd-tab--on {
   color: var(--cd-dawn);
-  background: rgba(94, 157, 240, 0.1);
-  text-shadow: 0 0 12px rgba(94, 157, 240, 0.5);
+  background: rgba(127, 180, 255, 0.1);
+  text-shadow: 0 0 12px rgba(127, 180, 255, 0.5);
 }
 .cd-tab--exit { flex: 0 0 44px; color: var(--cd-soft); font-size: 15px; }
 
@@ -1075,7 +1084,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cd-ceremony--crit .cd-ceremony-stamp {
   border-width: 4px;
   font-size: 30px;
-  box-shadow: 0 0 60px rgba(240, 180, 94, 0.5);
+  box-shadow: 0 0 60px rgba(255, 196, 107, 0.5);
 }
 
 /* light rays fanning out behind the stamp */
@@ -1089,14 +1098,14 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
-    rgba(94, 157, 240, 0.16) 0 8deg, transparent 8deg 45deg,
-    rgba(240, 180, 94, 0.13) 45deg 53deg, transparent 53deg 90deg,
-    rgba(94, 157, 240, 0.16) 90deg 98deg, transparent 98deg 135deg,
-    rgba(79, 209, 197, 0.13) 135deg 143deg, transparent 143deg 180deg,
-    rgba(94, 157, 240, 0.16) 180deg 188deg, transparent 188deg 225deg,
-    rgba(240, 180, 94, 0.13) 225deg 233deg, transparent 233deg 270deg,
-    rgba(94, 157, 240, 0.16) 270deg 278deg, transparent 278deg 315deg,
-    rgba(79, 209, 197, 0.13) 315deg 323deg, transparent 323deg 360deg
+    rgba(127, 180, 255, 0.16) 0 8deg, transparent 8deg 45deg,
+    rgba(255, 196, 107, 0.13) 45deg 53deg, transparent 53deg 90deg,
+    rgba(127, 180, 255, 0.16) 90deg 98deg, transparent 98deg 135deg,
+    rgba(92, 224, 211, 0.13) 135deg 143deg, transparent 143deg 180deg,
+    rgba(127, 180, 255, 0.16) 180deg 188deg, transparent 188deg 225deg,
+    rgba(255, 196, 107, 0.13) 225deg 233deg, transparent 233deg 270deg,
+    rgba(127, 180, 255, 0.16) 270deg 278deg, transparent 278deg 315deg,
+    rgba(92, 224, 211, 0.13) 315deg 323deg, transparent 323deg 360deg
   );
   -webkit-mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 72%);
   mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 72%);
@@ -1126,19 +1135,19 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--c, #5e9df0);
+  background: var(--c, #7fb4ff);
   opacity: 0;
   pointer-events: none;
 }
 .cdfx-p--spark {
   animation: cdfx-p-spark 0.6s cubic-bezier(0.1, 0.8, 0.4, 1) forwards;
-  box-shadow: 0 0 8px var(--c, #5e9df0);
+  box-shadow: 0 0 8px var(--c, #7fb4ff);
 }
 .cdfx-p--ember {
   width: 5px;
   height: 5px;
   animation: cdfx-p-ember 1.1s ease-out forwards;
-  box-shadow: 0 0 10px var(--c, #f0b45e);
+  box-shadow: 0 0 10px var(--c, #ffc46b);
 }
 .cdfx-p--petal {
   width: 9px;
@@ -1151,7 +1160,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   height: 14px;
   border-radius: 2px;
   animation: cdfx-p-ray 0.5s cubic-bezier(0.1, 0.9, 0.3, 1) forwards;
-  box-shadow: 0 0 10px var(--c, #5e9df0);
+  box-shadow: 0 0 10px var(--c, #7fb4ff);
 }
 
 @keyframes cdfx-p-spark {
@@ -1178,8 +1187,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   height: 90px;
   margin: -45px 0 0 -45px;
   border-radius: 50%;
-  border: 1.5px solid var(--c, #5e9df0);
-  box-shadow: 0 0 18px var(--c, #5e9df0);
+  border: 1.5px solid var(--c, #7fb4ff);
+  box-shadow: 0 0 18px var(--c, #7fb4ff);
   pointer-events: none;
   animation: cdfx-ring-kf 0.45s ease-out forwards;
 }
@@ -1193,7 +1202,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  background: linear-gradient(0deg, color-mix(in srgb, var(--c, #5e9df0) 30%, transparent), transparent 60%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c, #7fb4ff) 30%, transparent), transparent 60%);
 }
 .cdfx-flare.is-on {
   animation: cdfx-flare-kf 0.9s ease-out forwards;
@@ -1228,7 +1237,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-weight: 800;
   letter-spacing: 1.5px;
   color: var(--cd-bright);
-  text-shadow: 0 0 20px rgba(94, 157, 240, 0.5);
+  text-shadow: 0 0 20px rgba(127, 180, 255, 0.5);
   margin-bottom: 12px;
 }
 .cd-daily-dots {
@@ -1247,7 +1256,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cd-daily-dot--on {
   background: var(--cd-dawn);
   border-color: var(--cd-dawn);
-  box-shadow: 0 0 10px rgba(94, 157, 240, 0.7);
+  box-shadow: 0 0 10px rgba(127, 180, 255, 0.7);
 }
 
 .cd-daily-step-head {
@@ -1260,8 +1269,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cd-daily-check {
   font-size: 15px;
   font-weight: 800;
-  color: rgb(var(--cd-acc, 94, 157, 240));
-  text-shadow: 0 0 12px rgba(var(--cd-acc, 94, 157, 240), 0.8);
+  color: rgb(var(--cd-acc, 127, 180, 255));
+  text-shadow: 0 0 12px rgba(var(--cd-acc, 127, 180, 255), 0.8);
   animation: cd-stamp-slam 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
 .cd-daily-step--done {
@@ -1299,11 +1308,11 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   background: var(--cd-slate2);
   border-color: var(--cd-dawn);
   color: var(--cd-bright);
-  box-shadow: 0 0 12px rgba(94, 157, 240, 0.2);
+  box-shadow: 0 0 12px rgba(127, 180, 255, 0.2);
 }
 
 .cd-daily-complete {
-  --cd-acc: 240, 180, 94;
+  --cd-acc: 255, 196, 107;
   text-align: center;
   padding: 22px 16px;
 }
@@ -1320,7 +1329,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-weight: 800;
   letter-spacing: 3px;
   color: var(--cd-amber);
-  text-shadow: 0 0 22px rgba(240, 180, 94, 0.5);
+  text-shadow: 0 0 22px rgba(255, 196, 107, 0.5);
 }
 .cd-daily-complete-sub {
   margin-top: 8px;
@@ -1329,8 +1338,280 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   PER-TRACK LAW CARDS + SEAL POINTER + BALLOT CHIPS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cd-law-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px;
+  border-radius: 15px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: linear-gradient(160deg, rgba(var(--cd-acc, 127, 180, 255), 0.12), var(--cd-slate)) padding-box;
+  margin-bottom: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 30px rgba(var(--cd-acc, 127, 180, 255), 0.08),
+    0 14px 34px -14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.15s ease, box-shadow 0.25s ease;
+}
+.cd-law-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  padding: 1px;
+  background: conic-gradient(
+    from 210deg,
+    rgba(var(--cd-acc, 127, 180, 255), 0.65),
+    transparent 30%,
+    rgba(var(--cd-acc, 127, 180, 255), 0.15) 55%,
+    rgba(255, 196, 107, 0.3) 75%,
+    rgba(var(--cd-acc, 127, 180, 255), 0.65)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.cd-law-card:active { transform: scale(0.975); }
+.cd-law-card--held { cursor: default; }
+.cd-law-card--held .cd-claim-text { color: var(--cd-soft); }
+.cd-law-check {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: rgb(var(--cd-acc, 127, 180, 255));
+  text-shadow: 0 0 12px rgba(var(--cd-acc, 127, 180, 255), 0.8);
+  animation: cd-stamp-slam 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.cd-seal-pointer {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 196, 107, 0.45);
+  background: rgba(255, 196, 107, 0.06);
+  color: var(--cd-amber);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+.cd-seal-pointer:active { transform: scale(0.98); }
+
+.cd-ballot-track {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: 9px;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  vertical-align: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    THE URGE BATTLE (cdb-)
    ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── check the dial ── */
+.cdb-urge-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+.cdb-urge-num {
+  padding: 16px 0;
+  border-radius: 13px;
+  background: var(--cd-ink2);
+  border: 1px solid var(--cd-line);
+  color: var(--cd-text);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.cdb-urge-num:active { transform: scale(0.9); }
+.cdb-urge-num--hot { border-color: rgba(255, 122, 136, 0.5); color: var(--cd-rose); }
+
+.cdb-ghostline {
+  background: none;
+  border: none;
+  color: var(--cd-soft);
+  font-size: 12.5px;
+  cursor: pointer;
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px;
+}
+
+/* ── burn it off ── */
+.cdb-burn-moves { display: grid; gap: 10px; margin-top: 14px; }
+.cdb-burn-move {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2b1a10, #3a2113);
+  border: 1px solid rgba(255, 196, 107, 0.4);
+  box-shadow: inset 0 0 22px rgba(255, 196, 107, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cdb-burn-move:active { transform: scale(0.98); }
+.cdb-burn-move-label {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--cd-amber);
+  font-size: 14px;
+}
+.cdb-burn-move-line { font-size: 12.5px; color: var(--cd-text); line-height: 1.45; }
+
+.cdb-burn { text-align: center; }
+.cdb-burn-ring {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 26px auto 12px;
+  display: grid;
+  place-items: center;
+}
+.cdb-burn-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--bc, #ffc46b) var(--p, 0deg), rgba(255, 255, 255, 0.08) var(--p, 0deg));
+  -webkit-mask: radial-gradient(closest-side, transparent 66%, #000 68%);
+  mask: radial-gradient(closest-side, transparent 66%, #000 68%);
+}
+.cdb-burn-count {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--cd-bright);
+  text-shadow: 0 0 24px rgba(255, 196, 107, 0.5);
+}
+.cdb-burn-line { max-width: 280px; margin: 0 auto; }
+
+/* ── SHATTER IT — the thought as glass ── */
+.cdb-glass-slab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  justify-content: center;
+  align-items: center;
+  min-height: 130px;
+  padding: 26px 18px;
+  margin-top: 14px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(201, 205, 232, 0.08), rgba(201, 205, 232, 0.02));
+  border: 1px solid rgba(201, 205, 232, 0.25);
+  box-shadow: inset 0 0 30px rgba(201, 205, 232, 0.06);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.cdb-glass-slab--collapsed {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+.cdb-glass-word {
+  position: relative;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--cd-bright);
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 16px rgba(201, 205, 232, 0.3);
+  transition: transform 0.12s ease, opacity 0.2s ease;
+}
+.cdb-glass-word[data-crack="1"] { transform: skewX(-2deg); }
+.cdb-glass-word[data-crack="2"] { transform: skewX(2.5deg) rotate(-1deg); opacity: 0.92; }
+.cdb-glass-word[data-crack="3"] { transform: skewX(-3deg) rotate(1.4deg); opacity: 0.85; }
+.cdb-glass-word[data-crack="1"]::before,
+.cdb-glass-word[data-crack="2"]::before,
+.cdb-glass-word[data-crack="3"]::before {
+  content: "";
+  position: absolute;
+  left: 45%;
+  top: -12%;
+  width: 1.5px;
+  height: 60%;
+  background: rgba(244, 241, 232, 0.6);
+  transform: rotate(16deg);
+  pointer-events: none;
+}
+.cdb-glass-word[data-crack="2"]::after,
+.cdb-glass-word[data-crack="3"]::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  bottom: -8%;
+  width: 1.5px;
+  height: 70%;
+  background: rgba(244, 241, 232, 0.5);
+  transform: rotate(-24deg);
+  pointer-events: none;
+}
+.cdb-glass-word[data-crack="3"]::before { height: 105%; transform: rotate(22deg); }
+/* alternate crack geometry so the field doesn't look tiled */
+.cdb-glass-word:nth-child(even)[data-crack]::before { transform: rotate(-19deg); left: 60%; }
+.cdb-glass-word:nth-child(3n)[data-crack]::after { transform: rotate(31deg); left: 72%; }
+
+.cdb-letter {
+  display: inline-block;
+  animation: cdb-letter-tumble 0.9s cubic-bezier(0.3, 0.1, 0.7, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 18ms);
+}
+@keyframes cdb-letter-tumble {
+  to { transform: translateY(72vh) rotate(200deg); opacity: 0; }
+}
+.cdb-shatter-hint {
+  text-align: center;
+  margin-top: 12px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--cd-soft);
+}
+.cdb-just-words {
+  text-align: center;
+  margin-top: 16px;
+  animation: cd-stamp-slam 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+/* ── victory hitstop ── */
+.cdb-hitstop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+  animation: cdb-hitstop-kf 0.32s ease-out;
+}
+@keyframes cdb-hitstop-kf {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
 
 .cdb {
   position: relative;
@@ -1410,12 +1691,12 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.8px;
-  box-shadow: 0 6px 26px rgba(94, 157, 240, 0.3);
+  box-shadow: 0 6px 26px rgba(127, 180, 255, 0.3);
   transition: transform 0.14s;
 }
 .cdb-big-btn:active { transform: scale(0.96); }
 .cdb-big-btn:disabled { background: var(--cd-slate); color: var(--cd-mute); box-shadow: none; opacity: 0.55; }
-.cdb-big-btn--dark { background: linear-gradient(135deg, #3a1d22, #58252e); box-shadow: 0 6px 26px rgba(224, 122, 122, 0.2); }
+.cdb-big-btn--dark { background: linear-gradient(135deg, #3a1d22, #58252e); box-shadow: 0 6px 26px rgba(255, 122, 136, 0.2); }
 .cdb-big-btn--hold { user-select: none; -webkit-user-select: none; touch-action: none; }
 
 .cdb-ghost-btn {
@@ -1441,7 +1722,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   outline: none;
   resize: vertical;
 }
-.cdb-input:focus { border-color: rgba(94, 157, 240, 0.6); }
+.cdb-input:focus { border-color: rgba(127, 180, 255, 0.6); }
 .cdb-input::placeholder { color: var(--cd-mute); }
 .cdb-input--law { font-family: var(--font-display, "Sora", sans-serif); font-weight: 700; }
 .cdb-law-nudge { margin-top: 8px; font-size: 12.5px; color: var(--cd-rose); }
@@ -1453,7 +1734,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   margin: 26px auto 0;
   background: none;
   border: none;
-  color: rgba(240, 180, 94, 0.75);
+  color: rgba(255, 196, 107, 0.75);
   font-size: 12.5px;
   cursor: pointer;
 }
@@ -1464,9 +1745,9 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   position: absolute;
   inset: 0 10px 22px;
   border-radius: 48% 48% 42% 42%;
-  background: linear-gradient(170deg, #1a2230, #0a0e15);
-  border: 1px solid rgba(94, 157, 240, 0.3);
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.9), 0 0 32px rgba(94, 157, 240, 0.12);
+  background: linear-gradient(170deg, #1d2440, #0a0e15);
+  border: 1px solid rgba(127, 180, 255, 0.3);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.9), 0 0 32px rgba(127, 180, 255, 0.12);
   animation: cdb-mask-float 3.4s ease-in-out infinite;
 }
 @keyframes cdb-mask-float {
@@ -1479,8 +1760,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   width: 16px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(224, 122, 122, 0.9);
-  box-shadow: 0 0 10px rgba(224, 122, 122, 0.8);
+  background: rgba(255, 122, 136, 0.9);
+  box-shadow: 0 0 10px rgba(255, 122, 136, 0.8);
   animation: cdb-mask-eye 5s ease-in-out infinite;
 }
 .cdb-mask-eye--l { left: 26%; }
@@ -1503,7 +1784,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   position: absolute;
   inset: 0 10px 22px;
   border-radius: 48% 48% 42% 42%;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(94, 157, 240, 0.06) 3px 4px);
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(127, 180, 255, 0.06) 3px 4px);
   mix-blend-mode: screen;
   animation: cdb-glitch 2.2s steps(3) infinite;
 }
@@ -1535,8 +1816,8 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cdb-lie {
   padding: 15px;
   border-radius: 14px;
-  background: rgba(224, 122, 122, 0.07);
-  border: 1px solid rgba(224, 122, 122, 0.35);
+  background: rgba(255, 122, 136, 0.07);
+  border: 1px solid rgba(255, 122, 136, 0.35);
   font-size: 15.5px;
   font-style: italic;
   line-height: 1.5;
@@ -1575,7 +1856,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 }
 .cdb-duel-dots { display: flex; gap: 7px; justify-content: center; margin-top: 16px; }
 .cdb-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cd-line); transition: all 0.2s; }
-.cdb-dot--hit { background: var(--cd-teal); box-shadow: 0 0 8px rgba(79, 209, 197, 0.7); }
+.cdb-dot--hit { background: var(--cd-teal); box-shadow: 0 0 8px rgba(92, 224, 211, 0.7); }
 
 /* the storm */
 .cdb-storm { position: relative; z-index: 2; animation: cd-rise 0.4s ease-out; }
@@ -1597,10 +1878,10 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cdb-meter-fill {
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, #58252e, #e07a7a);
+  background: linear-gradient(90deg, #58252e, #ff7a88);
   transition: width 0.45s cubic-bezier(0.3, 0.9, 0.3, 1);
 }
-.cdb-meter-fill--drain { background: linear-gradient(90deg, #2d5a8a, #5e9df0); }
+.cdb-meter-fill--drain { background: linear-gradient(90deg, #35619e, #7fb4ff); }
 .cdb-meter-num { font-size: 11px; color: var(--cd-mute); margin-top: 4px; text-align: right; }
 
 /* defusion */
@@ -1645,7 +1926,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   color: var(--cd-bright);
   margin: 0;
 }
-.cdb-tape--clear .cdb-tape-text { border-color: rgba(95, 207, 142, 0.4); box-shadow: 0 0 34px rgba(95, 207, 142, 0.08); }
+.cdb-tape--clear .cdb-tape-text { border-color: rgba(123, 228, 149, 0.4); box-shadow: 0 0 34px rgba(123, 228, 149, 0.08); }
 .cdb-tape-note { font-size: 12px; color: var(--cd-soft); margin-top: 10px; line-height: 1.5; }
 
 /* the why */
@@ -1653,7 +1934,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cdb-why-glow {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 90% 50% at 50% 60%, rgba(240, 180, 94, 0.12), transparent 70%);
+  background: radial-gradient(ellipse 90% 50% at 50% 60%, rgba(255, 196, 107, 0.12), transparent 70%);
   pointer-events: none;
 }
 .cdb-why {
@@ -1663,7 +1944,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   line-height: 1.35;
   color: var(--cd-bright);
   margin: 0 0 12px;
-  text-shadow: 0 0 30px rgba(240, 180, 94, 0.35);
+  text-shadow: 0 0 30px rgba(255, 196, 107, 0.35);
 }
 .cdb-why-sub { font-size: 12.5px; color: var(--cd-amber); margin-bottom: 10px; }
 
@@ -1677,7 +1958,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
   border: 3px solid var(--cd-dawn);
   display: grid;
   place-items: center;
-  box-shadow: 0 0 44px rgba(94, 157, 240, 0.4), inset 0 0 24px rgba(94, 157, 240, 0.14);
+  box-shadow: 0 0 44px rgba(127, 180, 255, 0.4), inset 0 0 24px rgba(127, 180, 255, 0.14);
   animation: cd-stamp-slam 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
 .cdb-stamp-inner {
@@ -1691,7 +1972,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 
 /* track theming */
 .cdb--porn .cdb-act-eyebrow { color: var(--cd-porn); }
-.cdb--porn .cdb-big-btn:not(.cdb-big-btn--dark):not(:disabled) { background: linear-gradient(135deg, #4c3a8a, #a78bfa); box-shadow: 0 6px 26px rgba(167, 139, 250, 0.28); }
+.cdb--porn .cdb-big-btn:not(.cdb-big-btn--dark):not(:disabled) { background: linear-gradient(135deg, #4c3a8a, #b49bff); box-shadow: 0 6px 26px rgba(180, 155, 255, 0.28); }
 .cdb--weed .cdb-act-eyebrow { color: var(--cd-weed); }
 
 /* reduced motion — kill the loops */
@@ -1700,9 +1981,278 @@ html[data-reduced-motion="true"] .cdb-mask-glitch,
 html[data-reduced-motion="true"] .cdb-mask-eye,
 html[data-reduced-motion="true"] .cd-urge-pulse,
 html[data-reduced-motion="true"] .cdb-spark,
+html[data-reduced-motion="true"] .cdb-letter,
+html[data-reduced-motion="true"] .cdb-hitstop,
+html[data-reduced-motion="true"] .cdb-just-words,
+html[data-reduced-motion="true"] .cd-law-check,
 html[data-reduced-motion="true"] .cdb-shake {
   animation: none !important;
 }
+html[data-reduced-motion="true"] .cdb-letter { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .cdb-mask-face, .cdb-mask-glitch, .cdb-mask-eye, .cd-urge-pulse, .cdb-spark, .cdb-shake { animation: none !important; }
+  .cdb-mask-face, .cdb-mask-glitch, .cdb-mask-eye, .cd-urge-pulse, .cdb-spark,
+  .cdb-letter, .cdb-hitstop, .cdb-just-words, .cd-law-check, .cdb-shake { animation: none !important; }
+  .cdb-letter { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE DAILY CONTRACT (cd-contract-)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cd-contract {
+  position: relative;
+  margin-top: 12px;
+  padding: 18px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 196, 107, 0.35);
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(255, 196, 107, 0.07), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(244, 241, 232, 0.015) 0 2px, transparent 2px 4px),
+    linear-gradient(170deg, #1c2138, #141a33);
+  box-shadow: inset 0 0 34px rgba(255, 196, 107, 0.05), 0 14px 34px -14px rgba(0, 0, 0, 0.7);
+}
+.cd-contract-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.cd-contract-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--cd-amber);
+}
+.cd-contract-date { font-size: 10.5px; letter-spacing: 1.5px; color: var(--cd-soft); font-family: var(--font-display, "Sora", sans-serif); }
+.cd-contract-line { font-size: 14px; line-height: 1.6; color: var(--cd-text); margin: 0 0 12px; }
+.cd-contract-line strong { color: var(--cd-bright); }
+.cd-contract-law {
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-bottom: 8px;
+  background: rgba(12, 16, 34, 0.5);
+}
+.cd-contract-ifthen {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--cd-text);
+  border-left: 2px solid var(--cd-dawn);
+  padding-left: 10px;
+  margin: 12px 0;
+}
+.cd-contract-ifthen strong { color: var(--cd-dawn); }
+.cd-contract-sigline {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10.5px;
+  letter-spacing: 1.8px;
+  color: var(--cd-soft);
+  margin: 14px 0 6px;
+  text-transform: uppercase;
+}
+.cd-sigpad {
+  display: block;
+  width: 100%;
+  height: 130px;
+  border-radius: 12px;
+  border: 1px dashed rgba(127, 180, 255, 0.4);
+  background:
+    linear-gradient(transparent 74%, rgba(127, 180, 255, 0.18) 74.5%, rgba(127, 180, 255, 0.18) 75%, transparent 75.5%),
+    rgba(12, 16, 34, 0.6);
+  touch-action: none;
+  cursor: crosshair;
+}
+.cd-contract-sigrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.cd-contract-sigrow .cd-ghost { margin: 0; flex: 0 0 auto; }
+.cd-contract-signbtn { flex: 1; margin-top: 10px; background: linear-gradient(135deg, #b07a2a, var(--cd-amber)); color: #221503; box-shadow: 0 6px 26px rgba(255, 196, 107, 0.3); }
+.cd-contract--sealing { animation: cd-contract-burn 1s ease-out forwards; }
+@keyframes cd-contract-burn {
+  0% { filter: none; }
+  40% { filter: brightness(1.35) sepia(0.25); }
+  100% { filter: brightness(1.05) sepia(0.12); }
+}
+.cd-seal-wax {
+  position: absolute;
+  right: 18px;
+  bottom: 64px;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 35% 30%, #ffd894, #d99b3e 55%, #8f5c17);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 34px rgba(255, 196, 107, 0.55), inset 0 -3px 8px rgba(0, 0, 0, 0.35);
+  animation: cd-seal-slam 0.5s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.cd-seal-wax-sun { font-size: 30px; filter: saturate(0.4) brightness(0.6); }
+@keyframes cd-seal-slam {
+  0% { transform: scale(3) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(0.9) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-6deg); }
+}
+.cd-contract--sealed {
+  text-align: center;
+  padding: 16px;
+  border-color: rgba(255, 196, 107, 0.25);
+}
+.cd-contract-seal-mini {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: #221503;
+  background: radial-gradient(circle at 35% 30%, #ffd894, #d99b3e 60%, #8f5c17);
+  box-shadow: 0 0 18px rgba(255, 196, 107, 0.4);
+  transform: rotate(-6deg);
+}
+.cd-contract-ledgerline { font-size: 13px; line-height: 1.55; color: var(--cd-text); }
+
+/* ── daily ritual additions ── */
+.cd-daily-chip {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(92, 224, 211, 0.4);
+  background: rgba(92, 224, 211, 0.07);
+  color: var(--cd-teal);
+  font-size: 12px;
+  cursor: pointer;
+}
+.cd-daily-law {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--cd-acc, 127, 180, 255), 0.4);
+  background: rgba(var(--cd-acc, 127, 180, 255), 0.06);
+  cursor: pointer;
+  transition: transform 0.14s ease;
+}
+.cd-daily-law:active { transform: scale(0.98); }
+.cd-daily-law--held { cursor: default; background: rgba(var(--cd-acc, 127, 180, 255), 0.1); box-shadow: 0 0 18px -6px rgba(var(--cd-acc, 127, 180, 255), 0.5); }
+.cd-daily-law-name {
+  display: block;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  margin-bottom: 4px;
+}
+.cd-daily-law-text { font-size: 13px; line-height: 1.5; color: var(--cd-text); }
+.cd-btn--incant { background: linear-gradient(135deg, #b07a2a, var(--cd-amber)); color: #221503; box-shadow: 0 6px 26px rgba(255, 196, 107, 0.3); }
+
+/* ── identity hero: the constellation ── */
+.cd-identity-hero {
+  position: relative;
+  min-height: 190px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(180, 155, 255, 0.28);
+  margin-bottom: 16px;
+  background: linear-gradient(180deg, #0d1126, #131a3a);
+  box-shadow: inset 0 0 40px rgba(180, 155, 255, 0.1), 0 18px 44px -18px rgba(0, 0, 0, 0.75);
+}
+.cd-constellation { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cd-identity-hero-copy { position: relative; padding: 18px 16px 14px; }
+.cd-identity-hero-copy .cd-h1 { margin-bottom: 8px; }
+.cd-identity-hero-copy .cd-p { margin-bottom: 0; max-width: 320px; }
+
+.cd-seal-law--edit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+.cd-law-edittag {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--cd-mute);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE SOOTHING LAYER — slow ambient breathing, killed under reduced motion
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* cards breathe their aurora ring, long and slow */
+.cd-card::before { animation: cd-ring-breathe 11s ease-in-out infinite alternate; }
+.cd-claim-card::before { animation: cd-aurora-spin 9s linear infinite; } /* the hero keeps its spin */
+@keyframes cd-ring-breathe {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* the emblem sun breathes */
+.cd-sun--emblem .cd-sun__corona { animation: cd-sun-breathe 6s ease-in-out infinite alternate; }
+@keyframes cd-sun-breathe {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* active tab carries a soft dawn glow */
+.cd-tab { transition: color 0.25s ease, background 0.25s ease, box-shadow 0.4s ease; }
+.cd-tab--on { box-shadow: 0 0 18px -4px rgba(127, 180, 255, 0.45); }
+
+/* floating motes — dawn dust drifting upward, one cheap transform loop */
+.cd-motes {
+  position: absolute;
+  inset: -12% 0;
+  background-image:
+    radial-gradient(circle at 16% 84%, rgba(255, 196, 107, 0.5) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 34% 68%, rgba(201, 205, 232, 0.4) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 52% 90%, rgba(255, 196, 107, 0.35) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 68% 74%, rgba(201, 205, 232, 0.35) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 84% 86%, rgba(255, 196, 107, 0.45) 0 1.3px, transparent 1.9px),
+    radial-gradient(circle at 25% 95%, rgba(92, 224, 211, 0.3) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 76% 96%, rgba(201, 205, 232, 0.3) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 91% 65%, rgba(255, 196, 107, 0.3) 0 1px, transparent 1.5px);
+  background-repeat: no-repeat;
+  will-change: transform;
+  animation: cd-motes-drift 38s linear infinite alternate;
+  pointer-events: none;
+}
+@keyframes cd-motes-drift {
+  from { transform: translateY(4%); }
+  to { transform: translateY(-6%); }
+}
+
+/* reduced motion — the 3.0 additions land still */
+html[data-reduced-motion="true"] .cd-card::before,
+html[data-reduced-motion="true"] .cd-sun--emblem .cd-sun__corona,
+html[data-reduced-motion="true"] .cd-motes,
+html[data-reduced-motion="true"] .cd-incant-ring,
+html[data-reduced-motion="true"] .cd-incant-line,
+html[data-reduced-motion="true"] .cd-incant-stamp,
+html[data-reduced-motion="true"] .cd-incant-stage,
+html[data-reduced-motion="true"] .cd-seal-wax,
+html[data-reduced-motion="true"] .cd-contract--sealing,
+html[data-reduced-motion="true"] .cd-daily-chip {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cd-card::before, .cd-sun--emblem .cd-sun__corona, .cd-motes, .cd-incant-ring,
+  .cd-incant-line, .cd-incant-stamp, .cd-incant-stage, .cd-seal-wax, .cd-contract--sealing {
+    animation: none !important;
+  }
 }
