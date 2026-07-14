@@ -7571,7 +7571,9 @@ body.iw-mode-on .app-shell {
 
 /* ============================================================
    CLEARDAY — topbar trigger (mode itself lives in clearday.css,
-   lazy-loaded). A tiny dawn: horizon line + rising half-sun.
+   lazy-loaded). The mini sun logo (ClearDaySun variant="mini")
+   idles with a corona shimmer; when today's ritual is still
+   open it breathes a dawn ring.
    ============================================================ */
 
 .app-topbar__clearday { position: relative; }
@@ -7588,29 +7590,19 @@ body.iw-mode-on .app-shell {
   overflow: hidden;
   transition: transform 200ms var(--ease-out, ease-out), box-shadow 200ms;
 }
-.app-topbar__clearday .cd-mini::before {
-  /* the horizon */
-  content: "";
+.app-topbar__clearday .cd-mini .cd-sun {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  bottom: 10px;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent, rgba(94, 157, 240, 0.95), transparent);
+  inset: 1px;
+  display: block;
+  width: auto;
+  height: auto;
 }
-.app-topbar__clearday .cd-mini-sun {
-  position: absolute;
-  bottom: 10px;
-  width: 13px;
-  height: 6.5px;
-  border-radius: 13px 13px 0 0;
-  background: linear-gradient(180deg, #7fb3f5, #2d5a8a);
-  box-shadow: 0 0 9px rgba(94, 157, 240, 0.85);
-  animation: cdMiniDawn 6s ease-in-out infinite;
+.app-topbar__clearday .cd-sun--mini .cd-sun__corona {
+  animation: cdSunIdle 4.5s ease-in-out infinite alternate;
 }
-@keyframes cdMiniDawn {
-  0%, 55%, 100% { transform: translateY(0); filter: brightness(1); }
-  72%, 84% { transform: translateY(-1.5px); filter: brightness(1.35); }
+@keyframes cdSunIdle {
+  from { opacity: 0.65; }
+  to { opacity: 1; }
 }
 .app-topbar__clearday:hover .cd-mini {
   transform: translateY(-2px) scale(1.08);
@@ -7619,9 +7611,108 @@ body.iw-mode-on .app-shell {
 }
 .app-topbar__clearday:active .cd-mini { transform: scale(0.94); }
 
-@media (prefers-reduced-motion: reduce) {
-  .app-topbar__clearday .cd-mini-sun { animation: none; }
+/* ritual-open attention pulse (class set from useClearDayStatus) */
+.app-topbar__clearday .cd-mini--due::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  pointer-events: none;
+  animation: cdMiniDuePulse 2.8s ease-in-out infinite;
 }
+@keyframes cdMiniDuePulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(94, 157, 240, 0), 0 0 6px rgba(94, 157, 240, 0); opacity: 0.4; }
+  50% { box-shadow: inset 0 0 0 1px rgba(94, 157, 240, 0.55), 0 0 12px rgba(94, 157, 240, 0.55); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-topbar__clearday .cd-sun--mini .cd-sun__corona { animation: none; }
+  .app-topbar__clearday .cd-mini--due::after { animation: none; }
+}
+html[data-reduced-motion="true"] .app-topbar__clearday .cd-sun--mini .cd-sun__corona,
+html[data-reduced-motion="true"] .app-topbar__clearday .cd-mini--due::after {
+  animation: none;
+}
+
+/* ── CLEARDAY dashboard status card (eager bundle — the mode's own css
+   is lazy). The aurora-border card language, dawn accent. ── */
+
+.cdd-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background: linear-gradient(165deg, #1a2230, #131a24) padding-box;
+  cursor: pointer;
+  color: #c3cdd9;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 0 26px rgba(94, 157, 240, 0.06),
+    0 14px 34px -14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.16s ease, box-shadow 0.25s ease;
+}
+.cdd-card:active { transform: scale(0.98); }
+@media (hover: hover) {
+  .cdd-card:hover { transform: translateY(-2px); }
+}
+.cdd-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  padding: 1px;
+  background: conic-gradient(
+    from 210deg,
+    rgba(94, 157, 240, 0.55),
+    transparent 25%,
+    rgba(94, 157, 240, 0.12) 50%,
+    rgba(79, 209, 197, 0.28) 70%,
+    transparent 88%,
+    rgba(94, 157, 240, 0.55)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.cdd-sun {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 44px;
+  overflow: hidden;
+}
+.cdd-sun svg { display: block; width: 52px; height: 52px; }
+.cdd-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.cdd-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #eef3f8;
+}
+.cdd-sub { font-size: 11.5px; color: #8b98a8; }
+.cdd-status { font-size: 11.5px; font-weight: 700; }
+.cdd-status--open { color: #5e9df0; }
+.cdd-status--open::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #5e9df0;
+  box-shadow: 0 0 8px rgba(94, 157, 240, 0.8);
+  vertical-align: 1px;
+}
+.cdd-status--done { color: #5fcf8e; }
+.cdd-arrow { color: #5e9df0; font-size: 16px; flex: 0 0 auto; }
 
 /* ============================================================
    ALPHA MODE — Sunday Review → Stockpile link card

@@ -4,6 +4,8 @@ import {
   sfxMaskAmbush, sfxShatter, sfxCritStrike, sfxPop, sfxHalo,
   sfxPhoenix, sfxWhoosh, sfxNamingStrike, sfxCoin,
 } from "../../lib/sfx.js";
+import cdFx from "./cdFx.js";
+import { slamHeavy } from "../../lib/haptics.js";
 
 /* ═══════════════════════════════════════════════════════════════
    THE URGE BATTLE — CLEARDAY's centerpiece set-piece.
@@ -384,7 +386,13 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
   }, []);
   useEffect(() => {
     if (act === 5) sfxHalo(settings);
-    if (act === 7) { sfxPhoenix(settings); sfxCoin(settings); shake(rootRef.current); }
+    if (act === 7) {
+      sfxPhoenix(settings);
+      sfxCoin(settings);
+      shake(rootRef.current);
+      cdFx.flare(meta.color);
+      slamHeavy();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [act]);
 

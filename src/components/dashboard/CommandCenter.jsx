@@ -7,6 +7,7 @@ import ZoneHeroCard from "./ZoneHeroCard.jsx";
 import VisionFeatureCard from "../vision/VisionFeatureCard.jsx";
 import FirstHoursCard from "../onboarding/FirstHoursCard.jsx";
 import RecommitLauncher from "../zone/recommit/RecommitLauncher.jsx";
+import ClearDayStatusCard from "./ClearDayStatusCard.jsx";
 
 export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest, onOpenWorkout, onRecommit }) {
   return (
@@ -28,6 +29,9 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
       <CityHeroCard onEnter={() => onNavigate("city")} />
 
       <ZoneHeroCard onEnter={() => onNavigate("zone")} />
+
+      {/* CLEARDAY standing — self-gates: renders null until the Claim is made. */}
+      <ClearDayStatusCard />
 
       {/* The integrity door, one tap from the dashboard — deep-links into the
           Zone and opens the Recommit ritual. */}

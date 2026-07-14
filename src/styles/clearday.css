@@ -62,6 +62,82 @@
   overscroll-behavior: contain;
 }
 
+/* ── living background — pre-dawn sky behind everything ────────────────
+   Sibling of .cd-stage (outside the scroll container: scrolling never
+   repaints it). Two drifting aurora washes + two twinkling star fields.
+   Softness comes from radial-gradient falloff — no filter: blur(). */
+
+.cd-atmos {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cd-aurora--a,
+.cd-aurora--b {
+  position: absolute;
+  width: 140vw;
+  height: 95vw;
+  border-radius: 50%;
+  will-change: transform;
+}
+.cd-aurora--a {
+  left: -35vw;
+  top: -18vh;
+  background: radial-gradient(closest-side, rgba(45, 90, 138, 0.32), transparent 70%);
+  animation: cd-aurora-drift-a 26s ease-in-out infinite alternate;
+}
+.cd-aurora--b {
+  right: -45vw;
+  bottom: -22vh;
+  background: radial-gradient(closest-side, rgba(79, 209, 197, 0.13), transparent 70%);
+  animation: cd-aurora-drift-b 34s ease-in-out infinite alternate;
+}
+
+@keyframes cd-aurora-drift-a {
+  to { transform: translate(6%, 4%) scale(1.08); }
+}
+@keyframes cd-aurora-drift-b {
+  to { transform: translate(-6%, -4%) scale(1.06); }
+}
+
+.cd-stars--a,
+.cd-stars--b {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+}
+.cd-stars--a {
+  background-image:
+    radial-gradient(circle at 12% 14%, rgba(238, 243, 248, 0.75) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 31% 7%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 54% 18%, rgba(197, 219, 248, 0.65) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 71% 9%, rgba(238, 243, 248, 0.45) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 88% 21%, rgba(238, 243, 248, 0.6) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 22% 33%, rgba(197, 219, 248, 0.4) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 63% 36%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 43% 27%, rgba(238, 243, 248, 0.35) 0 0.8px, transparent 1.3px);
+  animation: cd-star-twinkle 7s ease-in-out infinite alternate;
+}
+.cd-stars--b {
+  background-image:
+    radial-gradient(circle at 8% 26%, rgba(238, 243, 248, 0.5) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 39% 12%, rgba(197, 219, 248, 0.55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 59% 6%, rgba(238, 243, 248, 0.4) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 79% 15%, rgba(238, 243, 248, 0.55) 0 1.1px, transparent 1.7px),
+    radial-gradient(circle at 94% 34%, rgba(197, 219, 248, 0.4) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 17% 45%, rgba(238, 243, 248, 0.3) 0 0.8px, transparent 1.3px),
+    radial-gradient(circle at 84% 44%, rgba(238, 243, 248, 0.35) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 49% 41%, rgba(197, 219, 248, 0.3) 0 0.8px, transparent 1.3px);
+  animation: cd-star-twinkle 9s ease-in-out -3s infinite alternate;
+}
+
+@keyframes cd-star-twinkle {
+  from { opacity: 0.3; }
+  to { opacity: 0.85; }
+}
+
 /* ── dawn-break intro ───────────────────────────────────────────────── */
 
 .cd-dawnbreak {
@@ -74,40 +150,61 @@
     var(--cd-ink);
 }
 
-.cd-dawnbreak__line {
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 58%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--cd-dawn), transparent);
-  transform: scaleX(0);
-  animation: cd-line-draw 0.55s cubic-bezier(0.3, 0.9, 0.3, 1) forwards;
-}
+/* ── THE SUN LOGO (ClearDaySun.jsx) ─────────────────────────────────── */
 
-@keyframes cd-line-draw {
-  to { transform: scaleX(1); }
-}
+.cd-sun { display: block; width: 100%; height: 100%; overflow: visible; }
 
-.cd-dawnbreak__sun {
+.cd-dawnbreak__sunwrap {
   position: absolute;
   left: 50%;
-  top: 58%;
-  width: 74px;
-  height: 37px;
-  transform: translateX(-50%);
-  border-radius: 74px 74px 0 0;
-  background: linear-gradient(180deg, var(--cd-dawn), var(--cd-dawn-deep));
-  box-shadow: 0 0 42px rgba(94, 157, 240, 0.55), 0 0 120px rgba(94, 157, 240, 0.25);
-  clip-path: inset(100% 0 0 0);
-  animation: cd-sun-rise 0.9s cubic-bezier(0.3, 0.9, 0.28, 1.04) 0.4s forwards;
+  top: 56%;
+  width: 230px;
+  height: 230px;
+  transform: translate(-50%, -50%);
 }
 
-@keyframes cd-sun-rise {
-  from { clip-path: inset(100% 0 0 0); transform: translateX(-50%) translateY(37px); }
-  to { clip-path: inset(0 0 0 0); transform: translateX(-50%) translateY(-37px); }
+/* hero choreography: horizon draws → disc breaks it → corona blooms →
+   rays fan open. Total ~1900ms, matched to DAWN_MS in ClearDayMode. */
+.cd-sun--hero .cd-sun__horizon {
+  transform: scaleX(0);
+  transform-origin: 60px 78px;
+  animation: cd-sun-horizon-draw 0.45s cubic-bezier(0.3, 0.9, 0.3, 1) forwards;
+}
+.cd-sun--hero .cd-sun__disc {
+  transform: translateY(26px);
+  animation: cd-sun-disc-rise 0.8s cubic-bezier(0.3, 0.9, 0.28, 1.04) 0.35s forwards;
+}
+.cd-sun--hero .cd-sun__corona {
+  opacity: 0;
+  transform: scale(0.55);
+  transform-origin: 60px 78px;
+  animation: cd-sun-corona-bloom 0.6s ease-out 0.75s forwards;
+}
+.cd-sun--hero .cd-sun__rays {
+  transform: rotate(-8deg);
+  transform-origin: 60px 78px;
+  animation: cd-sun-rays-sweep 0.6s ease-out 0.9s forwards;
+}
+.cd-sun--hero .cd-sun__ray {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: cd-sun-rays-draw 0.6s ease-out 0.9s forwards;
 }
 
+/* emblem: rays draw once on mount, then still */
+.cd-sun--emblem .cd-sun__ray {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: cd-sun-rays-draw 0.8s ease-out 0.15s forwards;
+}
+
+@keyframes cd-sun-horizon-draw { to { transform: scaleX(1); } }
+@keyframes cd-sun-disc-rise { to { transform: translateY(-4px); } }
+@keyframes cd-sun-corona-bloom { to { opacity: 1; transform: scale(1); } }
+@keyframes cd-sun-rays-sweep { to { transform: rotate(0deg); } }
+@keyframes cd-sun-rays-draw { to { stroke-dashoffset: 0; } }
+
+/* wordmark: per-letter reveal + one light sweep */
 .cd-dawnbreak__word {
   position: absolute;
   left: 0;
@@ -119,13 +216,38 @@
   font-weight: 800;
   letter-spacing: 9px;
   color: var(--cd-bright);
-  opacity: 0;
-  animation: cd-word-in 0.6s ease-out 0.75s forwards;
 }
 
-@keyframes cd-word-in {
-  from { opacity: 0; transform: translateY(10px); letter-spacing: 14px; }
-  to { opacity: 1; transform: none; letter-spacing: 9px; }
+.cd-dawnbreak__wordwrap {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  padding: 4px 0 4px 9px; /* balances the trailing letter-spacing */
+}
+
+.cd-word-letter {
+  display: inline-block;
+  opacity: 0;
+  animation: cd-letter-in 0.35s cubic-bezier(0.22, 0.9, 0.3, 1) calc(950ms + var(--i, 0) * 45ms) both;
+}
+
+@keyframes cd-letter-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+.cd-dawnbreak__wordwrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(238, 243, 248, 0.35) 50%, transparent 65%);
+  transform: translateX(-130%);
+  animation: cd-word-sweep 0.5s ease-out 1.5s forwards;
+  pointer-events: none;
+}
+
+@keyframes cd-word-sweep {
+  to { transform: translateX(130%); }
 }
 
 /* ── topbar mini (lives in AppShell, styled here beside iw-mini/fj-mini) ─ */
@@ -144,33 +266,46 @@
   overflow: hidden;
 }
 
-.cd-mini::before {
-  content: "";
+.cd-mini .cd-sun {
   position: absolute;
-  left: 5px;
-  right: 5px;
-  bottom: 11px;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent, rgba(94, 157, 240, 0.9), transparent);
-}
-
-.cd-mini-sun {
-  position: absolute;
-  bottom: 11px;
-  width: 14px;
-  height: 7px;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(180deg, #5e9df0, #2d5a8a);
-  box-shadow: 0 0 8px rgba(94, 157, 240, 0.8);
+  inset: 1px;
 }
 
 /* reduced motion: everything lands instantly */
 html[data-reduced-motion="true"] .cd-overlay,
-html[data-reduced-motion="true"] .cd-dawnbreak__line,
-html[data-reduced-motion="true"] .cd-dawnbreak__sun,
-html[data-reduced-motion="true"] .cd-dawnbreak__word {
+html[data-reduced-motion="true"] .cd-sun--hero .cd-sun__horizon,
+html[data-reduced-motion="true"] .cd-sun--hero .cd-sun__disc,
+html[data-reduced-motion="true"] .cd-sun--hero .cd-sun__corona,
+html[data-reduced-motion="true"] .cd-sun--hero .cd-sun__rays,
+html[data-reduced-motion="true"] .cd-sun--hero .cd-sun__ray,
+html[data-reduced-motion="true"] .cd-sun--emblem .cd-sun__ray,
+html[data-reduced-motion="true"] .cd-word-letter,
+html[data-reduced-motion="true"] .cd-dawnbreak__wordwrap::after,
+html[data-reduced-motion="true"] .cd-dawnbreak__word,
+html[data-reduced-motion="true"] .cd-page > *,
+html[data-reduced-motion="true"] .cd-card::after {
   animation-duration: 0.01ms !important;
   animation-delay: 0ms !important;
+}
+
+/* looping ambience dies entirely under reduced motion */
+html[data-reduced-motion="true"] .cd-aurora--a,
+html[data-reduced-motion="true"] .cd-aurora--b,
+html[data-reduced-motion="true"] .cd-stars--a,
+html[data-reduced-motion="true"] .cd-stars--b,
+html[data-reduced-motion="true"] .cd-claim-card::before,
+html[data-reduced-motion="true"] .cd-ceremony-rays {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cd-aurora--a,
+  .cd-aurora--b,
+  .cd-stars--a,
+  .cd-stars--b,
+  .cd-claim-card::before,
+  .cd-ceremony-rays {
+    animation: none !important;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -183,13 +318,23 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
   max-width: 480px;
   margin: 0 auto;
   padding: 18px 18px calc(96px + var(--safe-bottom, 0px));
-  animation: cd-rise 0.4s ease-out;
 }
 
 @keyframes cd-rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
+
+/* staggered entrance: each card in the feed rises in turn */
+.cd-page > * { animation: cd-rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) backwards; }
+.cd-page > :nth-child(1) { animation-delay: 40ms; }
+.cd-page > :nth-child(2) { animation-delay: 95ms; }
+.cd-page > :nth-child(3) { animation-delay: 150ms; }
+.cd-page > :nth-child(4) { animation-delay: 205ms; }
+.cd-page > :nth-child(5) { animation-delay: 260ms; }
+.cd-page > :nth-child(6) { animation-delay: 315ms; }
+.cd-page > :nth-child(7) { animation-delay: 370ms; }
+.cd-page > :nth-child(n + 8) { animation-delay: 425ms; }
 
 .cd-h1 {
   font-family: var(--font-display, "Sora", sans-serif);
@@ -316,14 +461,82 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 }
 .cd-chip--static { cursor: default; color: var(--cd-amber); border-color: rgba(240, 180, 94, 0.3); }
 
+/* ── the aurora card system ─────────────────────────────────────────────
+   Every card carries an accent (--cd-acc, RGB triplet) that drives a
+   conic gradient ring border, an inner glow and a one-shot sheen sweep. */
+
+@property --cd-ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 210deg;
+}
+
 .cd-card {
+  --cd-acc: 94, 157, 240;
+  position: relative;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(165deg, var(--cd-slate2), var(--cd-slate));
-  border: 1px solid var(--cd-line);
+  border: 1px solid transparent;
+  background: linear-gradient(165deg, var(--cd-slate2), var(--cd-slate)) padding-box;
   margin-bottom: 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 0 26px rgba(var(--cd-acc), 0.06),
+    0 14px 34px -14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.16s ease, box-shadow 0.25s ease;
 }
-.cd-card--empty { color: var(--cd-mute); font-size: 13px; border-style: dashed; }
+@media (hover: hover) {
+  .cd-card:hover { transform: translateY(-2px); }
+}
+
+/* the aurora ring — a conic gradient masked to a 1px border */
+.cd-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  padding: 1px;
+  background: conic-gradient(
+    from 210deg,
+    rgba(var(--cd-acc), 0.55),
+    transparent 25%,
+    rgba(var(--cd-acc), 0.12) 50%,
+    rgba(79, 209, 197, 0.28) 70%,
+    transparent 88%,
+    rgba(var(--cd-acc), 0.55)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* one-shot light sweep on mount */
+.cd-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 42%, rgba(238, 243, 248, 0.055) 50%, transparent 58%);
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  background-position: 200% 0;
+  animation: cd-sheen 1.05s ease-out 0.3s forwards;
+  pointer-events: none;
+}
+
+@keyframes cd-sheen {
+  to { background-position: -120% 0; }
+}
+
+.cd-card--empty {
+  color: var(--cd-mute);
+  font-size: 13px;
+  border: 1px dashed var(--cd-line);
+  background: linear-gradient(165deg, var(--cd-slate2), var(--cd-slate));
+}
+.cd-card--empty::before { display: none; }
 .cd-cite {
   margin-top: 10px;
   font-size: 11px;
@@ -433,8 +646,12 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
   height: 210px;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid var(--cd-line);
+  border: 1px solid rgba(94, 157, 240, 0.28);
   margin-bottom: 14px;
+  box-shadow:
+    inset 0 0 40px rgba(45, 90, 138, 0.18),
+    0 18px 44px -18px rgba(0, 0, 0, 0.75),
+    0 0 32px -12px rgba(94, 157, 240, 0.35);
 }
 .cd-horizon { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cd-hero-copy { position: absolute; left: 16px; right: 16px; bottom: 12px; }
@@ -452,18 +669,50 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 .cd-hero-votes strong { color: var(--cd-dawn); font-size: 14px; }
 
 .cd-claim-card {
+  position: relative;
   display: block;
   width: 100%;
   text-align: left;
   padding: 16px;
   border-radius: 15px;
-  background: linear-gradient(160deg, rgba(45, 90, 138, 0.22), var(--cd-slate));
-  border: 1px solid rgba(94, 157, 240, 0.4);
+  background: linear-gradient(160deg, rgba(45, 90, 138, 0.24), var(--cd-slate)) padding-box;
+  border: 1px solid transparent;
   cursor: pointer;
   margin-bottom: 12px;
-  transition: all 0.15s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 30px rgba(94, 157, 240, 0.08),
+    0 14px 34px -14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.15s ease, box-shadow 0.25s ease;
 }
-.cd-claim-card:active { transform: scale(0.985); }
+.cd-claim-card:active { transform: scale(0.975); }
+
+/* the hero card earns the living border: a slowly turning aurora */
+.cd-claim-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--cd-ang, 210deg),
+    rgba(94, 157, 240, 0.85),
+    rgba(79, 209, 197, 0.25) 30%,
+    rgba(94, 157, 240, 0.1) 55%,
+    rgba(240, 180, 94, 0.45) 78%,
+    rgba(94, 157, 240, 0.85)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: cd-aurora-spin 9s linear infinite;
+}
+
+@keyframes cd-aurora-spin {
+  to { --cd-ang: 570deg; }
+}
 .cd-claim-text {
   font-family: var(--font-display, "Sora", sans-serif);
   font-size: 16px;
@@ -481,6 +730,9 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
   border-radius: 15px;
   border: 1px solid rgba(224, 122, 122, 0.5);
   background: linear-gradient(135deg, #331a1e, #4a2028);
+  box-shadow:
+    inset 0 0 24px rgba(224, 122, 122, 0.1),
+    0 10px 30px -12px rgba(224, 122, 122, 0.35);
   color: #f2c7c7;
   font-family: var(--font-display, "Sora", sans-serif);
   font-size: 14px;
@@ -547,7 +799,7 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 .cd-vote-meaning { font-size: 13px; font-style: italic; color: var(--cd-text); line-height: 1.5; }
 .cd-vote-action { font-size: 12.5px; color: var(--cd-soft); margin-top: 6px; }
 
-.cd-card--body { background: var(--cd-slate); }
+.cd-card--body { background: linear-gradient(165deg, var(--cd-slate2), var(--cd-slate)) padding-box; }
 .cd-body-title {
   font-family: var(--font-display, "Sora", sans-serif);
   font-size: 15.5px;
@@ -557,7 +809,12 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 }
 .cd-body-text { font-size: 13px; line-height: 1.6; color: var(--cd-text); margin: 0; }
 
-.cd-card--why { border-style: dashed; border-color: rgba(240, 180, 94, 0.35); background: var(--cd-ink2); }
+.cd-card--why {
+  --cd-acc: 240, 180, 94;
+  border: 1px dashed rgba(240, 180, 94, 0.35);
+  background: var(--cd-ink2);
+}
+.cd-card--why::before { display: none; }
 .cd-why-text { font-size: 15px; font-style: italic; line-height: 1.5; color: var(--cd-text); }
 
 .cd-closeout { padding: 16px; border-radius: 16px; background: var(--cd-slate); border: 1px solid var(--cd-line); margin-bottom: 14px; }
@@ -573,7 +830,7 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 
 /* ── identity tab ───────────────────────────────────────────────────── */
 
-.cd-card--claim { background: linear-gradient(160deg, rgba(45, 90, 138, 0.25), var(--cd-slate)); border-color: rgba(94, 157, 240, 0.4); }
+.cd-card--claim { background: linear-gradient(160deg, rgba(45, 90, 138, 0.25), var(--cd-slate)) padding-box; }
 
 .cd-rung {
   display: flex;
@@ -592,7 +849,7 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
 .cd-rung-tag { font-size: 9.5px; letter-spacing: 1.5px; color: var(--cd-dawn); font-weight: 700; }
 .cd-rung-lock { font-size: 11px; color: var(--cd-mute); }
 
-.cd-card--pulse { border-color: rgba(94, 157, 240, 0.4); }
+.cd-card--pulse { --cd-acc: 79, 209, 197; }
 .cd-pulse-q { font-family: var(--font-display, "Sora", sans-serif); font-size: 16px; font-weight: 700; color: var(--cd-bright); margin-bottom: 10px; }
 .cd-pulse-opt {
   display: block;
@@ -819,6 +1076,256 @@ html[data-reduced-motion="true"] .cd-dawnbreak__word {
   border-width: 4px;
   font-size: 30px;
   box-shadow: 0 0 60px rgba(240, 180, 94, 0.5);
+}
+
+/* light rays fanning out behind the stamp */
+.cd-ceremony-rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -170px 0 0 -170px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(94, 157, 240, 0.16) 0 8deg, transparent 8deg 45deg,
+    rgba(240, 180, 94, 0.13) 45deg 53deg, transparent 53deg 90deg,
+    rgba(94, 157, 240, 0.16) 90deg 98deg, transparent 98deg 135deg,
+    rgba(79, 209, 197, 0.13) 135deg 143deg, transparent 143deg 180deg,
+    rgba(94, 157, 240, 0.16) 180deg 188deg, transparent 188deg 225deg,
+    rgba(240, 180, 94, 0.13) 225deg 233deg, transparent 233deg 270deg,
+    rgba(94, 157, 240, 0.16) 270deg 278deg, transparent 278deg 315deg,
+    rgba(79, 209, 197, 0.13) 315deg 323deg, transparent 323deg 360deg
+  );
+  -webkit-mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 72%);
+  mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 72%);
+  animation: cd-cer-rays 1.2s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes cd-cer-rays {
+  0% { transform: rotate(-20deg) scale(0.6); opacity: 0; }
+  35% { opacity: 0.9; }
+  100% { transform: rotate(8deg) scale(1.15); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CLEARDAY FX LAYER (cdfx-) — pooled particles / rings / sunrise flare
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cd-fx-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 90; /* above the ceremony veil — particles fly over everything */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cdfx-p {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c, #5e9df0);
+  opacity: 0;
+  pointer-events: none;
+}
+.cdfx-p--spark {
+  animation: cdfx-p-spark 0.6s cubic-bezier(0.1, 0.8, 0.4, 1) forwards;
+  box-shadow: 0 0 8px var(--c, #5e9df0);
+}
+.cdfx-p--ember {
+  width: 5px;
+  height: 5px;
+  animation: cdfx-p-ember 1.1s ease-out forwards;
+  box-shadow: 0 0 10px var(--c, #f0b45e);
+}
+.cdfx-p--petal {
+  width: 9px;
+  height: 6px;
+  border-radius: 3px;
+  animation: cdfx-p-petal 0.9s cubic-bezier(0.1, 0.7, 0.4, 1) forwards;
+}
+.cdfx-p--ray {
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  animation: cdfx-p-ray 0.5s cubic-bezier(0.1, 0.9, 0.3, 1) forwards;
+  box-shadow: 0 0 10px var(--c, #5e9df0);
+}
+
+@keyframes cdfx-p-spark {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--px), var(--py)) scale(0.15); opacity: 0; }
+}
+@keyframes cdfx-p-ember {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.95; }
+  70% { opacity: 0.8; }
+  100% { transform: translate(var(--px), var(--py)) scale(0.4); opacity: 0; }
+}
+@keyframes cdfx-p-petal {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--px), var(--py)) rotate(320deg) scale(0.5); opacity: 0; }
+}
+@keyframes cdfx-p-ray {
+  from { transform: translate(0, 0) scaleY(1); opacity: 1; }
+  to { transform: translate(var(--px), var(--py)) scaleY(0.3); opacity: 0; }
+}
+
+.cdfx-ring {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c, #5e9df0);
+  box-shadow: 0 0 18px var(--c, #5e9df0);
+  pointer-events: none;
+  animation: cdfx-ring-kf 0.45s ease-out forwards;
+}
+@keyframes cdfx-ring-kf {
+  from { transform: scale(0.2); opacity: 1; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+.cdfx-flare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c, #5e9df0) 30%, transparent), transparent 60%);
+}
+.cdfx-flare.is-on {
+  animation: cdfx-flare-kf 0.9s ease-out forwards;
+}
+@keyframes cdfx-flare-kf {
+  0% { opacity: 0; transform: translateY(12%); }
+  30% { opacity: 0.9; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE DAILY RITUAL (cd-daily-)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cd-daily-hero {
+  position: relative;
+  text-align: center;
+  padding: 10px 0 6px;
+  margin-bottom: 14px;
+}
+.cd-daily-sun {
+  width: 120px;
+  height: 96px;
+  margin: 0 auto 2px;
+  overflow: hidden;
+}
+.cd-daily-sun .cd-sun { width: 120px; height: 120px; }
+.cd-daily-hero .cd-eyebrow { margin-bottom: 4px; }
+.cd-daily-rung {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--cd-bright);
+  text-shadow: 0 0 20px rgba(94, 157, 240, 0.5);
+  margin-bottom: 12px;
+}
+.cd-daily-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.cd-daily-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cd-slate2);
+  border: 1px solid var(--cd-line);
+  transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.cd-daily-dot--on {
+  background: var(--cd-dawn);
+  border-color: var(--cd-dawn);
+  box-shadow: 0 0 10px rgba(94, 157, 240, 0.7);
+}
+
+.cd-daily-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cd-daily-step-head .cd-label { margin-bottom: 8px; }
+.cd-daily-check {
+  font-size: 15px;
+  font-weight: 800;
+  color: rgb(var(--cd-acc, 94, 157, 240));
+  text-shadow: 0 0 12px rgba(var(--cd-acc, 94, 157, 240), 0.8);
+  animation: cd-stamp-slam 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.cd-daily-step--done {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 0 26px rgba(var(--cd-acc), 0.1),
+    0 14px 34px -14px rgba(0, 0, 0, 0.65),
+    0 0 22px -8px rgba(var(--cd-acc), 0.5);
+}
+.cd-daily-step--done::before {
+  background: conic-gradient(
+    from 210deg,
+    rgba(var(--cd-acc), 0.8),
+    rgba(var(--cd-acc), 0.3) 40%,
+    rgba(var(--cd-acc), 0.55) 70%,
+    rgba(var(--cd-acc), 0.8)
+  );
+}
+.cd-daily-step .cd-btn { margin-top: 12px; }
+
+.cd-daily-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cd-daily-rung-chip {
+  padding: 7px 12px;
+  border-radius: 13px;
+  background: var(--cd-ink2);
+  border: 1px solid var(--cd-line);
+  color: var(--cd-mute);
+  font-size: 12px;
+}
+.cd-daily-rung-chip--on {
+  background: var(--cd-slate2);
+  border-color: var(--cd-dawn);
+  color: var(--cd-bright);
+  box-shadow: 0 0 12px rgba(94, 157, 240, 0.2);
+}
+
+.cd-daily-complete {
+  --cd-acc: 240, 180, 94;
+  text-align: center;
+  padding: 22px 16px;
+}
+.cd-daily-complete-sun {
+  width: 96px;
+  height: 76px;
+  margin: 0 auto 6px;
+  overflow: hidden;
+}
+.cd-daily-complete-sun .cd-sun { width: 96px; height: 96px; }
+.cd-daily-complete-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--cd-amber);
+  text-shadow: 0 0 22px rgba(240, 180, 94, 0.5);
+}
+.cd-daily-complete-sub {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--cd-soft);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

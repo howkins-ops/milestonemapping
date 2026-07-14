@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import UrgeBattle from "./UrgeBattle.jsx";
+import DailyTab from "./DailyTab.jsx";
 import {
   loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
@@ -14,6 +15,8 @@ import {
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES } from "../../lib/gamification.js";
 import { sfxHalo, sfxCoin, sfxPop, sfxPhoenix, sfxWaxSeal, sfxRungUp } from "../../lib/sfx.js";
+import cdFx from "./cdFx.js";
+import { tapLight, tapMedium, slamHeavy, buzzSuccess } from "../../lib/haptics.js";
 
 /* ═══════════════════════════════════════════════════════════════
    CLEARDAY — identity-first recovery for weed + porn.
@@ -35,27 +38,14 @@ const CEREMONY_DECK = [
 const CEREMONY_CRIT = { line: "★ CRITICAL VOTE — the comeback rep. Biggest stamp in the book.", color: "#f0b45e", n: 44, crit: true };
 
 function Ceremony({ show, onDone }) {
-  const layerRef = useRef(null);
   useEffect(() => {
     if (!show) return undefined;
-    const layer = layerRef.current;
-    const still = document.documentElement.dataset.reducedMotion === "true";
-    if (layer && !still) {
-      const W = layer.offsetWidth;
-      const H = layer.offsetHeight;
-      for (let i = 0; i < show.n; i++) {
-        const p = document.createElement("span");
-        p.className = "cdb-spark";
-        const a = Math.random() * Math.PI * 2;
-        const d = 40 + Math.random() * (show.crit ? 170 : 110);
-        p.style.left = `${W / 2}px`;
-        p.style.top = `${H / 2}px`;
-        p.style.background = show.color;
-        p.style.setProperty("--dx", `${Math.cos(a) * d}px`);
-        p.style.setProperty("--dy", `${Math.sin(a) * d}px`);
-        layer.appendChild(p);
-        setTimeout(() => p.remove(), 800);
-      }
+    const W = window.innerWidth || 390;
+    const H = window.innerHeight || 844;
+    cdFx.burst(W / 2, H / 2, "petal", show.n, show.color);
+    if (show.crit) {
+      cdFx.flare("#f0b45e");
+      slamHeavy();
     }
     const t = setTimeout(onDone, show.crit ? 2100 : 1500);
     return () => clearTimeout(t);
@@ -63,11 +53,35 @@ function Ceremony({ show, onDone }) {
   if (!show) return null;
   return (
     <div className={`cd-ceremony ${show.crit ? "cd-ceremony--crit" : ""}`} aria-live="polite">
-      <div ref={layerRef} className="cdb-fx-layer" aria-hidden="true" />
+      <div className="cd-ceremony-rays" aria-hidden="true" />
       <div className="cd-ceremony-stamp" style={{ borderColor: show.color, color: show.color }}>
         VOTE CAST
       </div>
       <div className="cd-ceremony-line">{show.line}</div>
+    </div>
+  );
+}
+
+/* ── the rung-upgrade moment — a full-screen sunrise for a new label ── */
+function RungMoment({ rung, onDone }) {
+  useEffect(() => {
+    if (!rung) return undefined;
+    cdFx.sunrise();
+    const W = window.innerWidth || 390;
+    const H = window.innerHeight || 844;
+    cdFx.burst(W / 2, H / 2, "petal", 28);
+    buzzSuccess();
+    const t = setTimeout(onDone, 2400);
+    return () => clearTimeout(t);
+  }, [rung, onDone]);
+  if (!rung) return null;
+  return (
+    <div className="cd-ceremony" aria-live="polite">
+      <div className="cd-ceremony-rays" aria-hidden="true" />
+      <div className="cd-ceremony-stamp" style={{ borderColor: "var(--cd-dawn)", color: "var(--cd-dawn)" }}>
+        {rung.label.toUpperCase()}
+      </div>
+      <div className="cd-ceremony-line">The label climbed. It doesn't climb back down.</div>
     </div>
   );
 }
@@ -419,10 +433,12 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
     return list[(day - 1) % Math.max(1, list.length)] || list[0] || null;
   }, [S.whys, day]);
 
-  const castRep = () => {
+  const castRep = (e) => {
     const { firstTime } = castDailyRep(day, lesson.vote);
     if (firstTime) {
       addXPSafe(XP_VALUES.cleardayDailyRep, "CLEARDAY rep");
+      cdFx.burstFrom(e, "spark", 14);
+      tapMedium();
       sfxCoin(settings);
       celebrate();
     }
@@ -432,6 +448,8 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
     const { firstTime } = closeOutDay("clear");
     if (firstTime) {
       addXPSafe(XP_VALUES.cleardayClearDay, "Clear day");
+      cdFx.sunrise();
+      buzzSuccess();
       sfxPhoenix(settings);
       celebrate();
     }
@@ -448,8 +466,11 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
         </div>
       </div>
 
-      <button type="button" className="cd-claim-card" onClick={() => {
+      <button type="button" className="cd-claim-card" onClick={(e) => {
         castVote("identity", "Did something the man in the Claim would do.");
+        cdFx.burstFrom(e, "ember", 12, "#5e9df0");
+        cdFx.ringFrom(e, "#5e9df0");
+        tapLight();
         sfxPop(settings);
         celebrate();
       }}>
@@ -508,7 +529,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe })
       {S.tracks.map((t) => {
         const report = bodyReportFor(t, day);
         return report ? (
-          <div key={t} className="cd-card cd-card--body" style={{ borderColor: `${TRACK_META[t].color}33` }}>
+          <div key={t} className="cd-card cd-card--body" style={{ "--cd-acc": TRACK_META[t].tintRgb }}>
             <div className="cd-label" style={{ color: TRACK_META[t].color }}>
               {t === "weed" ? "BODY REPORT" : "THE HONEST TIMELINE"} · DAY {day}
             </div>
@@ -646,6 +667,7 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
 function IdentityTab({ S, day, settings, celebrate }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(S.identity.statement);
+  const [rungMoment, setRungMoment] = useState(null);
   const lastPulse = S.pulses[S.pulses.length - 1];
   const pulseDue = day >= 7 && (!lastPulse || day - lastPulse.day >= 7);
 
@@ -685,7 +707,7 @@ function IdentityTab({ S, day, settings, celebrate }) {
               {available && (
                 <button type="button" className="cd-btn cd-btn--sm" onClick={() => {
                   const { upgraded } = upgradeRung(r.id);
-                  if (upgraded) { sfxRungUp(settings); celebrate(); }
+                  if (upgraded) { sfxRungUp(settings); setRungMoment(r); }
                 }}>
                   TAKE THE RUNG
                 </button>
@@ -706,11 +728,13 @@ function IdentityTab({ S, day, settings, celebrate }) {
             { v: "mostly", label: "I'm mostly that man" },
             { v: "holding", label: "I'm still holding the door shut" },
           ].map((opt) => (
-            <button key={opt.v} type="button" className="cd-pulse-opt" onClick={() => {
+            <button key={opt.v} type="button" className="cd-pulse-opt" onClick={(e) => {
               addPulse(opt.v);
               if (opt.v === "holding") {
                 castVote("identity", "Answered the pulse honestly — and honesty is a clear-man move too.");
               }
+              cdFx.ringFrom(e, "#4fd1c5");
+              tapLight();
               sfxPop(settings);
             }}>{opt.label}</button>
           ))}
@@ -748,6 +772,8 @@ function IdentityTab({ S, day, settings, celebrate }) {
           )}
         </div>
       )}
+
+      <RungMoment rung={rungMoment} onDone={() => setRungMoment(null)} />
     </div>
   );
 }
@@ -991,6 +1017,9 @@ export default function ClearDay({ onExit, settings }) {
           {tab === "today" && (
             <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} />
           )}
+          {tab === "daily" && (
+            <DailyTab S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} />
+          )}
           {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} />}
           {tab === "days" && <Journey S={S} day={day} />}
           {tab === "vault" && <Vault S={S} day={day} settings={settings} />}
@@ -998,8 +1027,9 @@ export default function ClearDay({ onExit, settings }) {
           <nav className="cd-tabbar" aria-label="CLEARDAY sections">
             {[
               { id: "today", label: "Today" },
+              { id: "daily", label: "Daily" },
               { id: "identity", label: "Identity" },
-              { id: "days", label: "66 Days" },
+              { id: "days", label: "Days" },
               { id: "vault", label: "Vault" },
             ].map((it) => (
               <button key={it.id} type="button" className={`cd-tab ${tab === it.id ? "cd-tab--on" : ""}`} onClick={() => setTab(it.id)}>

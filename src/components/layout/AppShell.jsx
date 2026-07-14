@@ -4,6 +4,8 @@ import MoreSheet from "./MoreSheet.jsx";
 import HoopsBallIcon from "./HoopsBallIcon.jsx";
 import AnimatedBackground from "./AnimatedBackground.jsx";
 import SyncStatus from "../ui/SyncStatus.jsx";
+import ClearDaySun from "../clearday/ClearDaySun.jsx";
+import useClearDayStatus from "../clearday/useClearDayStatus.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import "../../styles/wave.css";
 
@@ -16,6 +18,7 @@ const TOPBAR_ICONS = {
 export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, onOpenClearDay, children }) {
   const { profile, syncStatus } = useAppData();
   const [moreOpen, setMoreOpen] = useState(false);
+  const clearDay = useClearDayStatus();
 
   return (
     <>
@@ -78,8 +81,8 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
                     onClick={onOpenClearDay}
                     aria-label="Open CLEARDAY"
                   >
-                    <span className="cd-mini" aria-hidden="true">
-                      <span className="cd-mini-sun" />
+                    <span className={`cd-mini ${clearDay.ritualOpen ? "cd-mini--due" : ""}`} aria-hidden="true">
+                      <ClearDaySun variant="mini" />
                     </span>
                     <span className="app-topbar__btn-label">Clear</span>
                   </button>

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import ClearDay from "./ClearDay.jsx";
+import ClearDaySun from "./ClearDaySun.jsx";
+import { registerCdFxLayer } from "./cdFx.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import { sfxHalo, sfxWhoosh } from "../../lib/sfx.js";
 import "../../styles/clearday.css";
@@ -15,7 +17,7 @@ import "../../styles/clearday.css";
    siblings.
    ═══════════════════════════════════════════════════════════════ */
 
-const DAWN_MS = 1350;
+const DAWN_MS = 1950;
 const CLOSE_MS = 700;
 
 export default function ClearDayMode({ open, onClose }) {
@@ -28,6 +30,7 @@ export default function ClearDayMode({ open, onClose }) {
 
   const [phase, setPhase] = useState("dawn"); // dawn | open | closing
   const closingRef = useRef(false);
+  const fxLayerRef = useCallback((el) => registerCdFxLayer(el), []);
 
   /* lock body scroll while the mode is up */
   useEffect(() => {
@@ -93,15 +96,31 @@ export default function ClearDayMode({ open, onClose }) {
     >
       {phase === "dawn" && (
         <div className="cd-dawnbreak" aria-hidden="true">
-          <div className="cd-dawnbreak__line" />
-          <div className="cd-dawnbreak__sun" />
-          <div className="cd-dawnbreak__word">CLEARDAY</div>
+          <div className="cd-dawnbreak__sunwrap">
+            <ClearDaySun variant="hero" />
+          </div>
+          <div className="cd-dawnbreak__word">
+            <span className="cd-dawnbreak__wordwrap">
+              {"CLEARDAY".split("").map((ch, i) => (
+                <span key={i} className="cd-word-letter" style={{ "--i": i }}>{ch}</span>
+              ))}
+            </span>
+          </div>
         </div>
       )}
       {phase !== "dawn" && (
-        <div className="cd-stage">
-          <ClearDay onExit={requestClose} settings={settings} />
-        </div>
+        <>
+          <div className="cd-atmos" aria-hidden="true">
+            <div className="cd-aurora--a" />
+            <div className="cd-aurora--b" />
+            <div className="cd-stars--a" />
+            <div className="cd-stars--b" />
+          </div>
+          <div className="cd-stage">
+            <ClearDay onExit={requestClose} settings={settings} />
+          </div>
+          <div className="cd-fx-layer" ref={fxLayerRef} aria-hidden="true" />
+        </>
       )}
     </div>
   );
