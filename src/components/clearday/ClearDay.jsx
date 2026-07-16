@@ -437,7 +437,10 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
   if (done) {
     return (
       <div id="cd-unseen-work" className="cd-card cd-service cd-service--done">
-        <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK</div>
+        <div className="cd-card-arthead">
+          <img src="/assets/clearday/unseen-work-v3.webp" alt="" />
+          <div><div className="cd-label" style={{ color: "var(--cd-teal)" }}>UNSEEN WORK</div><div className="cd-card-title">Quiet proof, filed.</div></div>
+        </div>
         <div className="cd-done-line" style={{ textAlign: "left" }}>✓ filed · a different engine than the one the Mask built</div>
       </div>
     );
@@ -445,7 +448,10 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
 
   return (
     <div id="cd-unseen-work" className="cd-card cd-service">
-      <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK — one act for someone else</div>
+      <div className="cd-card-arthead">
+        <img src="/assets/clearday/unseen-work-v3.webp" alt="" />
+        <div><div className="cd-label" style={{ color: "var(--cd-teal)" }}>UNSEEN WORK</div><div className="cd-card-title">One act for someone else.</div></div>
+      </div>
       <p className="cd-p cd-p--soft" style={{ margin: "6px 0 10px" }}>
         The old habits were hours alone, spent on you. This is the counter-move — and if nobody
         ever finds out, <strong>it crits.</strong>
@@ -525,6 +531,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
         <div className="cd-hero-orbit" aria-hidden="true" />
         <div className="cd-hero-copy">
           <div className="cd-hero-greet">{greet} — day {day} of {PROGRAM_DAYS}.</div>
+          <h1 className="cd-hero-title">Today, you <span>choose clear.</span></h1>
           <div className="cd-hero-rung">{rung.label.toUpperCase()}</div>
           <div className="cd-hero-votes"><strong>{S.votes}</strong> exhibits on file · none of them expire</div>
           <div className="cd-hero-progress" aria-label={`${day} of ${PROGRAM_DAYS} days`}>
@@ -555,28 +562,28 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
               const devotionSet = Boolean(S.identity.devotion);
               const rows = [
                 {
-                  icon: "🔥", tag: "NIGHTLY", tagClass: "amber", title: "The Night Ledger",
+                  image: "/assets/clearday/night-ledger-v3.webp", tag: "NIGHTLY", tagClass: "amber", title: "The Night Ledger",
                   sub: "Take tonight's fuel out of the Mask's hands. ~60s.",
                   done: ledgerDone, onClick: () => onLedger && onLedger(),
                 },
                 {
-                  icon: "🕶", tag: "DAILY", tagClass: "teal", title: "Unseen Work",
+                  image: "/assets/clearday/unseen-work-v3.webp", tag: "DAILY", tagClass: "teal", title: "Unseen Work",
                   sub: "One thing for someone else — crit if you're never found out.",
                   done: serviceDone,
                   onClick: () => document.getElementById("cd-unseen-work")?.scrollIntoView({ behavior: "smooth", block: "center" }),
                 },
                 {
-                  icon: "📡", tag: "BATTLE", tagClass: "rose", title: "Reach Out",
+                  image: "/assets/clearday/reach-out-v3.webp", tag: "BATTLE", tagClass: "rose", title: "Reach Out",
                   sub: "Put a human in the room before you face the Mask alone.",
                   done: false, onClick: () => setReachOpen(true),
                 },
                 {
-                  icon: "🎬", tag: "VAULT", tagClass: "violet", title: "The Overwrite",
+                  image: "/assets/clearday/overwrite-v3.webp", tag: "VAULT", tagClass: "violet", title: "The Overwrite",
                   sub: "Old-chapter scenes, reshot by the clear you.",
                   done: false, onClick: () => onGoTab && onGoTab("vault"),
                 },
                 {
-                  icon: "🗣️", tag: "RITUAL", tagClass: "violet", title: "The Devotion Line",
+                  image: "/assets/clearday/devotion-line-v3.webp", tag: "RITUAL", tagClass: "violet", title: "The Devotion Line",
                   sub: devotionSet ? `Speaking for: ${S.identity.devotion}` : "One outward line added to your Incantation.",
                   done: devotionSet, onClick: () => setDevotionOpen(true),
                 },
@@ -588,7 +595,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
                   className={`cd-nwmenu-row ${r.done ? "cd-nwmenu-row--done" : ""}`}
                   onClick={() => { tapLight(); r.onClick(); }}
                 >
-                  <span className="cd-nwmenu-glyph">{r.icon}</span>
+                  <span className="cd-nwmenu-art"><img src={r.image} alt="" loading="lazy" /></span>
                   <span className="cd-nwmenu-text">
                     <span className="cd-nwmenu-title">{r.title}{r.done && " ✓"}</span>
                     <span className="cd-nwmenu-sub">{r.sub}</span>
@@ -815,12 +822,14 @@ function Journey({ S, day }) {
   const [openPhase, setOpenPhase] = useState(PHASES.find((p) => day >= p.range[0] && day <= p.range[1])?.key || "Fog");
   return (
     <div className="cd-page">
-      <div className="cd-section-head">
-        <h1 className="cd-h1">66 days</h1>
+      <div className="cd-section-head cd-journey-hero">
+        <div className="cd-journey-art" aria-hidden="true" />
+        <div className="cd-hero-kicker">THE ROAD TO AUTOMATIC</div>
+        <h1 className="cd-h1"><span>{day}</span> of 66 days</h1>
         <p className="cd-p cd-p--soft">
-          The real study: median 66 days to automatic, range 18–254 — and one missed day changed nothing.
-          Every day here is authored, not repeated.
+          You are not starting over. <strong>Every authored day moves the horizon closer.</strong>
         </p>
+        <div className="cd-journey-progress"><span style={{ width: `${Math.min(100, (day / PROGRAM_DAYS) * 100)}%` }} /></div>
       </div>
       <ReclamationClock S={S} />
       {PHASES.map((p) => {
@@ -911,7 +920,10 @@ function OverwriteSection({ S, settings }) {
 
   return (
     <div className="cd-card cd-overwrite">
-      <div className="cd-label" style={{ color: "var(--cd-violet)" }}>🎬 THE OVERWRITE</div>
+      <div className="cd-card-arthead">
+        <img src="/assets/clearday/overwrite-v3.webp" alt="" loading="lazy" />
+        <div><div className="cd-label" style={{ color: "var(--cd-violet)" }}>THE OVERWRITE</div><div className="cd-card-title">Reshoot the old chapter.</div></div>
+      </div>
       <p className="cd-p cd-p--soft" style={{ margin: "6px 0 12px" }}>
         The loudest proof isn't in this app — it's in your people. One scene, reshot by the
         clear you, outweighs a hundred exhibits.
@@ -1130,7 +1142,7 @@ export default function ClearDay({ onExit, settings }) {
   }
 
   return (
-    <div className="cd-app">
+    <div className={`cd-app cd-app--${tab}`}>
       {battle === "pick" && (
         <div className="cd-picksheet" role="dialog" aria-label="Which front?">
           <div className="cd-picksheet-card">

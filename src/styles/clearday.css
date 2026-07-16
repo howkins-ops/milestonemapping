@@ -12,9 +12,9 @@
   --cd-slate2: #1d2440;
   --cd-line: #262e52;
   --cd-line-soft: #1e2542;
-  --cd-mute: #6d75a0;
-  --cd-soft: #9aa1c9;
-  --cd-text: #c9cde8;
+  --cd-mute: #8993bc;
+  --cd-soft: #bac3df;
+  --cd-text: #e0e5f4;
   --cd-bright: #f4f1e8;
   --cd-dawn: #7fb4ff;
   --cd-dawn-deep: #35619e;
@@ -1722,6 +1722,130 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
   color: var(--cd-soft);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLEAR 3.0 — cinematic hierarchy and ADHD-first scanability
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cd-page { padding: 22px 18px calc(112px + var(--safe-bottom, 0px)); }
+.cd-page > * + * { margin-top: 4px; }
+.cd-h1 {
+  font-size: clamp(38px, 11vw, 58px);
+  line-height: .98;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+  text-shadow: 0 8px 36px rgba(0,0,0,.55);
+}
+.cd-p { font-size: 15.5px; line-height: 1.62; }
+.cd-p strong { color: var(--cd-bright); font-weight: 800; }
+.cd-label { font-size: 11px; line-height: 1.35; letter-spacing: 1.65px; color: #aeb9d8; }
+.cd-cite { font-size: 11.5px; color: #929dc1; line-height: 1.55; }
+
+.cd-card {
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% -8%, rgba(var(--cd-acc),.15), transparent 38%),
+    linear-gradient(155deg, rgba(31,41,73,.96), rgba(14,20,42,.98)) padding-box;
+  box-shadow: inset 0 1px rgba(255,255,255,.09), inset 0 -1px rgba(0,0,0,.35),
+    0 24px 60px -28px rgba(0,0,0,.96), 0 8px 24px -18px rgba(var(--cd-acc),.48);
+}
+.cd-card::before { opacity: .75; }
+.cd-card .cd-label:first-child { color: rgb(var(--cd-acc)); }
+.cd-card .cd-label + .cd-p,
+.cd-card .cd-label + p { margin-top: 10px; }
+.cd-input { background: rgba(7,12,29,.72); border-color: rgba(146,171,222,.25); color: #f4f6ff; }
+.cd-input::placeholder { color: #929bbc; opacity: 1; }
+.cd-input:focus { border-color: var(--cd-dawn); box-shadow: 0 0 0 3px rgba(127,180,255,.11), 0 0 24px -12px var(--cd-dawn); }
+.cd-btn { min-height: 52px; border-radius: 15px; box-shadow: 0 12px 30px -16px var(--cd-dawn), inset 0 1px rgba(255,255,255,.26); }
+
+/* Ritual becomes a true opening chapter. */
+.cd-daily-hero { min-height: 330px; margin: -22px -18px 22px; padding: 28px 18px 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; }
+.cd-daily-hero::before { content:""; position:absolute; inset:0; background: radial-gradient(circle at 50% 28%, rgba(255,196,107,.2), transparent 27%), linear-gradient(180deg,rgba(13,19,43,.05),rgba(11,17,37,.9)); pointer-events:none; }
+.cd-daily-hero::after { content:""; position:absolute; width:280px; height:280px; top:-20px; border:1px solid rgba(255,196,107,.12); border-radius:50%; box-shadow:0 0 80px rgba(255,196,107,.1), inset 0 0 60px rgba(127,180,255,.08); animation:cd-hero-breathe 5s ease-in-out infinite alternate; pointer-events:none; }
+.cd-daily-hero > * { position:relative; z-index:1; }
+.cd-daily-sun { width: 156px; height: 110px; margin-bottom: 2px; }
+.cd-daily-sun .cd-sun { width:156px; height:156px; }
+.cd-daily-title { margin: 5px 0 8px; font: 850 clamp(37px,10.5vw,54px)/.96 var(--font-display,"Sora",sans-serif); letter-spacing:-.055em; color:var(--cd-bright); text-wrap:balance; }
+.cd-daily-title span { color:var(--cd-amber); text-shadow:0 0 28px rgba(255,196,107,.35); }
+.cd-daily-sub { margin:0 0 14px; color:#d6dcef; font-size:14px; }
+.cd-daily-step { --step-index: 1; padding-top:22px; }
+.cd-daily-step-head .cd-label { max-width:88%; font-size:11.5px; color:#c7d5f4; }
+.cd-daily-step .cd-vote-meaning { font-size:15px; color:#f4f1e8; }
+
+/* Today hero: title first, supporting status second. */
+.cd-hero { height: 300px; margin:-6px 0 22px; border-radius:24px; }
+.cd-hero-copy { left:20px; right:20px; bottom:18px; }
+.cd-hero-greet { color:#d7dded; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; font-size:10px; }
+.cd-hero-title { margin:6px 0 9px; max-width:330px; font:850 clamp(32px,9.2vw,48px)/.95 var(--font-display,"Sora",sans-serif); letter-spacing:-.055em; color:#fffdf5; }
+.cd-hero-title span { display:block; color:var(--cd-amber); }
+.cd-hero-rung { font-size:12px; letter-spacing:2px; color:var(--cd-teal); }
+.cd-lesson-title { font-size:22px; line-height:1.12; letter-spacing:-.035em; }
+.cd-body-title { font-size:18px; line-height:1.2; }
+.cd-body-text,.cd-lesson-teach { font-size:14.5px; color:#d9dfef; }
+
+/* Identity reads as a constellation chapter, not another form. */
+.cd-identity-hero { min-height:330px; margin:-6px 0 24px; border-radius:24px; overflow:hidden; box-shadow:0 28px 70px -35px #000; }
+.cd-identity-hero-copy { padding:28px 22px 22px; min-height:330px; display:flex; flex-direction:column; justify-content:flex-end; }
+.cd-identity-hero-copy .cd-h1 { font-size:clamp(42px,12vw,64px); margin-bottom:12px; }
+.cd-identity-hero-copy .cd-h1::after { content:"BECOMING, ON PURPOSE"; display:block; margin-top:9px; font:750 10px/1 var(--font-display,"Sora",sans-serif); letter-spacing:2.4px; color:var(--cd-amber); }
+.cd-identity-hero-copy .cd-p { font-size:15px; color:#dce3f4; max-width:350px; }
+.cd-idw-head { margin:0 0 14px; padding:0 2px; }
+.cd-idw-head .cd-label { font-size:12px; color:var(--cd-dawn); }
+.cd-claim-text--big { font-size:23px; line-height:1.35; letter-spacing:-.025em; }
+
+/* Journey gets a generated, project-local cinematic landscape. */
+.cd-journey-hero { position:relative; min-height:330px; margin:-6px 0 22px; padding:24px 22px; border-radius:24px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; isolation:isolate; border:1px solid rgba(255,196,107,.2); box-shadow:0 30px 70px -34px #000; }
+.cd-journey-art { position:absolute; inset:0; z-index:-2; background:url('/assets/clearday/journey-horizon-v3.webp') 58% center/cover no-repeat; animation:cd-journey-drift 18s ease-in-out infinite alternate; }
+.cd-journey-hero::after { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg,rgba(5,10,24,.05) 18%,rgba(6,11,27,.9) 94%),linear-gradient(90deg,rgba(4,9,23,.68),transparent 72%); }
+.cd-hero-kicker { margin-bottom:9px; color:var(--cd-amber); font:800 10px/1 var(--font-display,"Sora",sans-serif); letter-spacing:2.4px; }
+.cd-journey-hero .cd-h1 { margin-bottom:10px; }
+.cd-journey-hero .cd-h1 span { color:var(--cd-amber); font-size:1.24em; text-shadow:0 0 30px rgba(255,196,107,.34); }
+.cd-journey-hero .cd-p { max-width:340px; margin-bottom:14px; color:#dbe1f0; }
+.cd-journey-progress { height:5px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.14); }
+.cd-journey-progress span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--cd-dawn),var(--cd-teal),var(--cd-amber)); box-shadow:0 0 14px var(--cd-amber); transition:width .8s cubic-bezier(.2,.8,.2,1); }
+.cd-phase { margin-bottom:16px; }
+.cd-phase-head { min-height:74px; padding:16px 17px; border-radius:17px; background:linear-gradient(145deg,rgba(31,42,75,.96),rgba(14,20,43,.96)); box-shadow:0 16px 34px -25px #000; }
+.cd-phase-name { font-size:18px; }
+.cd-dayrow { min-height:58px; align-items:center; padding:12px 14px; border-radius:13px; }
+.cd-dayrow-title { font-size:14.5px; color:#e3e8f4; }
+
+/* Evidence: stronger artifact scale and archive depth. */
+.cd-vault-hero { min-height:330px; border-radius:24px; padding:24px; }
+.cd-vault-hero .cd-h1 { font-size:clamp(44px,13vw,68px); }
+.cd-vault-hero .cd-p { color:#e0e5f1; font-size:15px; }
+.cd-vault-total strong { font-size:54px; }
+.cd-vault-total span { color:#d0d6e7; font-size:13px; }
+.cd-stat { min-height:78px; padding:15px 5px; background:linear-gradient(155deg,#202b4d,#111832); box-shadow:inset 0 1px rgba(255,255,255,.07),0 12px 28px -22px #000; }
+.cd-stat-num { font-size:27px; }
+.cd-stat-label { color:#aeb8d2; font-size:10px; }
+.cd-ballot-row { padding:14px; border:0; border-left:3px solid rgba(127,180,255,.28); background:linear-gradient(90deg,rgba(31,42,75,.94),rgba(15,21,44,.92)); box-shadow:0 12px 30px -25px #000; }
+.cd-ballot-note { font-size:13.5px; color:#e0e5f1; }
+
+/* Emoji actions become authored luminous emblems rather than loose glyphs. */
+.cd-nwmenu-glyph { position:relative; display:grid; place-items:center; width:46px; height:46px; flex:0 0 46px; border-radius:15px; font-size:20px; background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.2),transparent 27%),linear-gradient(145deg,#27345d,#11172f); border:1px solid rgba(150,184,237,.28); box-shadow:inset 0 1px rgba(255,255,255,.12),0 9px 22px -13px rgba(127,180,255,.8); filter:saturate(.82); }
+.cd-nwmenu-row { min-height:76px; gap:13px; border-radius:17px; background:linear-gradient(145deg,rgba(30,41,72,.94),rgba(13,19,40,.95)); }
+.cd-nwmenu-title { font-size:14px; color:#f4f1e8; }
+.cd-nwmenu-sub { font-size:12px; color:#abb5d0; }
+
+.cd-tabbar { max-width:500px; padding-top:10px; border:1px solid rgba(127,180,255,.16); border-bottom:0; border-radius:24px 24px 0 0; box-shadow:0 -18px 50px -26px #000; }
+.cd-tab { min-height:55px; font-size:10px; color:#929dc1; }
+.cd-tab--on::after { content:""; position:absolute; bottom:-5px; width:22px; height:2px; border-radius:9px; background:linear-gradient(90deg,var(--cd-dawn),var(--cd-amber)); box-shadow:0 0 10px var(--cd-dawn); animation:cd-tab-light .38s cubic-bezier(.2,.9,.2,1); }
+
+@keyframes cd-hero-breathe { to { transform:scale(1.06); opacity:.72; } }
+@keyframes cd-journey-drift { to { transform:scale(1.055) translateX(-1.5%); } }
+@keyframes cd-tab-light { from { transform:scaleX(.15); opacity:0; } }
+
+@media (max-width:380px) {
+  .cd-page { padding-inline:14px; }
+  .cd-daily-hero { margin-inline:-14px; }
+  .cd-card { padding:17px; }
+  .cd-vault-stats { gap:6px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .cd-daily-hero::after,.cd-journey-art { animation:none !important; }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    PER-TRACK LAW CARDS + SEAL POINTER + BALLOT CHIPS
    ═══════════════════════════════════════════════════════════════════════ */
@@ -3186,4 +3310,227 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .cd-reachout, .cd-devotion { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLEAR 3.0 CARD AUDIT — final cascade layer
+   Kept at EOF so later feature blocks cannot flatten the hierarchy again.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cd-card {
+  padding: 21px;
+  margin-bottom: 21px;
+  border-radius: 23px;
+}
+.cd-card > .cd-label:first-child,
+.cd-card > .cd-daily-step-head:first-child .cd-label,
+.cd-clock > .cd-label:first-child {
+  font-size: 12.5px;
+  line-height: 1.35;
+  letter-spacing: 1.45px;
+}
+.cd-card .cd-p { font-size: 15.5px; line-height: 1.62; color: #dce2f1; }
+.cd-card .cd-p strong { color: #fff1c9; font-weight: 800; }
+.cd-card .cd-cite { font-size: 12px; line-height: 1.55; color: #9da8c8; }
+.cd-card .cd-done-line { font-size: 14.5px; line-height: 1.5; color: #baf3cf; }
+
+/* Reusable illustrated title composition. */
+.cd-card-arthead {
+  display: grid;
+  grid-template-columns: 88px minmax(0,1fr);
+  gap: 15px;
+  align-items: center;
+  margin: -3px 0 16px;
+}
+.cd-card-arthead img {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid rgba(160,190,238,.24);
+  box-shadow: inset 0 1px rgba(255,255,255,.1), 0 14px 32px -18px rgba(127,180,255,.9);
+}
+.cd-card-arthead .cd-label { margin-bottom: 7px; font-size: 10.5px; }
+.cd-card-title {
+  color: var(--cd-bright);
+  font: 800 20px/1.12 var(--font-display,"Sora",sans-serif);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+/* TODAY — each card has a clear headline, readable body, quiet metadata. */
+.cd-nightshift { padding: 22px; }
+.cd-nightshift > .cd-label { font-size: 12px !important; color: var(--cd-amber); }
+.cd-nightshift-line { font-size: 23px; line-height: 1.12; letter-spacing: -.035em; margin: 8px 0 18px; max-width: 320px; }
+.cd-nightshift-curfew { font-size: 14px; line-height: 1.5; padding: 12px 14px; }
+.cd-nwmenu-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0,1fr);
+  gap: 7px 14px;
+  min-height: 104px;
+  padding: 11px;
+  border-radius: 18px;
+  align-items: center;
+  text-align: left;
+}
+.cd-nwmenu-art {
+  grid-row: 1 / span 2;
+  display: block;
+  width: 72px;
+  height: 82px;
+  overflow: hidden;
+  border-radius: 15px;
+  border: 1px solid rgba(156,188,236,.2);
+  box-shadow: 0 12px 25px -17px rgba(127,180,255,.95);
+}
+.cd-nwmenu-art img { width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.02); transition:transform .35s ease; }
+.cd-nwmenu-row:active .cd-nwmenu-art img { transform:scale(1.08); }
+.cd-nwmenu-text { grid-column:2; align-self:end; }
+.cd-nwmenu-title { display:block; font-size:16px; line-height:1.22; color:#fffdf5; letter-spacing:-.02em; }
+.cd-nwmenu-sub { display:block; margin-top:4px; font-size:13px; line-height:1.42; color:#bac4dc; }
+.cd-nwmenu-tag { grid-column:2; justify-self:start; align-self:start; font-size:9px; padding:4px 8px; }
+.cd-halt { min-height:43px; padding:10px 15px; font-size:14px; }
+.cd-halt-line { font-size:13.5px; }
+.cd-halt-do { font-size:15.5px; line-height:1.5; color:#f0f3fb; }
+.cd-lesson-title { font-size:24px !important; line-height:1.12; letter-spacing:-.04em; margin:7px 0 11px; }
+.cd-lesson-teach { font-size:15.5px; line-height:1.62; color:#dfe5f3; }
+.cd-lesson-skill { font-size:11.5px; color:#aeb8d0; }
+.cd-insert { padding:14px 15px; font-size:14.5px; line-height:1.55; }
+.cd-vote-box { padding:15px; }
+.cd-vote-meaning { font-size:15.5px; line-height:1.52; color:#f3f5fb; }
+.cd-vote-action { font-size:14px; line-height:1.45; color:#b9c5df; }
+.cd-body-title { font-size:20px; line-height:1.18; letter-spacing:-.025em; margin:7px 0 8px; }
+.cd-body-text { font-size:15px; line-height:1.62; color:#dce2f0; }
+.cd-why-text { font-size:18px; line-height:1.5; color:#fff1c9; }
+
+/* RITUAL — image-backed steps and stronger internal reading order. */
+.cd-daily-step { padding: 20px; overflow:hidden; }
+.cd-step-art {
+  display:block;
+  width:calc(100% + 40px);
+  height:132px;
+  margin:-20px -20px 18px;
+  object-fit:cover;
+  border-bottom:1px solid rgba(var(--cd-acc,127,180,255),.23);
+  mask-image:linear-gradient(to bottom,#000 72%,rgba(0,0,0,.72));
+}
+.cd-step-title {
+  margin:0 0 12px;
+  color:#f7f2e8;
+  font:800 19px/1.25 var(--font-display,"Sora",sans-serif);
+  letter-spacing:-.025em;
+  text-wrap:balance;
+}
+.cd-daily-step-head { align-items:flex-start; }
+.cd-daily-law { min-height:82px; padding:14px 15px; border-radius:15px; }
+.cd-daily-law-name { font-size:12px; letter-spacing:1.35px; margin-bottom:7px; }
+.cd-daily-law-text { font-size:15.5px; line-height:1.52; color:#e7eaf4; }
+.cd-daily-chip { min-height:42px; font-size:13.5px; line-height:1.35; }
+.cd-lastrep-title { font-size:14px; line-height:1.35; letter-spacing:1px; }
+.cd-lastrep-text { font-size:15px; }
+
+/* IDENTITY — workout titles now read as titles, not metadata. */
+.cd-rep { padding-top:22px; }
+.cd-rep-title {
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  margin:0 0 15px;
+  color:#f5f2e9;
+  font:800 19px/1.25 var(--font-display,"Sora",sans-serif);
+  letter-spacing:-.025em;
+}
+.cd-rep-title > span { display:grid; place-items:center; width:30px; height:30px; border-radius:10px; background:rgba(127,180,255,.13); color:var(--cd-dawn); font-size:14px; box-shadow:inset 0 0 0 1px rgba(127,180,255,.25); }
+.cd-rep .cd-input { min-height:48px; font-size:15px; }
+.cd-cite--science { padding:11px 13px; font-size:12.5px !important; color:#aab8d7 !important; }
+.cd-claim-text--big { font-size:24px; line-height:1.35; letter-spacing:-.03em; }
+.cd-rung { min-height:58px; padding:14px; }
+.cd-rung-label { font-size:15.5px; }
+.cd-rung-tag { font-size:10.5px; }
+.cd-rung-lock { font-size:12.5px; }
+.cd-pulse-q { font-size:19px; line-height:1.3; }
+.cd-pulse-opt { min-height:49px; font-size:15px; }
+.cd-pulse-note { font-size:13px; }
+.cd-mask-line { font-size:15.5px; line-height:1.5; }
+.cd-door { padding:14px; font-size:15px; line-height:1.55; }
+.cd-door span { font-size:10.5px; }
+.cd-door-actions { font-size:13.5px; }
+.cd-shed { min-height:48px; padding:11px 12px; }
+.cd-shed-text { display:flex; gap:9px; align-items:center; font-size:15px; line-height:1.45; color:#e6eaf4; }
+.cd-belief-mark { flex:0 0 9px; width:9px; height:9px; border-radius:50%; background:var(--cd-amber); box-shadow:0 0 11px rgba(255,196,107,.72); }
+.cd-shed-burn { min-height:34px; font-size:12px; }
+.cd-rule { padding:13px 14px; border-radius:13px; }
+.cd-rule-text { font-size:15px; line-height:1.45; color:#e7eaf4; }
+.cd-rule-num { font-size:13px; }
+.cd-rule-armed { padding:3px 6px; border:1px solid rgba(255,196,107,.35); border-radius:6px; font-size:9px; letter-spacing:.8px; }
+.cd-rule-when { font-size:13.5px; line-height:1.45; }
+
+/* JOURNEY — current phase, milestones, and body copy separate at a glance. */
+.cd-phase-head { min-height:82px; padding:17px 18px; }
+.cd-phase-head .cd-label { font-size:11.5px; }
+.cd-phase-name { font-size:20px; line-height:1.2; letter-spacing:-.025em; }
+.cd-phase-desc { padding:13px 7px 10px; font-size:14.5px; line-height:1.58; }
+.cd-dayrow { min-height:64px; padding:13px 15px; }
+.cd-dayrow-num { font-size:14px; width:27px; }
+.cd-dayrow-title { font-size:15.5px; line-height:1.3; color:#e8ecf6; }
+.cd-dayrow-skill { margin-top:3px; font-size:12px; color:#9eabc8; }
+.cd-clock-lede { font-size:15.5px !important; }
+.cd-clock-row { padding:13px 14px; border-radius:13px; }
+.cd-clock-stamp { font-size:11px; }
+.cd-clock-row-title { font-size:15.5px; color:#edf0f8; }
+.cd-clock-row-sub { font-size:13.5px; line-height:1.55; }
+.cd-clock-sub { font-size:13.5px; }
+
+/* EVIDENCE — archive cards and rows no longer read as one grey texture. */
+.cd-vault-stats { gap:9px; }
+.cd-stat { min-height:84px; }
+.cd-stat-label { font-size:11px; line-height:1.25; color:#b6c0d7; }
+.cd-letter-sealed { padding:13px; font-size:14px; line-height:1.5; color:#aeb8d0; }
+.cd-letter-text { padding:14px; font-size:15px; line-height:1.6; }
+.cd-letter-meta { font-size:12.5px; }
+.cd-ballot-row { min-height:63px; padding:14px 15px; }
+.cd-ballot-kind { font-size:10.5px; line-height:1.35; letter-spacing:1px; }
+.cd-ballot-note { margin-top:5px; font-size:14.5px; line-height:1.5; color:#e4e8f2; }
+.cd-overwrite-row { padding:15px; border-radius:15px; }
+.cd-overwrite-scene { font-size:16px; line-height:1.5; }
+.cd-overwrite-should { font-size:14.5px; line-height:1.5; }
+.cd-overwrite-chip { min-height:30px; font-size:10.5px; }
+
+/* Custom scene art in related overlays. */
+.cd-reachout-card,.cd-devotion-card { padding-top:20px; }
+.cd-reachout-art {
+  display:block;
+  width:calc(100% + 40px);
+  height:155px;
+  margin:-20px -20px 20px;
+  object-fit:cover;
+  border-radius:22px 22px 0 0;
+  border-bottom:1px solid rgba(127,180,255,.2);
+}
+.cd-reachout-h { font-size:27px; line-height:1.12; letter-spacing:-.04em; }
+.cd-reachout-tmpl { min-height:38px; font-size:12.5px; }
+.cd-reachout-secondary { min-height:47px; font-size:14px; }
+.cd-ledger-heroart { display:block; width:100%; height:170px; object-fit:cover; border-radius:20px; margin:0 0 18px; border:1px solid rgba(255,196,107,.2); box-shadow:0 20px 42px -25px rgba(255,122,56,.7); }
+.cd-ledger .cd-h1 { font-size:clamp(36px,10vw,50px); }
+.cd-corner-head { justify-content:flex-start; gap:12px; }
+.cd-corner-art { width:48px; height:48px; object-fit:cover; border-radius:14px; box-shadow:0 8px 20px -12px var(--cd-dawn); }
+.cd-corner-title { font-size:17px; }
+.cd-corner-sub { font-size:12.5px; }
+.cd-corner-x { margin-left:auto; }
+
+@media (max-width:380px) {
+  .cd-card { padding:18px; }
+  .cd-card-arthead { grid-template-columns:76px minmax(0,1fr); gap:12px; }
+  .cd-card-arthead img { width:76px; height:76px; border-radius:15px; }
+  .cd-card-title { font-size:18px; }
+  .cd-nwmenu-row { grid-template-columns:64px minmax(0,1fr); gap:6px 11px; }
+  .cd-nwmenu-art { width:64px; height:76px; }
+  .cd-nwmenu-title { font-size:15px; }
+  .cd-nwmenu-sub { font-size:12.5px; }
+  .cd-step-art { width:calc(100% + 36px); margin:-18px -18px 17px; }
+  .cd-vault-stats { grid-template-columns:repeat(2,1fr); }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .cd-nwmenu-art img { transition:none; }
 }

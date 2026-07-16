@@ -180,7 +180,7 @@ function DoorField({ label, tone, value, placeholder, onSave }) {
 function RepCard({ n, title, done, doneLine, children }) {
   return (
     <div className={`cd-card cd-rep ${done ? "cd-rep--done" : ""}`}>
-      <div className="cd-label cd-label--dawn">{n} · {title}</div>
+      <h2 className="cd-rep-title"><span>{n}</span>{title}</h2>
       {done ? <div className="cd-done-line" style={{ textAlign: "left" }}>{doneLine}</div> : children}
     </div>
   );
@@ -415,7 +415,7 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
                     tapMedium();
                     sfxPhoenix(settings);
                     celebrate();
-                  }}>🔥 BURN IT</button>
+                  }}>BURN IT</button>
               ) : (
                 <span className="cd-shed-ash">burned · it stays in the ashes</span>
               )}
@@ -437,7 +437,7 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
           <div className="cd-label" style={{ marginTop: 12 }}>WHAT HE BELIEVES — the constellation feeds on these</div>
           {(S.identity.beliefs || []).map((b) => (
             <div key={b.id} className="cd-shed">
-              <span className="cd-shed-text">★ {b.text}</span>
+              <span className="cd-shed-text"><span className="cd-belief-mark" aria-hidden="true" />{b.text}</span>
             </div>
           ))}
           <input className="cd-input cd-input--sm" value={beliefDraft} onChange={(e) => setBeliefDraft(e.target.value)}
@@ -466,7 +466,7 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
                 <div className="cd-rule-row">
                   <span className="cd-rule-num">§{String(i + 1).padStart(2, "0")}</span>
                   <span className="cd-rule-text">{r.text}</span>
-                  {r.armedAt && <span className="cd-rule-armed" title={`WHEN ${r.when} → ${r.then}`}>⚡</span>}
+                  {r.armedAt && <span className="cd-rule-armed" title={`WHEN ${r.when} → ${r.then}`}>ARMED</span>}
                   <button type="button" className="cd-rule-x" aria-label={`Delete rule: ${r.text}`}
                     onClick={() => deleteRule(r.id)}>✕</button>
                 </div>
@@ -484,11 +484,11 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
                         cdFx.burstFrom(e, "spark", 10, "#ffc46b");
                         tapMedium(); sfxPop(settings);
                         setArmOpen(null); setArmWhen(""); setArmThen("");
-                      }}>⚡ ARM IT</button>
+                      }}>ARM IT</button>
                   </div>
                 ) : (
                   <button type="button" className="cd-ghost cd-ghost--sm" onClick={() => { setArmOpen(r.id); setArmWhen(""); setArmThen(""); }}>
-                    ⚡ arm it with a when-then
+                    arm it with a when-then
                   </button>
                 )}
               </div>

@@ -78,8 +78,9 @@ export default function CornerChat({ S, day, onClose }) {
     <div className="cd-corner" role="dialog" aria-label="The Corner">
       <div className="cd-corner-card">
         <div className="cd-corner-head">
+          <img className="cd-corner-art" src="/assets/clearday/reach-out-v3.webp" alt="" />
           <div>
-            <div className="cd-corner-title">📡 THE CORNER</div>
+            <div className="cd-corner-title">THE CORNER</div>
             <div className="cd-corner-sub">{offline ? "reconnecting…" : "always awake · nothing leaves this room"}</div>
           </div>
           <button type="button" className="cd-corner-x" onClick={onClose} aria-label="Close">×</button>

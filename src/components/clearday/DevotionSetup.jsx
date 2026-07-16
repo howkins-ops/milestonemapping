@@ -37,6 +37,7 @@ export default function DevotionSetup({ current, onClose }) {
     <div className="cd-devotion" role="dialog" aria-label="The Devotion Line">
       <div className="cd-devotion-card">
         <button type="button" className="cd-reachout-x" onClick={onClose} aria-label="Close">×</button>
+        <img className="cd-reachout-art" src="/assets/clearday/devotion-line-v3.webp" alt="" />
         <div className="cd-eyebrow" style={{ color: "var(--cd-green)" }}>THE DEVOTION LINE</div>
         <h2 className="cd-reachout-h">Your claim says who you are.<br />Add who it's for.</h2>
 

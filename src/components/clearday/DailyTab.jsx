@@ -22,14 +22,15 @@ import { XP_VALUES } from "../../lib/gamification.js";
    only as a pointer chip (Claim/Laws/rules → Identity, lesson → Today).
    ═══════════════════════════════════════════════════════════════ */
 
-function StepCard({ done, accent, label, children }) {
+function StepCard({ done, accent, label, art, artAlt = "", children }) {
   return (
     <div
       className={`cd-card cd-daily-step ${done ? "cd-daily-step--done" : ""}`}
       style={accent ? { "--cd-acc": accent } : undefined}
     >
+      {art && <img className="cd-step-art" src={art} alt={artAlt} loading="lazy" />}
       <div className="cd-daily-step-head">
-        <span className="cd-label cd-label--dawn">{label}</span>
+        <h2 className="cd-step-title">{label}</h2>
         {done && <span className="cd-daily-check" aria-hidden="true">✓</span>}
       </div>
       {children}
@@ -88,7 +89,9 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
         <div className="cd-daily-sun">
           <ClearDaySun variant="emblem" />
         </div>
-        <div className="cd-eyebrow">DAY {day} RITUAL</div>
+        <div className="cd-eyebrow">DAY {day} · YOUR NIGHTLY CEREMONY</div>
+        <h1 className="cd-daily-title">Seal the day.<br /><span>Own the night.</span></h1>
+        <p className="cd-daily-sub">Five deliberate moves. One clear tomorrow.</p>
         <div className="cd-daily-dots" aria-label={`${doneCount} of ${steps.length} steps done`}>
           {steps.map((s, i) => (
             <span key={i} className={`cd-daily-dot ${s ? "cd-daily-dot--on" : ""}`} />
@@ -116,12 +119,12 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
       </div>
 
       {/* 1 · SPEAK — the incantation performs the claim; the words live on Identity */}
-      <StepCard done={incantDone} accent="255, 196, 107" label="1 · SPEAK — say it until you believe it">
+      <StepCard done={incantDone} accent="255, 196, 107" art="/assets/clearday/devotion-line-v3.webp" label="1 · SPEAK — say it until you believe it">
         <div className="cd-vote-meaning">TODAY'S STAND · “{stand}”</div>
         {!incantDone ? (
           <>
             <button type="button" className="cd-btn cd-btn--incant" onClick={() => { tapMedium(); onIncant(); }}>
-              🔊 SPEAK IT — 3 ROUNDS, OUT LOUD
+              SPEAK IT — 3 ROUNDS, OUT LOUD
             </button>
             <div className="cd-cite">◈ spoken words encode deeper than read ones — the claim + today's stand, whisper to roar</div>
           </>
@@ -179,7 +182,7 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
                 sfxPop(settings);
                 celebrate();
               }}>
-                ⚡ ARMED — IT FIRES ON ITS OWN NOW
+                ARMED — IT FIRES ON ITS OWN NOW
               </button>
               <div className="cd-cite">◈ when-then plans: d = 0.65 across 94 studies — the trigger fires the move before the debate starts</div>
             </>
@@ -199,7 +202,7 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
       </StepCard>
 
       {/* 4 · SETTLE THE LEDGER — burn tonight's fuel before the Mask can */}
-      <StepCard done={ledgerDone} accent="255, 122, 56" label="4 · SETTLE THE LEDGER — burn tonight's fuel">
+      <StepCard done={ledgerDone} accent="255, 122, 56" art="/assets/clearday/night-ledger-v3.webp" label="4 · SETTLE THE LEDGER — burn tonight's fuel">
         {!ledgerDone ? (
           <>
             <p className="cd-p cd-p--soft" style={{ margin: "0 0 10px" }}>
@@ -207,7 +210,7 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
               burn it — or sweep clean if you're carrying nothing. Sixty seconds.
             </p>
             <button type="button" className="cd-btn cd-btn--rep" onClick={() => { tapMedium(); onLedger(); }}>
-              🔥 OPEN THE LEDGER
+              OPEN THE LEDGER
             </button>
             <div className="cd-cite">◈ negative affect is the top relapse trigger — and it detonates hours late, in the evening window. Settle it nightly and the debt never compounds.</div>
           </>
@@ -217,7 +220,7 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
       </StepCard>
 
       {/* 5 · THE CONTRACT */}
-      <StepCard done={sealed} accent="255, 196, 107" label={`5 · THE CONTRACT — seal day ${day}`}>
+      <StepCard done={sealed} accent="255, 196, 107" art="/assets/clearday/electric-dawn.webp" label={`5 · THE CONTRACT — seal day ${day}`}>
         <DailyContract
           S={S}
           day={day}

@@ -64,6 +64,7 @@ export default function NightLedger({ day, settings, onDone, onClose }) {
       <button type="button" className="cd-ledger-x" onClick={onClose} aria-label="Close">×</button>
 
       <div className="cd-ledger-scroll">
+        <img className="cd-ledger-heroart" src="/assets/clearday/night-ledger-v3.webp" alt="" />
         <div className="cd-ledger-dots" aria-hidden="true">
           {[0, 1, 2, 3].map((i) => (
             <span key={i} className={beat >= i ? "on" : ""} />
@@ -95,7 +96,7 @@ export default function NightLedger({ day, settings, onDone, onClose }) {
               THAT'S THE FUEL →
             </button>
             <button type="button" className="cd-ledger-sweep" onClick={sweep}>
-              🌊 CLEAN SWEEP — carrying nothing tonight
+              CLEAN SWEEP — carrying nothing tonight
             </button>
           </div>
         )}
@@ -192,7 +193,7 @@ export default function NightLedger({ day, settings, onDone, onClose }) {
                   </div>
                 </div>
                 <button type="button" className="cd-btn cd-btn--seal" disabled={burning} onClick={burn}>
-                  🔥 BURN IT BEFORE THE MASK CAN
+                  BURN IT BEFORE THE MASK CAN
                 </button>
               </>
             ) : (

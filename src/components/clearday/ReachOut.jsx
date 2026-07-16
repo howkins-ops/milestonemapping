@@ -43,6 +43,7 @@ export default function ReachOut({ onClose, onOpenCorner }) {
     <div className="cd-reachout" role="dialog" aria-label="Reach Out">
       <div className="cd-reachout-card">
         <button type="button" className="cd-reachout-x" onClick={onClose} aria-label="Close">×</button>
+        <img className="cd-reachout-art" src="/assets/clearday/reach-out-v3.webp" alt="" />
         <div className="cd-eyebrow" style={{ color: "var(--cd-rose)" }}>REACH OUT</div>
         <h2 className="cd-reachout-h">Don't face it alone.<br />Put a human in the room.</h2>
         <p className="cd-p cd-p--soft" style={{ margin: "0 0 14px" }}>
@@ -66,7 +67,7 @@ export default function ReachOut({ onClose, onOpenCorner }) {
               ))}
             </div>
             <button type="button" className="cd-btn cd-btn--rep" onClick={() => send("sms")}>
-              💬 TEXT SOMEONE — pick who
+              TEXT SOMEONE — pick who
             </button>
             <button type="button" className="cd-reachout-secondary" onClick={() => send("mailto")}>
               ✉ or send it by email
@@ -76,7 +77,7 @@ export default function ReachOut({ onClose, onOpenCorner }) {
               className="cd-reachout-secondary"
               onClick={() => { fileReach("the corner"); onOpenCorner && onOpenCorner(); onClose(); }}
             >
-              📡 or talk to the corner right now — always awake
+              Talk to the corner right now — always awake
             </button>
           </>
         ) : (
