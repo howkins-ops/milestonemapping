@@ -8,6 +8,7 @@ import {
 import { buzzSuccess, slamHeavy, tapLight, tapMedium } from "../../lib/haptics.js";
 import cdFx from "./cdFx.js";
 import SeverTheSignal from "./battle/SeverTheSignal.jsx";
+import ReachOut from "./ReachOut.jsx";
 import {
   INTENSITY_LEVELS, RISK_LEVELS, THOUGHT_TYPES, TRACK_BATTLE, URGE_FORMS, resultCopy,
 } from "./battle/battleContent.js";
@@ -278,7 +279,8 @@ function Victory({ S, data, onFinish }) {
   return <div className="cdb-act cdb-act--victory"><div className="cdb2-evidence-orbit">{tiles.map((t, i) => <span key={t} style={{ "--i": i }}>{t}</span>)}<div className="cdb-stamp"><div className="cdb-stamp-inner">VOTE<br />CAST</div></div></div><h2 className="cdb-h">You interrupted<br />the loop.</h2><p className="cdb-p">The urge spoke. You made the decision. Your signal moved from <strong>{data.startRating}/10</strong> to <strong>{data.endRating}/10</strong>—and it did not need to vanish for you to regain choice.</p><div className="cdb2-victory-action">NEXT TEN MINUTES <strong>{data.nextAction}</strong></div><div className="cdb2-victory-stats"><span><strong>{data.game?.signals || 0}</strong> signals severed</span><span><strong>{data.game?.accuracy ?? 100}%</strong> focus</span><span><strong>{(S.stats.battlesWon || 0) + 1}</strong> urges faced</span></div><button type="button" className="cdb-big-btn" onClick={onFinish}>ADD THE EVIDENCE</button></div>;
 }
 
-export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave, saveCard, saveTapeFn }) {
+export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave, saveCard, saveTapeFn, onReachOutCorner }) {
+  const [reachOpen, setReachOpen] = useState(false);
   const meta = TRACK_META[track] || TRACK_META.weed;
   const content = TRACK_BATTLE[track] || TRACK_BATTLE.weed;
   const [stage, setStage] = useState("cue");
@@ -331,7 +333,9 @@ export default function UrgeBattle({ track, S, settings, onWon, onSlip, onLeave,
     <div ref={rootRef} className={`cdb cdb2 cdb--${track}`} data-stage={Math.max(0, stageIndex)}>
       <BattleAtmosphere stage={Math.max(0, stageIndex)} intensity={startRating || 4} tint={meta.tintRgb} />
       <div className="cdb2-static" aria-hidden="true" />
-      <div className="cdb-topline"><div><div className="cdb-topline-track" style={{ color: meta.color }}>{meta.label.toUpperCase()} · URGE BATTLE</div><div className="cdb2-stage-line"><span style={{ width: `${Math.max(4, (stageIndex / (STAGES.length - 1)) * 100)}%` }} /></div></div>{stage !== "victory" && <button type="button" className="cdb-leave" onClick={() => onLeave(resultPayload({ earlyExit: true }))}>leave safely</button>}</div>
+      <div className="cdb-topline"><div><div className="cdb-topline-track" style={{ color: meta.color }}>{meta.label.toUpperCase()} · URGE BATTLE</div><div className="cdb2-stage-line"><span style={{ width: `${Math.max(4, (stageIndex / (STAGES.length - 1)) * 100)}%` }} /></div></div>{stage !== "victory" && <button type="button" className="cdb-reach-btn" onClick={() => { tapLight(); setReachOpen(true); }}>📡 reach out</button>}{stage !== "victory" && <button type="button" className="cdb-leave" onClick={() => onLeave(resultPayload({ earlyExit: true }))}>leave safely</button>}</div>
+
+      {reachOpen && <ReachOut onClose={() => setReachOpen(false)} onOpenCorner={onReachOutCorner} />}
       {stage === "cue" && <ContactBreak track={track} value={cueAction} onChoose={(v) => { setCueAction(v); tapMedium(); sfxHalo(settings); }} onNext={() => go("signal")} />}
       {stage === "signal" && <SignalRead intensity={startRating} setIntensity={setStartRating} urgeForm={urgeForm} setUrgeForm={setUrgeForm} risk={riskLevel} setRisk={setRiskLevel} onNext={() => go("thought")} onSlip={() => onSlip(track)} />}
       {stage === "thought" && <ThoughtCapture track={track} S={S} thought={thought} setThought={setThought} thoughtType={thoughtType} setThoughtType={setThoughtType} onNext={() => { markLiesSeen(track, (SEED_LIES[track] || []).filter((x) => x.lie === thought).map((x) => x.id)); go("sever"); }} onResearch={setResearch} />}

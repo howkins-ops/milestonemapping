@@ -36,6 +36,7 @@ const DEFAULT_STATE = {
     statement: "", // master "I'm someone who..." statement
     maskName: "", // the named Addict voice (externalization)
     beliefs: [], // belief ladder: { id, track, text, adoptedAt }
+    devotion: "", // The Devotion Line — outward incantation closer: "My clear life is for ___"
   },
   laws: { weed: "", porn: "" }, // the categorical "I don't ..." per track
   doors: { dark: "", clear: "", actions: [] }, // feared self / clear self / 3 concrete acts
@@ -66,6 +67,7 @@ const DEFAULT_STATE = {
   chapters: [], // weekly rewrite: { day, text, at }
   // Night Shift
   ledger: [], // nightly reckoning: { day, fuel, hit[], myPart, clean, t } (cap 200)
+  repairs: [], // THE OVERWRITE: { id, scene, should, who, status: "ready"|"scheduled"|"live-it", day, at }
 };
 
 const listeners = new Set();
@@ -138,6 +140,7 @@ function normalize(parsed) {
       statement: typeof id.statement === "string" ? id.statement : "",
       maskName: typeof id.maskName === "string" ? id.maskName : "",
       beliefs: arr(id.beliefs).filter((b) => b && typeof b === "object"),
+      devotion: typeof id.devotion === "string" ? id.devotion : "",
     },
     laws: {
       weed: typeof obj(p.laws).weed === "string" ? p.laws.weed : "",
@@ -173,6 +176,7 @@ function normalize(parsed) {
     opposites: arr(p.opposites).filter((o) => o && typeof o === "object").slice(0, 100),
     chapters: arr(p.chapters).filter((c) => c && typeof c === "object"),
     ledger: arr(p.ledger).filter((l) => l && typeof l === "object").slice(0, 200),
+    repairs: arr(p.repairs).filter((r) => r && typeof r === "object"),
   };
 }
 
@@ -270,6 +274,27 @@ export function completeOnboarding({ tracks, statement, maskName, whys, beliefs,
     { day: 1, kind: "identity", track: "all", note: "Chose who I'm becoming. The claim came first, on purpose.", t: Date.now() + 2 },
     ...state.ballot,
   ];
+  save(state);
+  return state;
+}
+
+// THE DEVOTION LINE — one outward closer added to the Incantation.
+// Brand Step 11, verbatim: "create your own incantation, your own
+// tune-in code, and use it daily." His example ends outward
+// ("I devote myself to channelling love, to serving beauty") —
+// this is the one line his program would add to what's already built.
+export function setDevotion(text) {
+  const state = loadClearDay();
+  const clean = String(text || "").trim().slice(0, 120);
+  const first = !state.identity.devotion && Boolean(clean);
+  state.identity = { ...state.identity, devotion: clean };
+  if (first) {
+    state.votes += 1;
+    state.ballot = [
+      { day: dayNumber(state), kind: "devotion", track: "all", note: `Added the devotion line: "${clean}" — who the clear life is for.`, t: Date.now() },
+      ...state.ballot,
+    ].slice(0, 400);
+  }
   save(state);
   return state;
 }
@@ -722,6 +747,37 @@ export function settleLedger({ fuel, hit, myPart, clean } = {}) {
   ].slice(0, 400);
   save(state);
   return { firstTime: true, state };
+}
+
+// ── THE OVERWRITE — old-chapter scenes, reshot by the clear you. Brand's
+// amends (Steps 8-9) transmuted into CLEARDAY's identity-forward language:
+// not "make it right", but reshoot the scene the old chapter shot. Filing
+// one is itself the exhibit; the status is an organizing state, not new
+// evidence, so only the initial add casts a vote.
+export function addRepair({ scene, should, who }) {
+  const state = loadClearDay();
+  const s = String(scene || "").trim().slice(0, 200);
+  const sh = String(should || "").trim().slice(0, 160);
+  const w = String(who || "").trim().slice(0, 80);
+  if (!s || !sh || !w) return { added: false, state };
+  const day = dayNumber(state);
+  const entry = { id: `rp${Date.now()}`, scene: s, should: sh, who: w, status: "scheduled", day, at: new Date().toISOString() };
+  state.repairs = [entry, ...state.repairs];
+  state.votes += 1;
+  state.ballot = [
+    { day, kind: "repair", track: "all", note: `Set up a reshoot for ${w}: ${sh}`, t: Date.now() },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return { added: true, id: entry.id, state };
+}
+
+export function setRepairStatus(id, status) {
+  const state = loadClearDay();
+  if (!["ready", "scheduled", "live-it"].includes(status)) return state;
+  state.repairs = state.repairs.map((r) => (r.id === id ? { ...r, status } : r));
+  save(state);
+  return state;
 }
 
 // ── UNSEEN WORK — daily service rep. Undetected files a 2nd vote: the crit.

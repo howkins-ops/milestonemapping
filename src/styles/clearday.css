@@ -3073,3 +3073,117 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
   .cd-ledger-entry--burning { animation: none; opacity: 0; }
   .cd-ledger-stamp { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE NIGHT WORK — full menu rows on Today + The Overwrite (Vault) +
+   Reach Out + Devotion Line overlays. Append-only block.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.cd-nwmenu-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
+  text-align: left; cursor: pointer; background: var(--cd-ink); border: 1px solid var(--cd-line-soft);
+  border-radius: 16px; padding: 13px; margin-top: 10px; color: var(--cd-text);
+  font-family: var(--font-body, "Manrope", sans-serif); transition: border-color 0.2s, transform 0.15s;
+}
+.cd-nwmenu-row:active { transform: scale(0.98); }
+.cd-nwmenu-row--done { opacity: 0.6; border-color: rgba(92, 224, 211, 0.3); }
+.cd-nwmenu-glyph {
+  flex: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; font-size: 19px; background: var(--cd-slate2); border: 1px solid var(--cd-line);
+}
+.cd-nwmenu-text { flex: 1; min-width: 0; }
+.cd-nwmenu-title {
+  display: block; font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 14px; color: var(--cd-bright); margin-bottom: 2px;
+}
+.cd-nwmenu-sub { display: block; font-size: 11.5px; line-height: 1.4; color: var(--cd-mute); }
+.cd-nwmenu-tag {
+  flex: none; font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em; padding: 4px 8px; border-radius: 999px;
+}
+.cd-nwmenu-tag--amber { color: var(--cd-amber); border: 1px solid rgba(255, 196, 107, 0.4); }
+.cd-nwmenu-tag--teal { color: var(--cd-teal); border: 1px solid rgba(92, 224, 211, 0.4); }
+.cd-nwmenu-tag--rose { color: var(--cd-rose); border: 1px solid rgba(255, 122, 136, 0.4); }
+.cd-nwmenu-tag--violet { color: var(--cd-violet); border: 1px solid rgba(180, 155, 255, 0.4); }
+
+/* ── Reach Out overlay ── */
+.cd-reachout {
+  position: fixed; inset: 0; z-index: 965; display: flex; align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box; background: rgba(6, 8, 20, 0.78);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: cd-overlay-in 0.3s ease-out;
+}
+.cd-reachout-card {
+  position: relative; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto;
+  background: linear-gradient(180deg, var(--cd-slate) 0%, var(--cd-ink2) 100%);
+  border: 1px solid var(--cd-line); border-radius: 22px; padding: 24px 20px;
+  box-shadow: 0 24px 60px rgba(4, 6, 18, 0.6);
+}
+.cd-reachout-x {
+  position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--cd-line); background: var(--cd-ink); color: var(--cd-soft); font-size: 18px; cursor: pointer;
+}
+.cd-reachout-h {
+  font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 21px;
+  color: var(--cd-bright); line-height: 1.25; margin: 8px 0 12px; text-wrap: balance;
+}
+.cd-reachout-input {
+  width: 100%; box-sizing: border-box; min-height: 70px; resize: none; background: var(--cd-ink);
+  border: 1px solid var(--cd-line); border-radius: 14px; color: var(--cd-bright);
+  font-family: var(--font-body, "Manrope", sans-serif); font-size: 14.5px; line-height: 1.5;
+  padding: 13px; margin: 0 0 10px; outline: none;
+}
+.cd-reachout-templates { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 14px; }
+.cd-reachout-tmpl {
+  font-size: 11px; color: var(--cd-mute); background: none; border: 1px dashed var(--cd-line);
+  border-radius: 999px; padding: 6px 10px; cursor: pointer;
+}
+.cd-reachout-secondary {
+  display: block; width: 100%; margin-top: 9px; padding: 12px; background: none;
+  border: 1px solid var(--cd-line); border-radius: 14px; color: var(--cd-soft);
+  font-family: var(--font-body, "Manrope", sans-serif); font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.cd-reachout-done { text-align: center; }
+
+/* ── Devotion Line overlay (shares reachout chrome) ── */
+.cd-devotion {
+  position: fixed; inset: 0; z-index: 965; display: flex; align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box; background: rgba(6, 8, 20, 0.78);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: cd-overlay-in 0.3s ease-out;
+}
+.cd-devotion-card {
+  position: relative; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto;
+  background: linear-gradient(180deg, var(--cd-slate) 0%, var(--cd-ink2) 100%);
+  border: 1px solid var(--cd-line); border-radius: 22px; padding: 24px 20px;
+  box-shadow: 0 24px 60px rgba(4, 6, 18, 0.6);
+}
+.cd-devotion-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+
+/* ── The Overwrite (Vault) ── */
+.cd-overwrite-row {
+  background: var(--cd-ink); border: 1px solid var(--cd-line-soft); border-radius: 14px;
+  padding: 13px; margin: 0 0 10px;
+}
+.cd-overwrite-scene { font-size: 14px; color: var(--cd-bright); line-height: 1.45; margin: 0 0 4px; }
+.cd-overwrite-should { font-size: 13px; color: var(--cd-violet); line-height: 1.4; }
+.cd-overwrite-who { color: var(--cd-mute); font-style: normal; }
+.cd-overwrite-statuses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.cd-overwrite-chip {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--cd-mute);
+  background: var(--cd-slate2); border: 1px solid var(--cd-line); border-radius: 999px;
+  padding: 5px 9px; cursor: pointer;
+}
+.cd-overwrite-chip.on {
+  color: #1c1040; background: linear-gradient(135deg, var(--cd-violet), #d3c5ff); border-color: transparent;
+}
+.cd-overwrite-form { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
+
+/* ── battle topline reach-out button ── */
+.cdb-reach-btn {
+  background: none; border: 1px solid rgba(255, 122, 136, 0.4); border-radius: 999px;
+  color: var(--cd-rose, #ff7a88); font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10.5px; font-weight: 700; padding: 6px 11px; margin-right: 8px; cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-reachout, .cd-devotion { animation: none; }
+}

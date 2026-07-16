@@ -41,6 +41,7 @@ function splitLines(statement) {
 export default function Incantation({
   statement,
   extraLine = "",     // optional stand-of-the-day, spoken after the claim
+  devotionLine = "",  // optional outward closer — "my clear life is for ___" (Brand Step 11)
   voiceId = "ePEc9tlhrIO7VRkiOlQN",
   palette = { accent: "#7fb4ff", tintRgb: "127, 180, 255" },
   settings,
@@ -50,9 +51,11 @@ export default function Incantation({
   const lines = useMemo(() => {
     const base = splitLines(statement);
     const extra = String(extraLine || "").trim();
-    // keep the 6-line speakable cap: claim yields at most 5 when a stand rides along
-    return extra ? [...base.slice(0, 5), extra] : base;
-  }, [statement, extraLine]);
+    const devotion = String(devotionLine || "").trim();
+    // keep the 6-line speakable cap; devotion always closes, last in
+    const tail = [extra, devotion].filter(Boolean);
+    return tail.length ? [...base.slice(0, 6 - tail.length), ...tail] : base;
+  }, [statement, extraLine, devotionLine]);
   const [phase, setPhase] = useState("ask"); // ask | round | done
   const [round, setRound] = useState(0);
   const [lineIdx, setLineIdx] = useState(0);

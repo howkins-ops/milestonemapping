@@ -7,12 +7,14 @@ import ReclamationClock, { ReclamationChip } from "./ReclamationClock.jsx";
 import ClearProofWall from "./battle/ClearProofWall.jsx";
 import NightLedger from "./NightLedger.jsx";
 import CornerChat from "./CornerChat.jsx";
+import ReachOut from "./ReachOut.jsx";
+import DevotionSetup from "./DevotionSetup.jsx";
 import {
   loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
   addWhy, addCard, saveTape,
   addFreedomItem, addFutureLetter, openFutureLetter,
-  setLaw, fileService,
+  setLaw, fileService, addRepair, setRepairStatus, setDevotion,
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
@@ -434,7 +436,7 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
 
   if (done) {
     return (
-      <div className="cd-card cd-service cd-service--done">
+      <div id="cd-unseen-work" className="cd-card cd-service cd-service--done">
         <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK</div>
         <div className="cd-done-line" style={{ textAlign: "left" }}>✓ filed · a different engine than the one the Mask built</div>
       </div>
@@ -442,7 +444,7 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
   }
 
   return (
-    <div className="cd-card cd-service">
+    <div id="cd-unseen-work" className="cd-card cd-service">
       <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK — one act for someone else</div>
       <p className="cd-p cd-p--soft" style={{ margin: "6px 0 10px" }}>
         The old habits were hours alone, spent on you. This is the counter-move — and if nobody
@@ -489,7 +491,9 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
 
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
-function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner }) {
+function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner, onLedger }) {
+  const [reachOpen, setReachOpen] = useState(false);
+  const [devotionOpen, setDevotionOpen] = useState(false);
   const lesson = lessonFor(day);
   const repDone = S.curriculumDone.includes(day);
   const closed = Boolean(S.closedDays[day]);
@@ -537,40 +541,77 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
         !closed ? (
           <div className="cd-card cd-nightshift">
             <div className="cd-nightshift-glow" aria-hidden="true" />
-            <div className="cd-label" style={{ color: "var(--cd-amber)" }}>☾ THE NIGHT SHIFT</div>
-            <div className="cd-nightshift-line">The Mask works nights. So do we.</div>
-            <div className="cd-nightshift-chips">
-              {[
-                { done: S.ballot.some((b) => b.day === day && b.kind === "incant"), label: "spoken" },
-                { done: S.tracks.every((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t)), label: "laws held" },
-                { done: S.ballot.some((b) => b.day === day && b.kind === "armed") || !(S.rules || []).some((r) => r.armedAt), label: "armed" },
-                { done: S.ballot.some((b) => b.day === day && b.kind === "ledger"), label: "ledger settled" },
-                { done: false, label: "sealed" },
-              ].map((c) => (
-                <span key={c.label} className={`cd-nightshift-chip ${c.done ? "cd-nightshift-chip--done" : ""}`}>
-                  {c.done ? "✓" : "○"} {c.label}
-                </span>
-              ))}
-            </div>
+            <div className="cd-label" style={{ color: "var(--cd-amber)" }}>☾ THE NIGHT WORK</div>
+            <div className="cd-nightshift-line">The Mask works nights. So do we. Tap any row.</div>
             {hour >= NIGHT.ESCALATE_H && S.tracks.includes("porn") && (
               <div className="cd-nightshift-curfew">
                 Phone leaves the bedroom at {NIGHT.CURFEW_H - 12}. That's not willpower — that's the law.
               </div>
             )}
-            <button type="button" className="cd-btn cd-btn--rep" onClick={() => onGoTab && onGoTab("daily")}>
-              ☾ ENTER THE RITUAL →
-            </button>
-            <button type="button" className="cd-nightshift-corner" onClick={onCorner}>
-              📡 or talk to the corner first — always awake
+
+            {(() => {
+              const ledgerDone = S.ballot.some((b) => b.day === day && b.kind === "ledger");
+              const serviceDone = S.ballot.some((b) => b.day === day && b.kind === "service");
+              const devotionSet = Boolean(S.identity.devotion);
+              const rows = [
+                {
+                  icon: "🔥", tag: "NIGHTLY", tagClass: "amber", title: "The Night Ledger",
+                  sub: "Take tonight's fuel out of the Mask's hands. ~60s.",
+                  done: ledgerDone, onClick: () => onLedger && onLedger(),
+                },
+                {
+                  icon: "🕶", tag: "DAILY", tagClass: "teal", title: "Unseen Work",
+                  sub: "One thing for someone else — crit if you're never found out.",
+                  done: serviceDone,
+                  onClick: () => document.getElementById("cd-unseen-work")?.scrollIntoView({ behavior: "smooth", block: "center" }),
+                },
+                {
+                  icon: "📡", tag: "BATTLE", tagClass: "rose", title: "Reach Out",
+                  sub: "Put a human in the room before you face the Mask alone.",
+                  done: false, onClick: () => setReachOpen(true),
+                },
+                {
+                  icon: "🎬", tag: "VAULT", tagClass: "violet", title: "The Overwrite",
+                  sub: "Old-chapter scenes, reshot by the clear you.",
+                  done: false, onClick: () => onGoTab && onGoTab("vault"),
+                },
+                {
+                  icon: "🗣️", tag: "RITUAL", tagClass: "violet", title: "The Devotion Line",
+                  sub: devotionSet ? `Speaking for: ${S.identity.devotion}` : "One outward line added to your Incantation.",
+                  done: devotionSet, onClick: () => setDevotionOpen(true),
+                },
+              ];
+              return rows.map((r) => (
+                <button
+                  key={r.title}
+                  type="button"
+                  className={`cd-nwmenu-row ${r.done ? "cd-nwmenu-row--done" : ""}`}
+                  onClick={() => { tapLight(); r.onClick(); }}
+                >
+                  <span className="cd-nwmenu-glyph">{r.icon}</span>
+                  <span className="cd-nwmenu-text">
+                    <span className="cd-nwmenu-title">{r.title}{r.done && " ✓"}</span>
+                    <span className="cd-nwmenu-sub">{r.sub}</span>
+                  </span>
+                  <span className={`cd-nwmenu-tag cd-nwmenu-tag--${r.tagClass}`}>{r.tag}</span>
+                </button>
+              ));
+            })()}
+
+            <button type="button" className="cd-btn cd-btn--rep" style={{ marginTop: 12 }} onClick={() => onGoTab && onGoTab("daily")}>
+              ☾ ENTER THE RITUAL — SEAL THE DAY →
             </button>
           </div>
         ) : (
           <div className="cd-card cd-nightshift cd-nightshift--settled">
-            <div className="cd-label" style={{ color: "var(--cd-teal)" }}>☾ THE NIGHT SHIFT</div>
+            <div className="cd-label" style={{ color: "var(--cd-teal)" }}>☾ THE NIGHT WORK</div>
             <div className="cd-nightshift-line">Day {day} is closed. The night has nothing to work with.</div>
           </div>
         )
       )}
+
+      {reachOpen && <ReachOut onClose={() => setReachOpen(false)} onOpenCorner={onCorner} />}
+      {devotionOpen && <DevotionSetup current={S.identity.devotion} onClose={() => setDevotionOpen(false)} />}
 
       <ReclamationChip S={S} onGoTab={onGoTab} />
 
@@ -848,7 +889,77 @@ const EVIDENCE_KINDS = {
   ledger: { label: "Settled the ledger", color: "var(--cd-amber)" },
   service: { label: "Unseen work", color: "var(--cd-teal)" },
   reachout: { label: "Reached the corner", color: "var(--cd-rose)" },
+  repair: { label: "The Overwrite", color: "var(--cd-violet)" },
+  devotion: { label: "The Devotion Line", color: "var(--cd-green)" },
 };
+
+const REPAIR_STATUS = {
+  ready: { label: "ROLL IT — ready", short: "READY" },
+  scheduled: { label: "SCHEDULED — not yet", short: "SCHEDULED" },
+  "live-it": { label: "OVERWRITE BY LIVING IT", short: "LIVING IT" },
+};
+
+/* ═══ THE OVERWRITE — old-chapter scenes, reshot by the clear you ═══════
+   Brand's amends (Steps 8-9), transmuted: not "make it right" but reshoot
+   the scene. Named damage becomes a scene on the board; unnamed damage
+   becomes fuel. Lives in the Vault — a considered act, not a checklist. */
+function OverwriteSection({ S, settings }) {
+  const [open, setOpen] = useState(false);
+  const [scene, setScene] = useState("");
+  const [should, setShould] = useState("");
+  const [who, setWho] = useState("");
+
+  return (
+    <div className="cd-card cd-overwrite">
+      <div className="cd-label" style={{ color: "var(--cd-violet)" }}>🎬 THE OVERWRITE</div>
+      <p className="cd-p cd-p--soft" style={{ margin: "6px 0 12px" }}>
+        The loudest proof isn't in this app — it's in your people. One scene, reshot by the
+        clear you, outweighs a hundred exhibits.
+      </p>
+
+      {S.repairs.map((r) => (
+        <div key={r.id} className="cd-overwrite-row">
+          <div className="cd-overwrite-scene">"{r.scene}"</div>
+          <div className="cd-overwrite-should">→ {r.should} <span className="cd-overwrite-who">— {r.who}</span></div>
+          <div className="cd-overwrite-statuses">
+            {Object.entries(REPAIR_STATUS).map(([k, v]) => (
+              <button
+                key={k}
+                type="button"
+                className={`cd-overwrite-chip ${r.status === k ? "on" : ""}`}
+                onClick={() => setRepairStatus(r.id, k)}
+              >
+                {v.short}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {!open ? (
+        <button type="button" className="cd-ghost" onClick={() => setOpen(true)}>+ set up a reshoot</button>
+      ) : (
+        <div className="cd-overwrite-form">
+          <textarea className="cd-input" rows={2} value={scene} onChange={(e) => setScene(e.target.value)} placeholder="The scene the old chapter shot…" />
+          <input className="cd-input" value={should} onChange={(e) => setShould(e.target.value)} placeholder="How the clear me shoots it…" />
+          <input className="cd-input" value={who} onChange={(e) => setWho(e.target.value)} placeholder="Who gets the new version" />
+          <button
+            type="button"
+            className="cd-btn cd-btn--sm"
+            disabled={scene.trim().length < 8 || should.trim().length < 4 || !who.trim()}
+            onClick={() => {
+              const { added } = addRepair({ scene, should, who });
+              if (added) { setScene(""); setShould(""); setWho(""); setOpen(false); sfxWaxSeal(settings); }
+            }}
+          >
+            SET UP THE RESHOOT
+          </button>
+        </div>
+      )}
+      <div className="cd-cite">◈ Guilt about an act predicts repair and staying clear; shame about the self predicts hiding and relapse. Structured make-it-right work converts one into the other.</div>
+    </div>
+  );
+}
 
 function Vault({ S, day, settings }) {
   const [letter, setLetter] = useState("");
@@ -903,6 +1014,8 @@ function Vault({ S, day, settings }) {
           SEAL IT
         </button>
       </div>
+
+      <OverwriteSection S={S} settings={settings} />
 
       <div className="cd-card">
         <div className="cd-label cd-label--amber">THE FREEDOM AUDIT — what's already back</div>
@@ -1008,8 +1121,10 @@ export default function ClearDay({ onExit, settings }) {
             setBattle(null);
           }}
           onSlip={() => { setBattle(null); setSlip(true); }}
+          onReachOutCorner={() => setCorner(true)}
         />
         <Ceremony show={ceremony} onDone={() => setCeremony(null)} />
+        {corner && <CornerChat S={S} day={day} onClose={() => setCorner(false)} />}
       </>
     );
   }
@@ -1037,7 +1152,7 @@ export default function ClearDay({ onExit, settings }) {
       {!slip && (
         <>
           {tab === "today" && (
-            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} />
+            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} onLedger={() => setLedger(true)} />
           )}
           {tab === "daily" && (
             <DailyTab
@@ -1079,6 +1194,7 @@ export default function ClearDay({ onExit, settings }) {
           statement={S.identity.statement}
           extraLine={standFor(day)}
           settings={settings}
+          devotionLine={S.identity.devotion}
           onComplete={() => {
             castVote("incant", `Spoke the claim and today's stand out loud — three rounds, full voice. ("${standFor(day)}")`);
             addXPSafe(XP_VALUES.cleardayIncant, "The incantation");
