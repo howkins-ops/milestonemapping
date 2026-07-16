@@ -2813,3 +2813,263 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
   cursor: pointer;
 }
 .cd-clock-chip:active { transform: scale(0.98); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE NIGHT SHIFT — clock-aware evening layer (Today card, Night Ledger
+   overlay, Unseen Work, The Corner, The Last Rep). Append-only block.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Night Shift card on Today ── */
+.cd-nightshift { position: relative; overflow: hidden; border-color: rgba(255, 196, 107, 0.35); }
+.cd-nightshift-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% -20%, rgba(255, 196, 107, 0.12) 0%, transparent 60%);
+}
+.cd-nightshift-line {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 18px; color: var(--cd-bright);
+  margin: 6px 0 12px; letter-spacing: -0.01em;
+}
+.cd-nightshift-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 12px; }
+.cd-nightshift-chip {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--cd-mute); background: var(--cd-ink);
+  border: 1px solid var(--cd-line-soft); border-radius: 999px; padding: 6px 11px;
+}
+.cd-nightshift-chip--done { color: var(--cd-teal); border-color: rgba(92, 224, 211, 0.35); }
+.cd-nightshift-curfew {
+  font-size: 12.5px; line-height: 1.5; color: var(--cd-rose);
+  background: rgba(255, 122, 136, 0.08); border: 1px solid rgba(255, 122, 136, 0.3);
+  border-radius: 12px; padding: 10px 12px; margin: 0 0 12px;
+}
+.cd-nightshift-corner {
+  display: block; width: 100%; margin-top: 9px; padding: 11px;
+  background: none; border: 1px dashed var(--cd-line); border-radius: 12px;
+  color: var(--cd-soft); font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.cd-nightshift--settled { border-color: rgba(92, 224, 211, 0.3); }
+
+/* ── Unseen Work card ── */
+.cd-service-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 10px; }
+.cd-service-chip {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 12px; font-weight: 700; color: var(--cd-soft);
+  background: var(--cd-ink); border: 1px solid var(--cd-line);
+  border-radius: 999px; padding: 8px 13px; cursor: pointer; transition: all 0.2s;
+}
+.cd-service-chip.on {
+  color: #062420; background: linear-gradient(135deg, var(--cd-teal), #9ff0e6);
+  border-color: transparent; box-shadow: 0 0 14px rgba(92, 224, 211, 0.3);
+}
+.cd-service-input {
+  width: 100%; box-sizing: border-box; background: var(--cd-ink);
+  border: 1px solid var(--cd-line); border-radius: 12px; color: var(--cd-bright);
+  font-family: var(--font-body, "Manrope", sans-serif); font-size: 14.5px;
+  padding: 12px; margin: 0 0 10px; outline: none;
+}
+.cd-service-input:focus { border-color: var(--cd-dawn-deep); }
+.cd-service-toggle {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  background: var(--cd-ink); border: 1px solid var(--cd-line); border-radius: 12px;
+  padding: 10px 12px; margin: 0 0 12px; cursor: pointer; text-align: left;
+  color: var(--cd-soft); font-family: var(--font-body, "Manrope", sans-serif); font-size: 12.5px;
+}
+.cd-service-toggle strong { color: var(--cd-text); }
+.cd-service-toggle.on strong { color: var(--cd-teal); }
+.cd-service-knob {
+  flex: none; width: 36px; height: 21px; border-radius: 999px;
+  background: var(--cd-slate2); border: 1px solid var(--cd-line); position: relative; transition: background 0.25s;
+}
+.cd-service-knob::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px;
+  border-radius: 50%; background: var(--cd-mute); transition: all 0.25s;
+}
+.cd-service-toggle.on .cd-service-knob { background: linear-gradient(135deg, var(--cd-teal), #9ff0e6); }
+.cd-service-toggle.on .cd-service-knob::after { left: 17px; background: #052c27; }
+
+/* ── The Night Ledger overlay ── */
+.cd-ledger {
+  position: fixed; inset: 0; z-index: 960; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #0a0d1d 0%, #10142e 60%, #1a1c40 100%);
+  color: var(--cd-text); font-family: var(--font-body, "Manrope", sans-serif);
+  animation: cd-overlay-in 0.4s ease-out;
+}
+.cd-ledger-sky {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 115%, rgba(255, 122, 56, 0.12) 0%, transparent 60%);
+}
+.cd-ledger-x {
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 10px); right: 14px; z-index: 2;
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--cd-line);
+  background: rgba(12, 16, 34, 0.7); color: var(--cd-soft); font-size: 20px; cursor: pointer;
+}
+.cd-ledger-scroll {
+  position: relative; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: calc(env(safe-area-inset-top, 0px) + 56px) 22px 40px; max-width: 440px; margin: 0 auto; width: 100%;
+  box-sizing: border-box;
+}
+.cd-ledger-dots { display: flex; gap: 7px; margin: 0 0 22px; }
+.cd-ledger-dots span {
+  flex: 1; height: 3px; border-radius: 999px; background: var(--cd-line-soft); transition: background 0.4s, box-shadow 0.4s;
+}
+.cd-ledger-dots span.on {
+  background: linear-gradient(90deg, var(--cd-dawn), var(--cd-amber));
+  box-shadow: 0 0 8px rgba(255, 196, 107, 0.4);
+}
+.cd-ledger-beat { animation: cd-overlay-in 0.4s ease-out; }
+.cd-ledger-input {
+  width: 100%; box-sizing: border-box; min-height: 88px; resize: none;
+  background: var(--cd-ink); border: 1px solid var(--cd-line); border-radius: 14px;
+  color: var(--cd-bright); font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 15.5px; line-height: 1.55; padding: 14px; margin: 14px 0; outline: none;
+}
+.cd-ledger-input:focus { border-color: var(--cd-dawn-deep); box-shadow: 0 0 0 3px rgba(127, 180, 255, 0.1); }
+.cd-ledger-sweep {
+  display: block; width: 100%; margin-top: 10px; padding: 13px;
+  background: none; border: 1px solid rgba(92, 224, 211, 0.4); border-radius: 14px;
+  color: var(--cd-teal); font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
+}
+.cd-ledger-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.cd-ledger-chip {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 12.5px; font-weight: 700; color: var(--cd-soft);
+  background: var(--cd-ink); border: 1px solid var(--cd-line);
+  border-radius: 999px; padding: 9px 14px; cursor: pointer; transition: all 0.2s;
+}
+.cd-ledger-chip.on {
+  color: #0c1022; background: linear-gradient(135deg, var(--cd-dawn), #a8ccff);
+  border-color: transparent; box-shadow: 0 0 14px rgba(127, 180, 255, 0.35);
+}
+.cd-ledger-chips--lens .cd-ledger-chip:active { border-color: var(--cd-amber); color: var(--cd-amber); }
+.cd-ledger-law {
+  margin: 0 0 12px; padding: 11px 13px; border-radius: 12px; font-size: 12.5px; line-height: 1.5;
+  background: rgba(255, 122, 136, 0.09); border: 1px solid rgba(255, 122, 136, 0.35); color: #ffb3bb;
+  animation: cd-ledger-shake 0.4s;
+}
+@keyframes cd-ledger-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.cd-ledger-entry {
+  background: linear-gradient(180deg, var(--cd-slate) 0%, var(--cd-ink2) 100%);
+  border: 1px solid var(--cd-line); border-radius: 18px; padding: 18px; margin: 14px 0 16px;
+}
+.cd-ledger-entry--burning { animation: cd-ledger-burn 1.4s ease-in forwards; }
+@keyframes cd-ledger-burn {
+  0% { opacity: 1; filter: none; }
+  35% { opacity: 1; filter: brightness(1.35) saturate(1.2); }
+  100% { opacity: 0; filter: brightness(2.4) blur(6px); transform: translateY(-12px) scale(0.97); }
+}
+.cd-ledger-row { margin: 0 0 13px; }
+.cd-ledger-row:last-child { margin: 0; }
+.cd-ledger-row p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; color: var(--cd-bright); }
+.cd-ledger-lbl {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em; color: var(--cd-mute);
+}
+.cd-btn--seal {
+  width: 100%; padding: 17px 12px; border: none; border-radius: 16px; cursor: pointer;
+  font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 14.5px;
+  letter-spacing: 0.08em; color: #241004;
+  background: linear-gradient(135deg, var(--cd-amber) 0%, #ff7a38 100%);
+  box-shadow: 0 10px 30px rgba(255, 122, 56, 0.35);
+}
+.cd-btn--seal:disabled { opacity: 0.4; }
+.cd-ledger-done { text-align: center; animation: cd-overlay-in 0.6s ease-out; }
+.cd-ledger-stamp {
+  width: 104px; height: 104px; margin: 8px auto 14px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 34% 30%, #ffd89b 0%, var(--cd-amber) 38%, #ff7a38 78%, #b3441a 100%);
+  box-shadow: 0 0 0 5px rgba(255, 196, 107, 0.14), 0 0 44px rgba(255, 122, 56, 0.5), inset 0 -6px 14px rgba(80, 20, 0, 0.45);
+  animation: cd-ledger-pop 0.5s ease-out;
+}
+@keyframes cd-ledger-pop { from { transform: scale(0.4); } to { transform: none; } }
+.cd-ledger-stamp span {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; color: #2a1204; font-size: 14px; letter-spacing: 0.06em; text-align: center; line-height: 1.25;
+}
+.cd-ledger-stamp--clean {
+  background: radial-gradient(circle at 34% 30%, #c8fff7 0%, var(--cd-teal) 40%, #1d9d8f 82%, #0d5a52 100%);
+  box-shadow: 0 0 0 5px rgba(92, 224, 211, 0.14), 0 0 44px rgba(92, 224, 211, 0.45), inset 0 -6px 14px rgba(0, 50, 44, 0.45);
+}
+.cd-ledger-stamp--clean span { color: #052c27; }
+.cd-ledger-filed {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 12.5px; letter-spacing: 0.18em; color: var(--cd-amber); margin: 0 0 8px;
+}
+
+/* ── The Corner chat ── */
+.cd-corner {
+  position: fixed; inset: 0; z-index: 970; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(6, 8, 20, 0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: cd-overlay-in 0.3s ease-out;
+}
+.cd-corner-card {
+  width: 100%; max-width: 460px; height: min(78vh, 640px); display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--cd-slate) 0%, var(--cd-ink) 100%);
+  border: 1px solid var(--cd-line); border-bottom: none; border-radius: 22px 22px 0 0;
+  box-shadow: 0 -18px 60px rgba(4, 6, 18, 0.7);
+}
+.cd-corner-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 12px; border-bottom: 1px solid var(--cd-line-soft);
+}
+.cd-corner-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 15px; letter-spacing: 0.08em; color: var(--cd-bright);
+}
+.cd-corner-sub { font-size: 11px; color: var(--cd-mute); margin-top: 2px; }
+.cd-corner-x {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--cd-line);
+  background: var(--cd-ink); color: var(--cd-soft); font-size: 19px; cursor: pointer;
+}
+.cd-corner-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; }
+.cd-corner-msg {
+  max-width: 85%; margin: 0 0 10px; padding: 11px 14px; border-radius: 16px 16px 16px 5px;
+  background: var(--cd-slate2); border: 1px solid var(--cd-line-soft);
+  font-size: 14.5px; line-height: 1.55; color: var(--cd-text); white-space: pre-wrap;
+}
+.cd-corner-msg--me {
+  margin-left: auto; border-radius: 16px 16px 5px 16px;
+  background: linear-gradient(135deg, var(--cd-dawn-deep), #27477a); color: #eaf2ff; border-color: transparent;
+}
+.cd-corner-msg--typing { color: var(--cd-mute); letter-spacing: 3px; }
+.cd-corner-inputrow {
+  display: flex; gap: 9px; padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  border-top: 1px solid var(--cd-line-soft);
+}
+.cd-corner-input {
+  flex: 1; resize: none; background: var(--cd-ink); border: 1px solid var(--cd-line);
+  border-radius: 14px; color: var(--cd-bright); font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 15px; line-height: 1.4; padding: 12px 13px; outline: none; max-height: 110px;
+}
+.cd-corner-input:focus { border-color: var(--cd-dawn-deep); }
+.cd-corner-send {
+  flex: none; width: 46px; border: none; border-radius: 14px; cursor: pointer; font-size: 17px;
+  color: #0c1022; background: linear-gradient(135deg, var(--cd-dawn), #a8ccff);
+}
+.cd-corner-send:disabled { opacity: 0.35; }
+
+/* ── The Last Rep (ritual-complete, night only) ── */
+.cd-lastrep {
+  margin-top: 16px; padding: 15px; text-align: left;
+  background: var(--cd-ink); border: 1px solid rgba(255, 196, 107, 0.3); border-radius: 16px;
+}
+.cd-lastrep-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800; font-size: 12px; letter-spacing: 0.14em; color: var(--cd-amber); margin: 0 0 8px;
+}
+.cd-lastrep-text { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; color: var(--cd-text); }
+.cd-lastrep-grey {
+  display: block; width: 100%; padding: 14px; border: none; border-radius: 14px; cursor: pointer;
+  font-family: var(--font-display, "Sora", sans-serif); font-weight: 800; font-size: 13px; letter-spacing: 0.08em;
+  color: #10142e; background: linear-gradient(135deg, #9aa1c9, #d8dcef);
+}
+.cd-lastrep-hint { margin-top: 9px; font-size: 11px; line-height: 1.55; color: var(--cd-mute); }
+.cd-lastrep-hint strong { color: var(--cd-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-ledger, .cd-ledger-beat, .cd-ledger-done, .cd-corner { animation: none; }
+  .cd-ledger-entry--burning { animation: none; opacity: 0; }
+  .cd-ledger-stamp { animation: none; }
+}

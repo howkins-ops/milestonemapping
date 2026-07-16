@@ -628,3 +628,54 @@ export function milestonesFor(tracks) {
     .filter((m) => m.track === "all" || list.includes(m.track))
     .sort((a, b) => a.day - b.day);
 }
+
+// ── THE NIGHT SHIFT — clock-aware evening layer.
+// Timing spec straight from CLEARDAY-3-RESEARCH.md §4: weed's danger window
+// is the evening; porn traffic peaks 10pm–2am and the curfew ritual must end
+// with a physical act (phone leaves the bedroom). Fixed hours for now — a
+// user-configurable curfew is a later nicety.
+export const NIGHT = {
+  DUSK_H: 19, // Night Shift card appears on Today
+  ESCALATE_H: 21, // porn-track curfew escalation line
+  CURFEW_H: 22, // the law: phone out of the bedroom by here
+};
+
+export function isNightShift(hour) {
+  return hour >= NIGHT.DUSK_H || hour < 4;
+}
+
+// ── THE NIGHT LEDGER — nightly written inventory (Ritual step IV).
+// Mechanic: negative affect is the most-cited relapse antecedent and it
+// detonates HOURS after the trigger — in the evening risk window. Naming
+// the day's fuel and ending in ownership (your column, not theirs)
+// measurably lowers rumination. The urge at 11pm runs on fuel from 2pm.
+export const LEDGER_AREAS = [
+  "Pride",
+  "How I See Me",
+  "My People",
+  "Sex & Desire",
+  "The Mission",
+  "Safety",
+  "Money",
+];
+
+export const LEDGER_LENSES = [
+  "I fed it",
+  "I hid",
+  "I was afraid",
+  "I wanted control",
+  "I kept score",
+];
+
+export const LEDGER_RECEIPT =
+  "Negative affect — resentment, stress, loneliness — is the most-cited relapse trigger in the clinical literature, and it does its damage hours after the event: in the evening window. A written nightly inventory that ends in ownership lowers rumination. Daily inventory practice is the backbone of every 12-step maintenance program.";
+
+// ── UNSEEN WORK — the daily service rep.
+// Weed and porn are self-sealing rooms: hours alone, spent on you. One act
+// pointed at another human attacks the self-focus loop directly (the
+// "helper-therapy principle" — in recovery populations, helping others is
+// among the strongest predictors of staying clear). Undetected = 2× crit.
+export const SERVICE_WHO = ["My partner", "My kid", "A friend", "A stranger", "Someone struggling"];
+
+export const SERVICE_RECEIPT =
+  "The helper-therapy principle: in recovery populations, helping others is one of the strongest predictors of staying clear — it attacks the self-focus loop that drives compulsive use. Doing it unseen removes the last selfish payoff: credit.";

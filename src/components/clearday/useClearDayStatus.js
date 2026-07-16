@@ -9,12 +9,17 @@ import { loadClearDay, subscribeClearDay, dayNumber } from "./clearDayStore.js";
 function readStatus() {
   const S = loadClearDay();
   const day = dayNumber(S);
+  const ritualOpen = Boolean(S.onboarded) && !S.closedDays[day];
+  // Evening-aware pulse: the breathing "due" cue only starts at dusk (7pm) —
+  // the app is evening-used and both tracks are night-cued (research §4/§5).
+  // An all-day pulse is noise; a dusk pulse is a signal.
+  const hour = new Date().getHours();
   return {
     onboarded: Boolean(S.onboarded),
     day,
     votes: S.votes,
     closedClear: S.closedDays[day] === "clear",
-    ritualOpen: Boolean(S.onboarded) && !S.closedDays[day],
+    ritualOpen: ritualOpen && (hour >= 19 || hour < 4),
   };
 }
 

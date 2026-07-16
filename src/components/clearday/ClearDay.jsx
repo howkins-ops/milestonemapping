@@ -5,16 +5,19 @@ import Incantation from "./Incantation.jsx";
 import IdentityTab, { Science } from "./IdentityTab.jsx";
 import ReclamationClock, { ReclamationChip } from "./ReclamationClock.jsx";
 import ClearProofWall from "./battle/ClearProofWall.jsx";
+import NightLedger from "./NightLedger.jsx";
+import CornerChat from "./CornerChat.jsx";
 import {
   loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
   addWhy, addCard, saveTape,
   addFreedomItem, addFutureLetter, openFutureLetter,
-  setLaw,
+  setLaw, fileService,
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
   bodyReportFor, HALTB, TRACK_META, CURRICULUM, standFor,
+  NIGHT, isNightShift, SERVICE_WHO, SERVICE_RECEIPT,
 } from "./clearDayData.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES } from "../../lib/gamification.js";
@@ -419,9 +422,74 @@ function Onboard({ onDone }) {
   );
 }
 
+/* ═══ UNSEEN WORK — the daily service rep ═════════════════════════════
+   Weed and porn are self-sealing rooms: hours alone, spent on you. One
+   act pointed at another human attacks the self-focus loop directly.
+   Undetected = ×2 crit — no credit taken is the whole mechanic. */
+function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
+  const [who, setWho] = useState(null);
+  const [what, setWhat] = useState("");
+  const [unseen, setUnseen] = useState(true);
+  const done = S.ballot.some((b) => b.day === day && b.kind === "service");
+
+  if (done) {
+    return (
+      <div className="cd-card cd-service cd-service--done">
+        <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK</div>
+        <div className="cd-done-line" style={{ textAlign: "left" }}>✓ filed · a different engine than the one the Mask built</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cd-card cd-service">
+      <div className="cd-label" style={{ color: "var(--cd-teal)" }}>🕶 UNSEEN WORK — one act for someone else</div>
+      <p className="cd-p cd-p--soft" style={{ margin: "6px 0 10px" }}>
+        The old habits were hours alone, spent on you. This is the counter-move — and if nobody
+        ever finds out, <strong>it crits.</strong>
+      </p>
+      <div className="cd-service-chips">
+        {SERVICE_WHO.map((w) => (
+          <button key={w} type="button" className={`cd-service-chip ${who === w ? "on" : ""}`} onClick={() => { setWho(who === w ? null : w); tapLight(); }}>
+            {w}
+          </button>
+        ))}
+      </div>
+      <input
+        className="cd-service-input"
+        maxLength={160}
+        value={what}
+        placeholder="e.g. Made her coffee before she woke up."
+        onChange={(e) => setWhat(e.target.value)}
+      />
+      <button type="button" className={`cd-service-toggle ${unseen ? "on" : ""}`} onClick={() => { setUnseen(!unseen); tapLight(); }}>
+        <span className="cd-service-knob" aria-hidden="true" />
+        <span><strong>Undetected.</strong> No credit taken, none coming. (×2)</span>
+      </button>
+      <button
+        type="button"
+        className="cd-btn cd-btn--rep"
+        disabled={!who || what.trim().length < 6}
+        onClick={(e) => {
+          const { firstTime, crit } = fileService({ who, what, unseen });
+          if (!firstTime) return;
+          addXPSafe(XP_VALUES.cleardayWorkoutRep, "Unseen work");
+          cdFx.burstFrom(e, "spark", crit ? 26 : 14, "#5ce0d3");
+          tapMedium();
+          sfxCoin(settings);
+          celebrate(crit);
+        }}
+      >
+        {unseen ? "FILE IT — NOBODY KNOWS" : "FILE THE REP"}
+      </button>
+      <div className="cd-cite">◈ {SERVICE_RECEIPT}</div>
+    </div>
+  );
+}
+
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
-function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab }) {
+function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner }) {
   const lesson = lessonFor(day);
   const repDone = S.curriculumDone.includes(day);
   const closed = Boolean(S.closedDays[day]);
@@ -461,6 +529,49 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
         </div>
       </div>
 
+      {/* ── THE NIGHT SHIFT — dusk onward, Today knows what time it is.
+           One night surface only: every chip is a POINTER into the Ritual,
+           never a duplicate. Weed's window is the evening; porn's is
+           10pm–2am (research §4) — the card escalates as the night deepens. */}
+      {isNightShift(hour) && (
+        !closed ? (
+          <div className="cd-card cd-nightshift">
+            <div className="cd-nightshift-glow" aria-hidden="true" />
+            <div className="cd-label" style={{ color: "var(--cd-amber)" }}>☾ THE NIGHT SHIFT</div>
+            <div className="cd-nightshift-line">The Mask works nights. So do we.</div>
+            <div className="cd-nightshift-chips">
+              {[
+                { done: S.ballot.some((b) => b.day === day && b.kind === "incant"), label: "spoken" },
+                { done: S.tracks.every((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t)), label: "laws held" },
+                { done: S.ballot.some((b) => b.day === day && b.kind === "armed") || !(S.rules || []).some((r) => r.armedAt), label: "armed" },
+                { done: S.ballot.some((b) => b.day === day && b.kind === "ledger"), label: "ledger settled" },
+                { done: false, label: "sealed" },
+              ].map((c) => (
+                <span key={c.label} className={`cd-nightshift-chip ${c.done ? "cd-nightshift-chip--done" : ""}`}>
+                  {c.done ? "✓" : "○"} {c.label}
+                </span>
+              ))}
+            </div>
+            {hour >= NIGHT.ESCALATE_H && S.tracks.includes("porn") && (
+              <div className="cd-nightshift-curfew">
+                Phone leaves the bedroom at {NIGHT.CURFEW_H - 12}. That's not willpower — that's the law.
+              </div>
+            )}
+            <button type="button" className="cd-btn cd-btn--rep" onClick={() => onGoTab && onGoTab("daily")}>
+              ☾ ENTER THE RITUAL →
+            </button>
+            <button type="button" className="cd-nightshift-corner" onClick={onCorner}>
+              📡 or talk to the corner first — always awake
+            </button>
+          </div>
+        ) : (
+          <div className="cd-card cd-nightshift cd-nightshift--settled">
+            <div className="cd-label" style={{ color: "var(--cd-teal)" }}>☾ THE NIGHT SHIFT</div>
+            <div className="cd-nightshift-line">Day {day} is closed. The night has nothing to work with.</div>
+          </div>
+        )
+      )}
+
       <ReclamationChip S={S} onGoTab={onGoTab} />
 
       {/* the Ritual is the only place laws are held — Today just points */}
@@ -491,6 +602,8 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
           </div>
         )}
       </div>
+
+      <UnseenWorkCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
 
       <div className="cd-card cd-card--lesson">
         <div className="cd-lesson-top">
@@ -732,6 +845,9 @@ const EVIDENCE_KINDS = {
   armed: { label: "Rule armed", color: "var(--cd-amber)" },
   chapter: { label: "The weekly rewrite", color: "var(--cd-dawn)" },
   burn: { label: "Burned for good", color: "var(--cd-amber)" },
+  ledger: { label: "Settled the ledger", color: "var(--cd-amber)" },
+  service: { label: "Unseen work", color: "var(--cd-teal)" },
+  reachout: { label: "Reached the corner", color: "var(--cd-rose)" },
 };
 
 function Vault({ S, day, settings }) {
@@ -834,6 +950,8 @@ export default function ClearDay({ onExit, settings }) {
   const [battle, setBattle] = useState(null); // { track } | "pick"
   const [slip, setSlip] = useState(false);
   const [incant, setIncant] = useState(false);
+  const [ledger, setLedger] = useState(false);
+  const [corner, setCorner] = useState(false);
   const [ceremony, setCeremony] = useState(null);
   const gamify = useGamification();
   const gamifyRef = useRef(gamify);
@@ -919,7 +1037,7 @@ export default function ClearDay({ onExit, settings }) {
       {!slip && (
         <>
           {tab === "today" && (
-            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} />
+            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} />
           )}
           {tab === "daily" && (
             <DailyTab
@@ -931,6 +1049,7 @@ export default function ClearDay({ onExit, settings }) {
               onGoTab={setTab}
               onIncant={() => setIncant(true)}
               onSlipFlow={() => setSlip(true)}
+              onLedger={() => setLedger(true)}
             />
           )}
           {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />}
@@ -967,6 +1086,19 @@ export default function ClearDay({ onExit, settings }) {
           onClose={() => setIncant(false)}
         />
       )}
+
+      {ledger && (
+        <NightLedger
+          day={day}
+          settings={settings}
+          onDone={() => {
+            addXPSafe(XP_VALUES.cleardayWorkoutRep, "Settled the ledger");
+          }}
+          onClose={() => setLedger(false)}
+        />
+      )}
+
+      {corner && <CornerChat S={S} day={day} onClose={() => setCorner(false)} />}
 
       <Ceremony show={ceremony} onDone={() => setCeremony(null)} />
     </div>

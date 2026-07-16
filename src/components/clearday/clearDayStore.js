@@ -64,6 +64,8 @@ const DEFAULT_STATE = {
   catches: [], // daily defusion rep: { day, lie, truth, t } (cap 100)
   opposites: [], // daily reversal rep: { day, push, counter, t } (cap 100)
   chapters: [], // weekly rewrite: { day, text, at }
+  // Night Shift
+  ledger: [], // nightly reckoning: { day, fuel, hit[], myPart, clean, t } (cap 200)
 };
 
 const listeners = new Set();
@@ -170,6 +172,7 @@ function normalize(parsed) {
     catches: arr(p.catches).filter((c) => c && typeof c === "object").slice(0, 100),
     opposites: arr(p.opposites).filter((o) => o && typeof o === "object").slice(0, 100),
     chapters: arr(p.chapters).filter((c) => c && typeof c === "object"),
+    ledger: arr(p.ledger).filter((l) => l && typeof l === "object").slice(0, 200),
   };
 }
 
@@ -684,6 +687,61 @@ export function addChapter(text) {
   ].slice(0, 400);
   save(state);
   return { added: true, state };
+}
+
+// ── THE NIGHT LEDGER — Ritual step IV. One settle per day, idempotent.
+// The urge at 11pm runs on fuel from 2pm: name it, own your column, burn it.
+// Clean sweep (nothing held) is a completable state, never a skipped chore.
+export function settleLedger({ fuel, hit, myPart, clean } = {}) {
+  const state = loadClearDay();
+  const day = dayNumber(state);
+  if (state.ballot.some((b) => b.day === day && b.kind === "ledger")) {
+    return { firstTime: false, state };
+  }
+  const entry = {
+    day,
+    fuel: String(fuel || "").trim().slice(0, 200),
+    hit: arr(hit).filter((h) => typeof h === "string").slice(0, 2),
+    myPart: String(myPart || "").trim().slice(0, 220),
+    clean: Boolean(clean),
+    t: Date.now(),
+  };
+  state.ledger = [entry, ...state.ledger].slice(0, 200);
+  state.votes += 1;
+  state.ballot = [
+    {
+      day,
+      kind: "ledger",
+      track: "all",
+      note: entry.clean
+        ? "Clean sweep — carried nothing into the night. The Mask has no fuel."
+        : `Settled the ledger: named the fuel, owned my part${entry.hit.length ? ` (hit: ${entry.hit.join(", ")})` : ""}. Burned before the Mask could use it.`,
+      t: Date.now(),
+    },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return { firstTime: true, state };
+}
+
+// ── UNSEEN WORK — daily service rep. Undetected files a 2nd vote: the crit.
+export function fileService({ who, what, unseen } = {}) {
+  const state = loadClearDay();
+  const day = dayNumber(state);
+  if (state.ballot.some((b) => b.day === day && b.kind === "service")) {
+    return { firstTime: false, crit: false, state };
+  }
+  const w = String(who || "").trim();
+  const note = `${unseen ? "Unseen work" : "Service"} — ${String(what || "").trim().slice(0, 160)}${w ? ` (for ${w.toLowerCase()})` : ""}${unseen ? ". Nobody knows. That's the point." : ""}`;
+  state.votes += unseen ? 2 : 1;
+  const stamp = { day, kind: "service", track: "all", note, t: Date.now() };
+  state.ballot = [
+    ...(unseen ? [{ ...stamp, note: "×2 CRIT — no credit taken, none coming.", t: Date.now() + 1 }] : []),
+    stamp,
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return { firstTime: true, crit: Boolean(unseen), state };
 }
 
 /* dev/testing helper — wipe the program (never wired to UI without confirm) */

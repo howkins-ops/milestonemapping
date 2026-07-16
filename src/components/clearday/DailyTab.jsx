@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { castVote, currentRun } from "./clearDayStore.js";
-import { LADDER, TRACK_META, standFor } from "./clearDayData.js";
+import { LADDER, TRACK_META, standFor, NIGHT, isNightShift } from "./clearDayData.js";
 import ClearDaySun from "./ClearDaySun.jsx";
 import DailyContract from "./DailyContract.jsx";
 import cdFx from "./cdFx.js";
@@ -37,8 +37,9 @@ function StepCard({ done, accent, label, children }) {
   );
 }
 
-export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoTab, onIncant, onSlipFlow }) {
+export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoTab, onIncant, onSlipFlow, onLedger }) {
   const stand = standFor(day);
+  const night = isNightShift(new Date().getHours());
 
   /* step completion — derived, never stored */
   const incantDone = S.ballot.some((b) => b.day === day && b.kind === "incant");
@@ -63,7 +64,9 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
     S.ballot.some((b) => b.day === day && b.kind === k)
   ).length;
 
-  const steps = [incantDone, allLawsDone, armStepDone, sealed];
+  const ledgerDone = S.ballot.some((b) => b.day === day && b.kind === "ledger");
+
+  const steps = [incantDone, allLawsDone, armStepDone, ledgerDone, sealed];
   const doneCount = steps.filter(Boolean).length;
   const allDone = doneCount === steps.length;
 
@@ -195,8 +198,26 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
         )}
       </StepCard>
 
-      {/* 4 · THE CONTRACT */}
-      <StepCard done={sealed} accent="255, 196, 107" label={`4 · THE CONTRACT — seal day ${day}`}>
+      {/* 4 · SETTLE THE LEDGER — burn tonight's fuel before the Mask can */}
+      <StepCard done={ledgerDone} accent="255, 122, 56" label="4 · SETTLE THE LEDGER — burn tonight's fuel">
+        {!ledgerDone ? (
+          <>
+            <p className="cd-p cd-p--soft" style={{ margin: "0 0 10px" }}>
+              The urge at 11pm runs on fuel from 2pm. Name what today left in you, own your part,
+              burn it — or sweep clean if you're carrying nothing. Sixty seconds.
+            </p>
+            <button type="button" className="cd-btn cd-btn--rep" onClick={() => { tapMedium(); onLedger(); }}>
+              🔥 OPEN THE LEDGER
+            </button>
+            <div className="cd-cite">◈ negative affect is the top relapse trigger — and it detonates hours late, in the evening window. Settle it nightly and the debt never compounds.</div>
+          </>
+        ) : (
+          <div className="cd-done-line" style={{ textAlign: "left" }}>✓ settled · the night has nothing to work with</div>
+        )}
+      </StepCard>
+
+      {/* 5 · THE CONTRACT */}
+      <StepCard done={sealed} accent="255, 196, 107" label={`5 · THE CONTRACT — seal day ${day}`}>
         <DailyContract
           S={S}
           day={day}
@@ -217,6 +238,30 @@ export default function DailyTab({ S, day, settings, celebrate, addXPSafe, onGoT
           <div className="cd-daily-complete-sub">
             Day {day} sealed · {currentRun(S) || 1} in a row · every exhibit stays in the file
           </div>
+          {night && (
+            <div className="cd-lastrep">
+              <div className="cd-lastrep-title">☾ THE LAST REP HAPPENS OFF-SCREEN</div>
+              <p className="cd-lastrep-text">
+                Walk the phone to the kitchen. Plug it in there. That's not willpower — that's the
+                law, and it's the strongest move in this entire app.
+              </p>
+              <button
+                type="button"
+                className="cd-lastrep-grey"
+                onClick={() => {
+                  tapMedium();
+                  try { window.location.href = "shortcuts://run-shortcut?name=Go%20Grey"; } catch { /* no-op */ }
+                }}
+              >
+                ◐ GO GREY — kill the color
+              </button>
+              <div className="cd-lastrep-hint">
+                one-time setup: Shortcuts app → + → "Set Color Filters · Turn On" → name it <strong>Go Grey</strong>.
+                (Triple-click the side button works too.) Grayscale after {NIGHT.CURFEW_H - 1}pm cuts screen
+                time 20–38 min/day in trials.
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
