@@ -58,6 +58,12 @@ const DEFAULT_STATE = {
   freedomAudit: [], // strings — what's been reclaimed
   futureLetters: [], // { fromDay, deliverDay, text, openedAt }
   stats: { battlesWon: 0, battlesTotal: 0, clearDays: 0, slips: 0, bestRun: 0 },
+  // Identity 2.0 — the gym + the file
+  rules: [], // THE CODE non-negotiables: { id, text, when, then, armedAt, createdAt }
+  shedding: [], // the man I'm leaving: { id, text, burnedAt, at }
+  catches: [], // daily defusion rep: { day, lie, truth, t } (cap 100)
+  opposites: [], // daily reversal rep: { day, push, counter, t } (cap 100)
+  chapters: [], // weekly rewrite: { day, text, at }
 };
 
 const listeners = new Set();
@@ -159,6 +165,11 @@ function normalize(parsed) {
     freedomAudit: arr(p.freedomAudit).filter((s) => typeof s === "string"),
     futureLetters: arr(p.futureLetters).filter((l) => l && typeof l === "object"),
     stats: { ...DEFAULT_STATE.stats, ...obj(p.stats) },
+    rules: arr(p.rules).filter((r) => r && typeof r === "object"),
+    shedding: arr(p.shedding).filter((s) => s && typeof s === "object"),
+    catches: arr(p.catches).filter((c) => c && typeof c === "object").slice(0, 100),
+    opposites: arr(p.opposites).filter((o) => o && typeof o === "object").slice(0, 100),
+    chapters: arr(p.chapters).filter((c) => c && typeof c === "object"),
   };
 }
 
@@ -393,7 +404,11 @@ export function markLiesSeen(track, ids) {
 
 /* ── urge battles ─────────────────────────────────────────────────────── */
 
-export function logBattle({ track, won, beats, seconds, rating }) {
+export function logBattle({
+  track, won, beats, seconds, rating, startRating, endRating, riskLevel,
+  urgeForm, gameSeconds, roundsCompleted, accuracy, anchorErrors,
+  nextAction, earlyExit, cueAction, proofId, proofSource,
+}) {
   const state = loadClearDay();
   state.stats.battlesTotal += 1;
   if (won) state.stats.battlesWon += 1;
@@ -405,6 +420,19 @@ export function logBattle({ track, won, beats, seconds, rating }) {
       beats: Number(beats) || 0,
       seconds: Number(seconds) || 0,
       rating: Number.isFinite(rating) ? rating : null,
+      startRating: Number.isFinite(startRating) ? startRating : null,
+      endRating: Number.isFinite(endRating) ? endRating : null,
+      riskLevel: typeof riskLevel === "string" ? riskLevel : null,
+      urgeForm: typeof urgeForm === "string" ? urgeForm : null,
+      gameSeconds: Number(gameSeconds) || 0,
+      roundsCompleted: Number(roundsCompleted) || 0,
+      accuracy: Number.isFinite(accuracy) ? Math.max(0, Math.min(100, accuracy)) : null,
+      anchorErrors: Number(anchorErrors) || 0,
+      nextAction: typeof nextAction === "string" ? nextAction.slice(0, 160) : null,
+      cueAction: typeof cueAction === "string" ? cueAction.slice(0, 80) : null,
+      proofId: typeof proofId === "string" ? proofId : null,
+      proofSource: proofSource === "library" ? "library" : proofSource === "camera" ? "camera" : null,
+      earlyExit: Boolean(earlyExit),
       t: Date.now(),
     },
     ...state.battles,
@@ -412,7 +440,7 @@ export function logBattle({ track, won, beats, seconds, rating }) {
   if (won) {
     state.votes += 1;
     state.ballot = [
-      { day: dayNumber(state), kind: "battle", track: track || "all", note: "Faced an urge head-on and outlasted it.", t: Date.now() },
+      { day: dayNumber(state), kind: "battle", track: track || "all", note: "Interrupted an urge and chose the next protective action.", t: Date.now() },
       ...state.ballot,
     ].slice(0, 400);
   }
@@ -520,6 +548,142 @@ export function openFutureLetter(index) {
   );
   save(state);
   return state;
+}
+
+/* ── Identity 2.0 — the gym + the file ────────────────────────────────── */
+
+// Two Doors finally editable after onboarding.
+export function setDoors({ dark, clear, actions } = {}) {
+  const state = loadClearDay();
+  state.doors = {
+    dark: typeof dark === "string" ? dark.trim() : state.doors.dark,
+    clear: typeof clear === "string" ? clear.trim() : state.doors.clear,
+    actions: Array.isArray(actions)
+      ? actions.map((a) => String(a).trim()).filter(Boolean).slice(0, 3)
+      : state.doors.actions,
+  };
+  save(state);
+  return state;
+}
+
+// THE CODE — non-negotiable rules; arming adds the when-then trigger
+// (implementation intentions, Gollwitzer & Sheeran 2006, d = 0.65).
+export function addRule(text) {
+  const state = loadClearDay();
+  const clean = String(text || "").trim();
+  if (!clean) return { added: false, state };
+  if (state.rules.some((r) => r.text.toLowerCase() === clean.toLowerCase())) {
+    return { added: false, state };
+  }
+  state.rules = [
+    ...state.rules,
+    { id: `r${Date.now()}`, text: clean, when: "", then: "", armedAt: null, createdAt: new Date().toISOString() },
+  ];
+  save(state);
+  return { added: true, state };
+}
+
+export function deleteRule(id) {
+  const state = loadClearDay();
+  state.rules = state.rules.filter((r) => r.id !== id);
+  save(state);
+  return state;
+}
+
+export function armRule(id, when, then) {
+  const state = loadClearDay();
+  const w = String(when || "").trim();
+  const th = String(then || "").trim();
+  if (!w || !th) return state;
+  state.rules = state.rules.map((r) =>
+    r.id === id ? { ...r, when: w, then: th, armedAt: r.armedAt || new Date().toISOString() } : r
+  );
+  save(state);
+  return state;
+}
+
+// The man I'm leaving — name what gets shed, then burn it for good.
+export function addShedding(text) {
+  const state = loadClearDay();
+  const clean = String(text || "").trim();
+  if (!clean) return state;
+  state.shedding = [
+    ...state.shedding,
+    { id: `s${Date.now()}`, text: clean, burnedAt: null, at: new Date().toISOString() },
+  ];
+  save(state);
+  return state;
+}
+
+export function burnShedding(id) {
+  const state = loadClearDay();
+  const item = state.shedding.find((s) => s.id === id && !s.burnedAt);
+  if (!item) return state;
+  state.shedding = state.shedding.map((s) =>
+    s.id === id ? { ...s, burnedAt: new Date().toISOString() } : s
+  );
+  state.votes += 1;
+  state.ballot = [
+    { day: dayNumber(state), kind: "burn", track: "all", note: `Burned it: "${item.text}" — that belonged to the old me.`, t: Date.now() },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return state;
+}
+
+// Daily workout rep 1 — THE CATCH: name the Mask's lie, answer with evidence
+// (ACT defusion + CBT restructure; daily minutes beat weekly hours).
+export function addCatch(lie, truth) {
+  const state = loadClearDay();
+  const l = String(lie || "").trim();
+  const tr = String(truth || "").trim();
+  if (!l || !tr) return state;
+  const day = dayNumber(state);
+  state.catches = [{ day, lie: l, truth: tr, t: Date.now() }, ...state.catches].slice(0, 100);
+  state.votes += 1;
+  state.ballot = [
+    { day, kind: "catch", track: "all", note: `Caught the Mask: "${l}" — answered: "${tr}"`, t: Date.now() },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return state;
+}
+
+// Daily workout rep 2 — THE OPPOSITE: reverse the old identity's push.
+export function addOpposite(push, counter) {
+  const state = loadClearDay();
+  const p = String(push || "").trim();
+  const c = String(counter || "").trim();
+  if (!p || !c) return state;
+  const day = dayNumber(state);
+  state.opposites = [{ day, push: p, counter: c, t: Date.now() }, ...state.opposites].slice(0, 100);
+  state.votes += 1;
+  state.ballot = [
+    { day, kind: "opposite", track: "all", note: `Old me pushed for ${p} — I did the opposite: ${c}`, t: Date.now() },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return state;
+}
+
+// Weekly rewrite — this week as a chapter with a turning point
+// (redemptive-arc narrators stay recovered ~2×, Dunlop & Tracy 2013).
+export function addChapter(text) {
+  const state = loadClearDay();
+  const clean = String(text || "").trim();
+  if (!clean) return { added: false, state };
+  const day = dayNumber(state);
+  // one chapter per rolling week, same cadence as the pulse
+  const last = state.chapters[0];
+  if (last && day - last.day < 7) return { added: false, state };
+  state.chapters = [{ day, text: clean, at: new Date().toISOString() }, ...state.chapters];
+  state.votes += 1;
+  state.ballot = [
+    { day, kind: "chapter", track: "all", note: "Wrote the week as a chapter — low point, turning point, next page.", t: Date.now() },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return { added: true, state };
 }
 
 /* dev/testing helper — wipe the program (never wired to UI without confirm) */

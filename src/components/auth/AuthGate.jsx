@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "../../lib/supabase.js";
+import { STORAGE_KEYS } from "../../lib/constants.js";
 import LegalModal from "../legal/LegalModal.jsx";
 
 const BRAND_LOGO_SRC = "/assets/brand/milestone-mapping-logo.png";
@@ -11,6 +12,30 @@ const AUTH_REDIRECT = Capacitor.isNativePlatform()
   : window.location.origin;
 
 const GUEST_KEY = "mm_guest_mode";
+
+// Owner guard: app state initializes from localStorage, so when a DIFFERENT
+// account signs in on this device the previous user's data must be wiped
+// before AppDataProvider mounts — otherwise it leaks into (and is uploaded
+// under) the new account's user_data row.
+const OWNER_KEY = "mm_data_owner";
+const ACCOUNT_KEYS = ["clearday_v1", "iron_workout_cache_v1", "field_journal_cache_v1",
+  "alpha_mode_cache_v1", "crossing_v1", "essenceReturnEntries", "essenceReturnProfile",
+  // blob-synced feature stores (FEATURE_STORE_KEYS in useAppData.js) — synced
+  // per account, so they must not survive an account switch on this device
+  "anxiety_wave_v1", "shadow_work_v2", "mapquest_city_v1", "mq_street_v1",
+  "mask_court_v1", "shadow_descent_v1", "shifts_state", "hoops_records", "arena_frog_v1"];
+
+function claimLocalData(userId) {
+  const prev = localStorage.getItem(OWNER_KEY);
+  if (prev && prev !== userId) {
+    Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+    ACCOUNT_KEYS.forEach((k) => localStorage.removeItem(k));
+    localStorage.setItem(OWNER_KEY, userId);
+    window.location.reload(); // remount AppDataProvider with clean state
+    return;
+  }
+  localStorage.setItem(OWNER_KEY, userId);
+}
 
 // ─── SVG icons ────────────────────────────────────────────────────────────────
 
@@ -181,9 +206,13 @@ export default function AuthGate({ children }) {
 
   useEffect(() => {
     if (!supabase) { setSession(null); return; }
-    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id) claimLocalData(data.session.user.id);
+      setSession(data.session ?? null);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === "PASSWORD_RECOVERY") setRecovery(true);
+      if (event === "SIGNED_IN" && s?.user?.id) claimLocalData(s.user.id);
       setSession(s ?? null);
     });
     // Fired by deepLinks.js when a recovery email deep-links back into the native app.

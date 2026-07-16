@@ -67,6 +67,49 @@ import { upsertMilestone, completeMilestoneInDB, deleteMilestone as dbDeleteMile
 
 const AppDataContext = createContext(null);
 
+// ── Feature-store blob sync ──────────────────────────────────────────────────
+// Stores that keep their own localStorage keys (CLEARDAY recovery, journals,
+// game campaigns). Carried inside the user_data blob — same pattern as
+// `crossing` — so they survive reinstall / device change. Values ride along
+// as raw strings; the owning store keeps full control of its format.
+const FEATURE_STORE_KEYS = [
+  "clearday_v1",          // CLEARDAY recovery progress
+  "essenceReturnEntries", // Essence Return journal
+  "essenceReturnProfile",
+  "anxiety_wave_v1",      // Ride the Wave session log
+  "shadow_work_v2",       // shadow-work sessions/takeaways
+  "mapquest_city_v1",     // Milestone City campaign
+  "mq_street_v1",
+  "mask_court_v1",
+  "shadow_descent_v1",    // The Descent
+  "shifts_state",         // 5 Shifts training
+  "hoops_records",        // Hoops personal records
+  "arena_frog_v1",        // Eat The Frog streak
+];
+
+function snapshotFeatureStores() {
+  const stores = {};
+  for (const key of FEATURE_STORE_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw != null) stores[key] = raw;
+    } catch { /* unreadable — leave out of the snapshot */ }
+  }
+  return Object.keys(stores).length ? { featureStores: stores } : {};
+}
+
+// Fill-if-missing: a fresh install restores from the cloud copy, but a device
+// with live local progress is never clobbered by a staler blob.
+function restoreFeatureStores(stores) {
+  if (!stores || typeof stores !== "object") return;
+  for (const key of FEATURE_STORE_KEYS) {
+    if (typeof stores[key] !== "string") continue;
+    try {
+      if (localStorage.getItem(key) == null) localStorage.setItem(key, stores[key]);
+    } catch { /* storage full/blocked — skip */ }
+  }
+}
+
 // Plain daily checklists that live alongside the Top 5 (no XP / celebration).
 const DAILY_LIST_KEYS = ["todoList", "errands", "calls"];
 
@@ -149,6 +192,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
           // Crossing record follows a legacy user to a new device — restore
           // BEFORE cloudPulled flips so the gate never mis-classifies them.
           if (d.crossing) importCrossing(d.crossing);
+          restoreFeatureStores(d.featureStores);
         }
         cloudReady.current = true;
         setCloudPulled(true);
@@ -260,6 +304,31 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
 
   /* ---------------- blob cloud save (debounced) ---------------- */
 
+  // Feature stores write localStorage directly (no React state), so their
+  // changes can't trip the save effect's deps on their own. Watch the keys
+  // cheaply and bump a stamp that does — otherwise a CLEARDAY-only session
+  // would never upload.
+  const [featureStoreStamp, setFeatureStoreStamp] = useState(0);
+  const featureStoreSig = useRef(null);
+  useEffect(() => {
+    const check = () => {
+      let sig = "";
+      try {
+        sig = JSON.stringify(FEATURE_STORE_KEYS.map((k) => localStorage.getItem(k)));
+      } catch { return; }
+      if (featureStoreSig.current === null) { featureStoreSig.current = sig; return; }
+      if (sig !== featureStoreSig.current) {
+        featureStoreSig.current = sig;
+        setFeatureStoreStamp((n) => n + 1);
+      }
+    };
+    check();
+    const id = setInterval(check, 20000);
+    const onHide = () => { if (document.visibilityState === "hidden") check(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onHide); };
+  }, []);
+
   useEffect(() => {
     if (!supabase || !userId || !cloudReady.current) return;
     clearTimeout(syncTimer.current);
@@ -277,7 +346,8 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
         settings,
         achievements,
         xp,
-        ...(hasCrossing() ? { crossing: loadCrossing() } : {})
+        ...(hasCrossing() ? { crossing: loadCrossing() } : {}),
+        ...snapshotFeatureStores()
       };
       const { error } = await supabase
         .from("user_data")
@@ -293,7 +363,7 @@ export function AppDataProvider({ children, userId = null, userEmail = null }) {
     }, 3000);
     return () => clearTimeout(syncTimer.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, projects, milestones, dailyLogs, weeklyReviews, visionBoard, identity, settings, achievements, xp]);
+  }, [userId, projects, milestones, dailyLogs, weeklyReviews, visionBoard, identity, settings, achievements, xp, featureStoreStamp]);
 
   // One-time migration: enforce sequential status on existing localStorage data
   const statusMigratedRef = useRef(false);

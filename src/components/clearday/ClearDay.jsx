@@ -2,22 +2,25 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import UrgeBattle from "./UrgeBattle.jsx";
 import DailyTab from "./DailyTab.jsx";
 import Incantation from "./Incantation.jsx";
+import IdentityTab, { Science } from "./IdentityTab.jsx";
+import ReclamationClock, { ReclamationChip } from "./ReclamationClock.jsx";
+import ClearProofWall from "./battle/ClearProofWall.jsx";
 import {
   loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
-  setIdentityStatement, addBelief, addWhy, addCard, saveTape,
+  addWhy, addCard, saveTape,
   addFreedomItem, addFutureLetter, openFutureLetter,
-  setLaw, upgradeRung, addPulse,
+  setLaw,
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
-  bodyReportFor, HALTB, TRACK_META, CURRICULUM,
+  bodyReportFor, HALTB, TRACK_META, CURRICULUM, standFor,
 } from "./clearDayData.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES } from "../../lib/gamification.js";
-import { sfxHalo, sfxCoin, sfxPop, sfxPhoenix, sfxWaxSeal, sfxRungUp } from "../../lib/sfx.js";
+import { sfxHalo, sfxCoin, sfxPop, sfxPhoenix, sfxWaxSeal } from "../../lib/sfx.js";
 import cdFx from "./cdFx.js";
-import { tapLight, tapMedium, slamHeavy, buzzSuccess } from "../../lib/haptics.js";
+import { tapLight, tapMedium, slamHeavy } from "../../lib/haptics.js";
 
 /* ═══════════════════════════════════════════════════════════════
    CLEARDAY — identity-first recovery for weed + porn.
@@ -30,13 +33,22 @@ import { tapLight, tapMedium, slamHeavy, buzzSuccess } from "../../lib/haptics.j
 /* ── celebration deck — guaranteed reward, surprising form ──────────── */
 const CEREMONY_DECK = [
   { line: "Stamped. That's who you are.", color: "#7fb4ff", n: 18 },
-  { line: "Evidence, added.", color: "#5ce0d3", n: 16 },
-  { line: "The ledger only fills.", color: "#ffc46b", n: 16 },
+  { line: "Evidence, added. The case only grows.", color: "#5ce0d3", n: 16 },
+  { line: "The file only fills.", color: "#ffc46b", n: 16 },
   { line: "One more brick in the man.", color: "#7be495", n: 18 },
   { line: "Doubt just lost another argument.", color: "#b49bff", n: 16 },
   { line: "Filed. Signed. Yours forever.", color: "#7fb4ff", n: 20 },
 ];
-const CEREMONY_CRIT = { line: "★ CRITICAL VOTE — the comeback rep. Biggest stamp in the book.", color: "#ffc46b", n: 44, crit: true };
+const CEREMONY_CRIT = { line: "★ CRITICAL EXHIBIT — the comeback rep. Biggest stamp in the book.", color: "#ffc46b", n: 44, crit: true };
+
+function ClearNavIcon({ type }) {
+  const common = { viewBox: "0 0 32 32", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
+  if (type === "today") return <svg {...common}><path d="M5 22h22"/><path d="M9 22a7 7 0 0 1 14 0"/><path d="M16 4v4M6.5 11l3 2M25.5 11l-3 2"/><path d="M7 27h18"/></svg>;
+  if (type === "daily") return <svg {...common}><path d="M8 5h16v22H8z"/><path d="M12 5V3m8 2V3"/><path d="m11.5 13 2 2 4-4"/><path d="M11.5 20h9"/><circle cx="24" cy="24" r="4" fill="currentColor" stroke="none"/><path d="m22.5 24 1 1 2-2" stroke="var(--cd-ink)"/></svg>;
+  if (type === "identity") return <svg {...common}><circle cx="16" cy="9" r="4"/><path d="M8 27c.8-7 3.4-11 8-11s7.2 4 8 11"/><path d="m5 16 3-1m19 1-3-1M16 1v3"/><circle cx="5" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="27" cy="16" r="1" fill="currentColor" stroke="none"/></svg>;
+  if (type === "days") return <svg {...common}><path d="M5 25C8 17 11 22 14 15s6-2 8-8"/><circle cx="5" cy="25" r="2"/><circle cx="14" cy="15" r="2"/><path d="m22 4 1.5 3L27 8l-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5L17 8l3.5-1z"/></svg>;
+  return <svg {...common}><path d="M6 10h20v17H6z"/><path d="M4 6h24v5H4z"/><path d="M12 15h8"/><path d="m16 18 1.3 2.6 2.9.4-2.1 2 .5 3-2.6-1.4-2.6 1.4.5-3-2.1-2 2.9-.4z"/></svg>;
+}
 
 function Ceremony({ show, onDone }) {
   useEffect(() => {
@@ -56,33 +68,9 @@ function Ceremony({ show, onDone }) {
     <div className={`cd-ceremony ${show.crit ? "cd-ceremony--crit" : ""}`} aria-live="polite">
       <div className="cd-ceremony-rays" aria-hidden="true" />
       <div className="cd-ceremony-stamp" style={{ borderColor: show.color, color: show.color }}>
-        VOTE CAST
+        EVIDENCE FILED
       </div>
       <div className="cd-ceremony-line">{show.line}</div>
-    </div>
-  );
-}
-
-/* ── the rung-upgrade moment — a full-screen sunrise for a new label ── */
-function RungMoment({ rung, onDone }) {
-  useEffect(() => {
-    if (!rung) return undefined;
-    cdFx.sunrise();
-    const W = window.innerWidth || 390;
-    const H = window.innerHeight || 844;
-    cdFx.burst(W / 2, H / 2, "petal", 28);
-    buzzSuccess();
-    const t = setTimeout(onDone, 2400);
-    return () => clearTimeout(t);
-  }, [rung, onDone]);
-  if (!rung) return null;
-  return (
-    <div className="cd-ceremony" aria-live="polite">
-      <div className="cd-ceremony-rays" aria-hidden="true" />
-      <div className="cd-ceremony-stamp" style={{ borderColor: "var(--cd-dawn)", color: "var(--cd-dawn)" }}>
-        {rung.label.toUpperCase()}
-      </div>
-      <div className="cd-ceremony-line">The label climbed. It doesn't climb back down.</div>
     </div>
   );
 }
@@ -379,9 +367,21 @@ function Onboard({ onDone }) {
               <div className="cd-heat">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} type="button"
-                    className={`cd-heat-dot ${w.intensity >= n ? "cd-heat-dot--on" : ""}`}
-                    onClick={() => setWhys((cur) => cur.map((x, j) => (j === i ? { ...x, intensity: n } : x)))}
-                    aria-label={`heat ${n}`} />
+                    className={`cd-heat-flame ${w.intensity >= n ? "cd-heat-flame--on" : ""} ${w.intensity === n ? "cd-heat-flame--peak" : ""}`}
+                    style={{ "--heat-level": n, "--heat-delay": `${n * -0.13}s` }}
+                    onClick={() => {
+                      setWhys((cur) => cur.map((x, j) => (j === i ? { ...x, intensity: n } : x)));
+                      tapLight();
+                    }}
+                    aria-label={`Heat ${n} of 5`}
+                    aria-pressed={w.intensity === n}
+                  >
+                    <span className="cd-flame-aura" aria-hidden="true" />
+                    <span className="cd-flame-body" aria-hidden="true"><span className="cd-flame-core" /></span>
+                    <span className="cd-flame-spark cd-flame-spark--a" aria-hidden="true" />
+                    <span className="cd-flame-spark cd-flame-spark--b" aria-hidden="true" />
+                    <span className="cd-heat-number" aria-hidden="true">{n}</span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -409,10 +409,10 @@ function Onboard({ onDone }) {
             <div className="cd-seal-mask">The voice against it has a name now: <strong>{maskName.trim() || "The Mask"}</strong>. It doesn't vote.</div>
           </div>
           <p className="cd-p cd-p--soft">
-            Naming the Mask, writing the Law, making the Claim — that was real work. It banks your
-            first three votes right now. The bar is never empty again.
+            Naming the Mask, writing the Law, making the Claim — that was real work. It files your
+            first three exhibits right now. The case is never empty again.
           </p>
-          <button type="button" className="cd-btn cd-btn--seal" onClick={seal}>CAST MY FIRST 3 VOTES ➜</button>
+          <button type="button" className="cd-btn cd-btn--seal" onClick={seal}>FILE MY FIRST 3 EXHIBITS ➜</button>
         </div>
       )}
     </div>
@@ -448,48 +448,34 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
   return (
     <div className="cd-page">
       <div className="cd-hero">
+        <div className="cd-hero-art" aria-hidden="true" />
         <HorizonCanvas day={day} votes={S.votes} />
+        <div className="cd-hero-orbit" aria-hidden="true" />
         <div className="cd-hero-copy">
           <div className="cd-hero-greet">{greet} — day {day} of {PROGRAM_DAYS}.</div>
           <div className="cd-hero-rung">{rung.label.toUpperCase()}</div>
-          <div className="cd-hero-votes"><strong>{S.votes}</strong> votes on the ballot · none of them expire</div>
+          <div className="cd-hero-votes"><strong>{S.votes}</strong> exhibits on file · none of them expire</div>
+          <div className="cd-hero-progress" aria-label={`${day} of ${PROGRAM_DAYS} days`}>
+            <span style={{ width: `${Math.min(100, (day / PROGRAM_DAYS) * 100)}%` }} />
+          </div>
         </div>
       </div>
 
-      {/* per-track laws — each front gets its own daily vote */}
-      {S.tracks.map((t) => {
-        const held = S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t);
-        return (
-          <button
-            key={t}
-            type="button"
-            className={`cd-law-card ${held ? "cd-law-card--held" : ""}`}
-            style={{ "--cd-acc": TRACK_META[t].tintRgb }}
-            disabled={held}
-            onClick={(e) => {
-              castVote("law", `Held the ${TRACK_META[t].label} law today.`, t);
-              cdFx.burstFrom(e, "ember", 10, TRACK_META[t].color);
-              cdFx.ringFrom(e, TRACK_META[t].color);
-              tapLight();
-              sfxPop(settings);
-              celebrate();
-            }}
-          >
-            <div className="cd-label" style={{ color: TRACK_META[t].color }}>
-              {TRACK_META[t].label.toUpperCase()} LAW · {held ? "HELD TODAY" : "TAP WHEN YOU'VE HELD IT TODAY"}
-            </div>
-            <div className="cd-claim-text">{S.laws[t] || TRACK_META[t].lawHint}</div>
-            {held && <span className="cd-law-check" aria-hidden="true">✓</span>}
-          </button>
-        );
-      })}
+      <ReclamationChip S={S} onGoTab={onGoTab} />
+
+      {/* the Ritual is the only place laws are held — Today just points */}
+      {!S.tracks.every((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t)) && (
+        <button type="button" className="cd-seal-pointer" onClick={() => onGoTab && onGoTab("daily")}>
+          ⚖ The Laws haven't been held today — the Ritual holds them → Ritual
+        </button>
+      )}
 
       <button type="button" className="cd-urge-btn" onClick={onBattle}>
         <span className="cd-urge-pulse" aria-hidden="true" />
         AN URGE, RIGHT NOW → START THE BATTLE
       </button>
 
-      <div className="cd-card">
+      <div className="cd-card cd-card--checkin">
         <div className="cd-label">HOW ARE YOU, ACTUALLY? — most urges are one of these in a costume</div>
         <div className="cd-halt-grid">
           {HALTB.map((h) => (
@@ -506,7 +492,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
         )}
       </div>
 
-      <div className="cd-card">
+      <div className="cd-card cd-card--lesson">
         <div className="cd-lesson-top">
           <span className="cd-label" style={{ color: phaseColorVar(lesson.phase) }}>DAY {lesson.day} · {lesson.phase.toUpperCase()}</span>
           <span className="cd-lesson-skill">{lesson.skill}</span>
@@ -526,9 +512,9 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
           <div className="cd-vote-action">→ {lesson.action}</div>
         </div>
         {!repDone ? (
-          <button type="button" className="cd-btn cd-btn--rep" onClick={castRep}>✓ REP DONE — CAST THE VOTE</button>
+          <button type="button" className="cd-btn cd-btn--rep" onClick={castRep}>✓ REP DONE — FILE THE EXHIBIT</button>
         ) : (
-          <div className="cd-done-line">✓ vote cast · +1 evidence · who does that? you do.</div>
+          <div className="cd-done-line">✓ exhibit filed · +1 evidence · who does that? you do.</div>
         )}
       </div>
 
@@ -614,11 +600,11 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
       {step === 1 && (
         <div className="cd-ob-step">
           <div className="cd-eyebrow">NOW — THE MATH</div>
-          <h1 className="cd-h1">{votesFor} votes for.<br />{votesAgainst} against.</h1>
+          <h1 className="cd-h1">{votesFor} exhibits for the new you.<br />{votesAgainst} against.</h1>
           <p className="cd-p">
-            That's not a broken streak — nothing here resets, ever. That's an election you're winning
-            by a landslide, with one bad precinct. The study behind the 66 days found missing a single
-            day changed <em>nothing</em> about whether the habit formed.
+            That's not a broken streak — nothing here resets, ever. No honest jury convicts on that
+            ratio. The study behind the 66 days found missing a single day changed <em>nothing</em>{" "}
+            about whether the habit formed.
           </p>
           <div className="cd-cite">◈ Lally et al. 2010 — one miss did not affect habit formation</div>
           <button type="button" className="cd-btn" onClick={() => setStep(2)}>KEEP COUNTING</button>
@@ -669,231 +655,6 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
   );
 }
 
-/* ═══ IDENTITY TAB ════════════════════════════════════════════════════ */
-
-/* the identity constellation — one star per belief, per pulse, per rung.
-   The file only fills; the sky only gains stars. */
-function ConstellationCanvas({ S }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = canvas.offsetWidth * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    const W = canvas.width;
-    const H = canvas.height;
-    const still = document.documentElement.dataset.reducedMotion === "true" ||
-      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-
-    // deterministic star field seeded by the evidence counts
-    const stars = [];
-    const seedStar = (i, bright) => {
-      const a = (i * 137.508) % 360; // golden-angle spread
-      const r = 0.18 + ((i * 61) % 100) / 260;
-      stars.push({
-        x: W / 2 + Math.cos((a * Math.PI) / 180) * W * r * 0.46,
-        y: H * 0.52 + Math.sin((a * Math.PI) / 180) * H * r * 0.75,
-        s: (bright ? 2.2 : 1.4) * dpr,
-        b: bright,
-        ph: (i * 0.7) % (Math.PI * 2),
-      });
-    };
-    (S.identity.beliefs || []).forEach((_, i) => seedStar(i + 1, true));
-    (S.pulses || []).forEach((p, i) => seedStar(i + 30, p.value === "clear"));
-    const rungIdx = ["chose", "exuser", "clear"].indexOf(S.rung);
-    for (let i = 0; i <= rungIdx; i++) seedStar(i + 70, true);
-    if (stars.length < 5) for (let i = stars.length; i < 5; i++) seedStar(i + 90, false);
-
-    let raf = 0;
-    let t = 0;
-    let running = true;
-    const draw = () => {
-      if (!running) return;
-      if (document.hidden) { raf = requestAnimationFrame(draw); return; }
-      t += 0.012;
-      ctx.clearRect(0, 0, W, H);
-      // connective lines between the bright stars — the identity taking shape
-      const bright = stars.filter((s) => s.b);
-      ctx.strokeStyle = "rgba(127, 180, 255, 0.16)";
-      ctx.lineWidth = 1 * dpr;
-      ctx.beginPath();
-      bright.forEach((s, i) => { if (i === 0) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); });
-      ctx.stroke();
-      stars.forEach((s) => {
-        const tw = still ? 0.8 : 0.55 + Math.sin(t + s.ph) * 0.35;
-        ctx.fillStyle = s.b ? `rgba(255, 196, 107, ${0.5 + tw * 0.4})` : `rgba(201, 205, 232, ${0.3 + tw * 0.3})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.s * (0.8 + tw * 0.3), 0, Math.PI * 2);
-        ctx.fill();
-      });
-      if (still) return; // one static frame under reduced motion
-      raf = requestAnimationFrame(draw);
-    };
-    raf = requestAnimationFrame(draw);
-    return () => { running = false; cancelAnimationFrame(raf); };
-  }, [S.identity.beliefs, S.pulses, S.rung]);
-  return <canvas ref={ref} className="cd-constellation" aria-hidden="true" />;
-}
-
-/* one law, editable in place — the Identity tab owns the Laws */
-function LawLine({ track, law, settings }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(law || TRACK_META[track].lawHint);
-  const ok = /i don'?t/i.test(draft) && draft.trim().length >= 10;
-  if (!editing) {
-    return (
-      <button
-        type="button"
-        className="cd-seal-law cd-seal-law--edit"
-        style={{ borderColor: `${TRACK_META[track].color}44`, marginTop: 10 }}
-        onClick={() => { setDraft(law || TRACK_META[track].lawHint); setEditing(true); }}
-      >
-        {law || TRACK_META[track].lawHint}
-        <span className="cd-law-edittag">edit</span>
-      </button>
-    );
-  }
-  return (
-    <div style={{ marginTop: 10 }}>
-      <textarea className="cd-input cd-input--sm" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
-      {!ok && draft.trim().length >= 10 && (
-        <div className="cd-nudge">The Law runs on “I don't” — not “I can't,” not “I'm trying.”</div>
-      )}
-      <button type="button" className="cd-btn cd-btn--sm" disabled={!ok}
-        onClick={() => { setLaw(track, draft.trim()); sfxPop(settings); setEditing(false); }}>
-        Re-sign the {TRACK_META[track].label} law
-      </button>
-    </div>
-  );
-}
-
-function IdentityTab({ S, day, settings, celebrate }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(S.identity.statement);
-  const [rungMoment, setRungMoment] = useState(null);
-  const lastPulse = S.pulses[S.pulses.length - 1];
-  const pulseDue = day >= 7 && (!lastPulse || day - lastPulse.day >= 7);
-
-  return (
-    <div className="cd-page">
-      <div className="cd-identity-hero">
-        <ConstellationCanvas S={S} />
-        <div className="cd-identity-hero-copy">
-          <h1 className="cd-h1">Who you are</h1>
-          <p className="cd-p cd-p--soft">Not a scoreboard — the evidence file. Every star up there is something you did. The sky only fills.</p>
-        </div>
-      </div>
-
-      <div className="cd-card cd-card--claim">
-        <div className="cd-label cd-label--dawn">THE CLAIM</div>
-        {editing ? (
-          <>
-            <textarea className="cd-input" rows={3} value={draft} onChange={(e) => setDraft(e.target.value)} />
-            <button type="button" className="cd-btn cd-btn--sm" disabled={draft.trim().length < 10}
-              onClick={() => { setIdentityStatement(draft); setEditing(false); }}>Save</button>
-          </>
-        ) : (
-          <>
-            <div className="cd-claim-text cd-claim-text--big">{S.identity.statement}</div>
-            <button type="button" className="cd-ghost" onClick={() => { setDraft(S.identity.statement); setEditing(true); }}>refine it</button>
-          </>
-        )}
-      </div>
-
-      <div className="cd-card">
-        <div className="cd-label">THE LABEL LADDER — it only goes up</div>
-        {LADDER.map((r) => {
-          const active = S.rung === r.id;
-          const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
-          const available = !reached && day >= r.minDay;
-          return (
-            <div key={r.id} className={`cd-rung ${active ? "cd-rung--on" : ""} ${reached && !active ? "cd-rung--past" : ""}`}>
-              <div className="cd-rung-label">{r.label}</div>
-              {active && <span className="cd-rung-tag">YOU ARE HERE</span>}
-              {available && (
-                <button type="button" className="cd-btn cd-btn--sm" onClick={() => {
-                  const { upgraded } = upgradeRung(r.id);
-                  if (upgraded) { sfxRungUp(settings); setRungMoment(r); }
-                }}>
-                  TAKE THE RUNG
-                </button>
-              )}
-              {!reached && !available && <span className="cd-rung-lock">unlocks day {r.minDay}</span>}
-            </div>
-          );
-        })}
-        <div className="cd-cite">◈ “A user trying to quit” is the highest-relapse identity in the data — it's not on this ladder on purpose.</div>
-      </div>
-
-      {pulseDue && (
-        <div className="cd-card cd-card--pulse">
-          <div className="cd-label cd-label--dawn">THE WEEKLY PULSE — one honest tap</div>
-          <div className="cd-pulse-q">Right now, which is truer?</div>
-          {[
-            { v: "clear", label: "I'm someone who doesn't do this anymore" },
-            { v: "mostly", label: "I'm mostly that man" },
-            { v: "holding", label: "I'm still holding the door shut" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" className="cd-pulse-opt" onClick={(e) => {
-              addPulse(opt.v);
-              if (opt.v === "holding") {
-                castVote("identity", "Answered the pulse honestly — and honesty is a clear-man move too.");
-              }
-              cdFx.ringFrom(e, "#5ce0d3");
-              tapLight();
-              sfxPop(settings);
-            }}>{opt.label}</button>
-          ))}
-          <div className="cd-pulse-note">“Holding the door shut” isn't failure — it's a signal to do one identity rep today. The trend is the real progress bar.</div>
-        </div>
-      )}
-      {!pulseDue && S.pulses.length > 0 && (
-        <div className="cd-card">
-          <div className="cd-label">PULSE TREND</div>
-          <div className="cd-pulse-trend">
-            {S.pulses.slice(-8).map((p, i) => (
-              <div key={i} className={`cd-pulse-bar cd-pulse-bar--${p.value}`} title={`day ${p.day}`} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="cd-card">
-        <div className="cd-label">THE MASK &amp; THE LAWS</div>
-        <div className="cd-mask-line">Its name is <strong>{S.identity.maskName || "The Mask"}</strong>. It talks; it doesn't vote.</div>
-        {S.tracks.map((t) => (
-          <LawLine key={t} track={t} law={S.laws[t]} settings={settings} />
-        ))}
-      </div>
-
-      {S.freedomAudit.length > 0 && (
-        <div className="cd-card cd-card--why">
-          <div className="cd-label cd-label--amber">WHAT'S ALREADY BACK</div>
-          <div className="cd-chips cd-chips--wrap">
-            {S.freedomAudit.slice(-4).map((f) => <span key={f} className="cd-chip cd-chip--static">◆ {f}</span>)}
-          </div>
-          <div className="cd-cite">the full audit lives in the Vault</div>
-        </div>
-      )}
-
-      {(S.doors.dark || S.doors.clear) && (
-        <div className="cd-card">
-          <div className="cd-label">TWO DOORS — written on day one</div>
-          {S.doors.dark && <div className="cd-door cd-door--dark"><span>DOOR A</span>{S.doors.dark}</div>}
-          {S.doors.clear && <div className="cd-door cd-door--clear"><span>DOOR B</span>{S.doors.clear}</div>}
-          {S.doors.actions.length > 0 && (
-            <div className="cd-door-actions">Door B runs on: {S.doors.actions.join(" · ")}</div>
-          )}
-        </div>
-      )}
-
-      <RungMoment rung={rungMoment} onDone={() => setRungMoment(null)} />
-    </div>
-  );
-}
-
 /* ═══ JOURNEY — the 66 days ═══════════════════════════════════════════ */
 
 function Journey({ S, day }) {
@@ -907,6 +668,7 @@ function Journey({ S, day }) {
           Every day here is authored, not repeated.
         </p>
       </div>
+      <ReclamationClock S={S} />
       {PHASES.map((p) => {
         const inP = day >= p.range[0] && day <= p.range[1];
         const done = day > p.range[1];
@@ -954,16 +716,22 @@ function Journey({ S, day }) {
 
 /* ═══ THE VAULT — evidence, letters, freedom audit ════════════════════ */
 
-const VOTE_KINDS = {
+const EVIDENCE_KINDS = {
   clear: { label: "Clear day", color: "var(--cd-dawn)" },
-  battle: { label: "Urge outlasted", color: "var(--cd-teal)" },
+  battle: { label: "Urge interrupted", color: "var(--cd-teal)" },
   lesson: { label: "Daily rep", color: "var(--cd-violet)" },
-  identity: { label: "Identity vote", color: "var(--cd-dawn)" },
+  identity: { label: "Identity move", color: "var(--cd-dawn)" },
   recovery: { label: "The comeback rep", color: "var(--cd-amber)" },
   slip: { label: "Logged honestly", color: "var(--cd-amber)" },
   law: { label: "Law held", color: "var(--cd-green)" },
   incant: { label: "Incantation", color: "var(--cd-amber)" },
   contract: { label: "Contract signed", color: "var(--cd-amber)" },
+  catch: { label: "Caught the Mask", color: "var(--cd-violet)" },
+  opposite: { label: "The opposite move", color: "var(--cd-teal)" },
+  exhibit: { label: "Exhibit filed", color: "var(--cd-green)" },
+  armed: { label: "Rule armed", color: "var(--cd-amber)" },
+  chapter: { label: "The weekly rewrite", color: "var(--cd-dawn)" },
+  burn: { label: "Burned for good", color: "var(--cd-amber)" },
 };
 
 function Vault({ S, day, settings }) {
@@ -971,17 +739,26 @@ function Vault({ S, day, settings }) {
   const [freedom, setFreedom] = useState("");
   return (
     <div className="cd-page">
-      <div className="cd-section-head">
+      <div className="cd-vault-hero">
+        <div className="cd-vault-art" aria-hidden="true" />
         <h1 className="cd-h1">The vault</h1>
         <p className="cd-p cd-p--soft">Everything in here is yours forever. Nothing drains, nothing resets, nothing expires.</p>
+        <div className="cd-vault-total"><strong>{S.votes}</strong><span>pieces of evidence</span></div>
       </div>
 
+      <Science>
+        Your brain decides who you are by watching what you do — self-perception, Bem 1972. Every act
+        you log becomes an exhibit in the case for the new you. That's why nothing in this vault can drain.
+      </Science>
+
       <div className="cd-vault-stats">
-        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-dawn)" }}>{S.votes}</div><div className="cd-stat-label">votes, forever</div></div>
+        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-dawn)" }}>{S.votes}</div><div className="cd-stat-label">exhibits, forever</div></div>
         <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-teal)" }}>{S.stats.clearDays}</div><div className="cd-stat-label">clear days</div></div>
-        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-green)" }}>{S.stats.battlesWon}</div><div className="cd-stat-label">urges outlasted</div></div>
+        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-green)" }}>{S.stats.battlesWon}</div><div className="cd-stat-label">urges interrupted</div></div>
         <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-amber)" }}>{S.stats.bestRun}</div><div className="cd-stat-label">best run</div></div>
       </div>
+
+      <ClearProofWall battles={S.battles} />
 
       <div className="cd-card">
         <div className="cd-label cd-label--dawn">LETTERS ACROSS TIME</div>
@@ -1021,12 +798,12 @@ function Vault({ S, day, settings }) {
           placeholder="mornings · money · memory · presence…" />
       </div>
 
-      <div className="cd-label" style={{ margin: "18px 0 10px" }}>THE BALLOT — every stamp, newest first</div>
+      <div className="cd-label" style={{ margin: "18px 0 10px" }}>THE CASE FILE — every exhibit, newest first</div>
       {S.ballot.length === 0 ? (
-        <div className="cd-card cd-card--empty">Votes land here. Cast today's rep to start the file.</div>
+        <div className="cd-card cd-card--empty">Exhibits land here. File today's rep to open the case.</div>
       ) : (
         S.ballot.slice(0, 20).map((v, i) => {
-          const vk = VOTE_KINDS[v.kind] || VOTE_KINDS.identity;
+          const vk = EVIDENCE_KINDS[v.kind] || EVIDENCE_KINDS.identity;
           return (
             <div key={i} className="cd-ballot-row">
               <span className="cd-ballot-dot" style={{ background: vk.color, boxShadow: `0 0 6px ${vk.color}` }} />
@@ -1053,7 +830,7 @@ function Vault({ S, day, settings }) {
 
 export default function ClearDay({ onExit, settings }) {
   const [S, setS] = useState(loadClearDay);
-  const [tab, setTab] = useState("today");
+  const [tab, setTab] = useState("daily"); // Ritual is the front door — the ceremony leads, the field follows
   const [battle, setBattle] = useState(null); // { track } | "pick"
   const [slip, setSlip] = useState(false);
   const [incant, setIncant] = useState(false);
@@ -1102,14 +879,14 @@ export default function ClearDay({ onExit, settings }) {
           settings={settings}
           saveCard={(track, lie, comeback) => addCard(track, lie, comeback)}
           saveTapeFn={(track, dark, clearTxt) => saveTape(track, dark, clearTxt)}
-          onWon={({ track, beats, seconds, rating }) => {
-            logBattle({ track, won: true, beats, seconds, rating });
-            addXPSafe(XP_VALUES.cleardayBattleWon, "Urge outlasted");
+          onWon={(battleResult) => {
+            logBattle({ ...battleResult, won: true });
+            addXPSafe(XP_VALUES.cleardayBattleWon, "Urge interrupted");
             setBattle(null);
             celebrate();
           }}
-          onLeave={({ track, beats, seconds, rating }) => {
-            logBattle({ track, won: false, beats, seconds, rating });
+          onLeave={(battleResult) => {
+            logBattle({ ...battleResult, won: false, earlyExit: true });
             setBattle(null);
           }}
           onSlip={() => { setBattle(null); setSlip(true); }}
@@ -1156,23 +933,24 @@ export default function ClearDay({ onExit, settings }) {
               onSlipFlow={() => setSlip(true)}
             />
           )}
-          {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} />}
+          {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />}
           {tab === "days" && <Journey S={S} day={day} />}
           {tab === "vault" && <Vault S={S} day={day} settings={settings} />}
 
           <nav className="cd-tabbar" aria-label="CLEARDAY sections">
             {[
+              { id: "daily", label: "Ritual" },
               { id: "today", label: "Today" },
-              { id: "daily", label: "Daily" },
               { id: "identity", label: "Identity" },
-              { id: "days", label: "Days" },
-              { id: "vault", label: "Vault" },
+              { id: "days", label: "Journey" },
+              { id: "vault", label: "Evidence" },
             ].map((it) => (
               <button key={it.id} type="button" className={`cd-tab ${tab === it.id ? "cd-tab--on" : ""}`} onClick={() => setTab(it.id)}>
-                {it.label}
+                <span className="cd-tab-icon"><ClearNavIcon type={it.id} /></span>
+                <span>{it.label}</span>
               </button>
             ))}
-            <button type="button" className="cd-tab cd-tab--exit" onClick={onExit} aria-label="Close CLEARDAY">✕</button>
+            <button type="button" className="cd-tab cd-tab--exit" onClick={onExit} aria-label="Close CLEARDAY"><span aria-hidden="true">×</span></button>
           </nav>
         </>
       )}
@@ -1180,9 +958,10 @@ export default function ClearDay({ onExit, settings }) {
       {incant && (
         <Incantation
           statement={S.identity.statement}
+          extraLine={standFor(day)}
           settings={settings}
           onComplete={() => {
-            castVote("incant", "Spoke the claim out loud — three rounds, full voice.");
+            castVote("incant", `Spoke the claim and today's stand out loud — three rounds, full voice. ("${standFor(day)}")`);
             addXPSafe(XP_VALUES.cleardayIncant, "The incantation");
           }}
           onClose={() => setIncant(false)}

@@ -139,8 +139,8 @@ export const SEED_LIES = {
       "This isn't desire, it's escape wearing desire's jacket.",
     ] },
     { id: "p12", lie: "You'll just feel worse fighting it all night.", comebacks: [
-      "The urge is a wave, not a wall. It peaks and it passes whether I obey it or not.",
-      "Ten minutes of riding it out beats a night of regret. I've outlasted it before.",
+      "The urge can change shape without me obeying it. I can make room and choose the next move.",
+      "I don't need a perfect zero. I need enough distance to protect the next choice.",
     ] },
   ],
 };
@@ -203,7 +203,7 @@ export const CURRICULUM = [
     "Say your Claim out loud, once, in full.",
     { cite: "Beckwith & Best 2015 — first-two-weeks identity change predicts retention" }),
   D(2, "Fog", "The wave always breaks", "Urge mechanics",
-    "An urge is not a command — it's a wave. It rises, peaks in minutes, and always falls. You never have to beat it forever; you only have to outlast this one crest.",
+    "An urge is not a command. It can rise, fall, return, or stay present for a while. You do not have to make it vanish; create enough distance to choose the next protective action.",
     "Riding one wave is a vote: urges don't give me orders.",
     "If a pull comes today, open the Battle instead of arguing with it.",
     { cite: "Craving-curve research: urges peak and fall within minutes" }),
@@ -342,7 +342,7 @@ export const CURRICULUM = [
     "Find one pattern in your urge history and name it."),
   D(33, "Build", "Halfway — and the top rung unlocks", "Milestone",
     "Day 33. In the actual 66-day study, habits reached automaticity here for many people. The grooves are cut. And the ladder's top rung — one of the clear — is now open.",
-    "Halfway: the votes are rewiring the voter.",
+    "Halfway: repeated votes are teaching you what you choose.",
     "Visit the Ladder. Take the rung if it's true.",
     { cite: "Lally et al. 2010 — median 66 days to automaticity, range 18–254" }),
   D(34, "Build", "A slip is a data point, not a verdict", "Resilience",
@@ -501,4 +501,130 @@ export const PHASES = [
 
 export function phaseColorVar(phase) {
   return phase === "Fog" ? "var(--cd-violet)" : phase === "Build" ? "var(--cd-dawn)" : "var(--cd-teal)";
+}
+
+// ── THE STANDS — one spoken identity declaration per day, rotating.
+// Declaration ≠ affirmation: present-tense, believable, action-adjacent —
+// never grandiose (unbelieved "I am" claims backfire, Wood 2009). Spoken
+// out loud with the incantation (production effect: spoken > read).
+export const STANDS = [
+  "I am the man who moves first.",
+  "I am proof, not promise.",
+  "I am the calm I used to smoke for.",
+  "I am someone my word can stand on.",
+  "I am the one watching the fog — not the fog.",
+  "I am built by what I do before noon.",
+  "I am done renting my brain to a screen.",
+  "I am the kind of man who closes the day he opened.",
+  "I am worth the discomfort of becoming.",
+  "I am already the man behind Door B.",
+  "I am the author here — the urge is just a character.",
+  "I am what I repeat. So I repeat what I am.",
+];
+
+export function standFor(day) {
+  return STANDS[(Math.max(1, day) - 1) % STANDS.length];
+}
+
+// ── RULE STARTERS — recovery-specific non-negotiables, tap-to-adopt.
+// Environment beats willpower; each becomes strongest once ARMED with a
+// when-then trigger (implementation intentions, d = 0.65 across 94 studies).
+export const RULE_STARTERS = [
+  "My phone sleeps outside the bedroom.",
+  "I don't negotiate with the 1am version of me.",
+  "Nothing I quit lives in my house — not hidden, gone.",
+  "When I'm struggling, one real person hears it the same day.",
+  "I eat before I decide anything after 9pm.",
+  "Screens die 30 minutes before I do.",
+  "A slip gets logged in the file, never buried.",
+  "I move my body before I judge my day.",
+];
+
+// ── BANKRUPT WORDS — victim-language detector + creator swaps.
+// The words you use are a feedback loop: "try/want/hope" frame you as a
+// spectator of your own change; swaps put the pen back in your hand.
+export const BANKRUPT_SWAPS = [
+  { hit: /\btry(ing)?\b/i, from: "try", to: "do" },
+  { hit: /\bwant\b/i, from: "want", to: "commit to" },
+  { hit: /\bhope(fully)?\b/i, from: "hope", to: "generate" },
+  { hit: /\bwish\b/i, from: "wish", to: "choose" },
+  { hit: /\bcan'?t\b/i, from: "can't", to: "don't" },
+  { hit: /\bshould\b/i, from: "should", to: "will" },
+  { hit: /\bmaybe\b/i, from: "maybe", to: "by when?" },
+];
+
+export function powerCheck(text) {
+  const t = String(text || "");
+  for (const s of BANKRUPT_SWAPS) {
+    if (s.hit.test(t)) return s;
+  }
+  return null;
+}
+
+// Wood-2009 guard — grandiose absolutes in a claim push it outside the
+// latitude of acceptance and backfire. Process words beat perfection words.
+export const GRANDIOSE_RE = /\b(forever|never again|completely|totally|perfect(ly)?|always|100%)\b/i;
+
+// ── THE RECLAMATION CLOCK — real brain-recovery milestones, hour-counted.
+// Honesty law: every date is a cited finding, never a promise. Day 66 is
+// IDENTITY GRADUATION (Lally habit median + Best identity exit) — the word
+// "healed" is banned; a healed-finish-line is the classic post-milestone
+// relapse trap. Deadlines derive from day: day N lands (N-1)*24h after
+// the day-1 midnight.
+export const RECLAMATION_MILESTONES = [
+  {
+    id: "regrowth", day: 3, track: "weed",
+    title: "THE REGROWTH IS ON",
+    sub: "Receptor recovery measurably begins within the first ~2 days — your brain started rebuilding before the cravings even peaked.",
+    cite: "CB1 availability rises within days of abstinence — Hirvonen 2012, PET imaging",
+  },
+  {
+    id: "steepweek", day: 7, track: "weed",
+    title: "THE STEEPEST WEEK, BANKED",
+    sub: "Week one is the fastest receptor-recovery window there is. It's behind you now.",
+    cite: "Recovery fastest in week 1, then plateaus — Hirvonen 2012",
+  },
+  {
+    id: "window", day: 14, track: "all",
+    title: "THE WINDOW",
+    sub: "Identity change in the first two weeks is what predicts who makes it. Sleep architecture is rebuilding underneath you.",
+    cite: "Early identity change predicts recovery — Beckwith & Best 2015",
+  },
+  {
+    id: "cravingpeak", day: 14, track: "porn",
+    title: "THE CRAVING PEAK IS BEHIND YOU",
+    sub: "The sharpest cravings cluster in weeks 1–2. From here the pull loses altitude.",
+    cite: "Clinical recovery timelines — cravings peak weeks 1–2",
+  },
+  {
+    id: "nonuser", day: 28, track: "weed",
+    title: "READS AS A NON-USER'S",
+    sub: "Your brain's cannabinoid receptor density is now statistically indistinguishable from someone who never used. This is the honest detox line for weed.",
+    cite: "CB1 density normal at ~4 weeks abstinent — Hirvonen 2012",
+  },
+  {
+    id: "motivation", day: 42, track: "weed",
+    title: "MOTIVATION BACK ONLINE",
+    sub: "Dopamine and the other neurotransmitter systems stabilize around six weeks. The drive you thought was gone was borrowed, not lost.",
+    cite: "Parallel neurotransmitter recovery ~6–12 weeks — abstinence reviews",
+  },
+  {
+    id: "graduation", day: 66, track: "all",
+    title: "IDENTITY GRADUATION",
+    sub: "Not \"healed\" — there is no finish line and no cliff. The habit is automatic and the label is yours to keep or retire. The clock becomes a count-up from here.",
+    cite: "66-day habit median — Lally 2010; identity exit at no cost — Best 2023",
+  },
+  {
+    id: "benchmark", day: 90, track: "porn",
+    title: "THE COMMON BENCHMARK",
+    sub: "The widely used 90-day marker. Honest framing: it comes from animal research (DeltaFosB), not a human cure date — it's a horizon, not a verdict.",
+    cite: "DeltaFosB decay ~90 days in animal models — framed as benchmark, not cure",
+  },
+];
+
+export function milestonesFor(tracks) {
+  const list = Array.isArray(tracks) ? tracks : [];
+  return RECLAMATION_MILESTONES
+    .filter((m) => m.track === "all" || list.includes(m.track))
+    .sort((a, b) => a.day - b.day);
 }
