@@ -1,0 +1,302 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE DEMONSTRATION (.dgn-) — 11:47 PM, first person, from the bushes.
+
+   PERF LAW, enforced here rather than trusted to discipline:
+     · ONE drop-shadow, on .dgn-facade. Never one per prop — nine filtered
+       subtrees is how you turn a phone into a hand warmer.
+     · The infinite animations (porch pool, ring-cam sweep, exposure pulse)
+       live on UNFILTERED elements. An infinite animation inside a filtered
+       subtree re-rasterises the filter every frame.
+     · Targets are positioned with percentages straight off the data, so the
+       art box and the collision rect can never drift apart.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── the objection meter ─────────────────────────────────────────────────
+   Lives in the top bar, so it is on screen in EVERY phase of the level: he
+   says the sentence, it becomes a bar, you empty it at midnight, and in the
+   morning it reads zero while he stands in his wrecked yard. */
+.dg-obj {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 14px 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(8, 10, 20, .55);
+  border: 1px solid color-mix(in srgb, var(--obj, #3aa0ff) 40%, transparent);
+  font: 800 9px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .12em;
+}
+.dg-obj__label { color: var(--obj, #3aa0ff); white-space: nowrap; }
+.dg-obj__track {
+  flex: 1; height: 6px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+}
+.dg-obj__fill {
+  display: block; width: 100%; height: 100%;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--obj, #3aa0ff), color-mix(in srgb, var(--obj, #3aa0ff) 55%, #fff));
+  transition: transform .45s cubic-bezier(.2, .8, .3, 1);
+}
+.dg-obj__pct { color: #dfe8f8; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── THE RACK (.dgr-) — three rebuttal cards, where the dodge strip lives ──
+   The drain bar rides a CSS custom property, not state: this is the tightest
+   window in the game and a 60fps setState here is the one place React's cost
+   would actually be visible. */
+.dgr { margin-top: 8px; }
+.dgr-rail {
+  height: 4px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .1);
+  margin-bottom: 7px;
+}
+.dgr-rail i {
+  display: block; height: 100%;
+  transform: scaleX(var(--drain, 0)); transform-origin: 0 50%;
+  background: linear-gradient(90deg, #ff6b5e, #ffd166);
+}
+.dgr-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.dgr-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  min-height: 62px; padding: 9px 9px 10px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 11px;
+  background: rgba(14, 18, 32, .9);
+  color: #dfe8f8;
+  text-align: left;
+  opacity: .34;
+  transition: opacity .12s ease, transform .1s ease, border-color .12s ease;
+}
+.dgr.is-live .dgr-card {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--lvacc, #3aa0ff) 55%, transparent);
+}
+.dgr.is-live .dgr-card:active { transform: scale(.96); background: rgba(24, 32, 52, .95); }
+.dgr-card:disabled { pointer-events: none; }
+.dgr-card__name {
+  font: 800 11px/1.1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .08em;
+  color: var(--lvacc, #3aa0ff);
+}
+.dgr-card__line {
+  font: 500 9.5px/1.25 var(--font-ui, "Manrope", sans-serif);
+  color: rgba(223, 232, 248, .68);
+}
+
+/* ── THE WALL — the scripted loss ───────────────────────────────────────── */
+.dg-wall { padding: 18px 16px 26px; text-align: center; }
+.dg-wall__trump {
+  margin: 8px 0 16px;
+  font: 800 22px/1.25 var(--font-display, "Sora", sans-serif);
+  color: #fff;
+}
+.dg-wall__beat {
+  margin: 0 0 7px;
+  font: 500 13px/1.45 var(--font-ui, "Manrope", sans-serif);
+  color: rgba(223, 232, 248, .74);
+}
+.dg-wall__meter {
+  margin: 20px 0 22px; padding: 14px 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--lvacc, #3aa0ff) 40%, transparent);
+  border-radius: 12px;
+  background: rgba(8, 10, 20, .55);
+}
+.dg-wall__label {
+  display: block; margin-bottom: 9px;
+  font: 800 11px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .14em; color: var(--lvacc, #3aa0ff);
+}
+.dg-wall__track {
+  height: 9px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+}
+.dg-wall__track i {
+  display: block; height: 100%; transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--lvacc, #3aa0ff), #fff);
+  animation: dgWallFill .9s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes dgWallFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.dg-wall__hint {
+  display: block; margin-top: 12px;
+  font: 500 12px/1.45 var(--font-ui, "Manrope", sans-serif);
+  color: rgba(223, 232, 248, .68);
+}
+@media (prefers-reduced-motion: reduce) { .dg-wall__track i { animation: none; } }
+
+.dgn {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.dgn-facade {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .55));   /* the ONLY filter here */
+}
+.dgn-facade__pool { animation: dgnPool 5.5s ease-in-out infinite; }
+@keyframes dgnPool { 0%, 100% { opacity: .13; } 50% { opacity: .19; } }
+
+/* ── targets ──────────────────────────────────────────────────────────────
+   left/top/width/height come from the same normalized numbers that build the
+   collision rect, so a hitbox can never end up somewhere the art isn't. */
+.dgn-target {
+  position: absolute;
+  display: block;
+  transform: translateZ(0);
+  transition: opacity .18s ease;
+}
+.dgn-target .dgn-art { display: block; width: 100%; height: 100%; }
+.dgn-target.is-down { animation: dgnBreak .34s ease-out both; }
+@keyframes dgnBreak {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.14) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* ── the bushes you are crouched in ──────────────────────────────────────
+   Pure foreground framing. It also anchors the launch point at bottom-centre
+   so the arc reads as coming from your hands. */
+.dgn-bushes {
+  position: absolute; left: -4%; right: -4%; bottom: -2%;
+  height: 26%;
+  background:
+    radial-gradient(60% 90% at 12% 100%, #12251a 0 60%, transparent 62%),
+    radial-gradient(55% 80% at 34% 100%, #0e1f16 0 60%, transparent 62%),
+    radial-gradient(65% 95% at 62% 100%, #12251a 0 60%, transparent 62%),
+    radial-gradient(58% 85% at 88% 100%, #0e1f16 0 60%, transparent 62%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── the ring cam's ground sweep ─────────────────────────────────────────
+   A cone pointed AT you is a light in your eyes, not a wedge — so the camera's
+   arc is drawn across the LAWN between you and the house, where it can be read
+   as a shape. Unfiltered, so the infinite sweep costs nothing. */
+.dgn-sweep {
+  position: absolute; left: 50%; top: 62%;
+  width: 150%; height: 34%;
+  margin-left: -75%;
+  background: radial-gradient(50% 100% at 50% 0%, rgba(150, 200, 255, .20) 0 42%, transparent 66%);
+  transform-origin: 50% 0;
+  animation: dgnSweep 5.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+  opacity: .55;
+}
+@keyframes dgnSweep {
+  0%, 100% { transform: rotate(-46deg); }
+  50% { transform: rotate(46deg); }
+}
+.dgn[data-threat="ringcam"] .dgn-sweep { opacity: 1; }
+
+/* ── being seen ──────────────────────────────────────────────────────────
+   Firing stands you up. The vignette is the only feedback that you are
+   currently visible, so it has to be immediate and unmistakable. */
+.dgn::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: inset 0 0 0 0 rgba(255, 59, 48, 0);
+  transition: box-shadow .12s ease;
+}
+.dgn.is-exposed::after { box-shadow: inset 0 0 60px 8px rgba(255, 59, 48, .34); }
+.dgn.is-danger::after { box-shadow: inset 0 0 70px 10px rgba(255, 214, 102, .22); }
+.dgn.is-exposed.is-danger::after { box-shadow: inset 0 0 80px 14px rgba(255, 59, 48, .6); }
+
+/* ── HUD ─────────────────────────────────────────────────────────────────── */
+.dgn-hud {
+  position: absolute; top: 8px; left: 10px; right: 10px;
+  display: flex; align-items: center; gap: 8px;
+  z-index: 6; pointer-events: none;
+  font: 700 11px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .1em;
+}
+.dgn-clock {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 8px; border-radius: 999px;
+  background: rgba(8, 10, 20, .72);
+  color: #9fb4d8;
+}
+.dgn-timer {
+  margin-left: auto;
+  padding: 4px 9px; border-radius: 999px;
+  background: rgba(8, 10, 20, .72);
+  color: #dfe8f8;
+  font-variant-numeric: tabular-nums;
+}
+.dgn-timer.is-low { color: #ff6b5e; animation: dgnTick 1s steps(2, jump-none) infinite; }
+@keyframes dgnTick { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .35; } }
+.dgn-combo {
+  padding: 4px 9px; border-radius: 999px;
+  background: linear-gradient(180deg, #ffd166, #ff8f3d);
+  color: #241505;
+  font-size: 12px;
+}
+
+/* ── the warning strip ───────────────────────────────────────────────────── */
+.dgn-warn {
+  position: absolute; left: 50%; top: 30%;
+  transform: translateX(-50%);
+  z-index: 6; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 14px; border-radius: 10px;
+  background: rgba(8, 10, 20, .8);
+  font: 800 13px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .14em;
+  color: #ffd166;
+}
+.dgn-warn em {
+  font: 600 10px/1 var(--font-ui, "Manrope", sans-serif);
+  font-style: normal; letter-spacing: .1em; opacity: .85;
+}
+.dgn-warn.is-danger { color: #ff6b5e; animation: dgnAlarm .5s ease-in-out infinite alternate; }
+@keyframes dgnAlarm { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.06); } }
+
+/* ── the floating damage number ──────────────────────────────────────────
+   Shows the MULTIPLIED value. A BBQ at 20% on an x8 combo is 160, and nobody
+   discovers the combo is worth chasing unless the number says 160. */
+.dgn-pop {
+  position: absolute; z-index: 7; pointer-events: none;
+  transform: translate(-50%, -50%);
+  font: 900 22px/1 var(--font-ui, "Manrope", sans-serif);
+  color: #ffe9a8;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .8);
+  animation: dgnPop .9s cubic-bezier(.2, .8, .3, 1) both;
+}
+.dgn-pop i { font-style: normal; font-size: 13px; color: #ff9f45; margin-left: 2px; }
+@keyframes dgnPop {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.7); }
+  25% { opacity: 1; transform: translate(-50%, -60%) scale(1.12); }
+  100% { opacity: 0; transform: translate(-50%, -130%) scale(1); }
+}
+
+/* ── coaching ────────────────────────────────────────────────────────────── */
+.dgn-note, .dgn-tip {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  z-index: 6; pointer-events: none; white-space: nowrap;
+  font: 600 11px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .08em;
+}
+.dgn-note {
+  top: 18%;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(8, 10, 20, .82); color: #9fe8c0;
+}
+.dgn-tip { bottom: 8px; color: rgba(220, 232, 255, .5); }
+.dgn.is-exposed .dgn-tip { color: #ff8f85; }
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .dgn-sweep, .dgn-facade__pool, .dgn-warn.is-danger, .dgn-timer.is-low { animation: none; }
+  .dgn-target.is-down { animation: none; }
+  .dgn-pop { animation: dgnPopStill .9s linear both; }
+  @keyframes dgnPopStill { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+}
+[data-reduced-motion="true"] .dgn-sweep,
+[data-reduced-motion="true"] .dgn-facade__pool,
+[data-reduced-motion="true"] .dgn-warn.is-danger,
+[data-reduced-motion="true"] .dgn-timer.is-low { animation: none; }

@@ -1535,6 +1535,40 @@ export function sfxCrowdLoop(settings) {
   }
 }
 
+// Heartbeat only — the lub-dub from sfxCrowdLoop with NO noise wash behind it.
+// A swept bandpass over noise is how you synthesise ocean surf; in a bout it just
+// reads as a hiss rolling in and out. The pulse alone carries the tension.
+export function sfxHeartbeatLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const h = makeLoop(c, (cc, master) => {
+      let beat = 0;
+      const tick = () => {
+        const t = cc.currentTime;
+        const strong = beat % 2 === 0;
+        beat += 1;
+        const o = cc.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(strong ? 62 : 54, t);
+        o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+        const g = cc.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(strong ? 0.5 : 0.28, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g).connect(master);
+        o.start(t);
+        o.stop(t + 0.3);
+      };
+      return { nodes: [], tick, tickMs: 430 };
+    });
+    h.setLevel(0.1);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
 // ---------- Full Court shot sounds (every door log = a basketball shot) ----------
 
 // The launch: one dribble thump off the hardwood + a rising throw whoosh.
@@ -2272,5 +2306,143 @@ export function sfxFlashlightClick(settings) {
     if (!c) return;
     crack(c, { hp: 2400, lp: 9000, duration: 0.012, gain: 0.14 });
     blip(c, { from: 1400, to: 900, duration: 0.03, type: "square", gain: 0.05 });
+  } catch { /* silent */ }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE CHASE — sirens, rotors, and a Segway motor. All synthesised, no assets,
+   same as everything else in this file.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A two-tone wail. `.setUrgency(0..1)` speeds the sweep and opens the gain, so
+   the same loop covers "they're searching two streets over" and "he is behind
+   you RIGHT NOW" without a second sound. */
+export function sfxSirenLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const h = makeLoop(c, (cc, master) => {
+      const o = cc.createOscillator();
+      o.type = "square";
+      o.frequency.value = 640;
+      const tone = cc.createGain();
+      tone.gain.value = 0.16;
+
+      // the wail: an LFO sweeping the pitch between the two horn tones
+      const lfo = cc.createOscillator();
+      lfo.type = "sine";
+      lfo.frequency.value = 0.72;
+      const lfoAmt = cc.createGain();
+      lfoAmt.gain.value = 190;
+      lfo.connect(lfoAmt).connect(o.frequency);
+
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 2200;
+      o.connect(tone).connect(lp).connect(master);
+      o.start(); lfo.start();
+      return { nodes: [o, lfo], lfo, tone };
+    });
+    h.setLevel(0.07);
+    h.setUrgency = (u) => {
+      try {
+        const p = Math.max(0, Math.min(1, u));
+        h.setLevel(0.045 + p * 0.075);
+      } catch { /* silent */ }
+    };
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+/* A quadcopter overhead — low-passed noise chopped by a rotor-rate LFO. */
+export function sfxRotorLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    const h = makeLoop(c, (cc, master) => {
+      const src = noise(cc);
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 780;
+      const chop = cc.createGain();
+      chop.gain.value = 0.55;
+      const lfo = cc.createOscillator();
+      lfo.type = "sawtooth";
+      lfo.frequency.value = 22;              // blade rate — the "whup whup"
+      const amt = cc.createGain();
+      amt.gain.value = 0.42;
+      lfo.connect(amt).connect(chop.gain);
+      src.connect(lp).connect(chop).connect(master);
+      src.start(); lfo.start();
+      return { nodes: [src, lfo] };
+    });
+    h.setLevel(0.05);
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+/* The Segway motor. One sawtooth whose pitch tracks speed — the whole comedy
+   of the vehicle is that you can HEAR it labouring up to a top speed no cop
+   can match. `.setSpeed(0..1)`. */
+export function sfxSegwayWhine(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+    let osc = null;
+    const h = makeLoop(c, (cc, master) => {
+      const o = cc.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = 90;
+      const lp = cc.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 1400;
+      o.connect(lp).connect(master);
+      o.start();
+      osc = o;
+      return { nodes: [o] };
+    });
+    h.setLevel(0.03);
+    h.setSpeed = (v) => {
+      try {
+        const p = Math.max(0, Math.min(1, v));
+        if (osc) osc.frequency.setTargetAtTime(90 + p * 150, c.currentTime, 0.08);
+        h.setLevel(0.018 + p * 0.03);
+      } catch { /* silent */ }
+    };
+    return h;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+/* Dispatch chatter. Cheap, and enormously effective at selling "they called
+   it in" the instant you're spotted. */
+export function sfxRadioChatter(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 900, lp: 2600, duration: 0.05, gain: 0.09 });
+    const n = 2 + ((Math.random() * 2) | 0);
+    for (let i = 0; i < n; i++) {
+      setTimeout(() => {
+        try { crack(c, { hp: 700, lp: 2200, duration: 0.07 + Math.random() * 0.06, gain: 0.055 }); } catch { /* silent */ }
+      }, 90 + i * (70 + Math.random() * 90));
+    }
+    setTimeout(() => { try { blip(c, { from: 1200, to: 700, duration: 0.04, type: "square", gain: 0.05 }); } catch { /* silent */ } }, 420);
+  } catch { /* silent */ }
+}
+
+/* The SEARCHING → SPOTTED sting. Short, rising, unmistakable. */
+export function sfxSpotted(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 420, to: 980, duration: 0.16, type: "square", gain: 0.1 });
+    blip(c, { from: 300, to: 700, duration: 0.22, type: "sawtooth", gain: 0.06 });
+    crack(c, { hp: 1200, lp: 5200, duration: 0.05, gain: 0.09 });
   } catch { /* silent */ }
 }

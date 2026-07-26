@@ -1,0 +1,34 @@
+/* ════════════════════════════════════════════════════════════════════════
+   HEAT (.dh-) — the campaign wanted level, shown on the street.
+   Same star vocabulary as the chase, so the player learns it once.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.dh-meter {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(8, 10, 20, .55);
+  border: 1px solid rgba(255, 255, 255, .1);
+  font: 800 9px/1 var(--font-ui, "Manrope", sans-serif);
+  letter-spacing: .12em;
+  color: #9fb4d8;
+}
+.dh-meter__stars { display: inline-flex; gap: 2px; }
+.dh-meter__stars svg { opacity: .18; }
+.dh-meter__stars .is-on { opacity: 1; color: #ffd166; }
+
+.dh-meter[data-tier="clean"] { color: #6fd39b; }
+.dh-meter[data-tier="noticed"] { color: #ffd166; }
+.dh-meter[data-tier="wanted"] { color: #ff9f45; border-color: rgba(255, 159, 69, .35); }
+.dh-meter[data-tier="hunted"] {
+  color: #ff6b5e;
+  border-color: rgba(255, 107, 94, .45);
+  animation: dhHunted 1.6s ease-in-out infinite;
+}
+@keyframes dhHunted {
+  0%, 100% { background: rgba(8, 10, 20, .55); }
+  50% { background: rgba(60, 12, 12, .6); }
+}
+
+@media (prefers-reduced-motion: reduce) { .dh-meter[data-tier="hunted"] { animation: none; } }
+[data-reduced-motion="true"] .dh-meter[data-tier="hunted"] { animation: none; }

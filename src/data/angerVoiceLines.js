@@ -509,6 +509,57 @@ export const L4_FIGHT_YOU = [
 ];
 export const L4_KO = { id: "l4-ko", text: "Okay— OKAY— gimme the damn pen, you animal!", delivery: HEATED };
 
+/* ════════════════════════════════════════════════════════════════════════
+   OFFICER STEELE — "It's a safe neighborhood."
+
+   He is the only customer in the game you are MEANT to lose to. Everything he
+   says in the draw is calm; the trump card is the only line he raises his
+   voice for, and by then the fight is already scripted shut.
+   ════════════════════════════════════════════════════════════════════════ */
+export const ST_THEM_DRAW = [
+  { id: "st-them-draw-0", text: "Let me stop you there. What's it cost?", delivery: CALM },
+  { id: "st-them-draw-1", text: "Son, I know exactly what my rights are.", delivery: CALM },
+  { id: "st-them-draw-2", text: "Not today, kid. Not any day.", delivery: CALM },
+  { id: "st-them-draw-3", text: "Prove it. Right here on the step. Go on.", delivery: CALM },
+  { id: "st-them-draw-4", text: "You've got about nine seconds left.", delivery: CALM },
+];
+export const ST_YOU_DRAW = [
+  { id: "st-you-draw-0", text: "Fair question. Here's the number.", delivery: CALM },
+  { id: "st-you-draw-1", text: "You're right, and I'm still standing here.", delivery: CALM },
+  { id: "st-you-draw-2", text: "Then give me the nine seconds.", delivery: CALM },
+  { id: "st-you-draw-3", text: "Don't take my word for it. Look.", delivery: CALM },
+];
+export const ST_TRUMP = {
+  id: "st-trump",
+  text: "Son. I'm a police officer. This IS a safe neighborhood.",
+  delivery: HEATED,
+};
+export const ST_WALL = [
+  { id: "st-wall-0", text: "He didn't out-argue you. He out-RANKED you.", delivery: CALM },
+  { id: "st-wall-1", text: "And he's right, as far as he knows. That's the problem.", delivery: CALM },
+  { id: "st-wall-2", text: "So stop arguing. Go and make it untrue.", delivery: CALM },
+];
+export const ST_THEM_NIGHT = [
+  { id: "st-them-night-0", text: "WHO'S OUT THERE?", delivery: HEATED },
+  { id: "st-them-night-1", text: "I've got a light and I WILL use it!", delivery: HEATED },
+  { id: "st-them-night-2", text: "You've got the WRONG house, pal!", delivery: HEATED },
+];
+export const ST_FIGHT_THEM = [
+  { id: "st-fight-them-0", text: "Somebody did my whole yard. My WHOLE yard.", delivery: HEATED },
+  { id: "st-fight-them-1", text: "Twenty-two years on the job and this happens HERE.", delivery: HEATED },
+  { id: "st-fight-them-2", text: "I filed a report on my own street. My own street.", delivery: CALM },
+];
+export const ST_FIGHT_YOU = [
+  { id: "st-fight-you-0", text: "Rough night on a safe street, huh.", delivery: CALM },
+  { id: "st-fight-you-1", text: "Funny how that works.", delivery: CALM },
+  { id: "st-fight-you-2", text: "So — about that nine seconds.", delivery: CALM },
+];
+export const ST_KO = {
+  id: "st-ko",
+  text: "…Get the paperwork. Before somebody comes back for the truck.",
+  delivery: HEATED,
+};
+
 // ---------- flat manifest for the bake script ----------
 
 export const ALL_VOICE_LINES = [

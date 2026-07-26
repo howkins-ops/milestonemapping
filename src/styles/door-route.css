@@ -166,9 +166,12 @@
 @keyframes drLed { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .18; } }
 
 /* ── the rep ──────────────────────────────────────────────────────────── */
+/* Rides --rep-x, written by the walk loop, for the same reason the bands ride
+   --cam: his position must never pass through React. */
 .dr-repslot {
-  position: absolute; bottom: 12%; z-index: 4;
+  position: absolute; bottom: 12%; z-index: 4; left: 0;
   width: 46px; margin-left: -23px;
+  transform: translate3d(var(--rep-x, 120px), 0, 0);
 }
 .dr-rep { display: block; width: 100%; height: auto; }
 .dr-repshadow {
