@@ -8,66 +8,81 @@
 // in the alchemist's register instead: the mask argues like a lawyer, not a
 // bully, because by this point in the flow the player has already named it.
 //
-// STRUCTURE — the Magnum Opus, the four stages Jung mapped onto
-// individuation (Psychology and Alchemy, 1944):
-//   NIGREDO     blackening — the lead speaks; you catch its lines
-//   ALBEDO      washing    — your OWN victim story comes back at you
-//   CITRINITAS  yellowing  — the mask asks its real question
-//   RUBEDO      reddening  — the metal runs
+// STRUCTURE — four movements. The shape underneath is the alchemical
+// Magnum Opus (Jung, Psychology and Alchemy) but NONE of that vocabulary is
+// on screen: this shipped as NIGREDO / ALBEDO / CITRINITAS / RUBEDO and Jon
+// killed it on sight — "i hate the names they dont make any sense" — the
+// same call he made on the W1/W2 labels in IRON. The rule now: every label
+// is a three-word instruction telling you what to do THIS beat.
 //
-// Each nigredo plate carries a `hot` word: the load-bearing lie. Inside THE
-// SPACE (the dilated window) hitting that exact word is the clean break.
-// The `hot` string MUST appear verbatim in `line` or the highlighter falls
-// back to a whole-line tap (still a valid, weaker strike — never a fail).
+//   CATCH THE LIE       its lines      — catch what it throws, break the word
+//   LET IT PASS         your lines     — your own blame; the win is doing nothing
+//   ANSWER IT STRAIGHT  the question   — it stops swinging and asks
+//   POUR IT OUT         melting point  — tip the crucible
+//
+// One grammar, one object ("it"), read down they are the fight in one
+// breath: act → refuse to act → speak → release.
+//
+// Each plate in CATCH THE LIE carries a `hot` word: the load-bearing lie.
+// Inside THE GAP (the dilated window) hitting that exact word is the clean
+// break. The `hot` string MUST appear verbatim in `line` or the highlighter
+// falls back to a whole-line tap (a valid, weaker strike — never a fail).
 // ════════════════════════════════════════════════════════════════════════
 
-export const STAGES = ["nigredo", "albedo", "citrinitas", "rubedo"];
+export const STAGES = ["catch", "pass", "answer", "pour"];
 
 export const STAGE_META = {
-  nigredo: {
-    name: "NIGREDO",
-    en: "The Blackening",
-    note: "The lead speaks. Catch it in the space before it lands.",
+  catch: {
+    name: "CATCH THE LIE",
+    en: "its lines",
+    note: "Catch what it throws. Break the word holding it up.",
     tint: "#8d93a6",
   },
-  albedo: {
-    name: "ALBEDO",
-    en: "The Washing",
-    note: "The plates are off. What's left is in your own handwriting.",
+  pass: {
+    name: "LET IT PASS",
+    en: "your lines",
+    note: "Your own blame, in your own words. Don't swing.",
     tint: "#dfe6f2",
   },
-  citrinitas: {
-    name: "CITRINITAS",
-    en: "The Yellowing",
-    note: "It stops attacking and finally asks what it wanted to ask.",
+  answer: {
+    name: "ANSWER IT STRAIGHT",
+    en: "the question",
+    note: "The fear finally asks. Two answers flatter you. One is true.",
     tint: "#ffd84d",
   },
-  rubedo: {
-    name: "RUBEDO",
-    en: "The Reddening",
-    note: "Melting point. Pour it.",
+  pour: {
+    name: "POUR IT OUT",
+    en: "melting point",
+    note: "Drag down and tip the whole thing out.",
     tint: "#ff7a3d",
   },
 };
 
-// Purity — the ONE meter in this fight. Not his health, not yours: the
-// state of the metal you are both made of. Starts cold, ends molten.
-// Balanced so a run actually spreads. Ceiling before Rubedo is 99 (see
-// PURITY_CEIL) — hitting exactly 100 is the melting-point event, never
+// GLOW — the ONE meter in this fight. Not his health, not yours: the state
+// of the metal you are both made of. Starts cold, ends molten.
+//
+// Named GLOW because it is literally what you watch — the effigy's seams
+// light as this climbs, so the bar and the boss art are the same signal.
+// NOT "HEAT": that name belongs to The Door's campaign-wide wanted meter
+// (anger/heat/, and see the note at DoorLevel.jsx:51 — Jon already renamed
+// one meter to protect it). NOT "MELT" either: melt reads as an event, so
+// it can't climb from 12 to 100.
+// Balanced so a run actually spreads. Ceiling before the pour is 99 (see
+// GLOW_CEIL) — hitting exactly 100 is the melting-point event, never
 // something you grind to. Reachable range at melting point is ~40–98:
 //   flawless   12 + 4×12 + 3×8 + 14 = 98
 //   competent  12 + 4×5  + 3×8 + 14 = 70
 //   scrappy    ~40 after several misses, a swing and a dodge
-export const PURITY_START = 12;
-export const PURITY_FLOOR = 8;
-export const PURITY_CEIL = 99;
-export const PURITY_CLEAN = 12; // clean break — hot word struck inside the space
-export const PURITY_BREAK = 5; // ordinary break — struck the space, missed the word
-export const PURITY_LAND = -7; // the line landed on you
-export const PURITY_WITNESS = 8; // let your own words pass through
-export const PURITY_SWING = -10; // swung at your own words
-export const PURITY_TRUE = 14; // answered the question honestly
-export const PURITY_DODGE = -12; // took the flattering answer
+export const GLOW_START = 12;
+export const GLOW_FLOOR = 8;
+export const GLOW_CEIL = 99;
+export const GLOW_CLEAN = 12; // clean break — hot word struck inside THE GAP
+export const GLOW_BREAK = 5; // ordinary break — struck THE GAP, missed the word
+export const GLOW_LAND = -7; // the line landed on you
+export const GLOW_WITNESS = 8; // let your own words pass through
+export const GLOW_SWING = -10; // swung at your own words
+export const GLOW_TRUE = 14; // answered the question honestly
+export const GLOW_DODGE = -12; // took the flattering answer
 
 // Timing — the catch window. `ring` is how long the ring takes to close;
 // `band` is the half-width of the perfect zone in ms either side of the
@@ -77,7 +92,7 @@ export const RING_BAND = 150;
 export const ASSIST_RING_STEP = 260; // slower ring per assist level
 export const ASSIST_BAND_STEP = 70; // wider perfect zone per assist level
 export const MAX_ASSIST = 3;
-export const SPACE_MS = 1900; // how long the dilated window stays open
+export const GAP_MS = 1900; // how long the dilated window (THE GAP) stays open
 export const WITNESS_MS = 3400; // how long one of your own lines takes to pass
 
 // ── Per-mask battle content ──────────────────────────────────────────────
@@ -90,18 +105,18 @@ export const CRUCIBLE = {
     crucible: "#3a2c05",
     epithet: "CAST IN POTENTIAL",
     seize: "It has been wearing your face at every table you sat down at.",
-    nigredo: [
+    plates: [
       { line: "Potential is the same thing as proof.", hot: "proof" },
       { line: "You'll start when the conditions are right.", hot: "conditions" },
       { line: "Wanting it this badly has to count for something.", hot: "count" },
       { line: "Stay a king in your head. It's safer up there.", hot: "safer" },
     ],
-    albedo: [
+    blame: [
       "They never gave me a real shot.",
       "Nobody handed me what they handed him.",
       "If I'd started where they started, I'd already be there.",
     ],
-    citrinitas: {
+    question: {
       ask: "Where am I acting smaller than who I know I am?",
       answers: [
         { text: "I've been spending the gift on the story of the gift.", truth: true },
@@ -109,7 +124,7 @@ export const CRUCIBLE = {
         { text: "I'm protecting the vision from a world that isn't ready for it.", truth: false, sting: "The world isn't guarding it. You are. From daylight." },
       ],
     },
-    rubedo: "The crown was never the problem. The empty hands were.",
+    pourLine: "The crown was never the problem. The empty hands were.",
   },
 
   "addict-saint": {
@@ -119,18 +134,18 @@ export const CRUCIBLE = {
     crucible: "#3a0a2c",
     epithet: "CAST IN RELIEF",
     seize: "It has been kneeling for you and reaching behind its back the whole time.",
-    nigredo: [
+    plates: [
       { line: "You can be holy tomorrow. Tonight you're tired.", hot: "tomorrow" },
       { line: "This is medicine, not a habit.", hot: "medicine" },
       { line: "God understands. He's the one who made you like this.", hot: "understands" },
       { line: "Go on then — feel all of it sober and see what's left.", hot: "sober" },
     ],
-    albedo: [
+    blame: [
       "Nobody knows how heavy this has been to carry.",
       "If they had stayed, I wouldn't need it.",
       "It's the only thing that never walked out on me.",
     ],
-    citrinitas: {
+    question: {
       ask: "What am I reaching for instead of feeling?",
       answers: [
         { text: "I reach for it at the exact second the feeling gets real.", truth: true },
@@ -138,7 +153,7 @@ export const CRUCIBLE = {
         { text: "It's the last thing standing between me and something much worse.", truth: false, sting: "It isn't the wall. It's the thing that keeps you from ever meeting the wall." },
       ],
     },
-    rubedo: "It was never the escape you loved. It was the quiet on the other side of it.",
+    pourLine: "It was never the escape you loved. It was the quiet on the other side of it.",
   },
 
   "wasted-genius": {
@@ -148,18 +163,18 @@ export const CRUCIBLE = {
     crucible: "#062e33",
     epithet: "CAST IN DRAFT",
     seize: "It has been holding the pen and refusing to sign anything.",
-    nigredo: [
+    plates: [
       { line: "It isn't ready. You know it isn't ready.", hot: "ready" },
       { line: "One more draft and it'll be undeniable.", hot: "undeniable" },
       { line: "Unshipped, it's still a masterpiece.", hot: "Unshipped" },
       { line: "And if they see it and just shrug — what was any of it for?", hot: "shrug" },
     ],
-    albedo: [
+    blame: [
       "Nobody ever took my work seriously.",
       "They didn't have to start from where I started.",
       "I'd have finished it if one person had believed me.",
     ],
-    citrinitas: {
+    question: {
       ask: "What gift am I hiding by not executing?",
       answers: [
         { text: "Unfinished, it can never be judged — and that is the entire point.", truth: true },
@@ -167,7 +182,7 @@ export const CRUCIBLE = {
         { text: "The idea deserves to be built properly, not built fast.", truth: false, sting: "It's been built properly eleven times. None of them left the room." },
       ],
     },
-    rubedo: "A draft is a hiding place with very good lighting.",
+    pourLine: "A draft is a hiding place with very good lighting.",
   },
 
   "raging-victim": {
@@ -177,18 +192,18 @@ export const CRUCIBLE = {
     crucible: "#3a0e08",
     epithet: "CAST IN OLD PAIN",
     seize: "It has been holding the receipt for something that happened years ago.",
-    nigredo: [
+    plates: [
       { line: "You earned this anger. Every single hour of it.", hot: "earned" },
       { line: "Put it down and they get away with it.", hot: "away" },
       { line: "Being fair to them is a betrayal of you.", hot: "betrayal" },
       { line: "This armor is the only reason you're still standing.", hot: "armor" },
     ],
-    albedo: [
+    blame: [
       "After what they did, I have every right to be this way.",
       "They broke something and never once looked back.",
       "Nobody came for me when it actually counted.",
     ],
-    citrinitas: {
+    question: {
       ask: "What pain am I using as permission to stay stuck?",
       answers: [
         { text: "The debt they owe me is the reason I never have to move.", truth: true },
@@ -196,7 +211,7 @@ export const CRUCIBLE = {
         { text: "Letting go would mean it never really mattered.", truth: false, sting: "It mattered. That's why it deserves better than being used as a fence." },
       ],
     },
-    rubedo: "It was never the anger. It was the part of you nobody ever guarded.",
+    pourLine: "It was never the anger. It was the part of you nobody ever guarded.",
   },
 
   "naive-warrior": {
@@ -206,18 +221,18 @@ export const CRUCIBLE = {
     crucible: "#082238",
     epithet: "CAST IN PURE FORCE",
     seize: "It has been charging for you since before you could name the hill.",
-    nigredo: [
+    plates: [
       { line: "Harder. Harder has always worked before.", hot: "Harder" },
       { line: "Planning is what frightened people call waiting.", hot: "waiting" },
       { line: "Asking for help is borrowing someone else's respect.", hot: "borrowing" },
       { line: "And if you stop moving, you'll have to feel it.", hot: "stop" },
     ],
-    albedo: [
+    blame: [
       "I've been doing this on my own since the beginning.",
       "Everyone who said they'd help disappeared.",
       "If I don't carry it, nobody is going to.",
     ],
-    citrinitas: {
+    question: {
       ask: "Where do I need wisdom, not just effort?",
       answers: [
         { text: "I run at things so I never have to sit still with them.", truth: true },
@@ -225,7 +240,7 @@ export const CRUCIBLE = {
         { text: "I move first because somebody has to, and it's always been me.", truth: false, sting: "Nobody appointed you. You volunteered so you'd never have to be carried." },
       ],
     },
-    rubedo: "The blade was never the problem. Swinging it at everything was.",
+    pourLine: "The blade was never the problem. Swinging it at everything was.",
   },
 };
 
@@ -233,12 +248,12 @@ export function getCrucible(maskId) {
   return CRUCIBLE[maskId] || CRUCIBLE["broke-king"];
 }
 
-// The player's own victim story (step 2) becomes the Albedo ammunition —
-// this is the whole point of the stage, and nothing else in the app fires
-// the user's own words back at them. Split into up to 3 beats on sentence
-// boundaries; fall back to the mask's stock lines if they skipped the step.
-export function albedoLines(maskId, victimText) {
-  const stock = getCrucible(maskId).albedo;
+// The player's own victim story (step 2) becomes the ammunition for LET IT
+// PASS — this is the whole point of the stage, and nothing else in the app
+// fires the user's own words back at them. Split into up to 3 beats on
+// sentence boundaries; fall back to stock lines if they skipped the step.
+export function blameLines(maskId, victimText) {
+  const stock = getCrucible(maskId).blame;
   const raw = String(victimText || "").trim();
   if (raw.length < 12) return stock.slice(0, 3);
 
@@ -277,11 +292,15 @@ export function momentPlate(momentText) {
   return { line: short, hot: null, mine: true };
 }
 
-// Grade the run on the purity EARNED at melting point (not the forced 100).
-// Flavour only — every rank still ends with gold in the mould.
-export function gradePurity(p) {
-  if (p >= 90) return { rank: "SOL", note: "Struck clean. Almost nothing was wasted." };
-  if (p >= 72) return { rank: "LUNA", note: "Steady hands. The metal ran clear." };
-  if (p >= 52) return { rank: "MERCURY", note: "It fought you. You stayed anyway." };
-  return { rank: "SALT", note: "Rough pour — and still gold. That counts." };
+// Grade the run on the glow EARNED at melting point (not the forced 100).
+// Flavour only — every rank still ends with gold in the mould, so the ladder
+// has to stay ORDERED at a glance (CLEAN > SOLID is obvious; the old
+// SOL/LUNA/MERCURY/SALT was not) and the bottom rung has to read as respect.
+// Nothing here describes the player as a character — no "stubborn", no
+// "surgical". You're grading the pour, not the person.
+export function gradeGlow(p) {
+  if (p >= 90) return { rank: "CLEAN", note: "You found the word underneath nearly every time." };
+  if (p >= 72) return { rank: "SOLID", note: "Steady hands. The metal ran clear." };
+  if (p >= 52) return { rank: "SCRAPPY", note: "It fought you. You stayed anyway." };
+  return { rank: "STILL STANDING", note: "It hit you hard. You never left. That's the rep." };
 }

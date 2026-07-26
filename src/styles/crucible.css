@@ -96,13 +96,13 @@
 .cru-flash.gold  { background: radial-gradient(circle at 50% 55%, rgba(255, 236, 178, 0.98), rgba(255, 150, 40, 0.6)); animation: cruFlash 0.5s linear forwards; }
 @keyframes cruFlash { from { opacity: 1; } to { opacity: 0; } }
 
-/* ── THE SPACE — time dilation.
+/* ── THE GAP — time dilation.
    Bayonetta's Witch Time, and Frankl's gap between stimulus and response.
    The world desaturates and softens; only the frozen line stays sharp. ── */
 .cru--dilated .cru-bg,
 .cru--dilated .cru-mouth,
 .cru--dilated .cru-stage,
-.cru--dilated .cru-purity,
+.cru--dilated .cru-glow,
 .cru--dilated .cru-top {
   filter: saturate(0.12) brightness(0.62) blur(2px);
   transition: filter 0.28s ease;
@@ -130,14 +130,23 @@
   background: rgba(6, 6, 12, 0.6);
 }
 .cru-exit:hover { color: #f2f0f4; border-color: rgba(255, 255, 255, 0.3); }
-.cru-stagelabel { text-align: right; }
+.cru-stagelabel {
+  text-align: right;
+  min-width: 0;
+  flex: 1;
+}
+/* The labels are instructions now, not one-word Latin — ANSWER IT STRAIGHT
+   is 18 chars where RUBEDO was 6. Tighter tracking and a fluid size so the
+   longest one still fits beside the Step-back button on a narrow phone. */
 .cru-stagelabel__n {
   display: block;
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.3em;
+  font-size: clamp(10px, 2.9vw, 13px);
+  letter-spacing: 0.16em;
+  line-height: 1.2;
   color: var(--cru-molten);
+  overflow-wrap: break-word;
 }
 .cru-stagelabel__e {
   display: block;
@@ -147,14 +156,14 @@
   margin-top: 3px;
 }
 
-/* ── PURITY — the one meter ─────────────────────────────────────────────── */
-.cru-purity {
+/* ── GLOW — the one meter ─────────────────────────────────────────────── */
+.cru-glow {
   position: relative;
   z-index: 20;
   width: min(760px, 94vw);
   margin-top: 12px;
 }
-.cru-purity__head {
+.cru-glow__head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -162,7 +171,7 @@
   letter-spacing: 0.26em;
   color: rgba(242, 240, 244, 0.5);
 }
-.cru-purity__v {
+.cru-glow__v {
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
   font-size: 17px;
@@ -170,7 +179,7 @@
   color: color-mix(in srgb, #fff calc(var(--cru-heat) * 70%), var(--cru-molten));
   text-shadow: 0 0 18px color-mix(in srgb, var(--cru-molten) 70%, transparent);
 }
-.cru-purity__bar {
+.cru-glow__bar {
   position: relative;
   height: 8px;
   margin-top: 6px;
@@ -178,7 +187,7 @@
   background: rgba(10, 10, 18, 0.75);
   overflow: hidden;
 }
-.cru-purity__fill {
+.cru-glow__fill {
   height: 100%;
   /* cold lead → the mask's own colour → furnace. The top of the ramp is
      always fire-coloured so a blue-palette mask can't read "hot = blue". */
@@ -188,15 +197,15 @@
   box-shadow: 0 0 18px color-mix(in srgb, var(--cru-molten) 60%, transparent);
   transition: width 0.55s cubic-bezier(0.2, 0.9, 0.25, 1);
 }
-.cru-purity__tick {
+.cru-glow__tick {
   position: absolute;
   top: -2px;
   bottom: -2px;
   width: 1px;
   background: rgba(255, 255, 255, 0.22);
 }
-.cru-purity__tick.on { background: rgba(255, 240, 200, 0.7); }
-.cru-purity__note {
+.cru-glow__tick.on { background: rgba(255, 240, 200, 0.7); }
+.cru-glow__note {
   margin-top: 5px;
   font-size: 9.5px;
   letter-spacing: 0.16em;
@@ -221,7 +230,7 @@
 .cru-beat--wind .cru-effigy-wrap { transform: scale(1.07) translateY(-1.5%); }
 .cru-beat--landed .cru-effigy-wrap { transform: scale(1.03); }
 .cru-beat--broke .cru-effigy-wrap { transform: scale(0.985) rotate(-1.2deg); }
-.cru-stage--rubedo .cru-effigy-wrap,
+.cru-stage--pour .cru-effigy-wrap,
 .cru-stage--forged .cru-effigy-wrap { transform: scale(0.92); }
 
 /* ── the catch ring + the seam it has to land on ───────────────────────── */
@@ -311,7 +320,7 @@
 .cru-line--mine p { color: #dfe6f2; text-shadow: 0 0 40px rgba(223, 230, 242, 0.35); }
 
 /* ── THE SPACE panel ────────────────────────────────────────────────────── */
-.cru-space {
+.cru-gap {
   position: absolute;
   inset: 0;
   z-index: 30;
@@ -323,10 +332,10 @@
   padding: 24px;
   text-align: center;
   background: radial-gradient(circle at 50% 50%, rgba(8, 18, 28, 0.72), rgba(3, 5, 10, 0.92));
-  animation: cruSpaceIn 0.3s ease;
+  animation: cruGapIn 0.3s ease;
 }
-@keyframes cruSpaceIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; } }
-.cru-space__label {
+@keyframes cruGapIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; } }
+.cru-gap__label {
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
   font-size: 11px;
@@ -334,15 +343,15 @@
   color: #9fe4ff;
   text-shadow: 0 0 26px rgba(111, 210, 255, 0.7);
 }
-.cru-space__sub {
+.cru-gap__sub {
   font-size: 11.5px;
   line-height: 1.75;
   letter-spacing: 0.06em;
   color: rgba(223, 240, 255, 0.62);
   max-width: 420px;
 }
-.cru-space__sub b { color: #cfefff; }
-.cru-space__line {
+.cru-gap__sub b { color: #cfefff; }
+.cru-gap__line {
   max-width: min(760px, 94vw);
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
@@ -372,7 +381,7 @@
   0%, 100% { box-shadow: 0 0 26px rgba(111, 210, 255, 0.45); }
   50%      { box-shadow: 0 0 52px rgba(111, 210, 255, 0.85); }
 }
-.cru-space__timer {
+.cru-gap__timer {
   width: min(340px, 70vw);
   height: 2px;
   background: rgba(159, 228, 255, 0.9);
@@ -383,7 +392,7 @@
 }
 @keyframes cruTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-/* ── ALBEDO: your own words ─────────────────────────────────────────────── */
+/* ── LET IT PASS: your own words ─────────────────────────────────────────────── */
 .cru-mine {
   position: absolute;
   left: 50%;
@@ -414,7 +423,7 @@
   100% { opacity: 0; filter: blur(12px); transform: scale(1.3); }
 }
 
-/* ── CITRINITAS: the question ───────────────────────────────────────────── */
+/* ── ANSWER IT STRAIGHT: the question ───────────────────────────────────────────── */
 .cru-ask {
   position: absolute;
   left: 50%;
@@ -494,7 +503,7 @@
 }
 .cru-ask__done { color: #ffe9a8; font-size: 12px; letter-spacing: 0.12em; }
 
-/* ── RUBEDO: the pour ───────────────────────────────────────────────────── */
+/* ── POUR IT OUT: the pour ───────────────────────────────────────────────────── */
 .cru-pour {
   position: absolute;
   left: 50%;
@@ -584,7 +593,7 @@
   gap: 14px;
   padding: 26px;
   text-align: center;
-  /* fully opaque — the Rubedo chrome underneath must not read through */
+  /* fully opaque — the pour chrome underneath must not read through */
   background: radial-gradient(circle at 50% 62%, rgba(46, 24, 4, 0.97), rgba(4, 3, 10, 1) 66%);
   animation: cruFadeIn 0.8s ease;
 }
@@ -678,7 +687,7 @@
   gap: 12px;
   transition: opacity 0.25s ease;
 }
-/* Citrinitas / Rubedo / the ingot own the bottom of the screen outright */
+/* ANSWER IT STRAIGHT / POUR IT OUT / the ingot own the bottom of the screen outright */
 .cru-dock--gone { display: none; }
 .cru-sys {
   min-height: 18px;
@@ -782,9 +791,11 @@
 .cru-stagecard__n {
   font-family: var(--font-display, "Sora", sans-serif);
   font-weight: 800;
-  font-size: clamp(34px, 9.5vw, 84px);
-  line-height: 1;
-  letter-spacing: 0.06em;
+  /* three-word instructions wrap where the old one-word Latin never did */
+  font-size: clamp(30px, 8.2vw, 76px);
+  line-height: 1.02;
+  max-width: 12ch;
+  letter-spacing: 0.02em;
   color: #fff6de;
   text-shadow: 0 0 70px color-mix(in srgb, var(--cru-molten) 60%, transparent);
   animation: cruSlam 0.6s cubic-bezier(0.2, 1.3, 0.3, 1);
@@ -933,5 +944,5 @@
   .cru-effigy-wrap { width: min(26vh, 200px); }
   .cru-seam, .cru-ring { width: min(26vh, 200px); }
   .cru-line { top: 21%; }
-  .cru-purity__note { display: none; }
+  .cru-glow__note { display: none; }
 }

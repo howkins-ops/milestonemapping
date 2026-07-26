@@ -36,7 +36,7 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
   const [revealed, setRevealed] = useState(false);
   const [essence, setEssence] = useState(null);
   const [declaration, setDeclaration] = useState("");
-  const [battle, setBattle] = useState(null); // { purity, grade, clean, witnessed }
+  const [battle, setBattle] = useState(null); // { glow, grade, clean, witnessed }
 
   const mask = maskCards.find((m) => m.id === maskId) || null;
   const meter = Math.round(((TOTAL - step) / TOTAL) * 100);
@@ -196,7 +196,7 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
         <Seal
           eyebrow={`${mask.name} → ${essence}`}
           title="You took it back."
-          lead={`You met the ${mask.name} in the crucible, melted it down, and chose your essence. ${essence} was always underneath — every rep makes it your default.${battle ? ` Pour graded ${battle.grade} at ${battle.purity} purity.` : ""}`}
+          lead={`You met the ${mask.name} in the crucible, melted it down, and chose your essence. ${essence} was always underneath — every rep makes it your default.${battle ? ` Pour graded ${battle.grade} — glow ${battle.glow} at melting point.` : ""}`}
           stamp={declaration.trim() || `I am ${essence}.`}
           onDone={finish}
           doneLabel="Add to my Essence Gallery ✦"

@@ -3,11 +3,11 @@ import { createPortal } from "react-dom";
 import MaskEffigy from "./MaskEffigy.jsx";
 import { createCrucibleFX } from "./CrucibleFX.js";
 import {
-  getCrucible, albedoLines, innerVoice, momentPlate, gradePurity, STAGE_META,
-  PURITY_START, PURITY_FLOOR, PURITY_CEIL, PURITY_CLEAN, PURITY_BREAK, PURITY_LAND,
-  PURITY_WITNESS, PURITY_SWING, PURITY_TRUE, PURITY_DODGE,
+  getCrucible, blameLines, innerVoice, momentPlate, gradeGlow, STAGE_META,
+  GLOW_START, GLOW_FLOOR, GLOW_CEIL, GLOW_CLEAN, GLOW_BREAK, GLOW_LAND,
+  GLOW_WITNESS, GLOW_SWING, GLOW_TRUE, GLOW_DODGE,
   RING_MS, RING_BAND, ASSIST_RING_STEP, ASSIST_BAND_STEP, MAX_ASSIST,
-  SPACE_MS, WITNESS_MS,
+  GAP_MS, WITNESS_MS,
 } from "./crucibleData.js";
 import {
   sfxWhoosh, sfxZap, sfxForgeStrike, sfxShatter, sfxBossHit, sfxBossDown,
@@ -25,31 +25,39 @@ import "../../../styles/crucible.css";
 // earns the Transmute button; the transmutation itself still belongs to
 // the step that follows. Nothing downstream was replaced.
 //
-// FOUR MOVEMENTS — the Magnum Opus (Jung, Psychology and Alchemy):
+// FIVE BEATS. Phase keys match the on-screen labels exactly — the first
+// build named these after the alchemical Magnum Opus (NIGREDO / ALBEDO /
+// CITRINITAS / RUBEDO) and Jon killed it: "i hate the names they dont make
+// any sense." Nothing in here may drift back toward vocabulary that needs
+// a footnote, in the UI OR in the identifiers.
 //
-//  0 SEIZE       drag the mask off your own face. The fight can't start
-//                while you're still wearing it.
-//  I NIGREDO     the lead speaks. A ring closes; catch it on the seam and
-//                THE SPACE opens — time dilates and the line hangs in the
-//                air where you can read it instead of be it. Strike the
-//                load-bearing word. (Sekiro's deflect + Bayonetta's Witch
-//                Time; the psychology is Frankl's gap between stimulus and
-//                response, which is the actual skill being trained.)
-//  II ALBEDO     the plates are off and the mask starts using YOUR OWN
-//                victim story from step 2. The catch stops working. The
-//                only winning input is no input — let it pass through.
-//                (The "don't shoot" beat: Undertale's mercy, MGS3's The
-//                End. Players remember the fight they solved by stopping.)
-// III CITRINITAS it stops attacking and asks the question underneath.
-//                Three answers, two of them flattering. Wrong ones aren't
-//                damage — they re-rivet a plate, and you watch it happen.
-//  IV RUBEDO     melting point. Drag to tip the crucible and pour.
+//  tear    TEAR IT OFF        drag the mask off your own face. The fight
+//                             can't start while you're still wearing it.
+//  catch   CATCH THE LIE      a ring closes; catch it on the seam and THE
+//                             GAP opens — time dilates and the line hangs
+//                             in the air where you can read it instead of
+//                             be it. Strike the load-bearing word.
+//                             (Sekiro's deflect + Bayonetta's Witch Time;
+//                             the psychology is Frankl's gap between
+//                             stimulus and response — the real skill.)
+//  pass    LET IT PASS        the plates are off and the mask starts using
+//                             YOUR OWN victim story from step 2. The catch
+//                             stops working. The only winning input is no
+//                             input. (The "don't shoot" beat: Undertale's
+//                             mercy. Players remember the fight they
+//                             solved by stopping.)
+//  answer  ANSWER IT STRAIGHT it stops attacking and asks the question
+//                             underneath. Three answers, two flattering.
+//                             Wrong ones aren't damage — they re-rivet a
+//                             plate, and you watch it happen.
+//  pour    POUR IT OUT        melting point. Drag to tip the crucible.
 //
-// ONE METER: PURITY. Not his health, not yours — the state of the metal
-// you are both made of. Every other fight in this app has two bars; this
-// one has a single shared one, and it doubles as the effigy's own colour.
+// ONE METER: GLOW. Not his health, not yours — the state of the metal you
+// are both made of. Every other fight in this app has two bars; this one
+// has a single shared one, and it doubles as the effigy's own colour.
+// (Not HEAT — that belongs to The Door's wanted meter, see anger/heat/.)
 //
-// NO-FAIL LAW (house rule): purity has a floor, misses widen the catch
+// NO-FAIL LAW (house rule): glow has a floor, misses widen the catch
 // window (assist, invisible), a line that has beaten you four times breaks
 // on its own, and "Step back" is always available and never punished.
 // ════════════════════════════════════════════════════════════════════════
@@ -99,28 +107,28 @@ export default function TheCrucible({
     []
   );
 
-  // Nigredo plates: the mask's three lines, plus the player's own described
+  // The plates: the mask's three lines, plus the player's own described
   // moment engraved on the fourth — its words and your words, same metal.
   const plateLines = useMemo(() => {
     const mine = momentPlate(moment);
-    const base = cfg.nigredo;
+    const base = cfg.plates;
     return mine ? [base[0], base[1], mine, base[3]] : base.slice(0, 4);
   }, [cfg, moment]);
 
-  const albedo = useMemo(() => albedoLines(mask.id, victim), [mask.id, victim]);
+  const blame = useMemo(() => blameLines(mask.id, victim), [mask.id, victim]);
   const inner = useMemo(() => innerVoice(afraid), [afraid]);
   // Reshuffled every time the fight is entered — a fixed seed would put the
   // true answer in the same slot on every run and turn the stage into muscle
   // memory instead of a judgement.
   const answers = useMemo(
-    () => shuffled(cfg.citrinitas.answers, 1 + Math.floor(Math.random() * 9973)),
+    () => shuffled(cfg.question.answers, 1 + Math.floor(Math.random() * 9973)),
     [cfg]
   );
 
   /* ── state (one update per beat — never per frame) ───────────────────── */
-  const [phase, setPhase] = useState("seize");
+  const [phase, setPhase] = useState("tear");
   const [beat, setBeat] = useState("intro");
-  const [purity, setPurity] = useState(PURITY_START);
+  const [glow, setGlow] = useState(GLOW_START);
   const [plates, setPlates] = useState([true, true, true, true]);
   const [idx, setIdx] = useState(0);
   const [sys, setSys] = useState("");
@@ -136,16 +144,16 @@ export default function TheCrucible({
   /* ── refs ─────────────────────────────────────────────────────────────── */
   const alive = useRef(false);
   const busy = useRef(false);
-  const purityRef = useRef(PURITY_START);
+  const glowRef = useRef(GLOW_START);
   const idxRef = useRef(0);
   const assist = useRef(0);
   const missRun = useRef(0);
   const platesRef = useRef([true, true, true, true]);
   const statsRef = useRef({ clean: 0, witnessed: 0, dodged: 0 });
-  // Rubedo forces the metal to melting point, so the on-screen 100 says
-  // nothing about the run. The grade reads THIS instead: what the purity
+  // The pour forces the metal to melting point, so the on-screen 100 says
+  // nothing about the run. The grade reads THIS instead: what the glow
   // actually was when you got there.
-  const earnedRef = useRef(PURITY_START);
+  const earnedRef = useRef(GLOW_START);
 
   const canvasRef = useRef(null);
   const fx = useRef(null);
@@ -160,14 +168,14 @@ export default function TheCrucible({
   const ringStart = useRef(0);
   const ringLive = useRef(false);
   const ringMsRef = useRef(RING_MS);
-  const spaceTimer = useRef(null);
+  const gapTimer = useRef(null);
   const witnessRaf = useRef(0);
   const witnessLive = useRef(false);
   const pourRef = useRef({ active: false, y0: 0, pct: 0 });
 
   const wait = useCallback((ms) => new Promise((r) => setTimeout(r, rm ? Math.min(ms, 220) : ms)), [rm]);
 
-  const heat = Math.max(0, Math.min(1, (purity - PURITY_FLOOR) / (100 - PURITY_FLOOR)));
+  const heat = Math.max(0, Math.min(1, (glow - GLOW_FLOOR) / (100 - GLOW_FLOOR)));
 
   /* ── helpers ──────────────────────────────────────────────────────────── */
 
@@ -176,12 +184,12 @@ export default function TheCrucible({
     setSysCls(cls);
   };
 
-  const bumpPurity = useCallback((delta) => {
+  const bumpGlow = useCallback((delta) => {
     // capped at 99 — reaching 100 is the melting-point event, not a grind
-    const next = Math.max(PURITY_FLOOR, Math.min(PURITY_CEIL, purityRef.current + delta));
-    purityRef.current = next;
-    setPurity(next);
-    if (fx.current) fx.current.setHeat((next - PURITY_FLOOR) / (100 - PURITY_FLOOR));
+    const next = Math.max(GLOW_FLOOR, Math.min(GLOW_CEIL, glowRef.current + delta));
+    glowRef.current = next;
+    setGlow(next);
+    if (fx.current) fx.current.setHeat((next - GLOW_FLOOR) / (100 - GLOW_FLOOR));
     return next;
   }, []);
 
@@ -224,7 +232,7 @@ export default function TheCrucible({
   const seizeDrag = useRef({ active: false, y0: 0 });
 
   const onSeizeDown = (e) => {
-    if (phase !== "seize" || beat !== "grab") return;
+    if (phase !== "tear" || beat !== "grab") return;
     seizeDrag.current = { active: true, y0: e.clientY };
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* not fatal */ }
   };
@@ -261,24 +269,24 @@ export default function TheCrucible({
     if (!alive.current) return;
     sfxThunder(3);
     if (fx.current) fx.current.ring(window.innerWidth / 2, window.innerHeight * 0.5, cfg.lead, { r1: 460, ms: 700 });
-    setStageCard({ stage: "nigredo" });
+    setStageCard({ stage: "catch" });
     await wait(rm ? 400 : 2100);
     if (!alive.current) return;
     setStageCard(null);
-    setPhase("nigredo");
+    setPhase("catch");
     busy.current = false;
     nextLine(0);
   }
 
-  /* ══ MOVEMENT I · NIGREDO ══════════════════════════════════════════════
-     A ring closes. Catch it on the seam and the space opens. */
+  /* ══ MOVEMENT I · CATCH THE LIE ══════════════════════════════════════════════
+     A ring closes. Catch it on the seam and THE GAP opens. */
 
   const ringMs = () => Math.max(520, RING_MS + assist.current * ASSIST_RING_STEP);
   const band = () => RING_BAND + assist.current * ASSIST_BAND_STEP;
 
   async function nextLine(i) {
     if (!alive.current) return;
-    if (i >= plateLines.length) return startAlbedo();
+    if (i >= plateLines.length) return startPass();
     idxRef.current = i;
     setIdx(i);
     missRun.current = 0;
@@ -333,13 +341,13 @@ export default function TheCrucible({
       onLanded("TOO SOON. YOU SWUNG AT THE SHADOW OF IT.");
       return;
     }
-    openSpace();
+    openGap();
   }
 
-  // THE SPACE — Frankl's gap, rendered. Time dilates, colour drains, and
+  // THE GAP — Frankl's gap, rendered. Time dilates, colour drains, and
   // the line stops being something happening to you and becomes something
   // written down in front of you.
-  async function openSpace() {
+  async function openGap() {
     if (busy.current) return;
     busy.current = true;
     missRun.current = 0;
@@ -351,11 +359,11 @@ export default function TheCrucible({
       if (c) fx.current.ring(c.x, c.y, "#cfefff", { r1: 300, ms: 520, width: 4 });
     }
     flash("cool");
-    setBeat("space");
+    setBeat("gap");
     busy.current = false;
-    spaceTimer.current = setTimeout(() => {
-      if (alive.current && beatRef.current === "space") breakPlate(false);
-    }, rm ? 900 : SPACE_MS);
+    gapTimer.current = setTimeout(() => {
+      if (alive.current && beatRef.current === "gap") breakPlate(false);
+    }, rm ? 900 : GAP_MS);
   }
 
   // keep a live mirror of `beat` for timers that outlive a render
@@ -367,7 +375,7 @@ export default function TheCrucible({
   async function breakPlate(clean) {
     if (busy.current) return;
     busy.current = true;
-    clearTimeout(spaceTimer.current);
+    clearTimeout(gapTimer.current);
     const i = idxRef.current;
 
     if (clean) {
@@ -375,7 +383,7 @@ export default function TheCrucible({
       setStats({ ...statsRef.current });
       sfxForgeStrike();
       sfxShatter();
-      bumpPurity(PURITY_CLEAN);
+      bumpGlow(GLOW_CLEAN);
       say("CLEAN BREAK — YOU HIT THE WORD IT WAS STANDING ON.", "good");
       if (fx.current) {
         fx.current.addTrauma(0.85);
@@ -383,7 +391,7 @@ export default function TheCrucible({
       }
     } else {
       sfxBossHit();
-      bumpPurity(PURITY_BREAK);
+      bumpGlow(GLOW_BREAK);
       say("STRUCK. THE PLATE GIVES.", "ok");
       if (fx.current) fx.current.addTrauma(0.45);
     }
@@ -414,7 +422,7 @@ export default function TheCrucible({
     missRun.current += 1;
     assist.current = Math.min(MAX_ASSIST, assist.current + 1);
     sfxImpact(2);
-    bumpPurity(PURITY_LAND);
+    bumpGlow(GLOW_LAND);
     if (fx.current) fx.current.addTrauma(0.7);
     flash("red");
     setBeat("landed");
@@ -437,10 +445,10 @@ export default function TheCrucible({
     throwLine();
   }
 
-  /* ══ MOVEMENT II · ALBEDO ══════════════════════════════════════════════
+  /* ══ MOVEMENT II · LET IT PASS ══════════════════════════════════════════════
      The plates are off. Now it only has your handwriting. */
 
-  async function startAlbedo() {
+  async function startPass() {
     busy.current = true;
     stopRing();
     sfxBossDown();
@@ -450,11 +458,11 @@ export default function TheCrucible({
       if (c) fx.current.ring(c.x, c.y, "#e8eefc", { r1: 520, ms: 800, width: 6 });
     }
     flash("white");
-    setPhase("albedo");
+    setPhase("pass");
     setBeat("turn");
     await wait(rm ? 300 : 1500);
     if (!alive.current) return;
-    setStageCard({ stage: "albedo" });
+    setStageCard({ stage: "pass" });
     await wait(rm ? 400 : 2400);
     if (!alive.current) return;
     setStageCard(null);
@@ -467,7 +475,7 @@ export default function TheCrucible({
 
   async function witnessLine(i) {
     if (!alive.current) return;
-    if (i >= albedo.length) return startCitrinitas();
+    if (i >= blame.length) return startAnswer();
     idxRef.current = i;
     setIdx(i);
     setBeat("witness");
@@ -506,7 +514,7 @@ export default function TheCrucible({
     statsRef.current.witnessed += 1;
     setStats({ ...statsRef.current });
     sfxHalo();
-    bumpPurity(PURITY_WITNESS);
+    bumpGlow(GLOW_WITNESS);
     setBeat("passed");
     say("IT PASSED THROUGH. YOU DIDN'T HAVE TO DO ANYTHING WITH IT.", "good");
     if (fx.current) {
@@ -527,7 +535,7 @@ export default function TheCrucible({
     setSwung(true);
     statsRef.current.dodged += 1;
     sfxBlock();
-    bumpPurity(PURITY_SWING);
+    bumpGlow(GLOW_SWING);
     if (fx.current) fx.current.addTrauma(0.5);
     flash("red");
     say("YOU CAN'T CUT YOUR OWN WORDS. IT ONLY GOT LOUDER.", "err");
@@ -537,15 +545,15 @@ export default function TheCrucible({
     say("LET IT FINISH. DO NOTHING.", "");
   }
 
-  /* ══ MOVEMENT III · CITRINITAS ═════════════════════════════════════════
+  /* ══ MOVEMENT III · ANSWER IT STRAIGHT ═════════════════════════════════════════
      It stops attacking and asks what it actually came to ask. */
 
-  async function startCitrinitas() {
+  async function startAnswer() {
     busy.current = true;
     stopWitness();
-    setPhase("citrinitas");
+    setPhase("answer");
     setBeat("open");
-    say(""); // the Albedo verdict must not bleed under the question panel
+    say(""); // the LET IT PASS verdict must not bleed under the question panel
     sfxScrollUnfurl();
     if (fx.current) {
       fx.current.setHeat(0.6);
@@ -554,7 +562,7 @@ export default function TheCrucible({
     }
     await wait(rm ? 300 : 1400);
     if (!alive.current) return;
-    setStageCard({ stage: "citrinitas" });
+    setStageCard({ stage: "answer" });
     await wait(rm ? 400 : 2400);
     if (!alive.current) return;
     setStageCard(null);
@@ -569,7 +577,7 @@ export default function TheCrucible({
     busy.current = true;
     if (!a.truth) {
       sfxPlateClank();
-      bumpPurity(PURITY_DODGE);
+      bumpGlow(GLOW_DODGE);
       setWrongIds((w) => [...w, i]);
       setSting(a.sting || "That one is the mask's handwriting.");
       // a plate rivets itself back on — the consequence you can watch
@@ -592,7 +600,7 @@ export default function TheCrucible({
     setSting("");
     sfxIgnite();
     sfxHorn(1);
-    bumpPurity(PURITY_TRUE);
+    bumpGlow(GLOW_TRUE);
     setBeat("answered");
     // every plate falls at once
     platesRef.current = [false, false, false, false];
@@ -610,24 +618,24 @@ export default function TheCrucible({
     flash("gold");
     await wait(rm ? 500 : 2200);
     if (!alive.current) return;
-    startRubedo();
+    startPour();
   }
 
-  /* ══ MOVEMENT IV · RUBEDO ══════════════════════════════════════════════
+  /* ══ MOVEMENT IV · POUR IT OUT ══════════════════════════════════════════════
      Melting point. Tip it and pour. */
 
-  async function startRubedo() {
+  async function startPour() {
     busy.current = true;
-    setPhase("rubedo");
+    setPhase("pour");
     setBeat("melt");
     // whatever the run cost, the metal reaches melting point — the grade
     // records how cleanly you got here, it never blocks the pour
-    earnedRef.current = purityRef.current;
-    purityRef.current = 100;
-    setPurity(100);
+    earnedRef.current = glowRef.current;
+    glowRef.current = 100;
+    setGlow(100);
     if (fx.current) fx.current.setHeat(1);
     if (fireLoop.current) fireLoop.current.setLevel(0.5);
-    setStageCard({ stage: "rubedo" });
+    setStageCard({ stage: "pour" });
     await wait(rm ? 400 : 2400);
     if (!alive.current) return;
     setStageCard(null);
@@ -689,7 +697,7 @@ export default function TheCrucible({
   useEffect(() => {
     alive.current = true;
     fx.current = createCrucibleFX(canvasRef.current, { reducedMotion: rm });
-    fx.current.setHeat((PURITY_START - PURITY_FLOOR) / (100 - PURITY_FLOOR));
+    fx.current.setHeat((GLOW_START - GLOW_FLOOR) / (100 - GLOW_FLOOR));
     if (!rm) {
       fireLoop.current = sfxFireLoop();
       fireLoop.current.setLevel(0.14);
@@ -710,7 +718,7 @@ export default function TheCrucible({
       alive.current = false;
       stopRing();
       stopWitness();
-      clearTimeout(spaceTimer.current);
+      clearTimeout(gapTimer.current);
       if (fx.current) fx.current.destroy();
       if (fireLoop.current) fireLoop.current.stop();
       if (heartLoop.current) heartLoop.current.stop();
@@ -735,21 +743,21 @@ export default function TheCrucible({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beat]);
 
-  const grade = gradePurity(earnedRef.current);
+  const grade = gradeGlow(earnedRef.current);
   // Same law as the effigy: identity owns the cold state, the furnace owns
   // the hot one. Without this the warrior's and genius's cool palettes make
-  // the crucible mouth and the purity bar glow blue at melting point.
-  const glow = heat > 0.5 ? "#ffc247" : heat > 0.28 ? cfg.molten : cfg.lead;
-  const line = phase === "nigredo" ? plateLines[Math.min(idx, plateLines.length - 1)] : null;
+  // the crucible mouth and the GLOW bar go blue at melting point.
+  const fireTint = heat > 0.5 ? "#ffc247" : heat > 0.28 ? cfg.molten : cfg.lead;
+  const line = phase === "catch" ? plateLines[Math.min(idx, plateLines.length - 1)] : null;
   const chunks = line ? splitHot(line.line, line.hot) : [];
-  const dilated = beat === "space";
+  const dilated = beat === "gap";
 
   const overlay = (
     <div
       className={`cru${rm ? " cru--still" : ""}${dilated ? " cru--dilated" : ""}`}
       style={{
         "--cru-accent": cfg.lead,
-        "--cru-molten": glow,
+        "--cru-molten": fireTint,
         "--cru-arena": cfg.crucible,
         "--cru-heat": heat,
       }}
@@ -768,27 +776,27 @@ export default function TheCrucible({
           </button>
           <div className="cru-stagelabel">
             <span className="cru-stagelabel__n">
-              {phase === "seize" ? "THE SEIZING" : STAGE_META[phase]?.name || "RUBEDO"}
+              {phase === "tear" ? "TEAR IT OFF" : STAGE_META[phase]?.name || "POUR IT OUT"}
             </span>
             <span className="cru-stagelabel__e">
-              {phase === "seize" ? "Take it off" : STAGE_META[phase]?.en || "The Reddening"}
+              {phase === "tear" ? "it's on your face" : STAGE_META[phase]?.en || "melting point"}
             </span>
           </div>
         </header>
 
-        {/* ── PURITY — the one meter ─────────────────────────────────── */}
-        <div className="cru-purity" role="meter" aria-valuenow={Math.round(purity)} aria-valuemin={0} aria-valuemax={100} aria-label="Purity of the metal">
-          <div className="cru-purity__head">
-            <span>PURITY</span>
-            <span className="cru-purity__v">{Math.round(purity)}</span>
+        {/* ── GLOW — the one meter ─────────────────────────────────── */}
+        <div className="cru-glow" role="meter" aria-valuenow={Math.round(glow)} aria-valuemin={0} aria-valuemax={100} aria-label="Glow of the metal">
+          <div className="cru-glow__head">
+            <span>GLOW</span>
+            <span className="cru-glow__v">{Math.round(glow)}</span>
           </div>
-          <div className="cru-purity__bar">
-            <div className="cru-purity__fill" style={{ width: `${purity}%` }} />
+          <div className="cru-glow__bar">
+            <div className="cru-glow__fill" style={{ width: `${glow}%` }} />
             {[25, 50, 75].map((t) => (
-              <span key={t} className={`cru-purity__tick${purity >= t ? " on" : ""}`} style={{ left: `${t}%` }} />
+              <span key={t} className={`cru-glow__tick${glow >= t ? " on" : ""}`} style={{ left: `${t}%` }} />
             ))}
           </div>
-          <div className="cru-purity__note">not his health · not yours · the metal</div>
+          <div className="cru-glow__note">not his health · not yours · the metal</div>
         </div>
 
         {/* ── the effigy ─────────────────────────────────────────────── */}
@@ -802,9 +810,9 @@ export default function TheCrucible({
               molten={cfg.molten}
               reducedMotion={rm}
               state={
-                phase === "rubedo" || phase === "forged"
+                phase === "pour" || phase === "forged"
                   ? "molten"
-                  : phase === "citrinitas"
+                  : phase === "answer"
                     ? "open"
                     : beat === "wind"
                       ? "wind"
@@ -825,23 +833,23 @@ export default function TheCrucible({
         </div>
 
         {/* ── the line in the air ────────────────────────────────────── */}
-        {phase === "nigredo" && (beat === "incoming" || beat === "landed" || beat === "wind") && line ? (
+        {phase === "catch" && (beat === "incoming" || beat === "landed" || beat === "wind") && line ? (
           <div className={`cru-line cru-line--${beat}${line.mine ? " cru-line--mine" : ""}`} aria-live="polite">
             {line.mine ? <span className="cru-line__tag">IN YOUR OWN WORDS</span> : null}
             <p>{line.line}</p>
           </div>
         ) : null}
 
-        {/* ── THE SPACE — the dilated window ─────────────────────────── */}
+        {/* ── THE GAP — the dilated window ─────────────────────────── */}
         {dilated && line ? (
-          <div className="cru-space">
-            <div className="cru-space__label">THE SPACE</div>
-            <div className="cru-space__sub">
+          <div className="cru-gap">
+            <div className="cru-gap__label">THE GAP</div>
+            <div className="cru-gap__sub">
               It stopped being something happening to you. Now read it.
               <br />
               <b>Strike the word it's standing on.</b>
             </div>
-            <p className="cru-space__line">
+            <p className="cru-gap__line">
               {chunks.map((c, i) =>
                 c.hot ? (
                   <button
@@ -862,23 +870,23 @@ export default function TheCrucible({
                 )
               )}
             </p>
-            <div className="cru-space__timer" style={{ animationDuration: `${rm ? 900 : SPACE_MS}ms` }} />
+            <div className="cru-gap__timer" style={{ animationDuration: `${rm ? 900 : GAP_MS}ms` }} />
           </div>
         ) : null}
 
-        {/* ── ALBEDO: your own words, drifting ───────────────────────── */}
-        {phase === "albedo" && (beat === "witness" || beat === "passed") ? (
+        {/* ── LET IT PASS: your own words, drifting ───────────────────────── */}
+        {phase === "pass" && (beat === "witness" || beat === "passed") ? (
           <div className={`cru-mine cru-mine--${beat}`} aria-live="polite">
             <span className="cru-mine__tag">YOUR WORDS · STEP TWO</span>
-            <p>{albedo[Math.min(idx, albedo.length - 1)]}</p>
+            <p>{blame[Math.min(idx, blame.length - 1)]}</p>
           </div>
         ) : null}
 
-        {/* ── CITRINITAS: the question ───────────────────────────────── */}
-        {phase === "citrinitas" && (beat === "ask" || beat === "answered") ? (
+        {/* ── ANSWER IT STRAIGHT: the question ───────────────────────────────── */}
+        {phase === "answer" && (beat === "ask" || beat === "answered") ? (
           <div className="cru-ask">
             <p className="cru-ask__inner">&ldquo;{inner}&rdquo;</p>
-            <p className="cru-ask__q">{cfg.citrinitas.ask}</p>
+            <p className="cru-ask__q">{cfg.question.ask}</p>
             {beat === "ask" ? (
               <>
                 <div className="cru-answers">
@@ -903,10 +911,10 @@ export default function TheCrucible({
           </div>
         ) : null}
 
-        {/* ── RUBEDO: the pour ───────────────────────────────────────── */}
-        {phase === "rubedo" && (beat === "pour-ready" || beat === "pouring" || beat === "poured") ? (
+        {/* ── POUR IT OUT: the pour ───────────────────────────────────────── */}
+        {phase === "pour" && (beat === "pour-ready" || beat === "pouring" || beat === "poured") ? (
           <div className="cru-pour">
-            <p className="cru-pour__t">{cfg.rubedo}</p>
+            <p className="cru-pour__t">{cfg.pourLine}</p>
             <div
               className={`cru-pour__handle${beat === "pouring" ? " is-live" : ""}`}
               onPointerDown={onPourDown}
@@ -955,7 +963,7 @@ export default function TheCrucible({
               <span className="cru-grade__note">{grade.note}</span>
               <span className="cru-grade__stats">
                 {statsRef.current.clean} clean {statsRef.current.clean === 1 ? "break" : "breaks"} ·{" "}
-                {statsRef.current.witnessed}/{albedo.length} let through · purity{" "}
+                {statsRef.current.witnessed}/{blame.length} let through · glow{" "}
                 {Math.round(earnedRef.current)} at melting point
               </span>
             </div>
@@ -964,7 +972,7 @@ export default function TheCrucible({
               className="cru-forged__go"
               onClick={() =>
                 onWin?.({
-                  purity: Math.round(earnedRef.current),
+                  glow: Math.round(earnedRef.current),
                   grade: grade.rank,
                   clean: statsRef.current.clean,
                   witnessed: statsRef.current.witnessed,
@@ -977,13 +985,13 @@ export default function TheCrucible({
         ) : null}
 
         {/* ── the response dock ────────────────────────────────────────
-            Citrinitas onward own the bottom of the screen outright, so the
+            ANSWER IT STRAIGHT onward owns the bottom of the screen outright, so the
             dock is removed rather than hidden — otherwise its status line
             prints straight through the question and the pour handle. */}
-        <div className={`cru-dock${phase === "citrinitas" || phase === "rubedo" || phase === "forged" ? " cru-dock--gone" : ""}`}>
+        <div className={`cru-dock${phase === "answer" || phase === "pour" || phase === "forged" ? " cru-dock--gone" : ""}`}>
           <div className={`cru-sys ${sysCls}`} aria-live="polite">{sys}</div>
 
-          {phase === "seize" && beat === "grab" ? (
+          {phase === "tear" && beat === "grab" ? (
             <div className="cru-seize">
               <p className="cru-seize__t">It is still on your face.</p>
               <p className="cru-seize__s">{cfg.seize}</p>
@@ -1015,14 +1023,14 @@ export default function TheCrucible({
             </div>
           ) : null}
 
-          {phase === "nigredo" && beat === "incoming" ? (
+          {phase === "catch" && beat === "incoming" ? (
             <button type="button" className="cru-catch" onClick={onCatch}>
               Catch it
               <small>on the seam</small>
             </button>
           ) : null}
 
-          {phase === "albedo" && beat === "witness" ? (
+          {phase === "pass" && beat === "witness" ? (
             <div className="cru-witness">
               <button type="button" className={`cru-swing${swung ? " is-warned" : ""}`} onClick={onSwing}>
                 {swung ? "Swing again?" : "Strike it"}

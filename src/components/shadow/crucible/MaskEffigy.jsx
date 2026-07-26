@@ -26,7 +26,7 @@ import React, { useId, useMemo } from "react";
 //
 // props
 //   kind    king | saint | genius | victim | warrior
-//   heat    0..1  — purity, drives the whole material
+//   heat    0..1  — the GLOW meter normalized; drives the whole material
 //   plates  bool[4] — which lead plates are still riveted on
 //   accent  the mask's colour
 //   state   idle | wind | hit | open | molten
