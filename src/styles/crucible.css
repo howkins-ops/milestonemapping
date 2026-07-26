@@ -1,0 +1,937 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE CRUCIBLE — the Shadow Alchemist's boss fight.
+   Prefix: .cru-  (effigy internals: .ce-)
+
+   Visual law: this is a FOUNDRY, not the City's night street. Everything
+   is lit from below by the crucible mouth, the palette is lead-grey against
+   molten gold, and the mask hangs — it never stands. Type is Sora/Manrope
+   per the house rule; no utility monospace anywhere.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.cru {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  overflow: hidden;
+  background: #04030a;
+  color: #f2f0f4;
+  font-family: var(--font-body, "Manrope", sans-serif);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+.cru button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+.cru button:focus-visible,
+.cru [role="slider"]:focus-visible {
+  outline: 2px solid #9fe4ff;
+  outline-offset: 3px;
+}
+
+/* ── the pit ────────────────────────────────────────────────────────────── */
+.cru-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% 118%, color-mix(in srgb, var(--cru-molten) 34%, transparent), transparent 62%),
+    radial-gradient(90% 60% at 50% 112%, color-mix(in srgb, var(--cru-arena) 85%, transparent), transparent 70%),
+    radial-gradient(70% 50% at 18% 6%, rgba(123, 44, 255, 0.14), transparent 68%),
+    radial-gradient(70% 50% at 86% 10%, rgba(0, 240, 255, 0.09), transparent 68%),
+    #04030a;
+  transition: filter 0.5s ease;
+}
+/* the crucible mouth: the light source everything is lit by */
+.cru-mouth {
+  position: absolute;
+  left: 50%;
+  bottom: -16vh;
+  width: min(150vw, 1500px);
+  height: 46vh;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 0 0;
+  background: radial-gradient(60% 78% at 50% 100%,
+      rgba(255, 250, 232, calc(0.22 + var(--cru-heat) * 0.5)),
+      color-mix(in srgb, var(--cru-molten) 62%, transparent) 32%,
+      transparent 72%);
+  filter: blur(14px);
+  opacity: calc(0.4 + var(--cru-heat) * 0.6);
+  transition: opacity 0.8s ease;
+  animation: cruMouth 5.5s ease-in-out infinite alternate;
+}
+@keyframes cruMouth {
+  from { transform: translateX(-50%) scaleY(1); }
+  to   { transform: translateX(-50%) scaleY(1.09); }
+}
+
+.cru-shake {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cru-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.cru-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+}
+.cru-flash.white { background: #fff; animation: cruFlash 0.2s linear forwards; }
+.cru-flash.cool  { background: radial-gradient(circle at 50% 45%, rgba(200, 240, 255, 0.95), rgba(30, 80, 120, 0.5)); animation: cruFlash 0.32s linear forwards; }
+.cru-flash.red   { background: radial-gradient(circle at 50% 45%, rgba(255, 70, 40, 0.92), rgba(110, 10, 0, 0.72)); animation: cruFlash 0.22s linear forwards; }
+.cru-flash.gold  { background: radial-gradient(circle at 50% 55%, rgba(255, 236, 178, 0.98), rgba(255, 150, 40, 0.6)); animation: cruFlash 0.5s linear forwards; }
+@keyframes cruFlash { from { opacity: 1; } to { opacity: 0; } }
+
+/* ── THE SPACE — time dilation.
+   Bayonetta's Witch Time, and Frankl's gap between stimulus and response.
+   The world desaturates and softens; only the frozen line stays sharp. ── */
+.cru--dilated .cru-bg,
+.cru--dilated .cru-mouth,
+.cru--dilated .cru-stage,
+.cru--dilated .cru-purity,
+.cru--dilated .cru-top {
+  filter: saturate(0.12) brightness(0.62) blur(2px);
+  transition: filter 0.28s ease;
+}
+.cru--dilated .cru-dock { opacity: 0; pointer-events: none; }
+
+/* ── top chrome ─────────────────────────────────────────────────────────── */
+.cru-top {
+  position: relative;
+  z-index: 20;
+  width: min(760px, 94vw);
+  padding: calc(14px + env(safe-area-inset-top)) 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cru-exit {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgba(242, 240, 244, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  padding: 8px 13px;
+  background: rgba(6, 6, 12, 0.6);
+}
+.cru-exit:hover { color: #f2f0f4; border-color: rgba(255, 255, 255, 0.3); }
+.cru-stagelabel { text-align: right; }
+.cru-stagelabel__n {
+  display: block;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--cru-molten);
+}
+.cru-stagelabel__e {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: rgba(242, 240, 244, 0.45);
+  margin-top: 3px;
+}
+
+/* ── PURITY — the one meter ─────────────────────────────────────────────── */
+.cru-purity {
+  position: relative;
+  z-index: 20;
+  width: min(760px, 94vw);
+  margin-top: 12px;
+}
+.cru-purity__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: rgba(242, 240, 244, 0.5);
+}
+.cru-purity__v {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, #fff calc(var(--cru-heat) * 70%), var(--cru-molten));
+  text-shadow: 0 0 18px color-mix(in srgb, var(--cru-molten) 70%, transparent);
+}
+.cru-purity__bar {
+  position: relative;
+  height: 8px;
+  margin-top: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 10, 18, 0.75);
+  overflow: hidden;
+}
+.cru-purity__fill {
+  height: 100%;
+  /* cold lead → the mask's own colour → furnace. The top of the ramp is
+     always fire-coloured so a blue-palette mask can't read "hot = blue". */
+  background: linear-gradient(90deg,
+      #3d4252 0%, #6b7286 20%, var(--cru-accent) 48%,
+      #ff8c2b 74%, #ffd06a 90%, #fff8e2 100%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--cru-molten) 60%, transparent);
+  transition: width 0.55s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.cru-purity__tick {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+.cru-purity__tick.on { background: rgba(255, 240, 200, 0.7); }
+.cru-purity__note {
+  margin-top: 5px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: rgba(242, 240, 244, 0.3);
+}
+
+/* ── the stage ──────────────────────────────────────────────────────────── */
+.cru-stage {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+.cru-effigy-wrap {
+  width: min(34vh, 260px);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.7));
+  transition: transform 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.cru-beat--wind .cru-effigy-wrap { transform: scale(1.07) translateY(-1.5%); }
+.cru-beat--landed .cru-effigy-wrap { transform: scale(1.03); }
+.cru-beat--broke .cru-effigy-wrap { transform: scale(0.985) rotate(-1.2deg); }
+.cru-stage--rubedo .cru-effigy-wrap,
+.cru-stage--forged .cru-effigy-wrap { transform: scale(0.92); }
+
+/* ── the catch ring + the seam it has to land on ───────────────────────── */
+.cru-seam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(34vh, 260px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(200, 236, 255, 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 26px rgba(120, 200, 255, 0.2), inset 0 0 26px rgba(120, 200, 255, 0.12);
+}
+.cru-seam--soft { border-style: solid; border-color: rgba(223, 230, 242, 0.3); box-shadow: none; }
+.cru-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(34vh, 260px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(2.9);
+  border: 3px solid color-mix(in srgb, var(--cru-accent) 85%, #fff);
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--cru-accent) 60%, transparent);
+}
+.cru-ring--hot {
+  border-color: #ffffff;
+  box-shadow: 0 0 46px rgba(255, 255, 255, 0.85), 0 0 90px color-mix(in srgb, var(--cru-molten) 70%, transparent);
+}
+.cru-ring--witness {
+  border-style: solid;
+  border-width: 2px;
+  border-color: rgba(223, 230, 242, 0.5);
+  box-shadow: 0 0 24px rgba(223, 230, 242, 0.25);
+}
+
+/* ── the line in the air ────────────────────────────────────────────────── */
+.cru-line {
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  z-index: 22;
+  width: min(660px, 92vw);
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+.cru-line p {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(21px, 5.4vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #f7f4ee;
+  text-shadow:
+    2px 0 0 color-mix(in srgb, var(--cru-accent) 70%, transparent),
+    -2px 0 0 rgba(111, 210, 255, 0.3),
+    0 0 46px color-mix(in srgb, var(--cru-accent) 40%, transparent);
+}
+.cru-line--incoming p { animation: cruThrow 0.5s cubic-bezier(0.2, 1.3, 0.3, 1); }
+.cru-line--landed p { animation: cruLand 0.4s ease; color: #ffbfae; }
+.cru-line--wind p { opacity: 0.25; }
+@keyframes cruThrow {
+  0%   { transform: scale(2.2) translateY(-8%); opacity: 0; filter: blur(6px); }
+  60%  { transform: scale(0.97); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); }
+}
+@keyframes cruLand {
+  0%   { transform: translateY(0) scale(1); }
+  35%  { transform: translateY(9px) scale(1.06); }
+  100% { transform: translateY(0) scale(1); }
+}
+.cru-line__tag,
+.cru-mine__tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: rgba(223, 230, 242, 0.55);
+  border: 1px solid rgba(223, 230, 242, 0.25);
+  padding: 4px 9px;
+  margin-bottom: 10px;
+}
+.cru-line--mine p { color: #dfe6f2; text-shadow: 0 0 40px rgba(223, 230, 242, 0.35); }
+
+/* ── THE SPACE panel ────────────────────────────────────────────────────── */
+.cru-space {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 50%, rgba(8, 18, 28, 0.72), rgba(3, 5, 10, 0.92));
+  animation: cruSpaceIn 0.3s ease;
+}
+@keyframes cruSpaceIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; } }
+.cru-space__label {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  color: #9fe4ff;
+  text-shadow: 0 0 26px rgba(111, 210, 255, 0.7);
+}
+.cru-space__sub {
+  font-size: 11.5px;
+  line-height: 1.75;
+  letter-spacing: 0.06em;
+  color: rgba(223, 240, 255, 0.62);
+  max-width: 420px;
+}
+.cru-space__sub b { color: #cfefff; }
+.cru-space__line {
+  max-width: min(760px, 94vw);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(23px, 6vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+}
+.cru-cold,
+.cru-hot {
+  font: inherit;
+  padding: 0;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s, transform 0.12s;
+  white-space: pre-wrap;
+}
+.cru-cold { color: rgba(226, 232, 240, 0.72); }
+.cru-cold:hover { color: #e2e8f0; }
+.cru-hot {
+  color: #04121c;
+  background: linear-gradient(180deg, #ffffff, #9fe4ff);
+  padding: 0 8px;
+  box-shadow: 0 0 34px rgba(111, 210, 255, 0.55);
+  animation: cruHot 1.1s ease-in-out infinite;
+}
+.cru-hot:hover { transform: translateY(-2px) scale(1.03); }
+@keyframes cruHot {
+  0%, 100% { box-shadow: 0 0 26px rgba(111, 210, 255, 0.45); }
+  50%      { box-shadow: 0 0 52px rgba(111, 210, 255, 0.85); }
+}
+.cru-space__timer {
+  width: min(340px, 70vw);
+  height: 2px;
+  background: rgba(159, 228, 255, 0.9);
+  transform-origin: left center;
+  animation-name: cruTimer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes cruTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* ── ALBEDO: your own words ─────────────────────────────────────────────── */
+.cru-mine {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  z-index: 22;
+  width: min(640px, 92vw);
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+.cru-mine p {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 700;
+  font-size: clamp(19px, 4.8vw, 34px);
+  line-height: 1.25;
+  color: #e8eefc;
+  text-shadow: 0 0 44px rgba(223, 230, 242, 0.34);
+}
+.cru-mine--witness p { animation: cruDrift 3.4s linear; }
+@keyframes cruDrift {
+  0%   { transform: scale(0.86) translateY(-14px); opacity: 0; filter: blur(4px); }
+  22%  { opacity: 1; filter: blur(0); }
+  100% { transform: scale(1.16) translateY(16px); opacity: 0.55; }
+}
+.cru-mine--passed p { animation: cruDissolve 1.3s ease forwards; }
+@keyframes cruDissolve {
+  0%   { opacity: 0.8; filter: blur(0); }
+  100% { opacity: 0; filter: blur(12px); transform: scale(1.3); }
+}
+
+/* ── CITRINITAS: the question ───────────────────────────────────────────── */
+.cru-ask {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 24;
+  width: min(660px, 100vw);
+  /* never taller than the screen — the three answers scroll rather than
+     running off the bottom on a short phone */
+  max-height: 74vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(-50%);
+  text-align: center;
+  padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(6, 8, 14, 0.2), rgba(6, 8, 14, 0.97) 22%);
+  border-top: 1px solid rgba(255, 216, 77, 0.3);
+}
+.cru-ask__inner {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #ffe9a8;
+  font-style: italic;
+  opacity: 0.9;
+}
+.cru-ask__q {
+  margin-top: 10px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(17px, 4.2vw, 25px);
+  line-height: 1.25;
+  color: #fff6de;
+  text-shadow: 0 0 34px rgba(255, 216, 77, 0.4);
+}
+.cru-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cru-answer {
+  padding: 13px 15px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: left;
+  color: #f7f3e8;
+  border: 1px solid rgba(255, 216, 77, 0.55);
+  background: linear-gradient(180deg, rgba(255, 216, 77, 0.14), rgba(38, 28, 6, 0.72));
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 240, 190, 0.14);
+  transition: transform 0.12s, border-color 0.2s, background 0.2s;
+}
+.cru-answer:hover { transform: translateY(-2px); border-color: rgba(255, 216, 77, 0.7); }
+.cru-answer.is-wrong {
+  opacity: 0.32;
+  border-color: rgba(255, 91, 61, 0.5);
+  text-decoration: line-through;
+  cursor: default;
+  animation: cruShudder 0.36s ease;
+}
+@keyframes cruShudder {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-7px); }
+  75% { transform: translateX(7px); }
+}
+.cru-sting {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #ffb49b;
+}
+.cru-ask__hint,
+.cru-ask__done {
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(242, 240, 244, 0.38);
+}
+.cru-ask__done { color: #ffe9a8; font-size: 12px; letter-spacing: 0.12em; }
+
+/* ── RUBEDO: the pour ───────────────────────────────────────────────────── */
+.cru-pour {
+  position: absolute;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 24;
+  width: min(560px, 92vw);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.cru-pour__t {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 700;
+  font-size: clamp(15px, 3.6vw, 21px);
+  line-height: 1.4;
+  color: #ffe9c2;
+  text-shadow: 0 0 30px rgba(255, 150, 60, 0.4);
+}
+
+/* a shared vertical drag rail — used by both the seize and the pour */
+.cru-pour__handle,
+.cru-seize__grip {
+  position: relative;
+  width: min(260px, 72vw);
+  height: 96px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  user-select: none;
+  border: 1px solid rgba(255, 190, 110, 0.5);
+  background: linear-gradient(180deg, rgba(255, 190, 110, 0.08), rgba(40, 18, 4, 0.55));
+  box-shadow: inset 0 0 30px rgba(255, 150, 60, 0.12);
+}
+.cru-seize__grip {
+  border-color: rgba(200, 220, 255, 0.4);
+  background: linear-gradient(180deg, rgba(200, 220, 255, 0.07), rgba(10, 14, 24, 0.6));
+  box-shadow: inset 0 0 30px rgba(150, 190, 255, 0.1);
+}
+.cru-pour__fill,
+.cru-seize__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: linear-gradient(180deg, rgba(255, 246, 216, 0.95), var(--cru-molten));
+  box-shadow: 0 0 40px color-mix(in srgb, var(--cru-molten) 80%, transparent);
+  transition: height 0.08s linear;
+}
+.cru-seize__fill { background: linear-gradient(180deg, rgba(226, 240, 255, 0.9), rgba(120, 160, 210, 0.7)); }
+.cru-pour__label,
+.cru-seize__label {
+  position: relative;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+.cru-pour__arrow,
+.cru-seize__arrow {
+  position: absolute;
+  bottom: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  animation: cruNudge 1.4s ease-in-out infinite;
+}
+@keyframes cruNudge {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50%      { transform: translateY(5px); opacity: 1; }
+}
+
+/* ── the ingot ──────────────────────────────────────────────────────────── */
+.cru-forged {
+  position: absolute;
+  inset: 0;
+  z-index: 32;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 26px;
+  text-align: center;
+  /* fully opaque — the Rubedo chrome underneath must not read through */
+  background: radial-gradient(circle at 50% 62%, rgba(46, 24, 4, 0.97), rgba(4, 3, 10, 1) 66%);
+  animation: cruFadeIn 0.8s ease;
+}
+@keyframes cruFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.cru-ingot {
+  position: relative;
+  width: min(220px, 60vw);
+  height: 86px;
+  margin-bottom: 6px;
+  animation: cruIngot 1.2s cubic-bezier(0.2, 1.2, 0.3, 1);
+}
+.cru-ingot__body {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  /* a trapezoid ingot, lit from the top-left */
+  clip-path: polygon(9% 0, 91% 0, 100% 100%, 0 100%);
+  background: linear-gradient(155deg, #fff8dc 0%, #ffd36a 26%, #e8a326 54%, #a86a12 82%, #6b4008 100%);
+  box-shadow: 0 22px 60px rgba(255, 160, 40, 0.4), 0 0 90px rgba(255, 190, 80, 0.3);
+}
+.cru-ingot__shine {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(9% 0, 91% 0, 100% 100%, 0 100%);
+  background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, 0.85) 48%, transparent 60%);
+  animation: cruShine 3.2s ease-in-out infinite;
+}
+@keyframes cruShine { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
+@keyframes cruIngot {
+  0%   { transform: scale(0.4) translateY(40px); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.cru-forged__t {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(28px, 7.5vw, 52px);
+  line-height: 1.02;
+  color: #fff6de;
+  text-shadow: 0 0 60px rgba(255, 190, 80, 0.5);
+}
+.cru-forged__s {
+  max-width: 480px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: rgba(242, 240, 244, 0.7);
+}
+.cru-grade {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  padding: 12px 22px;
+  border: 1px solid rgba(255, 216, 77, 0.4);
+  background: rgba(255, 216, 77, 0.06);
+  border-radius: 12px;
+}
+.cru-grade__rank {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 0.3em;
+  color: #ffd84d;
+}
+.cru-grade__note { font-size: 12px; color: rgba(242, 240, 244, 0.75); }
+.cru-grade__stats { font-size: 10px; letter-spacing: 0.12em; color: rgba(242, 240, 244, 0.4); }
+.cru-forged__go {
+  margin-top: 6px;
+  padding: 16px 38px;
+  border-radius: 999px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: #23150a;
+  background: linear-gradient(180deg, #ffe9a8, #f5b02a);
+  box-shadow: 0 14px 44px rgba(245, 176, 42, 0.4);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.cru-forged__go:hover { transform: translateY(-2px); box-shadow: 0 18px 56px rgba(245, 176, 42, 0.55); }
+
+/* ── the dock ───────────────────────────────────────────────────────────── */
+.cru-dock {
+  position: relative;
+  z-index: 26;
+  width: min(660px, 94vw);
+  padding: 0 0 calc(22px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: opacity 0.25s ease;
+}
+/* Citrinitas / Rubedo / the ingot own the bottom of the screen outright */
+.cru-dock--gone { display: none; }
+.cru-sys {
+  min-height: 18px;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-align: center;
+  color: rgba(242, 240, 244, 0.5);
+}
+.cru-sys.err  { color: #ff8a6b; }
+.cru-sys.good { color: #7ef0c8; }
+.cru-sys.ok   { color: #cfefff; }
+
+.cru-catch {
+  width: min(380px, 84vw);
+  padding: 20px;
+  border-radius: 16px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #04121c;
+  background: linear-gradient(180deg, #ffffff, #9fe4ff);
+  box-shadow: 0 0 48px rgba(111, 210, 255, 0.4);
+  transition: transform 0.1s;
+}
+.cru-catch small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: none;
+  opacity: 0.65;
+}
+.cru-catch:active { transform: scale(0.96); }
+
+.cru-witness { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+.cru-swing {
+  width: min(320px, 80vw);
+  padding: 15px;
+  border-radius: 14px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd9cd;
+  border: 1px solid rgba(255, 60, 30, 0.6);
+  background: linear-gradient(180deg, rgba(255, 60, 30, 0.22), rgba(120, 18, 0, 0.2));
+}
+.cru-swing small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: none;
+  opacity: 0.7;
+}
+.cru-swing.is-warned { opacity: 0.5; border-color: rgba(255, 60, 30, 0.3); }
+.cru-witness__hint {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: rgba(223, 230, 242, 0.5);
+}
+
+/* ── the seizing ────────────────────────────────────────────────────────── */
+.cru-seize { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.cru-seize__t {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(19px, 4.6vw, 26px);
+  color: #f2f0f4;
+}
+.cru-seize__s {
+  max-width: 420px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(242, 240, 244, 0.6);
+}
+
+/* ── stage cards ────────────────────────────────────────────────────────── */
+.cru-stagecard {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(4, 3, 10, 0.55), rgba(4, 3, 10, 0.9));
+  animation: cruFadeIn 0.5s ease;
+}
+.cru-stagecard__n {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: clamp(34px, 9.5vw, 84px);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: #fff6de;
+  text-shadow: 0 0 70px color-mix(in srgb, var(--cru-molten) 60%, transparent);
+  animation: cruSlam 0.6s cubic-bezier(0.2, 1.3, 0.3, 1);
+}
+@keyframes cruSlam {
+  0%   { transform: scale(2.6); opacity: 0; filter: blur(10px); }
+  60%  { transform: scale(0.96); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); }
+}
+.cru-stagecard__e {
+  font-size: 12px;
+  letter-spacing: 0.44em;
+  color: var(--cru-molten);
+}
+.cru-stagecard__note {
+  margin-top: 8px;
+  max-width: 400px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(242, 240, 244, 0.55);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE EFFIGY (.ce-*) — the hanging cast-lead mask
+   ════════════════════════════════════════════════════════════════════════ */
+.ce-effigy { width: 100%; }
+.ce-effigy__svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* sway + bob live OUT here — never inside the filtered subtree */
+.ce-effigy__sway { transform-origin: 50% 0; animation: ceSway 6.5s ease-in-out infinite; }
+.ce-effigy__bob { animation: ceBob 4.2s ease-in-out infinite; }
+@keyframes ceSway {
+  0%, 100% { transform: rotate(-2.2deg); }
+  50%      { transform: rotate(2.2deg); }
+}
+@keyframes ceBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-6px) scale(1.012); }
+}
+.ce-state-wind .ce-effigy__sway { animation-duration: 1.6s; }
+.ce-state-hit .ce-effigy__bob { animation: ceHit 0.4s ease; }
+@keyframes ceHit {
+  0%   { transform: translate(0, 0) rotate(0); filter: brightness(3.2); }
+  30%  { transform: translate(-9px, 5px) rotate(-3deg); }
+  60%  { transform: translate(6px, -3px) rotate(2deg); }
+  100% { transform: translate(0, 0) rotate(0); filter: brightness(1); }
+}
+.ce-state-molten .ce-effigy__sway { animation-duration: 9s; }
+
+.ce-molten { transition: opacity 1.2s ease; mix-blend-mode: screen; }
+
+.ce-seam {
+  fill: none;
+  stroke: var(--ce-molten);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px var(--ce-molten));
+  animation: ceSeamPulse 2.8s ease-in-out infinite;
+}
+@keyframes ceSeamPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+.ce-halo {
+  fill: none;
+  stroke: var(--ce-rim);
+  stroke-width: 3.4;
+  stroke-dasharray: 15 10;
+  opacity: 0.8;
+  animation: ceHalo 14s linear infinite;
+  transform-origin: 120px 26px;
+}
+@keyframes ceHalo { to { transform: rotate(360deg); } }
+.ce-ember {
+  fill: var(--ce-molten);
+  filter: drop-shadow(0 0 8px var(--ce-molten));
+  animation: ceEmber 2.2s ease-in-out infinite;
+}
+@keyframes ceEmber {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+.ce-line {
+  fill: none;
+  stroke: rgba(190, 198, 216, 0.4);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.ce-line--soft { stroke: rgba(190, 198, 216, 0.18); stroke-width: 1.4; }
+.ce-rim {
+  fill: none;
+  stroke: var(--ce-rim);
+  stroke-width: 1.6;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 6px var(--ce-rim));
+}
+.ce-plate { animation: cePlateIn 0.5s cubic-bezier(0.2, 1.2, 0.3, 1); }
+@keyframes cePlateIn {
+  0%   { opacity: 0; transform: translateY(-10px) scale(1.1); }
+  100% { opacity: 1; transform: none; }
+}
+.ce-inner { animation: ceInner 3s ease-in-out infinite; }
+@keyframes ceInner {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
+.cru--still .cru-mouth,
+.cru--still .ce-effigy__sway,
+.cru--still .ce-effigy__bob,
+.cru--still .ce-seam,
+.cru--still .ce-ember,
+.cru--still .ce-halo,
+.cru--still .ce-inner,
+.cru--still .cru-hot,
+.cru--still .cru-ingot__shine,
+.cru--still .cru-pour__arrow,
+.cru--still .cru-seize__arrow,
+.cru--still .cru-line p,
+.cru--still .cru-mine p,
+.cru--still .cru-stagecard__n,
+.cru--still .cru-ingot {
+  animation: none !important;
+}
+.cru--still .cru--dilated .cru-bg { filter: saturate(0.3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cru-mouth,
+  .ce-effigy__sway,
+  .ce-effigy__bob,
+  .ce-seam,
+  .ce-ember,
+  .ce-halo,
+  .ce-inner,
+  .cru-hot,
+  .cru-ingot__shine,
+  .cru-pour__arrow,
+  .cru-seize__arrow {
+    animation: none !important;
+  }
+}
+
+/* ── short screens: give the stage back its room ────────────────────────── */
+@media (max-height: 700px) {
+  .cru-effigy-wrap { width: min(26vh, 200px); }
+  .cru-seam, .cru-ring { width: min(26vh, 200px); }
+  .cru-line { top: 21%; }
+  .cru-purity__note { display: none; }
+}

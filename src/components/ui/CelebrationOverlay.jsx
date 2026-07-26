@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import Button from "./Button.jsx";
 import { useAppData } from "../../hooks/useAppData.js";
 import { milestoneWorldAssets as MWA } from "../../lib/milestoneWorldAssets.js";
+import { CompassRose } from "../weekly/strategyArt.jsx";
 import { buzzSuccess } from "../../lib/haptics.js";
 
 const VARIANT_BG = {
@@ -15,7 +16,10 @@ const VARIANT_META = {
   milestone:     { emblem: "💎",  color: "celebration--gold",     cta: "Claim the Moment" },
   project:       { emblem: "PHX", color: "celebration--gold",     cta: "Open the Vault" },
   reward:        { emblem: "🎁",  color: "celebration--gold",     cta: "Enjoy It. You Earned It." },
-  review:        { emblem: "🧭",  color: "",                      cta: "Load Next Week" },
+  // "ROSE" → the Strategy Room's drawn compass. The review celebration is
+  // the payoff screen of the Sunday Review, so it uses the room's own crest
+  // rather than the emoji the OS happens to ship.
+  review:        { emblem: "ROSE", color: "",                      cta: "Load Next Week" },
   rank:          { emblem: "PHX", color: "celebration--pink",     cta: "Continue the Climb" },
   science_streak:{ emblem: "🔬", color: "celebration--science",   cta: "Keep the Streak Alive" }
 };
@@ -221,6 +225,7 @@ export default function CelebrationOverlay() {
 
   const meta          = VARIANT_META[current.variant] || VARIANT_META.day;
   const usePhoenix    = meta.emblem === "PHX";
+  const useRose       = meta.emblem === "ROSE";
   const useDiamond    = current.variant === "milestone";
   const withEmbers    = current.variant === "project" || current.variant === "rank";
   const hasAssetEmblem = ["milestone", "project", "rank", "reward"].includes(current.variant);
@@ -248,6 +253,10 @@ export default function CelebrationOverlay() {
             <PhoenixSVG size={120} />
           ) : useDiamond ? (
             <DiamondSVG size={80} />
+          ) : useRose ? (
+            <span style={{ width: 108, height: 108, display: "block" }}>
+              <CompassRose />
+            </span>
           ) : (
             meta.emblem
           )}

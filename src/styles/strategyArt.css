@@ -1,0 +1,439 @@
+/* ═══════════════════════════════════════════════════════════════════
+   THE STRATEGY ROOM — art stylesheet.
+
+   Paired with src/components/weekly/strategyArt.jsx. Geometry lives in
+   the JSX; colour, weight and motion live here, so a mark can be
+   re-toned by its container without touching a path.
+
+   Rotation uses the translate sandwich rather than transform-origin —
+   see the ART LAW block in strategyArt.jsx for why.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sra {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sra-scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── compass rose ─────────────────────────────────────────────────── */
+
+.sra-rose__rim {
+  fill: none;
+  stroke: rgba(0, 240, 255, 0.34);
+  stroke-width: 1.4;
+}
+.sra-rose__rim--inner {
+  stroke: rgba(209, 30, 255, 0.28);
+  stroke-width: 0.9;
+}
+.sra-rose__ticks line {
+  stroke: rgba(242, 240, 244, 0.32);
+}
+.sra-rose__kite {
+  fill: #0d0a22;
+  stroke: rgba(0, 240, 255, 0.45);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+.sra-rose__kite--major {
+  stroke: rgba(0, 240, 255, 0.7);
+}
+.sra-rose__lit {
+  fill: rgba(0, 240, 255, 0.28);
+}
+.sra-rose__lit--major {
+  fill: rgba(0, 240, 255, 0.55);
+}
+.sra-rose__hub {
+  stroke: rgba(0, 240, 255, 0.5);
+  stroke-width: 1;
+}
+.sra-rose__needle-tail {
+  fill: rgba(242, 240, 244, 0.55);
+}
+.sra-rose__pin {
+  fill: #F2F0F4;
+}
+
+/* The needle hunts, then settles — a compass that has just been set down. */
+.sra-rose__needle.is-live {
+  animation: sra-needle-hunt 7s cubic-bezier(0.33, 1, 0.68, 1) infinite;
+}
+@keyframes sra-needle-hunt {
+  0%   { transform: translate(50px, 50px) rotate(-9deg)  translate(-50px, -50px); }
+  22%  { transform: translate(50px, 50px) rotate(7deg)   translate(-50px, -50px); }
+  40%  { transform: translate(50px, 50px) rotate(-3.5deg) translate(-50px, -50px); }
+  56%  { transform: translate(50px, 50px) rotate(1.5deg) translate(-50px, -50px); }
+  70%, 100% { transform: translate(50px, 50px) rotate(0deg) translate(-50px, -50px); }
+}
+
+/* ── flame ────────────────────────────────────────────────────────── */
+
+.sra-flame__core {
+  animation: sra-flicker 1.7s ease-in-out infinite;
+}
+@keyframes sra-flicker {
+  0%, 100% { transform: translate(50px, 88px) scale(1, 1)       translate(-50px, -88px); opacity: 0.92; }
+  28%      { transform: translate(50px, 88px) scale(0.88, 1.1)  translate(-50px, -88px); opacity: 1; }
+  55%      { transform: translate(50px, 88px) scale(1.06, 0.92) translate(-50px, -88px); opacity: 0.82; }
+  78%      { transform: translate(50px, 88px) scale(0.94, 1.04) translate(-50px, -88px); opacity: 1; }
+}
+/* A cold streak still has to read as a flame, not a smudge — the dead
+   tone loses its flicker and gains an outline instead. */
+.sra-flame--dead .sra-flame__core { animation: none; opacity: 0.7; }
+.sra-flame--dead .sra-flame__body {
+  stroke: rgba(242, 240, 244, 0.34);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+/* ── receipt ──────────────────────────────────────────────────────── */
+
+.sra-receipt__paper {
+  fill: rgba(242, 240, 244, 0.9);
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 0.8;
+}
+.sra-receipt__rules path {
+  stroke: rgba(12, 8, 26, 0.42);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+.sra-receipt__stamp circle {
+  fill: none;
+  stroke: #FF3EDB;
+  stroke-width: 3;
+  opacity: 0.85;
+}
+.sra-receipt__stamp path {
+  fill: none;
+  stroke: #FF3EDB;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sra-receipt__stamp {
+  transform: translate(62px, 62px) rotate(-11deg) translate(-62px, -62px);
+}
+
+/* ── crate ────────────────────────────────────────────────────────── */
+
+.sra-crate__straps path,
+.sra-crate__seam {
+  fill: none;
+  stroke: rgba(0, 255, 191, 0.24);
+  stroke-width: 1.4;
+}
+.sra-crate__stencil {
+  fill: none;
+  stroke: rgba(0, 255, 191, 0.7);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sra-crate__rim {
+  fill: none;
+  stroke: rgba(0, 240, 255, 0.55);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.sra-crate__motes circle {
+  fill: #9FF6FF;
+  animation: sra-mote 3.6s ease-in-out infinite;
+}
+.sra-crate__motes circle:nth-child(2) { animation-delay: 1.2s; }
+.sra-crate__motes circle:nth-child(3) { animation-delay: 2.3s; }
+@keyframes sra-mote {
+  0%, 100% { opacity: 0.15; transform: translateY(2px); }
+  50%      { opacity: 0.85; transform: translateY(-3px); }
+}
+
+/* ── score seal ───────────────────────────────────────────────────── */
+
+.sra-seal__teeth {
+  fill: none;
+  stroke-width: 1.1;
+  opacity: 0.4;
+  stroke-linejoin: round;
+}
+.sra-seal__edge {
+  fill: none;
+  stroke-width: 1.2;
+  opacity: 0.55;
+}
+.sra-seal__track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 5;
+}
+.sra-seal__arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sra-seal__num {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900;
+  font-size: 30px;
+  text-anchor: middle;
+}
+.sra-seal__den {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  fill: rgba(242, 240, 244, 0.42);
+}
+
+/* ── front terrain ────────────────────────────────────────────────── */
+
+.sra-front__stars circle { fill: #cfd8ff; }
+
+/* Three ridges, each a filled silhouette plus its own skyline stroke —
+   the stroke is what separates a mountain from a fog bank. */
+.sra-front__ridge    { fill: #1c1540; opacity: 0.6; }
+.sra-front__ridge--1 { fill: #150f2e; opacity: 0.82; }
+.sra-front__ridge--2 { fill: #0b0720; opacity: 1; }
+.sra-front__edge {
+  fill: none;
+  stroke: rgba(160, 180, 255, 0.2);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
+.sra-front__edge--2 { stroke: rgba(160, 180, 255, 0.28); }
+
+.sra-front__ridge-held    { fill: currentColor; opacity: 0.2; }
+.sra-front__ridge-held--1 { opacity: 0.15; }
+.sra-front__ridge-held--2 { opacity: 0.11; }
+/* rim light: the skyline you've already taken is lit from behind */
+.sra-front__rim {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+.sra-front__rim--2 { stroke-width: 1.3; opacity: 0.85; }
+.sra-front__line path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  opacity: 0.85;
+}
+.sra-front__line .sra-front__flag {
+  fill: currentColor;
+  stroke: none;
+  opacity: 1;
+}
+
+/* ── briefing table ───────────────────────────────────────────────── */
+
+.sra-table__contours ellipse {
+  fill: none;
+  stroke: #00F0FF;
+  stroke-width: 0.7;
+}
+.sra-table__coast {
+  fill: none;
+  stroke: rgba(0, 240, 255, 0.45);
+  stroke-width: 1.1;
+}
+.sra-table__route {
+  fill: none;
+  stroke: #FFD166;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 5 7;
+  opacity: 0.8;
+  animation: sra-route 2.4s linear infinite;
+}
+@keyframes sra-route { to { stroke-dashoffset: -24; } }
+
+.sra-table__sweep {
+  animation: sra-sweep 7s linear infinite;
+}
+@keyframes sra-sweep {
+  from { transform: translate(150px, 128px) rotate(0deg)   translate(-150px, -128px); }
+  to   { transform: translate(150px, 128px) rotate(360deg) translate(-150px, -128px); }
+}
+.sra-table__sweep-edge {
+  fill: none;
+  stroke: rgba(0, 240, 255, 0.55);
+  stroke-width: 1.2;
+}
+
+.sra-table__pin path { fill: none; stroke-width: 1.4; opacity: 0.8; }
+.sra-table__pin-ring { fill: none; stroke-width: 1; opacity: 0.4; }
+.sra-table__pulse {
+  fill: none;
+  stroke-width: 1.4;
+  animation: sra-pulse 3.2s ease-out infinite;
+}
+@keyframes sra-pulse {
+  0%   { r: 4;  opacity: 0.9; }
+  100% { r: 26; opacity: 0; }
+}
+
+/* ── step sigils ──────────────────────────────────────────────────── */
+
+.sra-sig__rim {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.5;
+}
+.sra-sig__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  opacity: 0.4;
+}
+.sra-sig__cross {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+/* aperture */
+.sra-sig__blade {
+  fill: currentColor;
+  stroke: #05030c;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.sra-sig__blade--0 { opacity: 0.42; }
+.sra-sig__blade--1 { opacity: 0.22; }
+.sra-sig__iris { animation: sra-iris 14s linear infinite; }
+@keyframes sra-iris {
+  from { transform: translate(50px, 50px) rotate(0deg)   translate(-50px, -50px); }
+  to   { transform: translate(50px, 50px) rotate(360deg) translate(-50px, -50px); }
+}
+.sra-sig__pupil { fill: #05030c; stroke: currentColor; stroke-width: 1.4; }
+.sra-sig__glint { fill: none; stroke: #F2F0F4; stroke-width: 2.2; stroke-linecap: round; opacity: 0.5; }
+
+/* radar */
+.sra-sig__sweep { animation: sra-sig-sweep 4.5s linear infinite; }
+@keyframes sra-sig-sweep {
+  from { transform: translate(50px, 50px) rotate(0deg)   translate(-50px, -50px); }
+  to   { transform: translate(50px, 50px) rotate(360deg) translate(-50px, -50px); }
+}
+.sra-sig__wedge { fill: currentColor; opacity: 0.16; }
+.sra-sig__sweep-edge { fill: none; stroke: currentColor; stroke-width: 1.4; opacity: 0.7; }
+.sra-sig__blip {
+  fill: currentColor;
+  animation: sra-blip 4.5s ease-out infinite;
+}
+@keyframes sra-blip {
+  0%   { opacity: 1; }
+  35%  { opacity: 0.15; }
+  100% { opacity: 0.15; }
+}
+
+/* orders */
+.sra-sig__paper { fill: rgba(242, 240, 244, 0.92); stroke: rgba(0, 0, 0, 0.3); stroke-width: 1; stroke-linejoin: round; }
+.sra-sig__fold  { fill: rgba(12, 8, 26, 0.18); stroke: rgba(0, 0, 0, 0.28); stroke-width: 1; }
+.sra-sig__rules { fill: none; stroke: rgba(12, 8, 26, 0.4); stroke-width: 3.2; stroke-linecap: round; }
+.sra-sig__wax   { fill: currentColor; opacity: 0.9; }
+.sra-sig__waxmark { fill: none; stroke: #05030c; stroke-width: 2.2; stroke-linecap: round; opacity: 0.75; }
+.sra-sig__seal circle { fill: none; stroke: currentColor; stroke-width: 3; opacity: 0.9; }
+.sra-sig__seal path   { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.sra-sig__seal { transform: translate(68px, 62px) rotate(-10deg) translate(-68px, -62px); }
+
+/* gauge */
+.sra-sig__gaugetrack { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 7; stroke-linecap: round; }
+.sra-sig__gaugefill  { fill: none; stroke: currentColor; stroke-width: 7; stroke-linecap: round; opacity: 0.85; }
+.sra-sig__gaugeticks line { stroke: currentColor; stroke-width: 1.4; opacity: 0.4; }
+.sra-sig__needle path { fill: #F2F0F4; }
+.sra-sig__needle { animation: sra-gauge 5s cubic-bezier(0.33, 1, 0.68, 1) infinite; }
+@keyframes sra-gauge {
+  0%, 100% { transform: translate(50px, 62px) rotate(-16deg) translate(-50px, -62px); }
+  45%      { transform: translate(50px, 62px) rotate(22deg)  translate(-50px, -62px); }
+  70%      { transform: translate(50px, 62px) rotate(6deg)   translate(-50px, -62px); }
+}
+.sra-sig__hub { fill: currentColor; }
+
+/* transmitter */
+.sra-sig__mast  { fill: #1a1436; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.sra-sig__brace { fill: none; stroke: currentColor; stroke-width: 1.2; opacity: 0.6; }
+.sra-sig__beacon { fill: currentColor; }
+.sra-sig__waves path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  animation: sra-wave 2.1s ease-out infinite;
+}
+@keyframes sra-wave {
+  0%   { opacity: 0; }
+  30%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* ── plain marks ──────────────────────────────────────────────────── */
+
+.sra-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sra-check.is-draw path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: sra-draw 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes sra-draw { to { stroke-dashoffset: 0; } }
+
+.sra-x path,
+.sra-chev path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── reduced motion: the art stays, the motion stops ──────────────── */
+
+[data-reduced-motion="true"] .sra-rose__needle.is-live,
+[data-reduced-motion="true"] .sra-flame__core,
+[data-reduced-motion="true"] .sra-crate__motes circle,
+[data-reduced-motion="true"] .sra-table__route,
+[data-reduced-motion="true"] .sra-table__sweep,
+[data-reduced-motion="true"] .sra-table__pulse,
+[data-reduced-motion="true"] .sra-sig__iris,
+[data-reduced-motion="true"] .sra-sig__sweep,
+[data-reduced-motion="true"] .sra-sig__blip,
+[data-reduced-motion="true"] .sra-sig__needle,
+[data-reduced-motion="true"] .sra-sig__waves path,
+[data-reduced-motion="true"] .sra-check.is-draw path {
+  animation: none;
+}
+[data-reduced-motion="true"] .sra-check.is-draw path { stroke-dashoffset: 0; }
+[data-reduced-motion="true"] .sra-table__pulse { opacity: 0.25; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sra-rose__needle.is-live,
+  .sra-flame__core,
+  .sra-crate__motes circle,
+  .sra-table__route,
+  .sra-table__sweep,
+  .sra-table__pulse,
+  .sra-sig__iris,
+  .sra-sig__sweep,
+  .sra-sig__blip,
+  .sra-sig__needle,
+  .sra-sig__waves path { animation: none; }
+  .sra-check.is-draw path { animation: none; stroke-dashoffset: 0; }
+}

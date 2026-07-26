@@ -75,11 +75,11 @@
   flex-shrink: 0;
   width: 34px;
   height: 34px;
+  padding: 10px;
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(242, 240, 244, 0.6);
-  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.18s;
 }
@@ -149,6 +149,7 @@
   box-shadow: 0 0 16px rgba(0, 240, 255, 0.7);
   animation: node-pulse 1.8s ease-out infinite;
 }
+.swiz-node__check { display: block; width: 11px; height: 11px; color: #00FFBF; }
 
 .swiz-node__label {
   font-size: 0.5rem;
@@ -200,29 +201,40 @@
 
 .swiz-body-stack { display: flex; flex-direction: column; gap: 1.1rem; }
 
-/* ── step head ────────────────────────────────────────────── */
-.swiz-head { display: flex; flex-direction: column; gap: 0.35rem; }
-.swiz-head__top { display: flex; align-items: center; gap: 0.75rem; }
-.swiz-head__count {
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: rgba(242, 240, 244, 0.35);
+/* ── step head — a sigil, an accent, and a title per screen ─── */
+.swiz-head { display: flex; flex-direction: column; gap: 0.4rem; }
+.swiz-head__band { display: flex; align-items: center; gap: 0.65rem; }
+.swiz-head__sigil {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  padding: 2px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--tone, #00F0FF) 28%, transparent);
+  background: color-mix(in srgb, var(--tone, #00F0FF) 9%, rgba(8, 5, 18, 0.85));
 }
+.swiz-head__col { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
 .swiz-head__kicker {
   font-size: 0.62rem;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.19em;
   text-transform: uppercase;
-  color: #00F0FF;
+  color: var(--tone, #00F0FF);
+}
+.swiz-head__count {
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 244, 0.32);
 }
 .swiz-title {
   font-size: clamp(1.5rem, 6.5vw, 2.1rem);
   font-weight: 900;
-  letter-spacing: 0.01em;
-  margin: 0;
+  letter-spacing: -0.015em;
+  margin: 0.15rem 0 0;
   color: #fff;
-  text-shadow: 0 0 26px rgba(0, 240, 255, 0.35);
+  text-shadow: 0 0 26px color-mix(in srgb, var(--tone, #00F0FF) 40%, transparent);
 }
 .swiz-sub {
   font-size: 0.86rem;
@@ -242,11 +254,16 @@
   color: rgba(242, 240, 244, 0.82);
 }
 .swiz-field__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.68rem;
   font-weight: 600;
-  color: #00FFBF;
+  color: rgba(242, 240, 244, 0.42);
   letter-spacing: 0.02em;
 }
+.swiz-field__hint.is-armed { color: #00FFBF; font-weight: 700; }
+.swiz-field__hintart { width: 13px; height: 13px; flex: none; }
 
 .swiz-input,
 .swiz-select {
@@ -280,32 +297,52 @@
 }
 @media (max-width: 460px) { .swiz-battle { grid-template-columns: 1fr; } }
 
+/* Each front is its own drawn ground, not a bar in a box — the same
+   terrain the hub draws, seeded off the same milestone id. */
 .swiz-battle__card {
-  background: rgba(8, 5, 18, 0.8);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 104px;
+  display: flex;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 0.7rem 0.8rem;
+}
+.swiz-battle__art { position: absolute; inset: 0; z-index: 0; }
+.swiz-battle__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(5, 3, 12, 0.05) 26%, rgba(5, 3, 12, 0.88) 74%, rgba(5, 3, 12, 0.97) 100%);
+}
+.swiz-battle__body {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  align-self: flex-end;
+  padding: 0.65rem 0.75rem;
 }
 .swiz-battle__row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
-.swiz-battle__title { font-size: 0.78rem; font-weight: 700; color: rgba(242, 240, 244, 0.9); }
-.swiz-battle__pct { font-size: 0.72rem; font-weight: 900; color: #00F0FF; }
-.swiz-battle__bar {
-  height: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
+.swiz-battle__title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
   overflow: hidden;
-  margin: 0.45rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-.swiz-battle__bar span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #00F0FF, #00FFBF);
-  border-radius: 3px;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
-  animation: swiz-bar-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+.swiz-battle__pct { flex: none; font-size: 0.85rem; font-weight: 900; letter-spacing: -0.02em; }
+.swiz-battle__next {
+  font-size: 0.64rem;
+  color: rgba(242, 240, 244, 0.52);
+  margin: 0.2rem 0 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
-@keyframes swiz-bar-grow { from { width: 0 !important; } }
-.swiz-battle__next { font-size: 0.66rem; color: rgba(242, 240, 244, 0.45); margin: 0; }
 
 /* ── scorecard ring + sliders ─────────────────────────────── */
 .swiz-ring {
@@ -316,6 +353,7 @@
 }
 .swiz-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .swiz-ring__bg { fill: none; stroke: rgba(255, 255, 255, 0.07); stroke-width: 10; }
+.swiz-ring__ticks line { stroke: rgba(242, 240, 244, 0.22); }
 .swiz-ring__bar {
   fill: none;
   stroke-width: 10;
@@ -382,12 +420,11 @@
   text-align: center;
   padding: 1rem 0.5rem 0;
 }
-.swiz-ignite__glyph {
+.swiz-ignite__crest {
   position: relative;
-  width: 120px;
-  height: 120px;
-  display: grid;
-  place-items: center;
+  width: 128px;
+  height: 128px;
+  padding: 12px;
   margin-bottom: 1.25rem;
 }
 .swiz-ignite__ring {
@@ -402,7 +439,6 @@
   0% { transform: scale(0.7); opacity: 0.9; }
   100% { transform: scale(1.25); opacity: 0; }
 }
-.swiz-ignite__icon { font-size: 3rem; filter: drop-shadow(0 0 16px rgba(0, 240, 255, 0.6)); }
 
 .swiz-ignite__kicker {
   font-size: 0.66rem;
@@ -439,7 +475,7 @@
   gap: 0.15rem;
   min-width: 110px;
 }
-.swiz-streak__icon { font-size: 1.2rem; }
+.swiz-streak__art { width: 24px; height: 24px; margin-bottom: 0.2rem; }
 .swiz-streak__num { font-size: 1.5rem; font-weight: 900; line-height: 1; }
 .swiz-streak__label {
   font-size: 0.55rem;
@@ -468,10 +504,14 @@
 }
 
 .swiz-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   font-family: inherit;
   font-weight: 900;
   font-size: 0.82rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.85rem 1.2rem;
   border-radius: 12px;
@@ -479,6 +519,8 @@
   transition: all 0.22s ease;
   white-space: nowrap;
 }
+.swiz-btn__chev { width: 11px; height: 11px; flex: none; }
+.swiz-btn__art { width: 15px; height: 15px; flex: none; }
 .swiz-btn--ghost {
   flex: 0 0 auto;
   background: rgba(255, 255, 255, 0.04);
@@ -519,12 +561,16 @@
   position: absolute;
   inset: 0;
   z-index: 6;
-  display: grid;
-  place-items: center;
-  background: rgba(5, 3, 12, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(5, 3, 12, 0.62);
   backdrop-filter: blur(2px);
   animation: swiz-overlay-in 0.25s ease both;
 }
+.swiz-transmit__mast { width: 88px; height: 88px; }
 .swiz-transmit__scan {
   position: absolute;
   left: 0;
@@ -542,103 +588,142 @@
   color: #00F0FF;
 }
 
-/* ── launch hero (on the page hub) ────────────────────────── */
-.swiz-launch {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  overflow: hidden;
-  border-radius: 18px;
-  border: 1.5px solid rgba(0, 240, 255, 0.35);
+/* ── THE RECEIPTS (step 02) ───────────────────────────────────
+   A ledger page, not a list of native checkboxes. The real <input>
+   is still in the DOM and still focusable — it is just not what you
+   look at. --rc is set inline from how many promises you kept, so
+   the whole card changes temperature as you tick through it. */
+.swiz-rc {
+  border: 1px solid color-mix(in srgb, var(--rc, #FF3EDB) 30%, transparent);
+  border-left: 3px solid var(--rc, #FF3EDB);
+  border-radius: 14px;
   background:
-    radial-gradient(120% 120% at 0% 0%, rgba(209, 30, 255, 0.18), transparent 55%),
-    radial-gradient(120% 120% at 100% 100%, rgba(0, 240, 255, 0.16), transparent 55%),
-    rgba(8, 5, 18, 0.9);
-  padding: 0;
-  cursor: pointer;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-  box-shadow: 0 0 24px rgba(0, 240, 255, 0.12);
+    radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, var(--rc, #FF3EDB) 9%, transparent), transparent 58%),
+    rgba(8, 5, 18, 0.86);
+  padding: 0.95rem 1rem 1.05rem;
+  transition: border-color 0.3s;
 }
-.swiz-launch:hover {
-  transform: translateY(-2px);
-  border-color: rgba(0, 240, 255, 0.7);
-  box-shadow: 0 0 40px rgba(0, 240, 255, 0.28);
-}
-
-.swiz-launch__grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.06) 1px, transparent 1px);
-  background-size: 38px 38px;
-  animation: grid-pan 7s linear infinite;
-  -webkit-mask-image: radial-gradient(circle at 30% 30%, #000, transparent 80%);
-  mask-image: radial-gradient(circle at 30% 30%, #000, transparent 80%);
-  pointer-events: none;
-}
-.swiz-launch__glow {
-  position: absolute;
-  top: -40%;
-  right: -10%;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(209, 30, 255, 0.4), transparent 70%);
-  filter: blur(40px);
-  animation: orb-float 9s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.swiz-launch__body {
-  position: relative;
-  z-index: 1;
+.swiz-rc__head {
   display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 1.4rem 1.5rem;
-}
-.swiz-launch__icon { font-size: 2.1rem; filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.6)); }
-.swiz-launch__title {
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 0 22px rgba(0, 240, 255, 0.3);
-}
-.swiz-launch__sub {
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: rgba(242, 240, 244, 0.6);
-  max-width: 44ch;
-}
-.swiz-launch__meta {
-  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
 }
-.swiz-launch__meta span {
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  color: rgba(242, 240, 244, 0.7);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  padding: 0.3rem 0.7rem;
-}
-.swiz-launch__cta {
-  margin-top: 0.6rem;
-  font-size: 0.78rem;
+.swiz-rc__kicker {
+  font-size: 0.58rem;
   font-weight: 900;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #00F0FF;
+  color: var(--rc, #FF3EDB);
+}
+.swiz-rc__stamp {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 244, 0.32);
+}
+.swiz-rc__blank {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: rgba(242, 240, 244, 0.55);
+  margin: 0;
 }
 
-[data-reduced-motion="true"] .swiz-launch__grid,
-[data-reduced-motion="true"] .swiz-launch__glow { animation: none; }
+.swiz-rc__list { display: flex; flex-direction: column; gap: 0.45rem; }
+.swiz-rc__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.swiz-rc__row:hover { border-color: rgba(255, 255, 255, 0.16); }
+.swiz-rc__row.is-kept {
+  border-color: rgba(0, 255, 191, 0.32);
+  background: rgba(0, 255, 191, 0.06);
+}
+
+/* Visually hidden but still a real, focusable checkbox. */
+.swiz-rc__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.swiz-rc__box {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  padding: 3px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  color: #00FFBF;
+  transition: border-color 0.2s, background 0.2s;
+}
+.swiz-rc__row.is-kept .swiz-rc__box {
+  border-color: #00FFBF;
+  background: rgba(0, 255, 191, 0.14);
+}
+.swiz-rc__input:focus-visible + .swiz-rc__box {
+  outline: 2px solid #00F0FF;
+  outline-offset: 2px;
+}
+.swiz-rc__text {
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(242, 240, 244, 0.92);
+  transition: color 0.2s;
+}
+.swiz-rc__row.is-kept .swiz-rc__text {
+  color: rgba(0, 255, 191, 0.85);
+  text-decoration: line-through;
+  text-decoration-color: rgba(0, 255, 191, 0.45);
+}
+
+.swiz-rc__meter {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+  color: var(--rc, #FF3EDB);
+}
+.swiz-rc__pips { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.swiz-rc__pips span {
+  flex: 1 1 14px;
+  max-width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.swiz-rc__pips span.is-kept {
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+.swiz-rc__score { flex: none; font-size: 1.25rem; font-weight: 900; line-height: 1; }
+.swiz-rc__score small { font-size: 0.7rem; opacity: 0.55; font-weight: 800; }
+
+.swiz-rc__verdict {
+  margin: 0.8rem 0 0;
+  padding-left: 0.7rem;
+  border-left: 2px solid color-mix(in srgb, var(--rc, #FF3EDB) 55%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: rgba(242, 240, 244, 0.82);
+}
 
 /* ── reduced motion ───────────────────────────────────────── */
 [data-reduced-motion="true"] .swiz-bg__grid,

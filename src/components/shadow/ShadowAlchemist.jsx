@@ -4,6 +4,7 @@ import {
   ShadowStage, Eyebrow, Heading, Lead, Science, Quote, Field, Primary, Skip, Chips,
   MaskMorph, Seal, maskCardSrc,
 } from "./shell.jsx";
+import TheCrucible from "./crucible/TheCrucible.jsx";
 
 /* ════════════════════════════════════════════════════════════════════════
    SHADOW ALCHEMIST — the centerpiece. Merges "Spot the Mask" + "Name It".
@@ -15,9 +16,15 @@ import {
    Science: naming a feeling/part dampens amygdala activity and hands the
    wheel back to the cortex (UCLA, Lieberman, fMRI); IFS "unblending" from a
    protector part reduced depression & PTSD in a randomized trial.
+
+   Step 5 is THE CRUCIBLE (crucible/TheCrucible.jsx) — the boss fight that
+   now sits between naming and transmuting. Everything the player typed in
+   steps 1–3 becomes its ammunition, so the fight can only happen here and
+   nowhere else in the app. Winning it is what earns the Transmute button;
+   the transmutation itself is still step 6, unchanged.
    ════════════════════════════════════════════════════════════════════════ */
 
-const TOTAL = 8;
+const TOTAL = 9;
 
 export default function ShadowAlchemist({ onClose, onFinish }) {
   const [step, setStep] = useState(0);
@@ -29,6 +36,7 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
   const [revealed, setRevealed] = useState(false);
   const [essence, setEssence] = useState(null);
   const [declaration, setDeclaration] = useState("");
+  const [battle, setBattle] = useState(null); // { purity, grade, clean, witnessed }
 
   const mask = maskCards.find((m) => m.id === maskId) || null;
   const meter = Math.round(((TOTAL - step) / TOTAL) * 100);
@@ -45,6 +53,7 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
       accent: "gold",
       transmuted: true,
       essence: { maskId: mask.id, name: mask.name, essence },
+      crucible: battle,
     });
   };
 
@@ -129,18 +138,31 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
           <div className="sx-echo">&ldquo;That&rsquo;s just my <b>{mask.name}</b> talking.&rdquo;</div>
           <p className="sx-echo-sub">It&rsquo;s a costume you put on to survive — and a costume can come off.</p>
           <Science>Putting a precise name to what&rsquo;s running you drops activity in the amygdala and hands the wheel back to your thinking brain (UCLA fMRI studies of &ldquo;affect labeling&rdquo;).</Science>
-          <div className="sx-btnrow"><Primary onClick={() => go(5)}>Now transmute it →</Primary></div>
+          <p className="sx-echo-sub" style={{ textAlign: "center" }}>You can see it now. That means you can finally take it off.</p>
+          <div className="sx-btnrow"><Primary onClick={() => go(5)}>Take it off →</Primary></div>
         </div>
       )}
 
-      {/* 5 · TRANSMUTE — the alchemist moment */}
+      {/* 5 · THE CRUCIBLE — the fight. Full-screen; portals to <body>. */}
       {step === 5 && (
+        <TheCrucible
+          mask={mask}
+          moment={moment}
+          victim={victim}
+          afraid={afraid}
+          onExit={() => go(4)}
+          onWin={(result) => { setBattle(result); go(6); }}
+        />
+      )}
+
+      {/* 6 · TRANSMUTE — the alchemist moment */}
+      {step === 6 && (
         <div className="sx-center">
           <Eyebrow>Transmutation</Eyebrow>
-          <Heading>{revealed ? "There you are." : "Turn the lead to gold."}</Heading>
+          <Heading>{revealed ? "There you are." : "Give the gold a shape."}</Heading>
           <Lead>{revealed
             ? `Underneath the ${mask.name} was never a flaw — it was this, guarding itself. Step into it.`
-            : "Every mask is a gift in disguise. Hold it in the fire and let it burn back to its essence."}</Lead>
+            : "The lead is already melted. What's in the mould has no form yet — and that part was never the fight's to decide. It's yours."}</Lead>
 
           <div style={{ position: "relative" }}>
             <MaskMorph maskId={mask.id} transmuted={transmuted} />
@@ -152,29 +174,29 @@ export default function ShadowAlchemist({ onClose, onFinish }) {
             <>
               <p className="sx-echo-sub" style={{ textAlign: "center" }}>Choose the essence you&rsquo;re stepping back into:</p>
               <Chips options={mask.essenceReturn} value={essence} onChange={setEssence} />
-              <div className="sx-btnrow"><Primary disabled={!essence} onClick={() => { setDeclaration(`I am ${essence}.`); go(6); }}>Claim it →</Primary></div>
+              <div className="sx-btnrow"><Primary disabled={!essence} onClick={() => { setDeclaration(`I am ${essence}.`); go(7); }}>Claim it →</Primary></div>
             </>
           )}
         </div>
       )}
 
-      {/* 6 · declaration (the stand) */}
-      {step === 6 && (
+      {/* 7 · declaration (the stand) */}
+      {step === 7 && (
         <div className="sx-pane">
           <Eyebrow>Take the stand</Eyebrow>
           <Heading>Stamp the truer story.</Heading>
           <Lead>Write it present-tense, as already true — a stand you can actually feel. &ldquo;I am&hellip;&rdquo;</Lead>
           <Field value={declaration} onChange={setDeclaration} placeholder={`I am ${essence}. Money / love / power moves through me.`} rows={2} />
-          <div className="sx-btnrow"><Primary onClick={() => go(7)}>Forge it ✦</Primary></div>
+          <div className="sx-btnrow"><Primary onClick={() => go(8)}>Forge it ✦</Primary></div>
         </div>
       )}
 
-      {/* 7 · seal */}
-      {step === 7 && (
+      {/* 8 · seal */}
+      {step === 8 && (
         <Seal
           eyebrow={`${mask.name} → ${essence}`}
           title="You took it back."
-          lead={`You met the ${mask.name}, saw what it was guarding, and chose your essence. ${essence} was always underneath — every rep makes it your default.`}
+          lead={`You met the ${mask.name} in the crucible, melted it down, and chose your essence. ${essence} was always underneath — every rep makes it your default.${battle ? ` Pour graded ${battle.grade} at ${battle.purity} purity.` : ""}`}
           stamp={declaration.trim() || `I am ${essence}.`}
           onDone={finish}
           doneLabel="Add to my Essence Gallery ✦"
