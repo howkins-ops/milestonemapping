@@ -4,7 +4,7 @@
 // reads/writes, no hooks, everything idempotent so the "a new depth opens"
 // celebration can never double-fire.
 //
-// The descent is a guided journey: Depth I ("The Still Waters") is always
+// The descent is a guided journey: Depth I ("The Furnace") is always
 // open; each deeper depth powers on when BOTH chambers of the depth above are
 // completed — or when a mapped Map-Quest chapter is cleared (the hybrid path).
 // Existing Shadow users are migrated with every depth unlocked (via:"legacy")
@@ -13,11 +13,12 @@
 
 export const DESCENT_KEY = "shadow_descent_v1";
 
-// The descent, top (gentle) to bottom (the heavy rituals, then the way out).
-export const DEPTH_ORDER = ["waters", "undertow", "stories", "furnace", "moongate"];
+// The descent, top (the Furnace, always open) to bottom (the way out).
+export const DEPTH_ORDER = ["furnace", "waters", "undertow", "stories", "moongate"];
 
 // Which Map-Quest chapter keys ALSO fast-unlock each depth (any-of). Depth I
-// ("waters") has no key — it is always open. Keys verified against
+// ("furnace") is always open, so its keys below are inert — kept because the
+// mapping is thematic (chapter ↔ chamber), not positional. Keys verified against
 // map-quest/questChapters.js; `chapter-shadow` also lights up via the legacy
 // bridge in useMapQuestState.isChapterComplete.
 export const DEPTH_QUEST_KEYS = {

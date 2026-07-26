@@ -44,10 +44,10 @@ const TOOL_LABEL = Object.fromEntries(TOOLS.map((t) => [t.name, t.accent]));
 // Depths unlock one at a time — see useDescent.js. Zone ids double as the
 // unlock keys and the CSS accent keys (shadowRealm.css .swr-zone--*).
 const ZONES = [
-  { id: "waters",   label: "Depth I · The Still Waters",  tag: "gentle entry — soften, settle, breathe",         tools: ["ground", "compassion"] },
-  { id: "undertow", label: "Depth II · The Undertow",     tag: "pressure and heat you learn to hold",            tools: ["line", "swamp"] },
-  { id: "stories",  label: "Depth III · The Old Stories", tag: "beliefs and echoes that still speak",            tools: ["reframe", "inner"] },
-  { id: "furnace",  label: "Depth IV · The Furnace",      tag: "the heavy transmutation — masks turned to gold", tools: ["alchemist", "bufca"] },
+  { id: "furnace",  label: "Depth I · The Furnace",       tag: "the heavy transmutation — masks turned to gold", tools: ["alchemist", "bufca"] },
+  { id: "waters",   label: "Depth II · The Still Waters", tag: "gentle entry — soften, settle, breathe",         tools: ["ground", "compassion"] },
+  { id: "undertow", label: "Depth III · The Undertow",    tag: "pressure and heat you learn to hold",            tools: ["line", "swamp"] },
+  { id: "stories",  label: "Depth IV · The Old Stories",  tag: "beliefs and echoes that still speak",            tools: ["reframe", "inner"] },
   { id: "moongate", label: "Depth V · The Moon Gate",     tag: "the way back out",                               tools: ["integrate"] },
 ];
 const ZONE_BY_ID = Object.fromEntries(ZONES.map((z) => [z.id, z]));

@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════════
    SHADOW REALM — "THE DESCENT"
    The shadow-work hub as a world: enter through the temple gate, descend a
-   glowing thread through depth zones (Furnace → Old Stories → Still Waters),
-   and leave through the Moon Gate. Prefix: .swr-
+   glowing thread through depth zones (Furnace → Still Waters → Undertow →
+   Old Stories), and leave through the Moon Gate. Prefix: .swr-
    Art: /assets/shadow/gate-temple.jpg · sanctum-altar.jpg · exit-path.jpg
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -321,8 +321,8 @@
 }
 
 /* ── Zone markers ───────────────────────────────────────────────────────── */
-/* Accents deepen with the descent: still-water green → swamp teal → belief
-   purple → furnace gold → moon cyan. */
+/* Accents run with the descent: furnace gold → still-water green → swamp teal
+   → belief purple → moon cyan. */
 .swr-zone { position: relative; --zac: var(--brand-cyan); }
 .swr-zone--waters    { --zac: #00ffbf; }
 .swr-zone--undertow  { --zac: #2fe0a6; }
