@@ -1013,9 +1013,18 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 
   const streakTier = [...STREAK_TIERS].reverse().find((t) => streak >= t.at);
   const hotZone = streak >= 5;
-  const quarterBonus = 1.5;
   const inZone = energy >= 80;
   const thirsty = energy < 25;
+  // The live multiplier on a made shot. BASELINE IS EXACTLY 1 — a rung is worth
+  // exactly what its button says. There used to be a `quarterBonus = 1.5` hardcoded
+  // here and folded into every single made shot, so the floor was ×1.5 and no button
+  // ever told the truth: VALUE BUILD said +50 and paid 75, CLOSE said +100 and paid
+  // 150, SPOKE TO said +25 and paid 38. It was named like a condition and displayed
+  // on the jumbotron like one, but nothing ever turned it off. On a funnel whose
+  // whole point is honest numbers, the button IS the contract.
+  // HOT (streak ≥5) and ZONE (energy ≥80) survive because they're earned, visible,
+  // and announced on screen every time they change the payout.
+  const scoreMult = (hotZone ? 2 : 1) * (inZone ? 1.15 : 1);
 
   // Real reactive crowd BED under gameplay — its volume rises with your streak
   // (and a nudge when In The Zone); hushed on pause / between quarters / sound off.
@@ -1169,6 +1178,16 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   buildReportRef.current = buildReport;
 
   const advanceQuarter = () => {
+    // ---- record this quarter's points for the box score ----
+    // This MUST happen before the end-of-game branch below. It used to sit after that
+    // branch's `return`, so the 4th quarter was never recorded: the game report printed
+    // Q4 = 0 (padded) next to a total that included it, and the Q1..Q4 row did not add
+    // up to the T beside it. Each entry is the running diff, so the four now sum to the
+    // final score by construction. Guarded on length so a double-fire of the coaching
+    // break's onDone can't double-count a quarter.
+    if (quarterScoresRef.current.length < quarter) {
+      quarterScoresRef.current.push(score - quarterScoresRef.current.reduce((s, v) => s + v, 0));
+    }
     // snapshot current totals as the new quarter's baseline
     qStartRef.current = { tally: JSON.parse(JSON.stringify(tally)), score, cups };
     setReport(null);
@@ -1200,8 +1219,6 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       });
       return;
     }
-    // record this quarter's score for the box score
-    quarterScoresRef.current.push(score - (quarterScoresRef.current.reduce((s,v)=>s+v,0)));
     // anchor the new quarter's clock to now (carry the live speed)
     anchorRef.current = { atMs: Date.now(), gameClock: QSEC, timeScale };
     lastDrainElapsedRef.current = 0; quarterEndedRef.current = false;
@@ -1311,7 +1328,7 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       setFlash((f) => f + 1);
       if (kind === "dunk") { snd.dunkSlam(); }
       else { snd.swish(true); snd.roar(0.34); if (a.id === "price") snd.react(); if ((a.id === "pitch" || a.id === "price") && Math.random() < 0.2) snd.coach("goodPitch"); }
-      let mult = 1; if (hotZone) mult *= 2; if (inZone) mult *= 1.15; mult *= quarterBonus;
+      const mult = scoreMult;
       const gain = Math.round(a.pts * mult);
       madeGain = gain;
       setScore((s) => s + gain);
@@ -1334,8 +1351,10 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       } else {
         popReward(REWARD_LINES[Math.floor(Math.random()*REWARD_LINES.length)], a.color, false);
       }
-      // combo multiplier readout when hot
-      if (hotZone) spawnFloatie(`×${(mult).toFixed(2)} COMBO`, FIRE);
+      // Multiplier readout whenever the payout differs from the button's face value —
+      // not just when HOT. ZONE's ×1.15 used to apply silently, so a +25 button paid 29
+      // with nothing on screen to explain the extra 4.
+      if (mult !== 1) spawnFloatie(`×${+mult.toFixed(2)} ${hotZone ? "COMBO" : "IN THE ZONE"}`, hotZone ? FIRE : GOLD);
       // NOTHING hydration-related fires here. A made shot used to roll
       // Math.random() < 0.12 for a "found water bottle" + a full-screen takeover.
       // That was a misread of the feature: the bottle tracks the REAL one in your
@@ -1344,8 +1363,8 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       // is why it read as a bug — ~40% odds across four VALUE BUILD taps.
     } else if (a.penalty) {
       // ---- OBJECTED: a flat cost, never a multiplied one ----
-      // Run through hotZone ×2 × inZone 1.15 × quarterBonus 1.5 this would be −17, so a
-      // hot streak would punish honesty hardest. Floored at 0 as well: a negative score
+      // Run through hotZone ×2 × inZone ×1.15 this would be −12, so a hot streak would
+      // punish honesty hardest. Floored at 0 as well: a negative score
       // breaks the jumbotron's toLocaleString seg font and flips `won = score >= oppScore`.
       const loss = Math.abs(a.pts);
       madeGain = -loss;
@@ -1418,7 +1437,7 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
         <button onClick={() => setHanded((h) => h === "right" ? "left" : "right")} style={{ ...ctrlBtn, padding: "5px 8px", fontSize: 10, minWidth: 40, background: "rgba(8,5,16,0.85)", backdropFilter: "blur(3px)" }} title="Swap control side">{handed === "right" ? "✋R" : "L✋"}</button>
       </div>
 
-      <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} quarterBonus={quarterBonus} urgency={urgency} windows={windows} multiplayer={!!match} opponent={opponent} oppFx={oppFx} meName={meName} />
+      <Jumbotron score={score} clock={clock} quarter={quarter} streak={streak} streakTier={streakTier} accuracy={accuracy} hotZone={hotZone} inZone={inZone} scoreMult={scoreMult} urgency={urgency} windows={windows} multiplayer={!!match} opponent={opponent} oppFx={oppFx} meName={meName} />
 
       <div style={{ position: "absolute", top: 200, left: 0, right: 0, bottom: 72, overflow: "hidden" }}>
         <Crowd flash={flash} />
@@ -1857,7 +1876,7 @@ function JumbotronTicker({ i = 0 }) {
   );
 }
 
-function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, quarterBonus, urgency, windows = [], multiplayer = false, opponent, oppFx, meName }) {
+function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZone, inZone, scoreMult, urgency, windows = [], multiplayer = false, opponent, oppFx, meName }) {
   const clockColor = urgency === 3 ? "#ff2d55" : urgency === 2 ? FIRE : "#fff";
   // both jumbotron tickers share ONE index so left & right show the SAME tip together
   const [tickI, setTickI] = useState(0);
@@ -1913,7 +1932,10 @@ function Jumbotron({ score, clock, quarter, streak, streakTier, accuracy, hotZon
               <div className="seg" style={{ fontSize: "clamp(27px,8.1vw,43px)", fontWeight: 900, lineHeight: 1, textShadow: `0 0 20px ${V},0 0 3px #fff` }}>{score.toLocaleString()}</div>
               <div style={{ fontSize: 9, letterSpacing: "3px", color: V_GLOW, fontWeight: 700 }}>POINTS</div>
             </div>
-            <Panel label="ACCURACY"><div className="seg" style={{ fontSize: 20, fontWeight: 900, color: V_GLOW }}>{accuracy}%</div><div style={{ fontSize: 8, color: "#6b5b88", letterSpacing: "1px" }}>{hotZone ? "🔥 HOT ×2" : `×${quarterBonus}`}</div></Panel>
+            {/* The live multiplier, not a decorative constant. This used to print
+                `×${quarterBonus}` — a hardcoded 1.5 that read as a condition but was
+                always on and silently inflated every score. */}
+            <Panel label="ACCURACY"><div className="seg" style={{ fontSize: 20, fontWeight: 900, color: V_GLOW }}>{accuracy}%</div><div style={{ fontSize: 8, color: hotZone ? FIRE : inZone ? GOLD : "#6b5b88", letterSpacing: "1px", fontWeight: 700 }}>{hotZone ? `🔥 HOT ×${+scoreMult.toFixed(2)}` : inZone ? `⚡ ZONE ×${+scoreMult.toFixed(2)}` : "×1 FACE VALUE"}</div></Panel>
           </div>
         )}
         <div style={{ marginTop: 6, background: "#050310", borderRadius: 9, padding: "6px 6px", border: "1px solid rgba(168,85,247,0.2)" }}>
@@ -3142,7 +3164,10 @@ function GameReport({ stats, players, onMenu, onReplay }) {
           {["Q1","Q2","Q3","Q4"].map((q) => <div key={q} style={{ textAlign: "center", fontSize: 9, color: "#6b5b88", fontWeight: 700 }}>{q}</div>)}
           <div style={{ textAlign: "center", fontSize: 9, color: "#6b5b88", fontWeight: 700 }}>T</div>
           <div style={{ fontWeight: 700, color: V_GLOW, fontSize: 11 }}>YOU</div>
-          {qs.map((v, i) => <div key={i} className="seg" style={{ textAlign: "center", fontWeight: 900, color: "#fff", fontSize: 14 }}>{Math.max(0, Math.round(v))}</div>)}
+          {/* No Math.max(0, …) clamp here: a quarter CAN come in net negative (enough
+              OBJECTED taps against few makes), and clamping it to 0 made the row stop
+              summing to the total printed beside it. Show the real number. */}
+          {qs.map((v, i) => <div key={i} className="seg" style={{ textAlign: "center", fontWeight: 900, color: v < 0 ? FIRE : "#fff", fontSize: 14 }}>{Math.round(v)}</div>)}
           <div className="seg" style={{ textAlign: "center", fontWeight: 900, color: GOLD, fontSize: 14 }}>{score}</div>
         </div>
       </div>
