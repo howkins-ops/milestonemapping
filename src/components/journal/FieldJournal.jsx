@@ -19,24 +19,39 @@ import { tapLight } from "../../lib/haptics.js";
 
 const GOLD = "#C9A24B";
 
-/* `soft` is the same colour pre-diluted for the paper wash — precomputed
-   rather than color-mix()'d so the old iOS WebViews Capacitor ships
-   against render it too. */
+/* Every shade of a tone is precomputed rather than color-mix()'d, so the
+   older iOS WebViews Capacitor ships against render them too.
+     soft  — the dilute wash on a list card
+     stain — the heavier bleed that seeps into the page you're writing on
+     rule  — the ruled lines, pulled toward the tone
+     ink   — the handwriting itself, pulled toward the tone
+     wax   — sealing wax in that colour. Historically wax was beeswax and
+             resin "often coloured red or green", so green is no invention. */
 const MOODS = [
-  { id: "ember", label: "ember", color: "#B4452F", soft: "rgba(180,69,47,.15)" },
-  { id: "gold", label: "steady", color: "#C9A24B", soft: "rgba(201,162,75,.16)" },
-  { id: "forest", label: "grounded", color: "#4C5B3F", soft: "rgba(76,91,63,.16)" },
-  { id: "ash", label: "heavy", color: "#6B675E", soft: "rgba(107,103,94,.15)" },
-  { id: "night", label: "quiet", color: "#33415C", soft: "rgba(51,65,92,.17)" },
+  { id: "ember",  label: "ember",    color: "#B4452F", soft: "rgba(180,69,47,.15)",  stain: "rgba(168,58,36,.44)",  rule: "rgba(150,64,44,.34)",  ink: "#3b1c14", wax: "#9E3520" },
+  { id: "gold",   label: "steady",   color: "#C9A24B", soft: "rgba(201,162,75,.16)", stain: "rgba(178,132,44,.44)", rule: "rgba(150,112,40,.36)", ink: "#3a2a10", wax: "#B08432" },
+  { id: "forest", label: "grounded", color: "#4C5B3F", soft: "rgba(76,91,63,.16)",   stain: "rgba(62,84,51,.46)",   rule: "rgba(64,88,52,.36)",   ink: "#1e2a17", wax: "#3E5433" },
+  { id: "ash",    label: "heavy",    color: "#6B675E", soft: "rgba(107,103,94,.15)", stain: "rgba(87,83,74,.44)",   rule: "rgba(84,80,72,.36)",   ink: "#25231e", wax: "#57534A" },
+  { id: "night",  label: "quiet",    color: "#33415C", soft: "rgba(51,65,92,.17)",   stain: "rgba(43,58,87,.46)",   rule: "rgba(52,68,98,.36)",   ink: "#17203a", wax: "#2B3A57" },
 ];
+
+/* classic vermilion — what an untoned page gets sealed with */
+const WAX_DEFAULT = "#9E3520";
 
 const moodOf = (moodId) => MOODS.find((m) => m.id === moodId);
 
-/* The tone rides on custom properties so one card rule paints the ribbon
-   and the wash; an untoned entry passes nothing and both fall back clear. */
+/* The tone rides on custom properties, so one rule paints the ribbon, the
+   wash, the ruled lines and the ink. An untoned entry passes nothing and
+   every one of them falls back to the plain page. */
 const toneStyle = (moodId) => {
   const m = moodOf(moodId);
-  return m ? { "--fj-tone": m.color, "--fj-tone-soft": m.soft } : undefined;
+  return m ? {
+    "--fj-tone": m.color,
+    "--fj-tone-soft": m.soft,
+    "--fj-tone-stain": m.stain,
+    "--fj-tone-rule": m.rule,
+    "--fj-tone-ink": m.ink,
+  } : undefined;
 };
 
 const LEATHERS = [
@@ -158,28 +173,100 @@ function ScienceCard({ pillar }) {
   );
 }
 
-/* ── wax seal overlay: molten drip → stamp → ember ring → shine ── */
-function WaxSeal({ onDone, settings }) {
+/* ── THE SEALING ──
+   The real thing, beat for beat: a taper is lit, wax beads are melted in a
+   spoon over the flame until they move like warm honey, the spoon is tipped
+   over the rotulus, and then you WAIT — the tell is the outer edge of the
+   pool going dull while the centre still shines. That brief window is when
+   a cold matrix goes straight down, no rocking. It hisses, squeezes a burr
+   of wax out under its rim, and lifts an impression that cures from glossy
+   to matte. The wax takes the colour of the tone you chose for the page.
+   Tap to cut it short. */
+const SEAL_MS = 4600;
+
+function WaxSeal({ onDone, settings, mood, emblem = "✦" }) {
+  const reduced = settings?.reducedMotion
+    || (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const done = useRef(false);
+  const finish = useCallback(() => {
+    if (done.current) return;
+    done.current = true;
+    onDone();
+  }, [onDone]);
+
   useEffect(() => {
     sfxWaxSeal(settings);
-    try { if (navigator.vibrate) navigator.vibrate(30); } catch { /* silent */ }
-    const t = setTimeout(onDone, 1750);
-    return () => clearTimeout(t);
+    /* the press itself, then the release */
+    const hit = reduced ? null : setTimeout(() => {
+      try { if (navigator.vibrate) navigator.vibrate([26, 40, 14]); } catch { /* silent */ }
+    }, 2800);
+    const t = setTimeout(finish, reduced ? 1100 : SEAL_MS);
+    return () => { clearTimeout(t); if (hit) clearTimeout(hit); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onDone]);
+  }, [finish, reduced]);
+
+  const wax = moodOf(mood)?.wax || WAX_DEFAULT;
+
   return (
-    <div className="fj-seal-veil">
-      <div className="fj-seal-drip" aria-hidden="true" />
-      <div className="fj-seal">
-        <div className="fj-seal-inner">✦</div>
-        <div className="fj-seal-shine" />
-        <div className="fj-seal-embers" aria-hidden="true">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className="fj-seal-ember" style={{ "--fj-ea": `${i * 45}deg`, animationDelay: `${520 + i * 20}ms` }} />
-          ))}
+    <div className={`fj-seal-veil ${reduced ? "fj-seal-quick" : ""}`} style={{ "--fj-wax": wax }}
+      onClick={finish} role="presentation">
+      <div className="fj-seal-stage" aria-hidden="true">
+        {/* the rotulus — parchment furled on its umbilicus, knobs at each end */}
+        <div className="fj-rotulus">
+          <div className="fj-rotulus-sheet" />
+          <div className="fj-rotulus-rod fj-rod-head"><i /><i /></div>
+          <div className="fj-rotulus-rod fj-rod-foot"><i /><i /></div>
+        </div>
+
+        {/* the taper, lit */}
+        <div className="fj-taper">
+          <div className="fj-taper-wax" />
+          <div className="fj-flame">
+            <span className="fj-flame-outer" />
+            <span className="fj-flame-inner" />
+            <span className="fj-flame-base" />
+          </div>
+        </div>
+
+        {/* the melting spoon: beads slump, merge, run like warm honey */}
+        <div className="fj-spoon">
+          <div className="fj-spoon-bowl">
+            <span className="fj-spoon-melt" />
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="fj-bead" style={{ "--fj-bi": i, animationDelay: `${620 + i * 90}ms` }} />
+            ))}
+          </div>
+          <div className="fj-spoon-stem" />
+        </div>
+
+        {/* the pour */}
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="fj-waxdrop" style={{ "--fj-di": i, animationDelay: `${1460 + i * 175}ms` }} />
+        ))}
+
+        {/* the pool: spreads, shines, then the rim dulls — the sweet spot */}
+        <div className="fj-pool">
+          <span className="fj-pool-body" />
+          <span className="fj-pool-sheen" />
+          <span className="fj-pool-burr" />
+          <span className="fj-impression">{emblem}</span>
+        </div>
+
+        {/* cold brass against hot wax */}
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className="fj-steam" style={{ "--fj-si": i - 2, animationDelay: `${2960 + i * 55}ms` }} />
+        ))}
+
+        {/* the matrix, coming straight down */}
+        <div className="fj-matrix">
+          <span className="fj-matrix-grip" />
+          <span className="fj-matrix-shank" />
+          <span className="fj-matrix-die">{emblem}</span>
         </div>
       </div>
-      <div className="fj-seal-label">sealed</div>
+
+      <div className="fj-seal-word">sealed</div>
+      <div className="fj-seal-hint">tap to skip</div>
     </div>
   );
 }
@@ -328,7 +415,9 @@ export default function FieldJournal({ onExit, startOpen = false }) {
   const saveEntry = (entry, after) => {
     addEntry(entry);
     addXP(15, "Journal entry sealed");
-    setSeal(() => after);
+    /* a story page is stamped with its chapter's own emblem */
+    const emblem = chapters.find((c) => c.id === entry.chapter_id)?.emblem || "✦";
+    setSeal({ run: after, mood: entry.mood, emblem });
   };
 
   const finishWizard = () => {
@@ -791,7 +880,10 @@ export default function FieldJournal({ onExit, startOpen = false }) {
         </nav>
       )}
 
-      {seal && <WaxSeal settings={settings} onDone={() => { const cb = seal; setSeal(null); cb(); }} />}
+      {seal && (
+        <WaxSeal settings={settings} mood={seal.mood} emblem={seal.emblem}
+          onDone={() => { const cb = seal.run; setSeal(null); cb(); }} />
+      )}
       {halo && <HaloRitual settings={settings} onDone={() => { const cb = halo; setHalo(null); cb(); }} />}
 
       {newChapterOpen && (
@@ -935,6 +1027,8 @@ function WritePage({ view, entries, chapters, onSave, onCancel, settings }) {
             if (now - lastScratch.current > 1800) { lastScratch.current = now; sfxQuillScratch(settings); }
           }} rows={9} />
         <div key={inkTick} className={`fj-ink-line ${inkTick ? "fj-ink-pulse" : ""}`} />
+        {/* the colour floods up into the page when you choose it */}
+        {toneTick > 0 && <span key={`flood${toneTick}${mood || "none"}`} className="fj-tone-flood" aria-hidden="true" />}
       </div>
 
       <div className="fj-mood-row">

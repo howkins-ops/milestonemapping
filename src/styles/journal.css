@@ -717,13 +717,70 @@
   position: relative;
   transition: box-shadow 0.3s;
 }
+/* The tone soaks the page it belongs to: heaviest along the left edge the
+   way damp seeps into paper, a haze off the top, and the ruled lines and
+   the ink itself pulled toward the colour. Untoned pages get none of it. */
 .fj-write-parchment {
-  background-image: linear-gradient(180deg, #efe6d2, #e8ddc4), repeating-linear-gradient(180deg, transparent 0 31px, rgba(120, 95, 50, 0.25) 31px 32px);
+  overflow: hidden;
+  background-image:
+    /* heaviest where the page was held and where the damp crept in */
+    linear-gradient(90deg, var(--fj-tone-stain, transparent), transparent 46%),
+    linear-gradient(180deg, var(--fj-tone-stain, transparent), transparent 34%),
+    radial-gradient(130% 90% at 6% 100%, var(--fj-tone-soft, transparent), transparent 66%),
+    radial-gradient(110% 80% at 100% 88%, var(--fj-tone-soft, transparent), transparent 58%),
+    /* and a flat tint through the whole sheet, so the page reads as the tone */
+    linear-gradient(0deg, var(--fj-tone-soft, transparent), var(--fj-tone-soft, transparent)),
+    linear-gradient(180deg, #efe6d2, #e8ddc4),
+    repeating-linear-gradient(180deg, transparent 0 31px, rgba(120, 95, 50, 0.25) 31px 32px);
+  transition: box-shadow 0.3s;
 }
 .fj-write-parchment:focus-within {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(120, 95, 50, 0.15),
     0 0 0 1px rgba(201, 162, 75, 0.5), 0 0 24px rgba(255, 209, 102, 0.18);
 }
+/* the ruled lines take the colour */
+.fj-write-parchment .fj-textarea {
+  background: repeating-linear-gradient(180deg, transparent 0 31px, var(--fj-tone-rule, rgba(120, 95, 50, 0.22)) 31px 32px);
+  color: var(--fj-tone-ink, #241C14);
+  transition: color 0.5s ease;
+}
+/* and so does the read-back page */
+.fj-parchment-toned .fj-entry-body { color: var(--fj-tone-ink, #241C14); }
+.fj-parchment-toned {
+  background-image:
+    linear-gradient(90deg, var(--fj-tone-stain, transparent), transparent 44%),
+    linear-gradient(180deg, var(--fj-tone-soft, transparent), transparent 34%),
+    linear-gradient(0deg, var(--fj-tone-soft, transparent), var(--fj-tone-soft, transparent)),
+    linear-gradient(180deg, #efe6d2, #e8ddc4);
+}
+/* the colour floods up into the page the moment you choose it */
+.fj-tone-flood {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 6px;
+  background: radial-gradient(120% 90% at 10% 108%, var(--fj-tone, transparent), transparent 68%);
+  animation: fjToneFlood 0.85s cubic-bezier(.2,.8,.25,1) forwards;
+}
+@keyframes fjToneFlood {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  35% { opacity: 0.5; }
+  100% { opacity: 0; transform: none; }
+}
+/* the room behind the page catches it too */
+/* the whole spread catches the colour, not just the paper */
+.fj-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(88% 62% at 50% 104%, var(--fj-tone-soft, transparent), transparent 72%);
+  transition: background 0.6s ease;
+}
+.fj-page > * { position: relative; z-index: 1; }
+/* the title's rule takes it as well */
+.fj-title-input { border-bottom-color: var(--fj-tone, #3a3223); transition: border-color 0.5s ease; }
 .fj-textarea {
   width: 100%;
   background: repeating-linear-gradient(180deg, transparent 0 31px, rgba(120, 95, 50, 0.22) 31px 32px);
@@ -883,93 +940,403 @@
 .fj-nav-glyph { font-size: 16px; }
 .fj-nav-on { color: #C9A24B; }
 
-/* ── WAX SEAL 2.0 ── */
+/* ══════════════ THE SEALING ══════════════
+   Beat for beat, the way it was actually done. A taper is lit; wax is
+   melted in a spoon over the flame until it runs like warm honey; it is
+   poured on the rotulus; then the WAIT — the rim of the pool goes dull
+   while the centre still shines, and that is the moment a cold matrix
+   goes straight down. It hisses, squeezes a burr out under the rim, and
+   lifts an impression that cures from glossy to matte.
+   Wax colour comes from --fj-wax, set from the tone of the page. */
 .fj-seal-veil {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(6, 5, 3, 0.72);
+  background:
+    radial-gradient(58% 44% at 50% 46%, rgba(60, 34, 12, 0.5), transparent 70%),
+    rgba(5, 4, 2, 0.9);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  animation: fjFade 0.25s ease, fjSealShake 0.28s ease 0.5s;
+  gap: 18px;
+  cursor: pointer;
+  animation: fjFade 0.3s ease;
 }
 @keyframes fjFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fjSealShake {
-  0%, 100% { transform: none; }
-  30% { transform: translateY(3px); }
-  60% { transform: translateY(-2px); }
-}
-/* molten drip descending before the stamp lands */
-.fj-seal-drip {
-  position: absolute;
-  top: calc(50% - 130px);
-  left: 50%;
-  width: 10px;
-  height: 26px;
-  margin-left: -5px;
-  border-radius: 50% 50% 60% 60%;
-  background: radial-gradient(circle at 35% 25%, #ffe09a, #e3b552 55%, #9a7a35);
-  box-shadow: 0 0 14px rgba(255, 209, 102, 0.7);
-  animation: fjDrip 0.5s cubic-bezier(.5,.05,.9,.6) both;
-}
-@keyframes fjDrip {
-  0% { transform: translateY(-30px) scaleY(0.6); opacity: 0; }
-  35% { opacity: 1; }
-  100% { transform: translateY(74px) scaleY(1.25); opacity: 0; }
-}
-.fj-seal {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+
+.fj-seal-stage {
   position: relative;
-  background: radial-gradient(circle at 32% 28%, #e5c069, #C9A24B 45%, #7d5f26 85%);
-  box-shadow: 0 10px 34px rgba(201, 162, 75, 0.4), inset 0 -5px 12px rgba(0, 0, 0, 0.4), inset 0 4px 8px rgba(255, 255, 255, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fjSealIn 0.6s cubic-bezier(.2,1.6,.4,1) 0.42s both;
+  width: 260px;
+  height: 260px;
+  /* the flame's light gutters over the whole scene */
+  animation: fjCandleLight 2.4s ease-in-out 0.5s infinite;
 }
-@keyframes fjSealIn {
-  0% { transform: scale(2.1); opacity: 0; }
-  55% { transform: scale(0.82); opacity: 1; }
-  75% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+@keyframes fjCandleLight {
+  0%, 100% { filter: brightness(1); }
+  22% { filter: brightness(1.07); }
+  47% { filter: brightness(0.95); }
+  71% { filter: brightness(1.04); }
 }
-.fj-seal-inner { font-size: 34px; color: #33260e; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3); }
-.fj-seal-shine {
+
+/* ── the rotulus: parchment furled on its umbilicus, knobs at each end ── */
+.fj-rotulus {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 186px; height: 150px;
+  margin: -75px 0 0 -93px;
+  animation: fjRotulusIn 0.7s cubic-bezier(.2,.9,.25,1) both;
+}
+@keyframes fjRotulusIn {
+  from { opacity: 0; transform: translateY(14px) rotateX(24deg) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+.fj-rotulus-sheet {
+  position: absolute;
+  inset: 14px 0;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 15px, rgba(120, 95, 50, 0.16) 15px 16px),
+    linear-gradient(180deg, #e8dcc0, #d9caa8 60%, #cdbc98);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6), inset 0 0 26px rgba(120, 95, 50, 0.2);
+}
+/* the rod, and its cornua */
+.fj-rotulus-rod {
+  position: absolute;
+  left: -10px; right: -10px;
+  height: 15px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #6b4a25, #35220f 62%, #1d1208);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.6), inset 0 1px rgba(255, 209, 102, 0.22);
+}
+.fj-rod-head { top: 0; }
+.fj-rod-foot { bottom: 0; }
+.fj-rotulus-rod i {
+  position: absolute;
+  top: -3px;
+  width: 13px; height: 21px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e0bd6c, #9a7a35 60%, #4a3714);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+.fj-rotulus-rod i:first-child { left: -7px; }
+.fj-rotulus-rod i:last-child { right: -7px; }
+
+/* ── the taper ── */
+.fj-taper {
+  position: absolute;
+  left: 8px; bottom: 6px;
+  width: 20px;
+  animation: fjTaperIn 0.6s cubic-bezier(.2,.9,.25,1) 0.12s both;
+}
+@keyframes fjTaperIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+.fj-taper-wax {
+  width: 20px; height: 84px;
+  border-radius: 4px 4px 3px 3px;
+  background: linear-gradient(90deg, #b6a681, #efe4c4 38%, #cdbe98 72%, #8e7f5d);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), inset 0 -6px 10px rgba(90, 70, 34, 0.3);
+}
+.fj-flame {
+  position: absolute;
+  left: 50%; top: -30px;
+  width: 16px; height: 34px;
+  margin-left: -8px;
+  animation: fjFlameDance 0.72s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+}
+@keyframes fjFlameDance {
+  0% { transform: scale(1) skewX(-3deg); }
+  50% { transform: scaleY(1.1) scaleX(0.94) skewX(2deg); }
+  100% { transform: scaleY(0.96) scaleX(1.04) skewX(4deg); }
+}
+.fj-flame span { position: absolute; left: 50%; border-radius: 50% 50% 46% 46%; transform: translateX(-50%); }
+.fj-flame-outer {
+  bottom: 0; width: 16px; height: 34px;
+  background: radial-gradient(ellipse at 50% 78%, #ffd98a, #ff9d2e 42%, rgba(255, 122, 0, 0.5) 68%, transparent 78%);
+  filter: blur(0.4px);
+  box-shadow: 0 0 34px 12px rgba(255, 150, 30, 0.34);
+}
+.fj-flame-inner {
+  bottom: 3px; width: 8px; height: 20px;
+  background: radial-gradient(ellipse at 50% 72%, #fffbe8, #ffe08a 58%, rgba(255, 200, 90, 0.2) 82%, transparent);
+}
+.fj-flame-base {
+  bottom: 0; width: 9px; height: 8px;
+  background: radial-gradient(ellipse at 50% 80%, #8fd0ff, rgba(90, 170, 255, 0.35) 62%, transparent 80%);
+}
+
+/* ── the melting spoon ── */
+.fj-spoon {
+  position: absolute;
+  left: 2px; bottom: 92px;
+  width: 96px; height: 30px;
+  transform-origin: 88% 50%;
+  /* only the first phase may fill backwards — a later `both` would
+     backwards-fill its own from-state over the entrance and the spoon
+     would be sitting there from frame one */
+  animation:
+    fjSpoonIn 0.7s cubic-bezier(.2,.9,.25,1) 0.5s both,
+    fjSpoonPour 0.75s cubic-bezier(.4,.05,.5,1) 1.34s forwards,
+    fjSpoonAway 0.5s ease 2.5s forwards;
+}
+@keyframes fjSpoonIn { from { opacity: 0; transform: translateX(-38px) rotate(-12deg); } to { opacity: 1; transform: none; } }
+@keyframes fjSpoonPour {
+  0%, 30% { transform: none; }
+  60%, 78% { transform: translate(52px, -30px) rotate(52deg); }
+  100% { transform: translate(52px, -26px) rotate(46deg); }
+}
+@keyframes fjSpoonAway { to { opacity: 0; transform: translate(20px, 22px) rotate(30deg); } }
+.fj-spoon-bowl {
+  position: absolute;
+  left: 0; top: 0;
+  width: 34px; height: 30px;
+  border-radius: 50% 42% 50% 50%;
+  background: linear-gradient(160deg, #d8b25f, #8d6a29 58%, #4c3813);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+/* the beads slump and merge */
+.fj-bead {
+  position: absolute;
+  top: 12px;
+  left: calc(7px + var(--fj-bi) * 8px);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--fj-wax, #9E3520);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.3);
+  animation: fjBeadMelt 0.72s ease-in both;
+}
+@keyframes fjBeadMelt {
+  0% { transform: none; border-radius: 50%; }
+  100% { transform: translate(calc(8px - var(--fj-bi) * 8px), 6px) scaleX(1.5) scaleY(0.5); border-radius: 40% 40% 50% 50%; }
+}
+/* molten, moving like warm honey */
+.fj-spoon-melt {
+  position: absolute;
+  left: 5px; bottom: 3px;
+  width: 24px; height: 10px;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(ellipse at 40% 26%, #ffcf9a, var(--fj-wax, #9E3520) 56%, rgba(0, 0, 0, 0.45));
+  opacity: 0;
+  animation: fjMoltenPool 0.6s ease 1.05s both, fjHoney 1.1s ease-in-out 1.6s 2;
+}
+@keyframes fjMoltenPool { from { opacity: 0; transform: scaleY(0.3); } to { opacity: 1; transform: none; } }
+@keyframes fjHoney {
+  0%, 100% { transform: none; }
+  50% { transform: translateX(2px) scaleX(1.06) scaleY(0.94); }
+}
+.fj-spoon-stem {
+  position: absolute;
+  left: 30px; top: 12px;
+  width: 66px; height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8d6a29, #533c16 70%, #2a1d09);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ── the pour ── */
+.fj-waxdrop {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 11px; height: 15px;
+  margin: -58px 0 0 -5px;
+  border-radius: 50% 50% 58% 58%;
+  background: radial-gradient(circle at 36% 24%, #ffc79a, var(--fj-wax, #9E3520) 62%, rgba(0, 0, 0, 0.4));
+  box-shadow: 0 0 12px rgba(255, 140, 60, 0.28);
+  opacity: 0;
+  animation: fjWaxFall 0.44s cubic-bezier(.45,.05,.85,.6) both;
+}
+@keyframes fjWaxFall {
+  0% { opacity: 0; transform: translateY(-14px) scaleY(0.7); }
+  22% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(52px) scaleY(1.5) scaleX(0.8); }
+}
+
+/* ── the pool ── */
+.fj-pool {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 92px; height: 92px;
+  margin: -40px 0 0 -46px;
+  display: grid;
+  place-items: center;
+}
+.fj-pool-body {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.5) 48%, transparent 62%);
-  transform: translateX(-110%);
-  animation: fjShine 0.9s ease 1s forwards;
+  border-radius: 48% 52% 46% 54% / 52% 46% 54% 48%;
+  background: var(--fj-wax, #9E3520);
+  /* a flat pour with a slightly raised rim, not a marble */
+  box-shadow:
+    inset 0 -2px 5px rgba(0, 0, 0, 0.34),
+    inset 0 3px 7px rgba(255, 255, 255, 0.1),
+    inset 0 0 0 3px rgba(0, 0, 0, 0.09),
+    0 7px 20px rgba(0, 0, 0, 0.55);
+  transform: scale(0);
+  animation:
+    fjPoolSpread 0.72s cubic-bezier(.2,.85,.3,1) 1.82s both,
+    fjPoolSquash 0.42s cubic-bezier(.3,.9,.3,1) 2.82s forwards,
+    fjPoolCure 0.7s ease 3.62s forwards;
 }
-@keyframes fjShine { 0% { transform: translateX(-110%); } 100% { transform: translateX(110%); } }
-/* ember sparks ringing out from the stamp */
-.fj-seal-embers { position: absolute; inset: 0; pointer-events: none; }
-.fj-seal-ember {
+@keyframes fjPoolSpread {
+  0% { transform: scale(0); }
+  62% { transform: scale(1.06) rotate(2deg); border-radius: 46% 54% 52% 48% / 48% 52% 46% 54%; }
+  100% { transform: scale(1); }
+}
+@keyframes fjPoolSquash {
+  0% { transform: scale(1); }
+  55% { transform: scale(1.12, 0.9); }
+  100% { transform: scale(1.06, 0.98); }
+}
+@keyframes fjPoolCure {
+  from { filter: none; }
+  to { filter: saturate(0.86) brightness(0.82) contrast(1.06); }
+}
+/* the sheen — full gloss, then it retreats from the rim: the sweet spot */
+.fj-pool-sheen {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #FFD166;
-  box-shadow: 0 0 8px rgba(255, 176, 0, 0.9);
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.12) 42%, transparent 66%);
   opacity: 0;
-  animation: fjEmber 0.8s ease-out both;
-  transform: rotate(var(--fj-ea, 0deg)) translateX(0);
+  animation:
+    fjSheenRise 0.5s ease 2.04s both,
+    fjSheenRetreat 0.62s ease 2.42s forwards;
 }
-@keyframes fjEmber {
-  0% { opacity: 0; transform: rotate(var(--fj-ea, 0deg)) translateX(28px) scale(0.6); }
-  25% { opacity: 1; }
-  100% { opacity: 0; transform: rotate(var(--fj-ea, 0deg)) translateX(78px) scale(1); }
+@keyframes fjSheenRise { from { opacity: 0; } to { opacity: 1; } }
+/* gloss pulls in toward the centre while the rim dulls — stamp now */
+@keyframes fjSheenRetreat {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.52); opacity: 0.5; }
 }
-.fj-seal-label { color: #C9A24B; font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase; }
+/* wax squeezed out under the rim of the die */
+.fj-pool-burr {
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  border: 5px solid var(--fj-wax, #9E3520);
+  opacity: 0;
+  filter: brightness(0.8);
+  animation: fjBurr 0.4s ease 2.94s both;
+}
+@keyframes fjBurr {
+  from { opacity: 0; transform: scale(0.86); }
+  to { opacity: 0.85; transform: scale(1); }
+}
+/* the impression, in relief, revealed as the die lifts */
+.fj-impression {
+  position: relative;
+  z-index: 2;
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.34);
+  opacity: 0;
+  text-shadow:
+    0 -1.5px 1px rgba(0, 0, 0, 0.45),
+    0 1.5px 1px rgba(255, 255, 255, 0.3);
+  animation: fjImpression 0.55s ease 3.44s both;
+}
+@keyframes fjImpression {
+  from { opacity: 0; transform: scale(1.1); }
+  to { opacity: 1; transform: none; }
+}
+
+/* cold brass meeting hot wax */
+.fj-steam {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 9px; height: 9px;
+  margin: -8px 0 0 -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 70%);
+  opacity: 0;
+  animation: fjSteam 0.9s ease-out both;
+}
+@keyframes fjSteam {
+  0% { opacity: 0; transform: translate(calc(var(--fj-si) * 12px), 0) scale(0.5); }
+  25% { opacity: 0.6; }
+  100% { opacity: 0; transform: translate(calc(var(--fj-si) * 26px), -54px) scale(2.4); }
+}
+
+/* ── the matrix ── */
+.fj-matrix {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 92px;
+  margin: -196px 0 0 -46px;
+  animation: fjMatrixPress 1.5s cubic-bezier(.35,.02,.4,1) 2.42s both;
+}
+/* straight down, no rocking; hold; then straight up */
+@keyframes fjMatrixPress {
+  0% { transform: translateY(-46px); opacity: 0; }
+  12% { opacity: 1; }
+  34% { transform: translateY(126px); }
+  40% { transform: translateY(122px); }
+  62% { transform: translateY(124px); }
+  100% { transform: translateY(-56px); opacity: 0.9; }
+}
+.fj-matrix-grip {
+  display: block;
+  width: 54px; height: 46px;
+  margin: 0 auto;
+  border-radius: 9px 9px 5px 5px;
+  background: linear-gradient(96deg, #4a3214, #7d5522 40%, #2f1f0c);
+  box-shadow: inset 0 2px rgba(255, 209, 102, 0.2), 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+.fj-matrix-shank {
+  display: block;
+  width: 18px; height: 22px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, #6b5220, #d8b25f 45%, #6b5220);
+}
+.fj-matrix-die {
+  display: grid;
+  place-items: center;
+  width: 92px; height: 26px;
+  border-radius: 4px;
+  font-size: 20px;
+  color: rgba(38, 24, 6, 0.5);
+  background: linear-gradient(180deg, #e3c274, #a8842f 55%, #6d5119);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6), inset 0 -3px 6px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 245, 200, 0.5);
+}
+
+.fj-seal-word {
+  color: #C9A24B;
+  font-family: 'Source Serif 4', serif;
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fjSealWord 0.7s ease 3.9s both;
+}
+@keyframes fjSealWord {
+  from { opacity: 0; letter-spacing: 0.14em; }
+  to { opacity: 1; letter-spacing: 0.34em; }
+}
+.fj-seal-hint {
+  position: absolute;
+  bottom: calc(26px + var(--safe-bottom, 0px));
+  color: #5a4c30;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fjFade 0.5s ease 1.1s forwards;
+}
+
+/* reduced motion: no ceremony, just the cured impression */
+.fj-seal-quick .fj-taper,
+.fj-seal-quick .fj-spoon,
+.fj-seal-quick .fj-waxdrop,
+.fj-seal-quick .fj-steam,
+.fj-seal-quick .fj-matrix,
+.fj-seal-quick .fj-pool-sheen { display: none; }
+.fj-seal-quick .fj-pool-body,
+.fj-seal-quick .fj-pool-burr,
+.fj-seal-quick .fj-impression,
+.fj-seal-quick .fj-seal-word { animation-delay: 0s; }
+.fj-seal-quick .fj-pool-body { transform: scale(1); filter: saturate(0.86) brightness(0.82); }
 
 /* ── MODAL ── */
 .fj-modal-veil { position: fixed; inset: 0; z-index: 40; background: rgba(6, 5, 3, 0.78); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fjFade 0.2s ease; }
