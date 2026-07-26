@@ -5,6 +5,7 @@ import { initNativeStorage } from "./lib/nativeStorage.js";
 import { initDeepLinks } from "./lib/deepLinks.js";
 import "./styles/globals.css";
 import "./styles/animations.css";
+import "./styles/boot.css";
 import "./styles/themes.css";
 import "./styles/training.css";
 import "./styles/game.css";
