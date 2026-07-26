@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { loadJourney, isSpireOpen, isCrossingOpen, spireLitCount, TUTORIAL_DISTRICT_IDS, CROSSING_CITIES } from "../city/journeyStore.js";
 import { SPIRE_FLOORS, floorOpen, floorComplete } from "./spire/spireWorlds.js";
 import { CITY_DEFS } from "./crossing/crossingWorlds.js";
@@ -29,8 +29,16 @@ function readChapterCount() {
   }
 }
 
-export default function WorldAtlas({ onJump, current = null }) {
+// `fab` false hides the floating button so a host screen can open the atlas
+// from its own chrome — bump `openSignal` to any new number to open it.
+// Milestone City does this: the street's chip rail owns the atlas now, so the
+// FAB can't sit on top of the NEXT STOP bar.
+export default function WorldAtlas({ onJump, current = null, fab = true, openSignal = 0 }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (openSignal > 0) setOpen(true);
+  }, [openSignal]);
 
   const rows = useMemo(() => {
     if (!open) return [];
@@ -121,9 +129,11 @@ export default function WorldAtlas({ onJump, current = null }) {
 
   return (
     <>
-      <button type="button" className="atl-fab" onClick={() => setOpen(true)} aria-label="World Atlas">
-        🗺
-      </button>
+      {fab ? (
+        <button type="button" className="atl-fab" onClick={() => setOpen(true)} aria-label="World Atlas">
+          🗺
+        </button>
+      ) : null}
 
       {open ? (
         <div className="atl-overlay" role="dialog" aria-modal="true" aria-label="World Atlas" onClick={() => setOpen(false)}>

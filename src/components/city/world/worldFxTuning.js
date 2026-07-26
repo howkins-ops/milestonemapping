@@ -41,7 +41,11 @@ export const SKY = {
 };
 
 export const LIFE = {
-  citizenBase: 2,
+  // Base 5, not 2: the street used to carry 16 mentor sprites as de-facto
+  // population. They're inside their buildings now, so a brand-new citizen
+  // with nothing lit would otherwise walk ~23 screens past almost no one.
+  // Citizens are pure CSS patrol loops with zero JS, well under citizenCap.
+  citizenBase: 5,
   citizenPerLit: 1,
   citizenCap: 14,
   tramMax: 3,

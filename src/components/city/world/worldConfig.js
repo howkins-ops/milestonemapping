@@ -19,7 +19,10 @@
 //   props: [{ type:"lamp"|"fountain"|"gate", x:px, color?, label? }],
 //   buildings: [{ id, name, icon, color, glow, x:px, w:px, hPct,
 //                 glowState, locked, next }],      // door = building center
-//   npcs: [{ id, name, x:px, color, sprite:"guide" }],
+//   npcs: [{ id, name, x:px, color, disabled? }],  // talkable; 52px hit box
+//   guidePost: { x:px, color, name },     // optional wayfinding marker — a
+//     // beacon that strides to wherever you're meant to go next. NOT a
+//     // walk-up target and not tappable, so it never competes with a door.
 //   enemies: [{ id, kind:"hater"|"naysayer", x:px, patrol?:px, dur?:s }],
 //     // stompable street clowns — jump on them (optional, comedy only)
 //   maskDens: [{ x:px, w:px }],           // fog banks — wild-critic ambush

@@ -172,6 +172,8 @@ export default function WorldScene({
   };
 
   // ── Living City juice (Phase 1) ─────────────────────────────────────────
+  const postRef = useRef(null); // the Guide's waypoint marker
+  const postXRef = useRef(null); // last x he was posted at (null = unmounted)
   const fxLayerRef = useRef(null); // particle pool lives in this layer
   const stompChainRef = useRef(0); // stomps without touching the ground
   const soundRef = useRef(null); // the street's ears (Phase 8) — set below
@@ -181,6 +183,32 @@ export default function WorldScene({
     const list = charTimersRef.current;
     return () => list.forEach(clearTimeout);
   }, []);
+
+  // ── The Guide's post ────────────────────────────────────────────────────
+  // He strides to whatever door is next. Keyed on the SCALAR x: world (and
+  // world.guidePost with it) is a fresh object every render, so an
+  // object-keyed effect would re-snap 60×/s and the transition would never
+  // play. First mount posts him instantly — no 1000px glide on arrival.
+  const postX = world.guidePost ? Math.round(world.guidePost.x) : null;
+  useEffect(() => {
+    const el = postRef.current;
+    if (!el || postX == null) {
+      postXRef.current = null;
+      return undefined;
+    }
+    const from = postXRef.current;
+    if (from === postX) return undefined;
+    const first = from == null;
+    const ms = first ? 0 : Math.min(2600, 500 + Math.abs(postX - from) * 1.1);
+    el.style.setProperty("--post-dur", `${ms}ms`);
+    el.style.setProperty("--post-face", !first && postX < from ? "-1" : "1");
+    el.classList.toggle("is-striding", !first);
+    el.style.transform = `translate3d(${postX}px,0,0)`;
+    postXRef.current = postX;
+    if (first) return undefined;
+    const t = setTimeout(() => el.classList.remove("is-striding"), ms);
+    return () => clearTimeout(t);
+  }, [postX]);
 
   // Strides feed the encounter engine — but never mid-jump (§3 rule), so
   // the hook reads the airborne flag through a ref the loop can't rebind.
@@ -783,19 +811,44 @@ export default function WorldScene({
           </button>
         ))}
 
+        {/* The button is positioned ON n.x (the CSS centers it); only the
+            52px sprite takes taps. The name tag is nowrap and can be 3× the
+            sprite wide — before this, its box overhung the doorway and ate
+            the tap meant for the door. `disabled` npcs are un-talkable now,
+            not just un-prompted. */}
         {(world.npcs || []).map((n) => (
           <button
             key={n.id}
             type="button"
             className="mqw-npc"
-            style={{ left: n.x - 30, "--npc-color": n.color }}
-            onClick={() => onTalkNpc && onTalkNpc(n.id)}
+            style={{ left: n.x, "--npc-color": n.color }}
+            onClick={() => !n.disabled && onTalkNpc && onTalkNpc(n.id)}
             aria-label={`Talk to ${n.name}`}
           >
-            <MentorSprite size={52} color={n.color} staff />
+            <span className="mqw-npc__hit">
+              <MentorSprite size={52} color={n.color} staff />
+            </span>
             <span className="mqw-npc__tag">{n.name}</span>
           </button>
         ))}
+
+        {/* The Guide — a marker, not a character you have to get past. */}
+        {world.guidePost ? (
+          <div
+            ref={postRef}
+            className="mqw-post"
+            style={{ "--post-color": world.guidePost.color }}
+            aria-hidden="true"
+          >
+            <span className="mqw-post__beam" />
+            <span className="mqw-post__flip">
+              <span className="mqw-post__bob">
+                <MentorSprite size={52} color={world.guidePost.color} staff />
+              </span>
+            </span>
+            <span className="mqw-post__tag">{world.guidePost.name}</span>
+          </div>
+        ) : null}
 
         {(world.maskDens || []).map((d, i) => (
           <span

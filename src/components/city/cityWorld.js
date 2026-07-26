@@ -51,6 +51,14 @@ const ARCH_W = 132;
 const ARCH_GAP = 90;
 const ZONE_GAP = 300;
 
+// The Guide's waiting post: 48px east of a door centre. Clears the 18px lit
+// doorway by 13px, still lands inside the door's own ±75 range so walking to
+// him reads "Enter", and his 52px sprite (half-width 26) stays on the facade
+// — 48 + 26 = 74 ≤ 75. The next door's range starts 205px east, so 131px of
+// air. He is a marker only; nothing about him is a walk-up target.
+const GUIDE_POST_DX = 48;
+const GUIDE_PLAZA_X = 640; // his post when there is no next stop
+
 const WIDTH_BY_ID = { "alchemist-spire": SPIRE_W };
 
 // Living City (Phase 10): every district's signature facade rig — the
@@ -141,12 +149,20 @@ const MID = [
 
 // districts: the decorated array from useCityProgress (id, name, icon,
 // color, glow, glowState, position). Optional per-district flags `locked`,
-// `next` and `sealed` are passed straight through to the scene, and
-// `mentors` ({ [districtId]: { name, color } }) places each district's
-// Guide NPC beside its door — the tutorial teacher you talk to first.
+// `next` and `sealed` are passed straight through to the scene.
+// `mentors` ({ [districtId]: { name, color } }) places a teacher NPC west of
+// that district's door. The caller decides who that is — the page passes at
+// most ONE, the mentor of your next stop, and only until you've heard them.
+// `guidePostId` posts The Guide at that district's door: a pure marker, not
+// an NPC, so he can never compete with the door for the walk-up prompt.
 export function buildCityWorld(
   districts,
-  { guideName = "The Guide", guideColor = "#00F0FF", mentors = {} } = {}
+  {
+    guideName = "The Guide",
+    guideColor = "#00F0FF",
+    mentors = {},
+    guidePostId = null,
+  } = {}
 ) {
   const byId = new Map((districts || []).map((d) => [d.id, d]));
 
@@ -157,7 +173,13 @@ export function buildCityWorld(
     { type: "lamp", x: 760, color: "#00F0FF" },
   ];
 
-  const npcs = [{ id: "guide", name: guideName, x: 640, color: guideColor, sprite: "guide" }];
+  // The Guide is not an NPC — he's a waypoint. Standing at the door he'd be
+  // the NEAREST target (checkProximity picks by distance, and doors have no
+  // priority), so he'd steal the Enter prompt from the very door he's
+  // pointing at. He's a pointer-events:none marker instead; the NEXT STOP
+  // bar in the page chrome owns everything he used to say.
+  const npcs = [];
+  let guidePost = { x: GUIDE_PLAZA_X, color: guideColor, name: guideName };
 
   const arches = [];
   const buildings = [];
@@ -182,7 +204,7 @@ export function buildCityWorld(
       dur: 4.2 + (i % 3) * 0.8,
     });
   };
-  addClown(810, 60); // first heckler — the clear stretch past the Guide
+  addClown(810, 60); // first heckler — the clear stretch out of the plaza
 
   // plaza greenery — the bio-grove grammar starts at the gates
   props.push({ type: "flora", variant: "tree", x: 370, accent: "#00FFBF" });
@@ -225,8 +247,10 @@ export function buildCityWorld(
         facadeFx: FACADE_FX[d.id] || null,
       });
 
-      // The district's Guide stands west of the door, clear of its ±75px
-      // hit-range so the talk prompt and the door prompt never fight.
+      // The district's teacher stands west of the door, clear of its ±75px
+      // hit-range so the talk prompt and the door prompt never fight. The
+      // 52px sprite is centred on this x, so it spans [x-26, x+26] — well
+      // inside its own ±64 walk-up range, and 38px clear of the facade.
       const m = mentors[d.id];
       if (m && !d.sealed) {
         npcs.push({
@@ -234,9 +258,17 @@ export function buildCityWorld(
           name: m.name,
           x: p.x - 64,
           color: m.color,
-          sprite: "guide",
           disabled: Boolean(d.locked),
         });
+      }
+
+      // The Guide waits at whichever door is next.
+      if (guidePostId && guidePostId === d.id && !d.sealed) {
+        guidePost = {
+          x: Math.round(p.x + p.w / 2 + GUIDE_POST_DX),
+          color: guideColor,
+          name: guideName,
+        };
       }
     }
 
@@ -401,6 +433,7 @@ export function buildCityWorld(
     props,
     buildings,
     npcs,
+    guidePost,
     enemies,
     maskDens,
     maskZones,

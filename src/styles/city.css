@@ -864,3 +864,253 @@ html[data-reduced-motion="true"] .mqc-guide__go { transition: none; }
 .mqc-scene--still::after {
   animation: none !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE STREET IS THE CITY
+   One screen, one question: where do I go next?
+   The walkable street takes the whole frame; only the NEXT STOP bar sits
+   under it. The sixteen district cards and the citizen/plaza block moved
+   into sheets behind the two chips riding the scene HUD.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* The bottom 44px is the FAB lane: .pnd-fab and any other fixed round
+   button live at bottom:92px, and the NEXT STOP bar's CTA must never sit
+   under one — a mis-tap there opens the wrong thing. */
+.mqc-root--street {
+  padding-bottom: calc(44px + var(--safe-bottom, 0px));
+}
+
+.mqc-head--tight {
+  align-items: center;
+  margin: 2px 2px 8px;
+}
+
+.mqc-head--tight .mqc-head__title {
+  font-size: clamp(19px, 4.4vw, 25px);
+}
+
+/* ── The full-bleed street ──────────────────────────────────────────────── */
+
+/* Sized so the street, the chip rail and the NEXT STOP bar all fit one
+   phone screen — the city should never need a scroll to be understood. */
+.mqk-scenewrap--full .mqw-viewport {
+  height: clamp(300px, 42vh, 600px);
+}
+
+@media (min-width: 720px) {
+  .mqk-scenewrap--full .mqw-viewport { height: clamp(420px, 54vh, 700px); }
+}
+
+/* ── Chip rail — the doors off the street ───────────────────────────────── */
+/* Below the scene, never inside it: mqw-ctrl--left/--right own the scene's
+   bottom corners and must stay tappable. */
+
+.mqc-chiprail {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.mqc-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 5px;
+  min-height: 34px;
+  padding: 7px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  background: rgba(5, 0, 10, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-main, #f2f0f4);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: box-shadow 0.25s var(--ease-out, ease), border-color 0.25s, transform 0.25s var(--ease-out, ease);
+}
+
+.mqc-chip:hover,
+.mqc-chip:focus-visible {
+  border-color: rgba(0, 240, 255, 0.8);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.mqc-chip:focus-visible {
+  outline: 2px solid var(--brand-cyan, #00f0ff);
+  outline-offset: 3px;
+}
+
+.mqc-chip__glyph {
+  font-size: 12px;
+  color: var(--brand-cyan, #00f0ff);
+}
+
+.mqc-chip__count {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft, rgba(242, 240, 244, 0.62));
+}
+
+/* ── NEXT STOP — the one action ─────────────────────────────────────────── */
+
+.mqc-next {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 11px 13px;
+  border-radius: var(--radius-lg, 20px);
+  background:
+    linear-gradient(rgba(13, 5, 20, 0.9), rgba(13, 5, 20, 0.9)) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--n-color, #00f0ff) 70%, transparent), rgba(123, 44, 255, 0.4)) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--n-color, #00f0ff) 14%, transparent),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.mqc-next__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mqc-next__body:focus-visible {
+  outline: 2px solid var(--n-color, #00f0ff);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.mqc-next__sprite {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 52px;
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--n-color, #00f0ff) 35%, transparent));
+}
+
+.mqc-next__txt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mqc-next__kicker {
+  display: block;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--n-color, #00f0ff);
+}
+
+.mqc-next__name {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: clamp(15px, 3.6vw, 18px);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--text-main, #f2f0f4);
+}
+
+/* two lines, never more — the instruction has to be skimmable at a glance */
+.mqc-next__line {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-soft, rgba(242, 240, 244, 0.66));
+}
+
+.mqc-next__go {
+  flex: 0 0 auto;
+  padding: 11px 18px;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 520px) {
+  .mqc-next {
+    flex-wrap: wrap;
+  }
+  .mqc-next__go {
+    width: 100%;
+  }
+}
+
+/* ── Sheets that hold what used to be the scroll ────────────────────────── */
+
+/* Long enough to scroll, so the last quarter must clear the bottom nav —
+   --bottom-nav-h is self-measured, so this tracks whatever the nav is. */
+.mqc-sheet--tall {
+  max-height: 88vh;
+  padding-bottom: calc(24px + var(--bottom-nav-h, 64px) + var(--safe-bottom, 0px));
+}
+
+.mqc-ss-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+
+.mqc-ss-head__title {
+  margin: 0;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-main, #f2f0f4);
+}
+
+.mqc-ss-head__count {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-green, #00ffbf);
+}
+
+.mqc-ss-plaza {
+  margin-top: 14px;
+}
+
+/* the sheet's first quarter shouldn't double up on the header's gap */
+.mqc-sheet--tall .mqc-d-quarter:first-of-type {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mqc-chip { transition: none; }
+}
+
+html[data-reduced-motion="true"] .mqc-chip { transition: none; }

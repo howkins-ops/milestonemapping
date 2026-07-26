@@ -514,20 +514,37 @@
 
 /* ── NPCs ───────────────────────────────────────────────────────────────── */
 
+/* The button sits ON n.x and is centred here — the grid must stay, because
+   `bottom: 12%` anchors the TAG's bottom edge and every world's NPCs are
+   placed against that. The button itself takes no pointer events: its box
+   is as wide as the nowrap name tag (~166px for "VESSA THE FORGEMOTHER"),
+   which used to overhang the doorway and swallow the tap meant for the
+   door. Only __hit — the 52px sprite — is tappable.
+   No `animation` here: MentorSprite carries its own inline `sIdle 3.6s`,
+   so the sprite still bobs, and `transform` stays free for centring. */
 .mqw-npc {
   position: absolute;
   bottom: 12%;
+  transform: translateX(-50%);
   padding: 0;
   border: none;
   background: none;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   display: grid;
   justify-items: center;
-  animation: mqw-idle 3.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3; /* over flora (1) and citizens (2), under the Seeker (4) */
+}
+
+.mqw-npc__hit {
+  display: block;
+  line-height: 0;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .mqw-npc__tag {
+  pointer-events: none;
   margin-top: 2px;
   padding: 3px 8px;
   border-radius: 6px;
@@ -542,11 +559,104 @@
   white-space: nowrap;
 }
 
-.mqw-npc:focus-visible {
+.mqw-npc:focus-visible { outline: none; }
+
+.mqw-npc:focus-visible .mqw-npc__hit {
   outline: 2px solid var(--npc-color, #00f0ff);
   outline-offset: 4px;
   border-radius: 10px;
 }
+
+/* ── THE GUIDE'S POST ───────────────────────────────────────────────────── */
+/* A waypoint, not an NPC. He waits at whatever door is next and strides when
+   it changes, so "walk to the Guide" always means "you're at the right
+   building". pointer-events:none is load-bearing — standing at a door he
+   would otherwise be the nearest target and steal the Enter prompt.
+   Definite width + margin-left centres him on his x with no tag-driven
+   drift (the lesson .mqw-npc taught the hard way). */
+
+.mqw-post {
+  position: absolute;
+  bottom: 12%;
+  left: 0;
+  width: 52px;
+  margin-left: -26px;
+  /* parked off-world until the effect posts him — otherwise he paints at
+     the west gate for one frame on mount */
+  transform: translate3d(-9999px, 0, 0);
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+  z-index: 3;
+  transition: transform var(--post-dur, 900ms) cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+.mqw-post__flip {
+  display: block;
+  line-height: 0;
+  transform: scaleX(var(--post-face, 1));
+}
+
+.mqw-post__bob {
+  display: block;
+  line-height: 0;
+}
+
+/* he picks up the pace while relocating */
+.mqw-post.is-striding .mqw-post__bob {
+  animation: mqw-bob 0.42s ease-in-out infinite;
+}
+
+.mqw-post__tag {
+  margin-top: 2px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(5, 0, 10, 0.85);
+  border: 1px solid color-mix(in srgb, var(--post-color, #00f0ff) 60%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--post-color, #00f0ff) 30%, transparent);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--post-color, #00f0ff);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* the sky-beam — what makes the post findable from off-screen, and what
+   finally tells the Guide apart from a teacher at a door */
+.mqw-post__beam {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 3px;
+  height: 260px;
+  margin-left: -1.5px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--post-color, #00f0ff) 70%, transparent),
+    transparent 78%
+  );
+  animation: mqw-post-beam 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes mqw-post-beam {
+  0%, 100% { opacity: 0.35; height: 240px; }
+  50% { opacity: 0.7; height: 300px; }
+}
+
+/* Both reduced-motion paths below kill `animation` only — a transition has
+   to be switched off by name or the Guide still glides. */
+.mqw-viewport--still .mqw-post { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mqw-post { transition: none; }
+}
+
+html[data-reduced-motion="true"] .mqw-post { transition: none; }
 
 /* ── Street enemies — HATERS & NAYSAYERS (stompable clowns) ─────────────── */
 

@@ -65,7 +65,7 @@ export default function useJourney(districts, { onPowerOn, onLit, onSpireOpen } 
   const spireOpen = isSpireOpen(journey);
 
   // Derive unlock + lit state along the story order.
-  const { unlockedSet, nextLockedId, nextStopId, freshUnlocks, litUpdates } = useMemo(() => {
+  const { unlockedSet, nextLockedId, nextStopId, freshUnlocks, litUpdates, heardLessons } = useMemo(() => {
     const stored = journey.city.unlocked || {};
     const litStore = journey.city.lit || {};
     const lessons = loadCityState().mentorLessons || {};
@@ -119,6 +119,7 @@ export default function useJourney(districts, { onPowerOn, onLit, onSpireOpen } 
       nextStopId: stop,
       freshUnlocks: fresh,
       litUpdates: lits,
+      heardLessons: lessons,
     };
   }, [journey, byId, legacy, spireOpen]);
 
@@ -174,6 +175,12 @@ export default function useJourney(districts, { onPowerOn, onLit, onSpireOpen } 
     litTotal: TUTORIAL_DISTRICT_IDS.length,
     isUnlocked: (id) => journey.world !== "city" || unlockedSet.has(id),
     isLit: (id) => Boolean(journey.city.lit?.[id]?.litAt),
+    // THE lesson-heard predicate — the only one that is true for every user.
+    // `city.lit[id].lessonAt` is NOT a substitute: the LIT observation above
+    // is gated on `!legacy`, and the Spire is outside TUTORIAL_DISTRICT_IDS,
+    // so neither a veteran nor the Spire ever gets a lessonAt stamp.
+    // Invalidation rides journey.refresh(), which finishLesson already calls.
+    hasHeardLesson: (id) => heardLessons[id] != null,
     nextLockedId,
     nextStopId,
     setWorld,

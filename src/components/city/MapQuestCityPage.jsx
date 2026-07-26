@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 import { useGamification } from "../../hooks/useGamification.js";
 import { XP_VALUES, RANKS } from "../../lib/gamification.js";
-import { MentorSprite } from "../map-quest/kit.jsx";
 import PendantHUD from "../map-quest/PendantHUD.jsx";
 import WorldAtlas from "../map-quest/WorldAtlas.jsx";
 import WorldScene from "./world/WorldScene.jsx";
@@ -23,15 +22,15 @@ import {
 } from "./streetStore.js";
 import { todayKey } from "./world/daySeed.js";
 import { REWARD } from "./world/worldFxTuning.js";
-import CitizenCard from "./CitizenCard.jsx";
-import CityPlaza from "./CityPlaza.jsx";
 import HallOfChampions from "./HallOfChampions.jsx";
-import DistrictCard from "./DistrictCard.jsx";
 import DistrictSheet from "./DistrictSheet.jsx";
+import DistrictsSheet from "./DistrictsSheet.jsx";
+import CommonsSheet from "./CommonsSheet.jsx";
+import NextStopBar from "./NextStopBar.jsx";
 import MentorDialog from "./MentorDialog.jsx";
 import useCityProgress from "./useCityProgress.js";
 import useCitySocial from "./useCitySocial.js";
-import { QUARTER_ORDER, QUARTER_META, DISTRICTS } from "./cityDistricts.js";
+import { DISTRICTS } from "./cityDistricts.js";
 import { MENTORS, THE_GUIDE, getDailyGuideLesson, getSpireCloser } from "./cityMentors.js";
 import { getCityStage, getTimeOfDay } from "./cityAtmosphere.js";
 import {
@@ -61,10 +60,17 @@ import "../../styles/city.css";
 // ════════════════════════════════════════════════════════════════════════
 // MILESTONE CITY — the living open-world hub
 // One city, sixteen districts, every district a real feature. The street
-// is walkable now: your Seeker walks it end to end, the camera follows,
-// the buildings glow with your actual progress, your people stand in the
-// plaza, and every district's mentor teaches the lesson that ends where
-// the work begins.
+// is walkable: your Seeker walks it end to end, the camera follows, the
+// buildings glow with your actual progress, and every district's mentor
+// teaches the lesson that ends where the work begins.
+//
+// THE SCREEN ANSWERS ONE QUESTION: "where do I go next?"
+// The street is the city — full-bleed, nothing stacked under it but the
+// NEXT STOP bar, whose single button does the actual next thing (hear the
+// lesson, or enter the door). Everything else is one tap down: the sixteen
+// district cards live in the DISTRICTS sheet, your standing and your people
+// in the COMMONS sheet. Nothing was removed — only moved off the front.
+//
 // Canonical home: the City tab inside the Accountability Zone (embedded).
 // Also mounted standalone at nav keys "city" / "openworld".
 // ════════════════════════════════════════════════════════════════════════
@@ -114,6 +120,9 @@ export default function MapQuestCityPage({
   const { ctx, districts, cityPulse, litCount, radiantCount } = useCityProgress(social);
 
   const [selected, setSelected] = useState(null); // district in the sheet
+  const [districtsOpen, setDistrictsOpen] = useState(false); // all 16, one tap down
+  const [commonsOpen, setCommonsOpen] = useState(false); // you + your people
+  const [atlasSignal, setAtlasSignal] = useState(0); // the chip rail owns the atlas
   const [hallOpen, setHallOpen] = useState(false);
   const [lesson, setLesson] = useState(null); // { mentor, district }
   const [ignition, setIgnition] = useState(false); // GATE 2 cinematic
@@ -335,6 +344,66 @@ export default function MapQuestCityPage({
   const guide = getDailyGuideLesson(new Date(), ALL_DISTRICT_IDS);
   const guideDistrict = journeyDistricts.find((d) => d.id === guide.districtId) || null;
 
+  // ── NEXT STOP — the one question this screen answers ────────────────────
+  // In training (a new citizen still lighting the city) the answer is the
+  // frontier district, and the button is the half that's actually missing:
+  // the lesson if it hasn't been heard, the door if it has.
+  // Past GATE 2 — or for a legacy citizen who never walked the chain — the
+  // answer is the Guide's district for today. Legacy saves never record LIT,
+  // so nextStopId would otherwise pin them to the first door forever.
+  const inTraining = !journey.legacy && !journey.spireOpen;
+
+  const nextStop = (() => {
+    const stopDistrict = inTraining
+      ? journeyDistricts.find((d) => d.id === journey.nextStopId) || null
+      : null;
+
+    if (stopDistrict) {
+      const mentor = MENTORS[stopDistrict.id] || null;
+      const heard = journey.hasHeardLesson(stopDistrict.id);
+      return {
+        district: stopDistrict,
+        kicker: "NEXT STOP",
+        spriteColor: mentor ? mentor.color : stopDistrict.color,
+        line: heard
+          ? "Lesson heard. Now make one real move inside it — that's what lights it."
+          : mentor
+            ? `${mentor.name} is at the door with this district's lesson.`
+            : "Hear this district's lesson, then make one real move inside it.",
+        cta: heard ? "ENTER" : "HEAR THE LESSON",
+        action: heard ? "enter" : "lesson",
+      };
+    }
+
+    if (guideDistrict) {
+      return {
+        district: guideDistrict,
+        kicker: "TODAY",
+        spriteColor: THE_GUIDE.color,
+        line: guide.line,
+        cta: "GO",
+        action: "open",
+      };
+    }
+    return null;
+  })();
+
+  const handleNextStop = (district, action) => {
+    if (action === "lesson") hearLesson(district);
+    else if (action === "enter") enterDistrict(district);
+    else openDistrict(district);
+  };
+
+  // Chip counters — the two doors off the street.
+  const districtsChipLabel = inTraining
+    ? `${journey.litCount}/${journey.litTotal}`
+    : `${litCount}/${districts.length}`;
+  const commonsChipCount =
+    social && social.online
+      ? (Array.isArray(social.friends) ? social.friends.length : 0) +
+        (social.partner && social.partner.partner ? 1 : 0)
+      : 0;
+
   // ── Locked-sheet context ────────────────────────────────────────────────
   const selectedLocked = Boolean(selected && !journey.isUnlocked(selected.id));
   const selectedStoryIdx = selected ? STORY_ORDER.indexOf(selected.id) : -1;
@@ -344,19 +413,38 @@ export default function MapQuestCityPage({
       : null;
 
   // ── The walkable street ─────────────────────────────────────────────────
-  // Every district's Guide stands beside their door — the tutorial teachers.
+  // ONE teacher on the street, ever: the mentor of your next stop, and only
+  // until you've heard them. All sixteen used to loiter outside their doors
+  // forever — a crowd you had to walk past, and re-talk to, to get in.
+  // Every other lesson is still one tap down: the district sheet's HEAR THE
+  // LESSON button, and the NEXT STOP bar's CTA.
+  const streetStop = nextStop && nextStop.district ? nextStop.district : null;
+  const streetMentorId =
+    streetStop &&
+    !streetStop.locked &&
+    !streetStop.sealed &&
+    MENTORS[streetStop.id] &&
+    !journey.hasHeardLesson(streetStop.id)
+      ? streetStop.id
+      : null;
+
   const doorMentors = {};
-  for (const d of journeyDistricts) {
-    const m = MENTORS[d.id];
-    if (m) doorMentors[d.id] = { name: m.name, color: m.color };
+  if (streetMentorId) {
+    const m = MENTORS[streetMentorId];
+    doorMentors[streetMentorId] = { name: m.name, color: m.color };
   }
+
   const world = buildCityWorld(journeyDistricts, {
     guideName: THE_GUIDE.name,
     guideColor: THE_GUIDE.color,
     mentors: doorMentors,
+    // The Guide leaves the plaza and waits at whatever door is next.
+    guidePostId: streetStop ? streetStop.id : null,
   });
   const [citySpawnX, setCitySpawnX] = useState(() => loadSavedX());
-  const scenePaused = Boolean(selected || hallOpen || lesson || ignition || battle || framing);
+  const scenePaused = Boolean(
+    selected || hallOpen || lesson || ignition || battle || framing || districtsOpen || commonsOpen
+  );
 
   // ── Wild ambush engine (rides the walk loop's stride hook) ──────────────
   const encounterEnabled =
@@ -575,30 +663,29 @@ export default function MapQuestCityPage({
   }
 
   return (
-    <div className={`mqc-root${embedded ? " mqc-root--embedded" : ""}`}>
-      <header className="mqc-head">
-        <div>
-          <h2 className="mqc-head__title">MILESTONE CITY</h2>
-          <p className="mqc-head__sub">{stage.blurb}</p>
-        </div>
-        {!journey.legacy && !journey.spireOpen ? (
+    <div className={`mqc-root mqc-root--street${embedded ? " mqc-root--embedded" : ""}`}>
+      <header className="mqc-head mqc-head--tight">
+        <h2 className="mqc-head__title">MILESTONE CITY</h2>
+        {inTraining ? (
           <span
             className="mqc-pulse"
             aria-label={`Training: ${journey.litCount} of ${journey.litTotal} districts lit`}
           >
             <span className="mqc-pulse__dot" aria-hidden="true" />
-            TRAINING {journey.litCount}/{journey.litTotal} · THE SPIRE WATCHES
+            THE SPIRE WATCHES
           </span>
         ) : (
-          <span className="mqc-pulse" aria-label={`City pulse ${cityPulse} percent, ${litCount} districts lit`}>
+          <span
+            className="mqc-pulse"
+            aria-label={`City pulse ${cityPulse} percent${radiantCount > 0 ? `, ${radiantCount} radiant` : ""}`}
+          >
             <span className="mqc-pulse__dot" aria-hidden="true" />
-            Pulse {cityPulse}% · {litCount}/{districts.length} lit
-            {radiantCount > 0 ? ` · ${radiantCount} radiant` : ""}
+            Pulse {cityPulse}%
           </span>
         )}
       </header>
 
-      <div className="mqk-scenewrap">
+      <div className="mqk-scenewrap mqk-scenewrap--full">
         <WorldScene
           world={world}
           stage={stage}
@@ -621,13 +708,12 @@ export default function MapQuestCityPage({
           fogOpacity={masks.courtClaimed ? 0.5 : 1}
           onFaceBoss={handleFaceBoss}
           onEnterBuilding={openDistrictById}
+          // Only teachers are talkable now — the Guide is a marker, and the
+          // NEXT STOP bar says everything he used to.
           onTalkNpc={(id) => {
-            if (id && id.startsWith("mentor:")) {
-              const district = journeyDistricts.find((d) => d.id === id.slice(7));
-              if (district) hearLesson(district);
-              return;
-            }
-            if (guideDistrict) openDistrict(guideDistrict);
+            if (!id || !id.startsWith("mentor:")) return;
+            const district = journeyDistricts.find((d) => d.id === id.slice(7));
+            if (district) hearLesson(district);
           }}
           onExitEdge={handleCityExit}
         />
@@ -639,53 +725,77 @@ export default function MapQuestCityPage({
         >
           🎭 {masks.integratedCount}/5
         </button>
+
       </div>
 
-      <button
-        type="button"
-        className="mqc-panel mqc-guide"
-        onClick={() => (guideDistrict ? openDistrict(guideDistrict) : null)}
-        aria-label={`The Guide: ${guide.line}`}
-      >
-        <span className="mqc-guide__sprite" aria-hidden="true">
-          <MentorSprite size={46} color={THE_GUIDE.color} staff />
-        </span>
-        <span className="mqc-guide__txt">
-          <span className="mqc-guide__name">{THE_GUIDE.name}</span>
-          <p className="mqc-guide__line">“{guide.line}”</p>
-        </span>
-        <span className="mqc-guide__go" aria-hidden="true">→</span>
-      </button>
-
-      <div className="mqc-citizenwrap">
-        <CitizenCard social={social} progress={ctx} />
+      {/* the doors off the street — everything else is one tap down. Lives
+          below the scene, not inside it: the walk controls own the scene's
+          bottom corners. */}
+      <div className="mqc-chiprail">
+        <button
+          type="button"
+          className="mqc-chip"
+          onClick={() => setDistrictsOpen(true)}
+          aria-label={`Open all districts — ${districtsChipLabel} lit`}
+        >
+          <span className="mqc-chip__glyph" aria-hidden="true">◈</span>
+          DISTRICTS
+          <em className="mqc-chip__count">{districtsChipLabel}</em>
+        </button>
+        <button
+          type="button"
+          className="mqc-chip"
+          onClick={() => setCommonsOpen(true)}
+          aria-label={
+            commonsChipCount > 0
+              ? `Open the Commons — ${commonsChipCount} of your people in the city`
+              : "Open the Commons — your standing in the city"
+          }
+        >
+          <span className="mqc-chip__glyph" aria-hidden="true">◇</span>
+          COMMONS
+          <em className="mqc-chip__count">
+            {commonsChipCount > 0 ? `${commonsChipCount} HERE` : "YOU"}
+          </em>
+        </button>
+        <button
+          type="button"
+          className="mqc-chip"
+          onClick={() => setAtlasSignal((n) => n + 1)}
+          aria-label="Open the World Atlas"
+        >
+          <span className="mqc-chip__glyph" aria-hidden="true">◆</span>
+          ATLAS
+        </button>
       </div>
 
-      <CityPlaza social={social} />
+      <NextStopBar
+        stop={nextStop}
+        onPrimary={handleNextStop}
+        onDetails={openDistrict}
+      />
 
-      {QUARTER_ORDER.map((qKey) => {
-        const meta = QUARTER_META[qKey];
-        const qDistricts = journeyDistricts.filter((d) => d.quarter === qKey);
-        if (!meta || qDistricts.length === 0) return null;
-        return (
-          <section
-            key={qKey}
-            className="mqc-d-quarter"
-            style={{ "--q-accent": meta.accent }}
-            aria-label={meta.label}
-          >
-            <div className="mqc-d-quarter__head">
-              <h3 className="mqc-d-quarter__label">{meta.label}</h3>
-            </div>
-            <p className="mqc-d-quarter__blurb">{meta.blurb}</p>
-            <div className="mqc-d-grid">
-              {qDistricts.map((d) => (
-                <DistrictCard key={d.id} district={d} onOpen={openDistrict} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      {districtsOpen ? (
+        <DistrictsSheet
+          districts={journeyDistricts}
+          litCount={inTraining ? journey.litCount : litCount}
+          litTotal={inTraining ? journey.litTotal : districts.length}
+          showLit
+          onOpen={(d) => {
+            setDistrictsOpen(false);
+            openDistrict(d);
+          }}
+          onClose={() => setDistrictsOpen(false)}
+        />
+      ) : null}
+
+      {commonsOpen ? (
+        <CommonsSheet
+          social={social}
+          progress={ctx}
+          onClose={() => setCommonsOpen(false)}
+        />
+      ) : null}
 
       {selected ? (
         <DistrictSheet
@@ -711,6 +821,8 @@ export default function MapQuestCityPage({
 
       <WorldAtlas
         current="city"
+        fab={false}
+        openSignal={atlasSignal}
         onJump={(j) => {
           if (j.type === "hometown") journey.setWorld("hometown");
           else if ((j.type === "spire" || j.type === "crossing") && onOpenMapQuest) {
