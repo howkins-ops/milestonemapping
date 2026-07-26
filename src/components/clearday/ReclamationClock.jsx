@@ -51,18 +51,10 @@ function clockState(S, now) {
   return { startMs, list, next };
 }
 
-/* the mini chip that lives on the Today hero */
-export function ReclamationChip({ S, onGoTab }) {
-  const now = useNowTick();
-  const st = clockState(S, now);
-  if (!st || !st.next) return null;
-  const r = splitRemaining(deadlineOf(st.startMs, st.next) - now);
-  return (
-    <button type="button" className="cd-clock-chip" onClick={() => onGoTab && onGoTab("days")}>
-      ⏳ {r.h}h {pad(r.m)}m to: {st.next.title.toLowerCase()} → Journey
-    </button>
-  );
-}
+/* The Today chip is deliberately gone. A live countdown parked above the
+   fold turned the hero into a stack of competing pills, and an hours-
+   remaining number is not the question Today asks. The clock keeps its
+   full form on Journey, where the milestone ladder gives it meaning. */
 
 /* the full clock — Journey's hero */
 export default function ReclamationClock({ S }) {

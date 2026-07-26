@@ -4,12 +4,14 @@ import "../../styles/door-fx.css";
 import "../../styles/door-art.css";
 import "../../styles/door-bout.css";
 import "../../styles/door-gate.css";
+import "../../styles/door-night.css";
+import "../../styles/door-chase.css";
 import {
   sfxKnock, sfxImpact, sfxDoorBreak, sfxZap, sfxDoorbell, sfxRoundBell,
   sfxPunch, sfxBlock, sfxWhoosh, sfxWoodCrack, sfxShatter,
   sfxThunder, sfxHorn, sfxIgnite, sfxMatchStrike, sfxSplat,
   sfxCoin, sfxBuzzer, sfxPop, sfxPhoenix, sfxRainbow,
-  sfxRainLoop, sfxWindLoop, sfxCrowdLoop, sfxCrowdRoar,
+  sfxRainLoop, sfxHeartbeatLoop, sfxCrowdRoar,
   sfxChainsawLoop, sfxRockThrow, sfxSparkShower, sfxKnuckleSplit, sfxBloodDrip,
   sfxRefCount, sfxTellCue, sfxStarEarn, sfxWoodSplinter, sfxDoorFall,
   playVoiceLine, stopVoiceLine,
@@ -23,11 +25,21 @@ import {
 } from "./door/DoorArt.jsx";
 import { IconSheet, GameIcon, FistIcon } from "./door/GameIcons.jsx";
 import { Boxer, PlayerSilhouette, Crowd } from "./door/Boxer.jsx";
+import NightGallery from "./door/NightGallery.jsx";
+import RebuttalRack from "./door/RebuttalRack.jsx";
+import ChaseScene from "./chase/ChaseScene.jsx";
+import { recordVandalism, recordChase, addHeat, coolHeat, heatTier } from "./heat/heatStore.js";
+import { HEAT } from "./heat/heatTuning.js";
+
+// Getting seen at 11:47 PM costs the same as being made by a Ring cam and then
+// some — it is the event that turns a quiet night into a wanted level.
+const HEAT_GAIN_SPOTTED = HEAT.gain.spottedByNeighbor;
+const coolFromEnabler = () => coolHeat(0.5, "porchLight");
 import GateRound from "./door/GateRound.jsx";
 import { RingCamFrame } from "./door/GateArt.jsx";
 import {
   RULES, getBoss, nextAttack, comboLength, punchDamage, tellDuration,
-  dodgeVerdict, willRise, countLabel,
+  dodgeVerdict, willRise, countLabel, isDrawBoss, drawHand,
 } from "./door/punchOut.js";
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -36,7 +48,8 @@ import {
    A level = brief → N rounds → a finale bout → seal. Every round shares:
      · Bloody Knuckles — bare-fist knocking; cumulative damage runs the fist
        through 5 drawn stages and paints the door in persistent blood decals.
-     · HEAT meter, banter volleys, idle drain.
+     · RESOLVE meter, banter volleys, idle drain. (Not HEAT — that name now
+       belongs to the campaign-wide wanted meter in anger/heat/.)
      · Specials — bell · rocks (drag to aim) · chainsaw (real kerf) · gate.
      · A finale that ALWAYS ends in a Super Punch-Out!!-style bout. The slap
        and the door-kick are its cold opens, not endings.
@@ -100,8 +113,9 @@ function CineCard({ eyebrow, title, lines, cta, onNext }) {
 }
 
 export default function DoorLevel({ level, onClose, onComplete }) {
-  // brief | cine | round | finale | bout | seal
+  // brief | cine | round | wall | finale | bout | wife | seal
   const [phase, setPhase] = useState("brief");
+  const [fxReady, setFxReady] = useState(0);
   const [roundIdx, setRoundIdx] = useState(0);
   const [stage, setStage] = useState(0);
   const [blood, setBlood] = useState(0);
@@ -115,6 +129,15 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const [sawing, setSawing] = useState(false);
   const [sawPulls, setSawPulls] = useState(0);
   const [aim, setAim] = useState(null);          // {ox,oy,x,y} while dragging a rock
+
+  /* ── the objection meter ─────────────────────────────────────────────────
+     The level's spine. Minted when he plays his trump card, emptied at 11:47
+     PM, and it IS his health in the morning. One number, four phases. */
+  const [obj, setObj] = useState(null);
+  const objRef = useRef(0);
+  const [galleryState, setGalleryState] = useState(null);
+  const wreckedRef = useRef(new Set());
+  const galleryHeatRef = useRef(0);
 
   // finale cold-open (slap / kick)
   const [finaleStage, setFinaleStage] = useState(null);
@@ -141,7 +164,12 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const [clock, setClock] = useState(BOUT_SECONDS);
   const [hitFlash, setHitFlash] = useState(false);
   const [wifeBeat, setWifeBeat] = useState(0);
-  const [boutKind, setBoutKind] = useState("level");   // "level" | "guard"
+  const [boutKind, setBoutKind] = useState("level");   // "level" | "guard" | "mid"
+  const [boutBoss, setBoutBoss] = useState(null);      // overrides the finale's boss
+  const [hand, setHand] = useState(null);              // the three rebuttal cards
+  const [refill, setRefill] = useState(false);         // his bar going back to full
+  const walledRef = useRef(false);                     // has the trump card fired
+  const aHpPctRef = useRef(1);                         // his HP fraction when it did
 
   // ── refs (authoritative during play) ───────────────────────────────────
   const sceneRef = useRef(null);
@@ -180,7 +208,12 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const punchesRef = useRef(0);
 
   const round = level.rounds[roundIdx];
-  const boss = getBoss(boutKind === "guard" ? "guard" : level.finale.bout);
+  // `boutBoss` lets a round hand the slot to an arbitrary boss (Steele's draw
+  // opens the level, long before the finale), instead of only ever the finale's.
+  const boss = getBoss(boutBoss || (boutKind === "guard" ? "guard" : level.finale.bout));
+  // Denominator is the bout's ACTUAL starting HP, which the objection meter can
+  // compute — using boss.hp would draw a 6/100 morning bout as a full bar.
+  const bossMaxHp = () => b.current.maxHp || boss.hp;
   const isBout = phase === "bout";
 
   const schedule = (fn, ms) => { const id = window.setTimeout(fn, ms); timersRef.current.push(id); return id; };
@@ -192,6 +225,10 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     const fx = createDoorFX({ canvas: canvasRef.current, scene: sceneRef.current, camera: camRef.current });
     fxRef.current = fx;
     measure();
+    // React runs CHILD effects before parent ones, so any sub-phase that needs
+    // fx geometry at mount (rect registration) would read null here. Bumping a
+    // counter re-runs those effects the moment the engine actually exists.
+    setFxReady((n) => n + 1);
     return () => { fx.destroy(); fxRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, finaleStage]);
@@ -595,8 +632,10 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     if (phase !== "round") return undefined;
     const handles = [];
     const skin = round.skin;
-    if (skin === "night" || skin === "eve") { const h = sfxRainLoop(); h.setLevel(skin === "night" ? 0.22 : 0.13); handles.push(h); }
-    if (skin === "gate") { const h = sfxWindLoop(); h.setLevel(0.16); handles.push(h); }
+    // Rain sits WAY back — texture under the thunder cracks, never a wash over the
+    // scene. No wind loop at all: a swept bandpass over noise is how you build ocean
+    // surf, and that's exactly what it sounded like on the gate.
+    if (skin === "night" || skin === "eve") { const h = sfxRainLoop(); h.setLevel(skin === "night" ? 0.07 : 0.045); handles.push(h); }
     if (round.special === "chainsaw") { const h = sfxChainsawLoop(); h.setLevel(0.0001); handles.push(h); fireHandleRef.current = h; }
 
     let thunderIv = null;
@@ -645,9 +684,13 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, roundIdx, blood]);
 
-  /* Register collision targets once the round's DOM exists. */
+  /* Register collision targets once the round's DOM exists. The gallery owns
+     its own rects (it has a dozen, laid out from data) — registering a `door`
+     in front of them would swallow every egg, since DoorFX takes the FIRST
+     overlapping rect out of an insertion-ordered Map. */
   useEffect(() => {
     if (phase !== "round" || !fxRef.current) return;
+    if (round.special === "gallery") return;
     const fx = fxRef.current;
     measure();
     const r = rectsRef.current.scene;
@@ -688,12 +731,19 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     if (sceneRef.current) sceneRef.current.style.setProperty("--p", "0");
     resetDoorCracks(doorSvgRef.current);
     if (fxRef.current) { fxRef.current.reset(); }
-    setPhase(level.rounds[i].cine ? "cine" : "round");
-    if (!level.rounds[i].cine) sfxRoundBell();
+    const r = level.rounds[i];
+    if (r.cine) { setPhase("cine"); return; }
+    if (r.special === "bout") { setBoutKind("mid"); startBout("mid", r.bout); return; }
+    setPhase("round");
+    sfxRoundBell();
   };
 
   const startRoundFromCine = () => {
     doneRef.current = false;
+    // A round may BE a bout. Keeping it in the same rounds[] array means the
+    // ladder stays one list and `advance()` still owns what comes next.
+    const r = level.rounds[roundIdx];
+    if (r.special === "bout") { setBoutKind("mid"); startBout("mid", r.bout); return; }
     setPhase("round");
     sfxRoundBell();
     schedule(measure, 60);
@@ -805,6 +855,37 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     schedule(() => setCall(null), 700);
   };
 
+  /* ── THE WALL ────────────────────────────────────────────────────────────
+     He hits 20% and plays the only card that always works: he tells you who
+     he is. His health goes back to full and the door shuts.
+
+     You cannot win Phase A. That is the design, not a difficulty spike — the
+     sentence he just used is the thing you're going to go and destroy at 11:47
+     PM, and it has to beat you first or destroying it means nothing. */
+  const theWall = () => {
+    clearTimers();
+    b.current.over = true;                     // stop the AI loop dead
+    walledRef.current = true;
+    aHpPctRef.current = hpPct();               // bank what you DID take off him
+    setHand(null);
+
+    const w = level.wall || {};
+    if (w.trump) playVoiceLine(w.trump.id, { volume: 1 });
+    setBHp(100);
+    setRefill(true);
+    const fx = fxRef.current;
+    if (fx) { fx.flash(level.objection?.tone || "#3AA0FF", 420, { alpha: 0.5 }); fx.shake(0.85); }
+    sfxHorn(1); sfxDoorBreak();
+    say(w.shout || "SAFE NEIGHBOURHOOD.", "crit");
+
+    schedule(() => {
+      objRef.current = level.objection ? level.objection.start : 100;
+      setObj(objRef.current);
+      setRefill(false);
+      setPhase("wall");
+    }, 1500);
+  };
+
   /* Caught three times on the fence — he gets out of the cart. Beat him and
      the barrier lifts, which finishes the breach. */
   const startGuardBout = () => {
@@ -812,14 +893,30 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     schedule(() => startBout("guard"), 30);
   };
 
-  const startBout = (kind) => {
+  const startBout = (kind, bossId) => {
     clearTimers();
-    const who = getBoss(kind === "guard" ? "guard" : level.finale.bout);
+    const who = getBoss(bossId || (kind === "guard" ? "guard" : level.finale.bout));
+    setBoutBoss(who.id);
+
+    /* THE REVENGE ECONOMY, as arithmetic.
+       When a finale declares `hpFrom: "objection"`, the boss's health is what
+       is LEFT of the sentence he beat you with, scaled by how far you'd already
+       worn him down before he played it. Empty the meter at midnight and he
+       has a handful of HP in the morning; skip the night and it's a real
+       fight. No cutscene, no special-casing — and every future level that
+       wants the same trick gets it for one line of data. */
+    let hp = who.hp;
+    const fin = level.finale || {};
+    if (kind !== "guard" && fin.hpFrom === "objection" && level.objection) {
+      const left = Math.max(0, objRef.current) / (level.objection.start || 100);
+      hp = Math.max(fin.hpFloor || 6, Math.round(who.hp * left * (aHpPctRef.current || 1)));
+    }
+
     b.current = {
-      hp: who.hp, pHp: 100, state: "guard", attack: null, strikeAt: 0, comboLeft: 0,
+      hp, pHp: 100, state: "guard", attack: null, strikeAt: 0, comboLeft: 0,
       lastDodge: { dir: null, at: 0 }, lastPunch: 0, openAt: 0, dmgWindow: 0,
       stars: 0, downs: 0, raging: false, over: false, comeback: 1, comebackUntil: 0,
-      ducking: false, blocking: false, lastAtk: null,
+      ducking: false, blocking: false, lastAtk: null, drawStreak: 0, maxHp: hp,
     };
     setBHp(100); setPHp(100); setStars(0); setDowns(0); setRaging(false);
     setDucking(false); setBlocking(false); setCountWho(null); setCountN(0);
@@ -830,7 +927,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     setFinaleStage(null);
     sfxRoundBell();
     sfxHorn(1);
-    if (!crowdHandleRef.current) { crowdHandleRef.current = sfxCrowdLoop(); crowdHandleRef.current.setLevel(0.16); }
+    if (!crowdHandleRef.current) { crowdHandleRef.current = sfxHeartbeatLoop(); crowdHandleRef.current.setLevel(0.16); }
     if (kind !== "guard" && level.finale.them && level.finale.them[0]) playVoiceLine(level.finale.them[0].id, { volume: 1 });
     schedule(() => setCoach(null), 4200);
     schedule(loopGuard, 1600);
@@ -849,7 +946,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   }, [phase, countWho]);
 
   const setBossPose = (p) => { setPose(p); };
-  const hpPct = () => b.current.hp / boss.hp;
+  const hpPct = () => b.current.hp / bossMaxHp();
 
   const loopGuard = () => {
     if (b.current.over || countWho) return;
@@ -876,11 +973,18 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     }
 
     const base = b.current.raging ? boss.gimmick.tellMs || 220 : atk.tellMs;
-    const dur = tellDuration(base, hpPct());
+    const dur = tellDuration(base, hpPct(), boss.tellFloor);
     b.current.state = "tell";
     b.current.strikeAt = performance.now() + dur;
     setBossPose(atk.tell);
     sfxTellCue(atk.cue);                             // learn them by ear first
+
+    // A draw boss asks WHICH, not WHERE — deal three cards, one of them right.
+    if (isDrawBoss(boss)) {
+      b.current.tellMs = dur;
+      setHand({ cards: drawHand(boss, atk), at: performance.now(), dur, label: atk.label });
+      schedule(() => setHand(null), dur + atk.strikeMs);
+    }
 
     // the fake-out: he starts the tell and aborts. Now readable, not random noise.
     if (hpPct() < 0.75 && Math.random() < boss.fakeChance) {
@@ -906,7 +1010,11 @@ export default function DoorLevel({ level, onClose, onComplete }) {
       if (b.current.over) return;
       const now = performance.now();
       const d = b.current.lastDodge;
-      const moved = b.current.ducking ? "duck" : (now - d.at < 320 ? d.dir : null);
+      // For a draw boss the input IS the card key, so the ducking special-case
+      // must not overwrite it — he has no low swing to duck under.
+      const moved = isDrawBoss(boss)
+        ? (now - d.at < 420 ? d.dir : null)
+        : (b.current.ducking ? "duck" : (now - d.at < 320 ? d.dir : null));
       const verdict = dodgeVerdict(d.at || now, b.current.strikeAt, moved, atk.dodge);
       const dodged = verdict === "perfect" || verdict === "clean";
 
@@ -991,6 +1099,30 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     b.current.ducking = dir === "duck";
     if (dir !== "duck") schedule(() => { b.current.ducking = false; setDucking(false); }, 300);
   };
+
+  /* Playing a rebuttal card. Same verb as a dodge — the bout engine compares
+     `moved` to `needed` and has no opinion about what those strings mean. */
+  const playCard = (key) => {
+    if (b.current.over || countWho) return;
+    const atk = b.current.attack;
+    const right = atk && atk.dodge === key;
+    b.current.lastDodge = { dir: key, at: performance.now() };
+    setHand(null);
+    if (right) {
+      b.current.drawStreak = (b.current.drawStreak || 0) + 1;
+      sfxTellCue("sharp");
+      // three clean draws in a row IS the star for this boss — he gives no
+      // perfect-dodge windows, so the stock star route never fires
+      if (b.current.drawStreak >= (boss.gimmick.streakForStar || 3)) {
+        b.current.drawStreak = 0;
+        addStar();
+        say(boss.gimmick.note || "STAR READY", "perfect");
+      }
+    } else {
+      b.current.drawStreak = 0;
+      sfxBlock();
+    }
+  };
   const duckOn = () => { if (b.current.over) return; b.current.ducking = true; setDucking(true); b.current.lastDodge = { dir: "duck", at: performance.now() }; };
   const duckOff = () => { b.current.ducking = false; setDucking(false); };
   const blockOn = () => { if (b.current.over) return; b.current.blocking = true; setBlocking(true); };
@@ -999,7 +1131,21 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const hitBoss = (dmg, { crit = false, star = false } = {}) => {
     const fx = fxRef.current;
     b.current.hp = Math.max(0, b.current.hp - dmg);
-    setBHp(Math.round((b.current.hp / boss.hp) * 100));
+
+    /* THE WALL — the scripted loss.
+       Clamped BEFORE the stun and KO checks, and floored at the trigger point,
+       because a banked knockdown could otherwise carry him past 20% and the
+       trump card would have to interrupt a ten-count. */
+    if (isDrawBoss(boss) && !walledRef.current) {
+      const floor = bossMaxHp() * (boss.gimmick.wallAt || 0.2);
+      if (b.current.hp <= floor) {
+        b.current.hp = floor;
+        setBHp(Math.round((b.current.hp / bossMaxHp()) * 100));
+        theWall();
+        return;
+      }
+    }
+    setBHp(Math.round((b.current.hp / bossMaxHp()) * 100));
     b.current.dmgWindow += dmg;
     setHitFlash(true);
     schedule(() => setHitFlash(false), 70);
@@ -1132,8 +1278,8 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const finishCount = (who, rose) => {
     if (who === "him") {
       if (rose) {
-        b.current.hp = Math.max(12, Math.round(boss.hp * 0.22));
-        setBHp(Math.round((b.current.hp / boss.hp) * 100));
+        b.current.hp = Math.max(12, Math.round(bossMaxHp() * 0.22));
+        setBHp(Math.round((b.current.hp / bossMaxHp()) * 100));
         setCountWho(null); setCountN(0);
         setBossPose("guard");
         sfxHorn(1);
@@ -1144,14 +1290,22 @@ export default function DoorLevel({ level, onClose, onComplete }) {
         setCountWho(null);
         setBossPose("ko");
         sfxCrowdRoar();
-        // the guard is a detour, not the level — beating him lifts the barrier
-        if (boutKind === "guard") {
+        // Any bout that ISN'T the finale is a detour inside the ladder — the
+        // gate guard, or a round that happens to be a fight. Beating it hands
+        // control back to advance() rather than ending the level.
+        if (boutKind !== "level") {
           if (crowdHandleRef.current) { crowdHandleRef.current.stop(); crowdHandleRef.current = null; }
+          const wasGuard = boutKind === "guard";
           setBoutKind("level");
+          setBoutBoss(null);
           schedule(() => {
-            setPhase("round");
-            setCoach("Barrier's up. Walk in.");
-            schedule(() => { setCoach(null); finishRound(); }, 1400);
+            if (wasGuard) {
+              setPhase("round");
+              setCoach("Barrier's up. Walk in.");
+              schedule(() => { setCoach(null); finishRound(); }, 1400);
+            } else {
+              advance();
+            }
           }, 1500);
           return;
         }
@@ -1212,7 +1366,9 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     stopVoiceLine();
     if (crowdHandleRef.current) { crowdHandleRef.current.stop(); crowdHandleRef.current = null; }
     onComplete({
-      level: level.id,
+      level: level.id,        // the slug — this is what progress is keyed by
+      order: level.order,     // ladder position, for display only
+      title: level.title,
       knocks: knocksRef.current,
       nos,
       takeaway: `${level.title}: ${knocksRef.current} knocks, ${nos} NOs survived, ${BLOOD_NAME[blood].toLowerCase()} knuckles — ${boss.name} went down in ${b.current.downs || 1}.`,
@@ -1226,13 +1382,27 @@ export default function DoorLevel({ level, onClose, onComplete }) {
     enterRound(0);
   };
 
+  /* topBar is called from every phase's render block, so hanging the objection
+     meter here is what makes it persist across the whole level — you see the
+     sentence he beat you with from the moment he says it until it's gone. */
   const topBar = (extra) => (
-    <div className="dg-top">
-      <button className="dg-back" onClick={onClose}>← Route</button>
-      <span className="dg-top__title">{level.title}</span>
-      {extra}
-      <span className="dg-nos"><GameIcon name="x" size={11} /> {nos}</span>
-    </div>
+    <>
+      <div className="dg-top">
+        <button className="dg-back" onClick={onClose}>← Route</button>
+        <span className="dg-top__title">{level.title}</span>
+        {extra}
+        <span className="dg-nos"><GameIcon name="x" size={11} /> {nos}</span>
+      </div>
+      {level.objection && obj != null && (
+        <div className="dg-obj" style={{ "--obj": level.objection.tone || level.accent }}>
+          <span className="dg-obj__label">{level.objection.label}</span>
+          <div className="dg-obj__track">
+            <i className="dg-obj__fill" style={{ transform: `scaleX(${Math.max(0, obj) / 100})` }} />
+          </div>
+          <span className="dg-obj__pct">{obj <= 0 ? (level.objection.zeroLine || "GONE") : `${Math.round(obj)}%`}</span>
+        </div>
+      )}
+    </>
   );
 
   const KnuckleHud = () => (
@@ -1283,6 +1453,35 @@ export default function DoorLevel({ level, onClose, onComplete }) {
         <IconSheet />
         {topBar(null)}
         <CineCard {...round.cine} onNext={startRoundFromCine} />
+      </div>
+    );
+  }
+
+  /* ── THE WALL ───────────────────────────────────────────────────────────
+     The scripted loss, and the hinge the whole level turns on. He said the
+     sentence; the sentence is now a bar at the top of the screen; the only way
+     forward is to come back after dark and take it apart. */
+  if (phase === "wall") {
+    const w = level.wall || {};
+    return (
+      <div className="dg-stage" style={{ "--lvacc": level.accent }}>
+        <IconSheet />
+        {topBar(null)}
+        <div className="dg-wall">
+          <p className="dg-eyebrow">{w.eyebrow || "THE DOOR CLOSED"}</p>
+          <h2 className="dg-wall__trump">&ldquo;{w.trump ? w.trump.text : "I'm a police officer."}&rdquo;</h2>
+          {(w.beats || []).map((l) => (
+            <p key={l.id} className="dg-wall__beat">{l.text}</p>
+          ))}
+          <div className="dg-wall__meter">
+            <span className="dg-wall__label">{level.objection ? level.objection.label : "HIS OBJECTION"}</span>
+            <div className="dg-wall__track"><i style={{ transform: "scaleX(1)" }} /></div>
+            <span className="dg-wall__hint">
+              {w.hint || "You can't punch this off. It isn't an argument — it's a claim. So go and make it false."}
+            </span>
+          </div>
+          <button className="dg-primary" onClick={advance}>{w.cta || "Come back at 11:47 →"}</button>
+        </div>
       </div>
     );
   }
@@ -1436,6 +1635,16 @@ export default function DoorLevel({ level, onClose, onComplete }) {
             <GameIcon name="star" size={20} />STAR<small>{stars} LEFT</small>
           </button>
         </div>
+        {isDrawBoss(boss) ? (
+          <RebuttalRack
+            hand={hand ? hand.cards : []}
+            live={!!hand && !b.current.over}
+            msLeft={hand ? Math.max(0, hand.at + hand.dur - performance.now()) : 0}
+            tellMs={hand ? hand.dur : 900}
+            onPick={playCard}
+            disabled={b.current.over}
+          />
+        ) : (
         <div className="dgb-ctl" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 8 }}>
           <button className="dgb-btn" onPointerDown={() => dodge("left")} disabled={b.current.over}>
             <GameIcon name="chev" size={20} className="is-flip" />DODGE<small>LEFT</small>
@@ -1451,11 +1660,18 @@ export default function DoorLevel({ level, onClose, onComplete }) {
             <GameIcon name="chev" size={20} />DODGE<small>RIGHT</small>
           </button>
         </div>
+        )}
 
         <div className="dg-talk" aria-live="polite">
           {themLine && <div className="dg-bubble dg-bubble--them">&ldquo;{themLine}&rdquo;</div>}
           {youLine && <div className="dg-bubble dg-bubble--you">{youLine}</div>}
-          {!themLine && !youLine && <div className="dg-bubble dg-bubble--hint">Read the tell. Dodge it. Punish the opening.</div>}
+          {!themLine && !youLine && (
+            <div className="dg-bubble dg-bubble--hint">
+              {isDrawBoss(boss)
+                ? "He draws fast. Read the objection, play the card — don't guess."
+                : "Read the tell. Dodge it. Punish the opening."}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1531,6 +1747,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
   const isRocks = round.special === "rocks";
   const isGate = round.special === "gate";
   const isCam = round.special === "ringcam";
+  const isGallery = round.special === "gallery";
   // the camera's own clock — it does not care what time you think it is
   const camStamp = `03:${String(14 + (roundRef.current.taps % 40)).padStart(2, "0")}:${String((roundRef.current.taps * 7) % 60).padStart(2, "0")}`;
   const aimVec = aim ? { dx: aim.ox - aim.x, dy: aim.oy - aim.y } : null;
@@ -1570,7 +1787,53 @@ export default function DoorLevel({ level, onClose, onComplete }) {
             </div>
           )}
 
-          {isGate ? (
+          {isGallery && galleryState && galleryState.mode === "busted" ? (
+            /* The chase is a SUB-STATE of this round, never its own phase.
+               The FX effect keys on `phase`, so changing phase would destroy
+               and rebuild DoorFX — wiping every egg decal off the facade, and
+               that splatter is the entire visual payoff of the night. */
+            <ChaseScene
+              startStars={galleryState.stars}
+              spawnX={1200}
+              onEnd={({ outcome, fine }) => {
+                recordChase({ evaded: outcome === "evaded", fine });
+                setGalleryState(null);
+                if (!doneRef.current) { doneRef.current = true; finishRound(); }
+              }}
+            />
+          ) : isGallery ? (
+            <NightGallery
+              fx={fxRef.current}
+              fxReady={fxReady}
+              config={round.gallery}
+              lines={round.them}
+              onDamage={(n) => {
+                objRef.current = Math.max(0, objRef.current - n);
+                setObj(objRef.current);
+              }}
+              onDestroy={(key, heat) => {
+                wreckedRef.current.add(key);
+                galleryHeatRef.current += heat;
+                // heat is campaign-wide and cloud-synced; breaking his window
+                // costs you on a street you haven't walked down yet
+                if (heat > 0) recordVandalism("windowBroken");
+                else if (heat < 0) coolFromEnabler();
+              }}
+              onBusted={(info) => {
+                // The chase lives INSIDE this round on purpose. Changing `phase`
+                // would tear down and rebuild DoorFX, wiping every splat off the
+                // facade — and that damage is the whole point of the night.
+                const h = addHeat(HEAT_GAIN_SPOTTED, "spotted");
+                const tier = heatTier(h.heat).key;
+                setGalleryState({
+                  mode: "busted",
+                  stars: tier === "hunted" ? 2 : 1,
+                  ...info,
+                });
+              }}
+              onDone={(reason) => { if (!doneRef.current) { doneRef.current = true; finishRound(); } }}
+            />
+          ) : isGate ? (
             <GateRound
               fx={fxRef.current}
               lines={round.them}
@@ -1649,7 +1912,7 @@ export default function DoorLevel({ level, onClose, onComplete }) {
         </div>
 
         <div className="dg-resolve">
-          <span className="dg-resolve__label"><GameIcon name="flame" size={12} /> HEAT</span>
+          <span className="dg-resolve__label"><GameIcon name="flame" size={12} /> RESOLVE</span>
           <div className="dg-resolve__track"><div className="dg-resolve__fill" style={{ transform: `scaleX(${heat})` }} /></div>
         </div>
 

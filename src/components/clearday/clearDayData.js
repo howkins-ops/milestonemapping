@@ -154,6 +154,27 @@ export const HALTB = [
   { k: "bored", label: "Bored", line: "Boredom is the void talking — the classic setup.", fix: "Pick one thing from your list and start it badly. Motion kills the void." },
 ];
 
+/* ── THE GOOD SIDE ─────────────────────────────────────────────────────
+   HALT-B alone made the check-in a symptom list: five ways to be badly
+   and no way to be well, so opening the app on a fine day read as a
+   prompt to go find something wrong. That's backwards, and it's also bad
+   science — a good state isn't the absence of work, it IS the work:
+   staying in it (savouring) extends it, saying it out loud to someone
+   (capitalization) amplifies it, and positive states widen what you can
+   see and build. Every one filed is evidence against the Mask's oldest
+   lie, that clear life is flat. Same real estate, and it goes first. */
+export const GOOD_STATES = [
+  { k: "proud", label: "Proud", line: "That isn't luck. That's a day you authored, and you can feel the difference.", hold: "Say it as a sentence — “I ___.” Out loud, once. Naming what you did is how it becomes who you are." },
+  { k: "happy", label: "Happy", line: "Ordinary happy is the whole payout. This is what the clear days actually buy.", hold: "Stay in it for thirty seconds before you reach for the next thing. That's the entire technique." },
+  { k: "joyful", label: "Joyful", line: "The loud kind. Nothing to come down from, nothing to hide afterwards.", hold: "Spend it on someone — call, text, tell them why. Joy that gets told comes back bigger." },
+  { k: "calm", label: "Calm", line: "No noise, nothing to manage. This is the baseline you're rebuilding, showing up.", hold: "Find where the calm actually sits in your body. That's the feeling to remember at 10pm." },
+  { k: "confident", label: "Confident", line: "That's not a mood. That's the evidence stacking up where you can feel it.", hold: "Spend it while the tank's full — do the thing you've been putting off, today, before the feeling fades." },
+  { k: "grateful", label: "Grateful", line: "Gratitude sees what's already here. The Mask never once let you look.", hold: "Name three, small and specific. Then tell one person they're on the list." },
+  { k: "strong", label: "Strong", line: "Real energy, not borrowed. It's yours, and there's no bill coming later.", hold: "Put it through your body in the next hour — walk, lift, move. Energy spent well comes back." },
+];
+
+export const SAVOUR_RECEIPT = "Savouring extends positive affect (Bryant & Veroff); telling someone amplifies it (capitalization — Gable et al. 2004)";
+
 /* ── BODY REPORTS ─────────────────────────────────────────────────────── */
 // Weed: validated physiology, day-indexed. Every card carries its receipt.
 export const BODY_REPORT_WEED = [

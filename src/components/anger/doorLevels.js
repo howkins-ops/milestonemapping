@@ -6,8 +6,19 @@
 //  Each level = a brief + N knock rounds + a finale. Rounds carry their own
 //  banter pools (customer "them" / rep "you"), a skin, a tap target, and an
 //  optional "special" (bell / rocks / chainsaw) and intro cine card. Finale is
-//  one of: powerslap · brawl · kickdown. Shared systems (Bloody Knuckles, HEAT
-//  meter, banter volleys) are handled by the engine for every level.
+//  one of: powerslap · brawl · kickdown. Shared systems (Bloody Knuckles,
+//  RESOLVE meter, banter volleys) are handled by the engine for every level.
+//
+//  IDENTITY vs POSITION — read this before touching a level.
+//    `id`    a permanent slug. Saved progress is keyed by it, so it can NEVER
+//            change once shipped. Not a number: numbers tempt you to reorder.
+//    `order` where it sits on the ladder. Change it as freely as you like —
+//            reordering the whole campaign costs one edit per level and needs
+//            no migration, which is the entire point of the slug.
+//    `docId` the design bible's own numbering, for display only.
+//  Gaps in `order` are fine; the ladder is built by sorting, not counting.
+//  When Officer Steele lands he takes order 2 and the three below him shift
+//  down one. That is four edits and no migration — the point of the slug.
 //
 //  ZERO EMOJI. Icons are DATA, never text: every round carries an `icon` key
 //  naming a drawn <symbol> from door/GameIcons.jsx. Labels are words only —
@@ -23,6 +34,8 @@ import {
   L4_THEM_MORN, L4_YOU_MORN, L4_THEM_AFT, L4_YOU_AFT, L4_THEM_EVE, L4_YOU_EVE,
   L4_THEM_NIGHT, L4_YOU_NIGHT, L4_THEM_LATE, L4_YOU_LATE,
   L4_KICK, L4_FIGHT_THEM, L4_FIGHT_YOU, L4_KO,
+  ST_THEM_DRAW, ST_YOU_DRAW, ST_TRUMP, ST_WALL, ST_THEM_NIGHT,
+  ST_FIGHT_THEM, ST_FIGHT_YOU, ST_KO,
 } from "../../data/angerVoiceLines";
 
 /* DOOR_TIERS is authored as escalating tiers of homeowner rage; the round
@@ -30,14 +43,153 @@ import {
    late rounds pull the nuclear ones. */
 const tiers = (...idx) => idx.flatMap((i) => DOOR_TIERS[i].lines);
 
+/* ── OFFICER STEELE — the yard, at 11:47 PM ───────────────────────────────
+   Normalized 0..1 of the scene box. These SAME numbers place the art AND build
+   the collision rect, so a hitbox can never drift away from its drawing.
+
+   Total damage on the board is 119%, deliberately: you cannot break everything
+   in ninety seconds, so there is a route to find. And the porch light is worth
+   NEGATIVE heat, which is the one-line tutorial for "kill the enabler first". */
+const STEELE_TARGETS = [
+  { key: "porch", art: "porchlamp", x: .560, y: .395, w: .070, h: .085, dmg: 10, heat: -1, sfx: "glass", label: "PORCH LIGHT" },
+  { key: "window", art: "pane", x: .335, y: .415, w: .115, h: .150, dmg: 15, heat: 1, sfx: "glass", label: "FRONT WINDOW" },
+  { key: "sign", art: "yardsign", x: .455, y: .690, w: .150, h: .115, dmg: 25, heat: 0, hits: 2, sfx: "wood", label: "PROTECTED BY —" },
+  { key: "mailbox", art: "mailbox", x: .120, y: .650, w: .080, h: .140, dmg: 8, heat: 0, sfx: "metal", label: "MAILBOX" },
+  { key: "mirror", art: "mirror", x: .850, y: .545, w: .070, h: .075, dmg: 12, heat: 1, sfx: "glass", label: "TRUCK MIRROR" },
+  { key: "gnome", art: "gnome", x: .695, y: .735, w: .062, h: .090, dmg: 5, heat: 0, sfx: "ceramic", label: "GNOME" },
+  { key: "bbq", art: "bbq", x: .770, y: .630, w: .120, h: .125, dmg: 20, heat: 2, sfx: "metal", label: "THE BBQ", boom: true },
+  /* Two trios, staggered. The spacing is not decoration: a flamingo is 17px of
+     art in a 34px thumb-sized hitbox, so packing them tighter than ~32px apart
+     makes a tap between two of them a coin flip. Staggering the y buys the
+     separation without spreading the flock across the whole lawn. */
+  ...[[.085, .795], [.175, .815], [.265, .798], [.600, .818], [.688, .800], [.775, .822]]
+    .map(([x, y], i) => ({
+      key: `fl${i}`, art: "flamingo", x, y, w: .046, h: .082,
+      dmg: 4, heat: 0, sfx: "pop", label: "FLAMINGO",
+    })),
+];
+
 export const DOOR_LEVELS = [
+  /* ══ OFFICER STEELE ═════════════════════════════════════════════════════
+     The level the whole game is an argument for.
+
+     He beats you at the door with a sentence — and the sentence becomes a
+     meter you can see. You cannot punch it off; you go back at 11:47 PM and
+     take it apart with an egg launcher. In the morning his health IS whatever
+     is left of it, computed, not scripted (see finale.hpFrom).
+
+     Four phases, and only one of them is new engine: the night gallery. The
+     draw is the existing Punch-Out bout with a wider vocabulary, the wall is
+     the wife screen with different copy, and the morning is a normal brawl. */
+  {
+    id: "steele",
+    order: 2,
+    docId: "L2",
+    title: "Officer Steele",
+    relic: "The Safe Neighborhood",
+    tag: "Persistence arcade · Officer Steele · 18+",
+    when: "He's a cop and he wants you to know it",
+    accent: "#3AA0FF",
+    customerVoice: "steele",
+    lesson: "An objection isn't a wall, it's a claim. You almost never get to disprove one the way you'd like to — so the real skill is finding the version of that you ARE allowed to do.",
+
+    objection: {
+      key: "safe",
+      label: "IT'S A SAFE NEIGHBORHOOD",
+      start: 100,
+      tone: "#3AA0FF",
+      zeroLine: "IT WAS NEVER SAFE",
+    },
+
+    brief: {
+      heading: "He answers with\nhis badge in his hand.",
+      lead: "Off duty, hand on his hip, already annoyed. He fires objections like a quick draw — three cards flash, you pick one, you fire back. Get him to twenty percent and he plays the only card that always works: he tells you who he is.",
+      rounds: [
+        { icon: "shield", label: "R1 · THE DRAW" },
+        { icon: "x", label: "R2 · THE WALL" },
+        { icon: "rock", label: "R3 · THE DEMONSTRATION" },
+        { icon: "sun", label: "R4 · THE MORNING" },
+      ],
+      disclaimer: "Cartoon revenge-comedy for rejection-proofing your nervous system. Fiction, obviously — never real-world doorstep advice, and emphatically not advice about police officers' gardens.",
+    },
+
+    rounds: [
+      /* PHASE A — the quick draw. A bout that lives in the round ladder. */
+      {
+        key: "draw", skin: "dusk", icon: "shield", label: "THE DRAW",
+        special: "bout", bout: "steele", taps: 1,
+        them: ST_THEM_DRAW, you: ST_YOU_DRAW,
+        cine: {
+          eyebrow: "6:12 PM · OFF DUTY",
+          title: "He already knows what you are.",
+          lines: [
+            "He opens the door with his hand resting on his hip.",
+            "The objections come out like a draw — fast, flat, practised.",
+            "Three cards. Pick one. Fire.",
+          ],
+          cta: "Draw →",
+        },
+      },
+
+      /* PHASE C — the night. (Phase B is the `wall` block below: it fires off
+         his HP, not off the ladder, so it needs no round of its own.) */
+      {
+        key: "demo", skin: "night", icon: "rock", label: "THE DEMONSTRATION",
+        special: "gallery", taps: 1,
+        them: ST_THEM_NIGHT, you: ST_YOU_DRAW,
+        gallery: {
+          seconds: 90,
+          stamp: "11:47 PM",
+          hint: "KILL THE PORCH LIGHT FIRST",
+          targets: STEELE_TARGETS,
+        },
+        cine: {
+          eyebrow: "11:47 PM",
+          title: "You came back.",
+          lines: [
+            "He's asleep behind a claim you couldn't argue with.",
+            "There is a crate of eggs on the passenger seat.",
+            "You are crouched in a hedge. Firing stands you up.",
+          ],
+          cta: "Get in the bushes →",
+        },
+      },
+    ],
+
+    /* PHASE B — the trump card. Scripted, unwinnable, and the hinge. */
+    wall: {
+      eyebrow: "6:19 PM · THE DOOR CLOSED",
+      trump: ST_TRUMP,
+      shout: "SAFE NEIGHBOURHOOD.",
+      beats: ST_WALL,
+      hint: "You can't punch this off. It isn't an argument — it's a claim about the world. So go and make the world disagree with him.",
+      cta: "Come back at 11:47 →",
+    },
+
+    /* PHASE D — the morning. His health is ARITHMETIC: whatever is left of the
+       objection, scaled by how far you'd worn him down before he played it. */
+    finale: {
+      type: "brawl",
+      bout: "steele_morning",
+      hpFrom: "objection",
+      hpFloor: 6,
+      them: ST_FIGHT_THEM, you: ST_FIGHT_YOU, ko: ST_KO,
+      themName: "OFFICER STEELE",
+    },
+
+    seal: {
+      title: "SIGNED. In a bathrobe.",
+      line: "He didn't change his mind — his mind got changed for him, and then he signed like it had been his idea all along. That's the uncomfortable lesson under the comedy: people don't buy from your logic, they buy from a problem they can feel. Your actual job is finding the version of this you're allowed to do.",
+    },
+  },
+
   // ── LEVEL 1 ──────────────────────────────────────────────────────────
   // Was a separate 949-line component with its own copy of every system.
   // Folded in so it inherits the drawn art, the FX engine, native haptics
   // and the Punch-Out finale like every other level.
   {
-    id: 1,
-    key: "first",
+    id: "first",
+    order: 1,
     title: "The Door",
     relic: "The First Door",
     tag: "Persistence arcade · Level 1 · 18+",
@@ -84,8 +236,8 @@ export const DOOR_LEVELS = [
 
   // ── LEVEL 2 ──────────────────────────────────────────────────────────
   {
-    id: 2,
-    key: "persist",
+    id: "persist",
+    order: 3,
     title: "Always Be Persistent",
     relic: "The Throne",
     tag: "Persistence arcade · Level 2 · 18+",
@@ -136,8 +288,8 @@ export const DOOR_LEVELS = [
 
   // ── LEVEL 3 ──────────────────────────────────────────────────────────
   {
-    id: 3,
-    key: "steel",
+    id: "steel",
+    order: 4,
     title: "The Steel Door",
     relic: "The Vault",
     tag: "Persistence arcade · Level 3 · 18+",
@@ -195,8 +347,8 @@ export const DOOR_LEVELS = [
 
   // ── LEVEL 4 ──────────────────────────────────────────────────────────
   {
-    id: 4,
-    key: "callback",
+    id: "callback",
+    order: 5,
     title: "Never Do Call-Backs",
     relic: "The Reckoning",
     tag: "Persistence arcade · Level 4 · FINALE · 18+",
@@ -247,3 +399,14 @@ export const DOOR_LEVELS = [
 ];
 
 export const getDoorLevel = (id) => DOOR_LEVELS.find((l) => l.id === id) || null;
+
+/* The ladder, in play order. Everything that walks the campaign — the route,
+   the unlock check, "what opens next" — goes through this, so `order` can have
+   gaps and levels can be inserted anywhere without touching another file. */
+export const DOOR_LADDER = [...DOOR_LEVELS].sort((a, b) => a.order - b.order);
+
+/** The level that unlocks after `slug` is beaten, or null if that was the last. */
+export function nextAfter(slug) {
+  const i = DOOR_LADDER.findIndex((l) => l.id === slug);
+  return i < 0 ? null : DOOR_LADDER[i + 1] || null;
+}

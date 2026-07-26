@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import "../../styles/door-route.css";
 import "../../styles/door-art.css";
 import DoorLevel from "./DoorLevel.jsx";
-import { DOOR_LEVELS } from "./doorLevels.js";
+import { DOOR_LEVELS, getDoorLevel } from "./doorLevels.js";
+import { loadCampaign, recordClear, isCleared as slugCleared, isUnlocked as orderUnlocked } from "./doorCampaignStore.js";
+import HeatMeter from "./heat/HeatMeter.jsx";
+import { loadHeat } from "./heat/heatStore.js";
+import "../../styles/door-heat.css";
 import { IconSheet, GameIcon } from "./door/GameIcons.jsx";
-import { sfxFootstep, sfxDoorChime, sfxWhoosh, sfxRoundBell, sfxWindLoop } from "../../lib/sfx.js";
+import { sfxFootstep, sfxDoorChime, sfxWhoosh, sfxRoundBell } from "../../lib/sfx.js";
 import { tapLight } from "../../lib/haptics.js";
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -19,25 +23,30 @@ import { tapLight } from "../../lib/haptics.js";
    more houses and the sky runs from morning to 3 AM, so the world darkens
    around you as the game gets meaner.
 
-   Progress lives in the same localStorage key the old hub used, so nobody
-   loses their unlocks: { maxUnlocked, cleared: {} }.
+   Progress lives in doorCampaignStore.js, keyed by level SLUG rather than by
+   ladder position, so the roster can be reordered without lying to anyone
+   about which fights they've won. A legacy save migrates on first load.
    ════════════════════════════════════════════════════════════════════════ */
 
-const KEY = "door_levels_state";
-const WORLD_W = 2200;             // world units across the whole block
+const WORLD_W = 2480;             // world units across the whole block
 const REP_SCREEN = 0.36;          // where the rep sits horizontally, 0..1
 const WALK_SPEED = 300;           // world units / second
 const NEAR = 130;                 // how close a path has to be to be enterable
 
-/* Each house sits at a world x. The gate straddles the street before #3 —
-   walking into it IS the breach, which is Level 3's first round. */
+/* Each house sits at a world x and names the level slug behind its door. The
+   gate straddles the street before the gated house — walking into it IS the
+   breach, which is that level's first round. */
 const HOUSES = [
-  { id: 1, x: 260, variant: "bungalow", number: "12" },
-  { id: 2, x: 780, variant: "twostorey", number: "7" },
-  { id: 3, x: 1420, variant: "gated", number: "7" },
-  { id: 4, x: 1900, variant: "big", number: "3" },
+  { id: "first", x: 260, variant: "bungalow", number: "12" },
+  { id: "steele", x: 660, variant: "big", number: "9" },
+  { id: "persist", x: 1060, variant: "twostorey", number: "7" },
+  { id: "steel", x: 1700, variant: "gated", number: "7" },
+  { id: "callback", x: 2180, variant: "big", number: "3" },
 ];
-const GATE_X = 1180;
+const GATE_X = 1460;
+/* The gate stays shut until the level behind it is reachable. Derived, not a
+   hardcoded 3 — the ladder is allowed to move underneath this. */
+const GATED_SLUG = "steel";
 
 /* Sky states, indexed by how far you've got. The block itself gets later. */
 const SKIES = [
@@ -47,15 +56,8 @@ const SKIES = [
   { key: "night", top: "#0a0a1c", bot: "#1c1030", sun: "#cfd8ff", light: .35 },
 ];
 
-function loadState() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
-    return { maxUnlocked: raw.maxUnlocked || 1, cleared: raw.cleared || {} };
-  } catch { return { maxUnlocked: 1, cleared: {} }; }
-}
-function saveState(s) {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode */ }
-}
+/* Progress lives in doorCampaignStore.js, keyed by slug. */
+const ORDER_OF = Object.fromEntries(DOOR_LEVELS.map((l) => [l.id, l.order]));
 
 /* ── house art ────────────────────────────────────────────────────────── */
 function House({ variant, number, cleared, locked, lit }) {
@@ -284,12 +286,18 @@ function Rep({ walking, dir }) {
 
 /* ════════════════════════════════════════════════════════════════════════ */
 export default function TheRoute({ onClose, onComplete }) {
-  const [state, setState] = useState(loadState);
+  const [state, setState] = useState(loadCampaign);
+  // Re-read on every return from a level: heat is written by the gallery and
+  // the chase, which live outside this component's state entirely.
+  const [heat, setHeat] = useState(() => loadHeat().heat);
   const [playing, setPlaying] = useState(null);
   const [dollying, setDollying] = useState(null);
   const [near, setNear] = useState(null);
   const [walking, setWalking] = useState(0);        // -1 | 0 | 1
-  const [, force] = useState(0);
+  // Facing and the gate hint are the ONLY things his position feeds into the
+  // render, so they're state that changes on a threshold — never per frame.
+  const [facing, setFacing] = useState(1);          // -1 | 1
+  const [atGate, setAtGate] = useState(false);
 
   const xRef = useRef(120);
   const dirRef = useRef(1);
@@ -297,15 +305,29 @@ export default function TheRoute({ onClose, onComplete }) {
   const lastRef = useRef(0);
   const stepRef = useRef(0);
   const worldRef = useRef(null);
-  const windRef = useRef(null);
+  const stageRef = useRef(null);
+  const vwRef = useRef(typeof window === "undefined" ? 360 : window.innerWidth);
 
-  const maxUnlocked = state.maxUnlocked;
-  const sky = SKIES[Math.min(SKIES.length - 1, maxUnlocked - 1)];
+  const maxOrder = state.maxOrder;
+  const isUnlocked = (slug) => orderUnlocked(state, ORDER_OF[slug] ?? Infinity);
+  const isCleared = (slug) => slugCleared(state, slug);
 
-  const isUnlocked = (id) => id <= maxUnlocked;
-  const isCleared = (id) => !!state.cleared[id];
+  // The block gets later as you close doors — the street itself keeps score.
+  const clearedCount = HOUSES.filter((h) => isCleared(h.id)).length;
+  const sky = SKIES[Math.min(SKIES.length - 1, clearedCount)];
+  const gateOpen = isUnlocked(GATED_SLUG);
 
-  /* ── the walk loop ───────────────────────────────────────────────────── */
+  /* ── the walk loop ───────────────────────────────────────────────────────
+     Writes --cam and --rep-x straight to the DOM. It must NOT re-render: at
+     four houses a per-frame render was survivable, at ten houses plus yard
+     props and a chase it is not. Only threshold crossings reach React. */
+  const paint = useCallback((nx) => {
+    if (worldRef.current) {
+      worldRef.current.style.setProperty("--cam", `${-(nx - vwRef.current * REP_SCREEN)}px`);
+      worldRef.current.style.setProperty("--rep-x", `${nx}px`);
+    }
+  }, []);
+
   const step = useCallback((t) => {
     rafRef.current = requestAnimationFrame(step);
     const dt = Math.min(64, t - (lastRef.current || t)) / 1000;
@@ -314,10 +336,11 @@ export default function TheRoute({ onClose, onComplete }) {
 
     let nx = xRef.current + walking * WALK_SPEED * dt;
     // the gate is a wall until you've unlocked the house behind it
-    const wall = maxUnlocked < 3 ? GATE_X - 60 : WORLD_W;
+    const wall = gateOpen ? WORLD_W : GATE_X - 60;
     nx = Math.max(40, Math.min(wall, nx));
     xRef.current = nx;
     dirRef.current = walking;
+    setFacing((prev) => (prev === walking ? prev : walking));
 
     // footsteps on a stride timer, not per frame
     stepRef.current += Math.abs(walking) * dt;
@@ -326,44 +349,55 @@ export default function TheRoute({ onClose, onComplete }) {
       sfxFootstep(Math.random() < 0.5);
     }
 
-    if (worldRef.current) {
-      worldRef.current.style.setProperty("--cam", `${-(nx - window.innerWidth * REP_SCREEN)}px`);
-    }
+    paint(nx);
 
     // which porch am I standing on?
     let hit = null;
     for (const h of HOUSES) {
-      if (Math.abs(h.x - nx) < NEAR && isUnlocked(h.id)) { hit = h; break; }
+      if (Math.abs(h.x - nx) < NEAR && (ORDER_OF[h.id] ?? Infinity) <= maxOrder) { hit = h; break; }
     }
     setNear((prev) => (prev && hit && prev.id === hit.id ? prev : hit));
-    force((v) => v + 1);
-  }, [walking, maxUnlocked]);
+
+    const gateNear = !gateOpen && nx > GATE_X - 200;
+    setAtGate((prev) => (prev === gateNear ? prev : gateNear));
+  }, [walking, maxOrder, gateOpen, paint]);
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafRef.current);
   }, [step]);
 
+  // Viewport width, measured once and on resize — never read per frame, since
+  // touching window.innerWidth inside the loop forces layout every tick.
+  useEffect(() => {
+    const el = stageRef.current;
+    const measure = () => {
+      vwRef.current = window.innerWidth;
+      paint(xRef.current);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const ro = new ResizeObserver(measure);
+    if (el) ro.observe(el);
+    return () => ro.disconnect();
+  }, [paint]);
+
   // put the camera in the right place on mount and after a level
   useEffect(() => {
     if (playing || dollying) return;
-    if (worldRef.current) {
-      worldRef.current.style.setProperty("--cam", `${-(xRef.current - window.innerWidth * REP_SCREEN)}px`);
-    }
+    paint(xRef.current);
     let hit = null;
     for (const h of HOUSES) if (Math.abs(h.x - xRef.current) < NEAR && isUnlocked(h.id)) { hit = h; break; }
     setNear(hit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, dollying]);
+  }, [playing, dollying, paint]);
 
-  // street ambience
-  useEffect(() => {
-    if (playing) return undefined;
-    const h = sfxWindLoop();
-    h.setLevel(0.09);
-    windRef.current = h;
-    return () => { h.stop(); windRef.current = null; };
-  }, [playing]);
+  // No ambient bed on the street. The wind loop was a bandpass swept over noise —
+  // the exact recipe for ocean surf — and it washed under the whole route.
+  // The footsteps, chimes and bells carry the scene on their own.
 
   /* ── approach: dolly the camera into the porch ───────────────────────── */
   const approach = (house) => {
@@ -372,22 +406,17 @@ export default function TheRoute({ onClose, onComplete }) {
     sfxWhoosh();
     setWalking(0);
     setDollying(house);
-    if (windRef.current) windRef.current.setLevel(0.02);
     window.setTimeout(() => {
       sfxRoundBell();
-      const lv = DOOR_LEVELS.find((l) => l.id === house.id);
+      const lv = getDoorLevel(house.id);
       if (lv) setPlaying(lv);
       setDollying(null);
     }, 900);
   };
 
   const finish = (payload) => {
-    const next = {
-      maxUnlocked: Math.max(state.maxUnlocked, Math.min(HOUSES.length, (payload.level || 1) + 1)),
-      cleared: { ...state.cleared, [payload.level]: true },
-    };
-    setState(next);
-    saveState(next);
+    setState((prev) => recordClear(prev, payload.level));
+    setHeat(loadHeat().heat);
     setPlaying(null);
     sfxDoorChime();
     onComplete(payload);
@@ -397,15 +426,14 @@ export default function TheRoute({ onClose, onComplete }) {
     return <DoorLevel level={playing} onClose={() => setPlaying(null)} onComplete={finish} />;
   }
 
-  const clearedCount = HOUSES.filter((h) => isCleared(h.id)).length;
-
   return (
-    <div className="dr-stage" style={{ "--sky-t": sky.top, "--sky-b": sky.bot, "--sun": sky.sun, "--daylight": sky.light }}>
+    <div className="dr-stage" ref={stageRef} style={{ "--sky-t": sky.top, "--sky-b": sky.bot, "--sun": sky.sun, "--daylight": sky.light }}>
       <IconSheet />
 
       <div className="dr-top">
         <button className="dg-back" onClick={onClose}>← Anger Gym</button>
         <span className="dr-top__title">THE ROUTE</span>
+        <HeatMeter heat={heat} />
         <span className="dr-top__score">{clearedCount}/{HOUSES.length} CLOSED</span>
       </div>
 
@@ -440,7 +468,7 @@ export default function TheRoute({ onClose, onComplete }) {
                 {cleared && <span className="dr-signpost"><YardSign /></span>}
                 {unlocked && !cleared && (
                   <span className="dr-lot__tag">
-                    <GameIcon name="door" size={12} /> {DOOR_LEVELS.find((l) => l.id === h.id)?.when || ""}
+                    <GameIcon name="door" size={12} /> {getDoorLevel(h.id)?.when || ""}
                   </span>
                 )}
                 {!unlocked && <span className="dr-lot__lock">NOT YOUR TERRITORY YET</span>}
@@ -450,13 +478,13 @@ export default function TheRoute({ onClose, onComplete }) {
 
           {/* the gated community straddles the street */}
           <div className="dr-gatelot" style={{ left: `${GATE_X}px` }}>
-            <StreetGate breached={maxUnlocked >= 3} />
-            {maxUnlocked < 3 && <span className="dr-gatelot__tag">CLOSE #7 FIRST</span>}
+            <StreetGate breached={gateOpen} />
+            {!gateOpen && <span className="dr-gatelot__tag">CLOSE #7 FIRST</span>}
           </div>
 
-          {/* the rep */}
-          <div className="dr-repslot" style={{ left: `${xRef.current}px` }}>
-            <Rep walking={!!walking} dir={dirRef.current} />
+          {/* the rep — position comes from --rep-x, not from a style prop */}
+          <div className="dr-repslot">
+            <Rep walking={!!walking} dir={facing} />
             <span className="dr-repshadow" />
           </div>
         </div>
@@ -491,7 +519,7 @@ export default function TheRoute({ onClose, onComplete }) {
           </button>
         ) : (
           <span className="dr-hint">
-            {maxUnlocked < 3 && xRef.current > GATE_X - 200
+            {atGate
               ? "The gate's locked. Close #7 and you'll have a reason to climb it."
               : "Walk the block. Stop at a porch."}
           </span>

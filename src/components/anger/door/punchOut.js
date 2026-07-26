@@ -45,8 +45,7 @@ export const RULES = {
 /* Tell length shrinks as he takes damage. This single curve is most of the
    difficulty ramp — at full HP you have half a second to read him, at death's
    door you have a fifth of one. */
-export function tellDuration(base, hpPct) {
-  const floor = 220;
+export function tellDuration(base, hpPct, floor = 220) {
   return Math.max(floor, Math.round(base - (1 - hpPct) * (base - floor)));
 }
 
@@ -164,8 +163,84 @@ BOSSES.guard = {
   fakeChance: 0.14,
 };
 
+/* ── OFFICER STEELE — the quick-draw ──────────────────────────────────────
+   A different verb on the same engine. Every other boss asks WHERE (duck,
+   left, right); Steele asks WHICH — his `dodge` names a rebuttal card instead
+   of a direction, and `dodgeVerdict` never notices the difference, because it
+   only ever compared `moved` to `needed`.
+
+   `tellFloor` exists because of him. The stock 220ms floor means the last 20%
+   of a bout is a reflex test, which is fine when the answer is "duck" and
+   fatal when the answer is one of three cards you have to READ. And the last
+   20% is exactly where his trump card fires, so a player who can't survive to
+   it never sees the premise of the level.
+
+   `wallAt` is the scripted loss. You cannot win this fight; you are supposed
+   to lose it and come back at 11:47 PM. */
+BOSSES.steele = {
+  id: "steele",
+  name: "OFFICER STEELE",
+  subtitle: "off duty, hand on his hip",
+  hp: 100,
+  look: { skin: "#c98f6b", cloth: "#1b2a45", trim: "#c8a24a", hair: "#2a2118", build: "broad" },
+  prop: "none",
+  intro: "He answers with his badge already in his hand.",
+  coach: "He draws fast. Read the card, don't guess it.",
+  attacks: [
+    { id: "cost", label: "\"WHAT'S IT COST?\"", tell: "flick", tellMs: 900, strikeMs: 200, recoverMs: 430, dmg: 11, dodge: "price", cue: "sharp", weak: "arm" },
+    { id: "badge", label: "\"I KNOW MY RIGHTS.\"", tell: "raise", tellMs: 980, strikeMs: 220, recoverMs: 470, dmg: 13, dodge: "authority", cue: "mid" },
+    { id: "later", label: "\"NOT TODAY, KID.\"", tell: "lean", tellMs: 860, strikeMs: 190, recoverMs: 410, dmg: 10, dodge: "urgency", cue: "low" },
+    { id: "doubt", label: "\"PROVE IT.\"", tell: "cock", tellMs: 1020, strikeMs: 230, recoverMs: 500, dmg: 14, dodge: "proof", cue: "sharp", weak: "belly" },
+  ],
+  gimmick: { kind: "draw", wallAt: 0.2, streakForStar: 3, note: "THREE CLEAN DRAWS — STAR READY" },
+  tellFloor: 420,
+  fakeChance: 0.1,
+};
+
+/* ── the same man, 7:00 AM, in a bathrobe ─────────────────────────────────
+   His HP is not authored. It is computed from what's left of the objection —
+   see `finale.hpFrom` in doorLevels.js. Empty the meter and he is a formality;
+   skip the night and he is a real fight. The revenge economy is arithmetic. */
+BOSSES.steele_morning = {
+  id: "steele_morning",
+  name: "OFFICER STEELE",
+  subtitle: "standing in what's left of his yard",
+  hp: 100,
+  look: { skin: "#c98f6b", cloth: "#6b7280", trim: "#9aa3b2", hair: "#2a2118", build: "broad" },
+  prop: "none",
+  intro: "He's holding a coffee and looking at the eggshells.",
+  coach: "He's got nothing left to say. Finish it.",
+  attacks: [
+    { id: "weak", label: "TIRED JAB", tell: "flick", tellMs: 720, strikeMs: 220, recoverMs: 620, dmg: 6, dodge: "left", cue: "low", weak: "arm" },
+  ],
+  gimmick: { kind: "none" },
+  tellFloor: 380,
+  fakeChance: 0,
+};
+
 export function getBoss(id) {
   return BOSSES[id] || BOSSES.homeowner;
+}
+
+/* The rebuttal deck. These are the actual four moves — the card a player
+   learns to reach for here is a sentence they can use on a real porch, which
+   is the entire reason the objection is a card and not a direction. */
+export const CARDS = {
+  price: { key: "price", name: "THE NUMBER", line: "Name the cost first, out loud." },
+  authority: { key: "authority", name: "STAND DOWN", line: "Agree with him, then keep going." },
+  urgency: { key: "urgency", name: "WHY TODAY", line: "Give him a reason it's now." },
+  proof: { key: "proof", name: "SHOW HIM", line: "Stop talking. Show him something." },
+};
+
+/* Is this boss fought with rebuttal cards rather than footwork? */
+export const isDrawBoss = (boss) => !!boss && boss.gimmick && boss.gimmick.kind === "draw";
+
+/* The three cards on offer for one of his attacks: the right one, plus two
+   plausible wrong ones. Shuffled, so position never becomes the tell. */
+export function drawHand(boss, atk) {
+  const all = boss.attacks.map((a) => a.dodge);
+  const wrong = all.filter((c) => c !== atk.dodge).sort(() => Math.random() - 0.5).slice(0, 2);
+  return [atk.dodge, ...wrong].sort(() => Math.random() - 0.5);
 }
 
 /* Pick the next attack. Rage-only moves stay locked until he's raging, and we

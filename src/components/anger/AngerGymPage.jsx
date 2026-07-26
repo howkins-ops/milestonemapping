@@ -189,7 +189,7 @@ export default function AngerGymPage() {
     addXP(XP_DOOR, "Door broken down");
     celebrate({
       variant: "reward",
-      title: payload.level ? `LEVEL ${payload.level}: DOWN` : "DOOR: DOWN",
+      title: payload.title ? `${payload.title.toUpperCase()}: DOWN` : "DOOR: DOWN",
       subtitle: `${payload.knocks ?? 0} knocks · ${payload.nos ?? 0} NOs survived · zero quits.`,
       detail: payload.takeaway,
     });

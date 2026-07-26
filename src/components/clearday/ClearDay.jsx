@@ -3,7 +3,7 @@ import UrgeBattle from "./UrgeBattle.jsx";
 import DailyTab from "./DailyTab.jsx";
 import Incantation from "./Incantation.jsx";
 import IdentityTab, { Science } from "./IdentityTab.jsx";
-import ReclamationClock, { ReclamationChip } from "./ReclamationClock.jsx";
+import ReclamationClock from "./ReclamationClock.jsx";
 import ClearProofWall from "./battle/ClearProofWall.jsx";
 import NightLedger from "./NightLedger.jsx";
 import CornerChat from "./CornerChat.jsx";
@@ -24,7 +24,7 @@ import {
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
-  bodyReportFor, HALTB, TRACK_META, CURRICULUM, standFor,
+  bodyReportFor, HALTB, GOOD_STATES, SAVOUR_RECEIPT, TRACK_META, CURRICULUM, standFor,
   NIGHT, isNightShift, SERVICE_WHO, SERVICE_RECEIPT,
 } from "./clearDayData.js";
 import { useGamification } from "../../hooks/useGamification.js";
@@ -581,6 +581,88 @@ function CatchCard({ S, day, settings, celebrate, addXPSafe }) {
   );
 }
 
+/* ═══ HOW ARE YOU, ACTUALLY — the check-in, both directions ═══════════
+   It used to offer five ways to be badly and nothing else, which meant
+   opening the app feeling fine read as an instruction to go find
+   something wrong. The good row now leads and carries the same weight:
+   naming a good state, holding it thirty seconds, and filing it is a
+   real rep, not decoration. The rough row keeps HALT-B exactly as it
+   was — it's the best urge-decoder in the app — it just stops being
+   the only answer to the question. */
+function CheckInCard({ S, day, settings, celebrate, addXPSafe }) {
+  const [sel, setSel] = useState(null); // { tone: "good" | "rough", k }
+  const goodFiled = S.ballot.some((b) => b.day === day && b.kind === "good");
+  const state = sel
+    ? (sel.tone === "good" ? GOOD_STATES : HALTB).find((x) => x.k === sel.k)
+    : null;
+
+  const pick = (tone, k) => {
+    tapLight();
+    setSel((cur) => (cur && cur.tone === tone && cur.k === k ? null : { tone, k }));
+  };
+
+  const fileGood = (e) => {
+    castVote("good", `Felt ${state.label.toLowerCase()} on day ${day} — named it and stayed in it.`);
+    addXPSafe(XP_VALUES.cleardayWorkoutRep, "Named a good state");
+    cdFx.burstFrom(e, "spark", 16, "#7be495");
+    tapMedium();
+    sfxPop(settings);
+    celebrate();
+  };
+
+  const row = (tone, list, label, caption, accent) => (
+    <div className="cd-feel-row">
+      <div className="cd-feel-rowhead">
+        <span className="cd-feel-rowlabel" style={{ color: accent }}>{label}</span>
+        <span className="cd-feel-rowcap">{caption}</span>
+      </div>
+      <div className="cd-feel-grid">
+        {list.map((f) => {
+          const on = sel && sel.tone === tone && sel.k === f.k;
+          return (
+            <button
+              key={f.k}
+              type="button"
+              className={`cd-feel cd-feel--${tone} ${on ? "is-on" : ""}`}
+              aria-pressed={on}
+              onClick={() => pick(tone, f.k)}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="cd-card cd-checkin">
+      <div className="cd-label cd-label--dawn">HOW ARE YOU, ACTUALLY?</div>
+      <p className="cd-checkin-lede">Both directions count. Good isn't a fluke you skip past — name it too.</p>
+
+      {row("good", GOOD_STATES, "GOOD", "— this is the payout. Don't walk past it", "var(--cd-green)")}
+      {row("rough", HALTB, "ROUGH", "— most urges are one of these in a costume", "var(--cd-dawn)")}
+
+      {state && (
+        <div className={`cd-feel-panel cd-feel-panel--${sel.tone}`} key={`${sel.tone}-${sel.k}`}>
+          <div className="cd-feel-line">{state.line}</div>
+          <div className="cd-feel-do">{sel.tone === "good" ? state.hold : state.fix}</div>
+          {sel.tone === "good" && (
+            goodFiled ? (
+              <div className="cd-done-line">✓ a good state is on file today · the case grows both ways</div>
+            ) : (
+              <button type="button" className="cd-btn cd-btn--good" onClick={fileGood}>
+                ✓ FILE IT — THIS COUNTS AS EVIDENCE
+              </button>
+            )
+          )}
+          {sel.tone === "good" && <div className="cd-cite">◈ {SAVOUR_RECEIPT}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
 function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner, onLedger }) {
@@ -593,7 +675,6 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
   const rung = LADDER.find((r) => r.id === S.rung) || LADDER[0];
   const hour = new Date().getHours();
   const greet = hour < 5 ? "It's late" : hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening";
-  const [halt, setHalt] = useState(null);
   const hotWhy = useMemo(() => {
     const list = [...(S.whys || [])].sort((a, b) => (b.intensity || 0) - (a.intensity || 0));
     return list[(day - 1) % Math.max(1, list.length)] || list[0] || null;
@@ -626,6 +707,12 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
           </div>
         </div>
       </div>
+
+      {/* the chain is the first thing you see under the sky — not a pill in a
+          stack of pills. Everything that used to crowd this slot (the clock
+          chip, the streak chip, the laws nag) either has its own home or
+          isn't Today's question. */}
+      <StreakBanner S={S} onOpen={() => onGoTab && onGoTab("streak")} />
 
       <CatchCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
 
@@ -719,37 +806,12 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
       {reachOpen && <ReachOut onClose={() => setReachOpen(false)} onOpenCorner={onCorner} />}
       {devotionOpen && <DevotionSetup current={S.identity.devotion} onClose={() => setDevotionOpen(false)} />}
 
-      <ReclamationChip S={S} onGoTab={onGoTab} />
-      <StreakChip S={S} onGoTab={onGoTab} />
-
-      {/* the Ritual is the only place laws are held — Today just points */}
-      {!S.tracks.every((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t)) && (
-        <button type="button" className="cd-seal-pointer" onClick={() => onGoTab && onGoTab("daily")}>
-          ⚖ The Laws haven't been held today — the Ritual holds them → Ritual
-        </button>
-      )}
-
       <button type="button" className="cd-urge-btn" onClick={onBattle}>
         <span className="cd-urge-pulse" aria-hidden="true" />
         AN URGE, RIGHT NOW → START THE BATTLE
       </button>
 
-      <div className="cd-card cd-card--checkin">
-        <div className="cd-label">HOW ARE YOU, ACTUALLY? — most urges are one of these in a costume</div>
-        <div className="cd-halt-grid">
-          {HALTB.map((h) => (
-            <button key={h.k} type="button" className={`cd-halt ${halt === h.k ? "cd-halt--on" : ""}`} onClick={() => setHalt(halt === h.k ? null : h.k)}>
-              {h.label}
-            </button>
-          ))}
-        </div>
-        {halt && (
-          <div className="cd-halt-fix">
-            <div className="cd-halt-line">{HALTB.find((h) => h.k === halt).line}</div>
-            <div className="cd-halt-do">{HALTB.find((h) => h.k === halt).fix}</div>
-          </div>
-        )}
-      </div>
+      <CheckInCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
 
       <UnseenWorkCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
 
@@ -954,19 +1016,58 @@ function StreakCard({ S, onOpen }) {
   );
 }
 
-function StreakChip({ S, onGoTab }) {
+/* Today's headline. The chain used to arrive as a 12px pill wedged between
+   a countdown clock and a nag — three competing pills, none of them the
+   point. It's the point. Big number, live fire, the last seven days
+   underneath, and one honest line about tonight. All motion is CSS and
+   slow on purpose: this card should feel like warmth, not an alarm. */
+function StreakBanner({ S, onOpen }) {
   const st = streakStats(S);
   const reclaim = st.reignitable.length;
+  // never a bare 0 on the wall — an unsigned chain is a chain waiting, not nil
+  const waiting = st.current === 0 && reclaim > 0;
+  const n = waiting ? reclaim : st.current;
+  const sealed = Boolean(S.closedDays[st.absDay]);
+  const tone = waiting ? "ash" : reclaim ? "blue" : "day";
+
+  const unit = waiting
+    ? `${reclaim === 1 ? "day" : "days"} waiting to be claimed`
+    : st.current === 0
+      ? "today is link one"
+      : st.current === 1 ? "day lit" : "days in a row";
+
+  const foot = waiting
+    ? "Days inside the window are still yours — reclaim them."
+    : sealed
+      ? `Day ${st.absDay} is signed. The chain holds.`
+      : "Tonight's link isn't signed yet — the Ritual closes it.";
+
   return (
     <button
       type="button"
-      className={`cd-streak-chip ${reclaim ? "cd-streak-chip--reclaim" : ""}`}
-      onClick={() => { tapLight(); onGoTab("streak"); }}
+      className={`cd-streakbanner ${reclaim ? "cd-streakbanner--reclaim" : ""}`}
+      onClick={() => { tapLight(); onOpen(); }}
     >
-      <StreakFlame tone={reclaim ? "blue" : "day"} size="sm" />
-      {reclaim
-        ? `${reclaim} ${reclaim === 1 ? "day" : "days"} to reclaim → The Streak`
-        : `${st.current}-day streak → The Streak`}
+      <span className="cd-streakbanner-glow" aria-hidden="true" />
+      <span className="cd-streakbanner-main">
+        <span className="cd-streakbanner-fire">
+          <span className="cd-streakbanner-halo" aria-hidden="true" />
+          <StreakFlame tone={tone} size="lg" />
+        </span>
+        <span className="cd-streakbanner-count">
+          <span className="cd-streakbanner-n">{n}</span>
+          <span className="cd-streakbanner-unit">{unit}</span>
+          <span className="cd-streakbanner-best">
+            best {st.best} · {st.lit} {st.lit === 1 ? "day" : "days"} signed
+          </span>
+        </span>
+        <span className="cd-streakbanner-go" aria-hidden="true">›</span>
+      </span>
+      <StreakWeekStrip S={S} absDay={st.absDay} />
+      <span className="cd-streakbanner-foot">
+        {foot}
+        <span className="cd-streakbanner-link">The Streak →</span>
+      </span>
     </button>
   );
 }
@@ -1048,6 +1149,7 @@ const EVIDENCE_KINDS = {
   catch: { label: "Caught the Mask", color: "var(--cd-violet)" },
   opposite: { label: "The opposite move", color: "var(--cd-teal)" },
   exhibit: { label: "Exhibit filed", color: "var(--cd-green)" },
+  good: { label: "Felt it — and said so", color: "var(--cd-green)" },
   armed: { label: "Rule armed", color: "var(--cd-amber)" },
   chapter: { label: "The weekly rewrite", color: "var(--cd-dawn)" },
   burn: { label: "Burned for good", color: "var(--cd-amber)" },

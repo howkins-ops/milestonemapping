@@ -48,13 +48,14 @@ const fmtClock = (s) => {
 // The announcer's live line, built from this quarter's numbers (Andrew streams it).
 function recapText(quarter, statLine) {
   const doors = statLine?.doors ?? 0;
+  const spoke = statLine?.spoke ?? 0;
   const sales = statLine?.sales ?? 0;
   const pts = statLine?.score ?? 0;
   const which =
     quarter === 1 ? "the first quarter" : quarter === 2 ? "the first half" : quarter === 3 ? "the third" : "regulation";
-  return `That's the end of ${which}. ${doors} ${doors === 1 ? "door" : "doors"} worked, ${sales} ${
-    sales === 1 ? "sale" : "sales"
-  } on the board — ${pts} points this quarter. Now back to work.`;
+  return `That's the end of ${which}. ${doors} ${doors === 1 ? "door" : "doors"} worked, ${spoke} ${
+    spoke === 1 ? "conversation" : "conversations"
+  }, ${sales} ${sales === 1 ? "sale" : "sales"} on the board — ${pts} points this quarter. Now back to work.`;
 }
 
 export default function CoachingBreak({ quarter = 1, read: initialRead = "rough", statLine, isFinal = false, settings, onDone }) {
@@ -184,7 +185,8 @@ export default function CoachingBreak({ quarter = 1, read: initialRead = "rough"
           <div className="fc-cine__label">{QUARTER_ENDS[quarter] || "END OF THE QUARTER"}</div>
           <div className="fc-cine__score">{statLine?.score ?? 0}</div>
           <div className="fc-cine__stat">
-            {statLine?.doors ?? 0} doors · {statLine?.sales ?? 0}{" "}
+            {statLine?.doors ?? 0} doors · {statLine?.spoke ?? 0}{" "}
+            {(statLine?.spoke ?? 0) === 1 ? "conversation" : "conversations"} · {statLine?.sales ?? 0}{" "}
             {(statLine?.sales ?? 0) === 1 ? "sale" : "sales"} this quarter
             {(statLine?.sales ?? 0) > 0 && <span className="fc-cine__won"> · ✓ QUARTER WON</span>}
           </div>

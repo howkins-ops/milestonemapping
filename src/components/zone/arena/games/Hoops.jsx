@@ -16,7 +16,7 @@ import CoachingBreak from "./CoachingBreak.jsx";
 // ============================================================
 // HOOPS — Milestone Mapping door-to-door sales arena  (v5)
 // ~330 packed fans w/ animated motivational signs · solid
-// backboard · water-bottle hydration that tracks cups
+// backboard · water-bottle hydration that tracks your REAL bottle
 // ============================================================
 
 const V = "#a855f7";
@@ -26,16 +26,78 @@ const GOLD = "#facc15";
 const GREEN = "#22c55e";
 const FIRE = "#fb7185";
 const WATER = "#38bdf8";
-const SPOKE = "#94a3b8";   // neutral slate — SPOKE TO (no name yet): tracked, worth 0
 const BG = "#0a0714";
 const CARD = "#140b24";
 
+// ============================================================
+// TOAST CHROME — every message that flashes on a tap.
+// These used to be bare coloured text whose only decoration was a glow IN ITS
+// OWN HUE, which spreads the letterform and LOWERS edge contrast. They render
+// over the crowd band, whose shirt palette is #38bdf8/#a855f7/#22d3ee/#f59e0b
+// — literally the same colours as the messages — so a gold "+25" landed on
+// amber sign chips and vanished. Now the message rides an opaque plate and the
+// text is white with a dark stroke; the action's colour survives as the border,
+// the glow and the accent bar, so a rung is still identifiable by hue WITHOUT
+// hue being the thing you have to read. Lifted from the reward callout so the
+// two stay one system.
+// ============================================================
+const toastPlate = (color) => ({
+  display: "flex", alignItems: "center", gap: 8,
+  padding: "6px 14px", borderRadius: 12, maxWidth: "100%",
+  background: "linear-gradient(180deg, rgba(20,11,36,0.95), rgba(8,5,16,0.97))",
+  border: `1.5px solid ${color}aa`,
+  boxShadow: `0 0 18px ${color}55, 0 4px 14px rgba(0,0,0,0.8)`,
+});
+// No white-space:nowrap. The old lane forced one line at 24px, so a full sentence
+// like "MISS — the odds still favor you" ran ~420px and bled off both edges of a
+// phone. It wraps and stays inside the plate now.
+const toastText = (color, size) => ({
+  fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: size,
+  color: "#fff", letterSpacing: "0.5px", textAlign: "center",
+  minWidth: 0, lineHeight: 1.15,
+  WebkitTextStroke: "1px rgba(10,7,20,0.85)", paintOrder: "stroke fill",
+  textShadow: `0 0 10px ${color}, 2px 2px 3px rgba(0,0,0,0.9)`,
+});
+const toastBar = (color) => ({
+  width: 3, alignSelf: "stretch", borderRadius: 2,
+  background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0,
+});
+
+// ============================================================
+// THE FUNNEL — six EXCLUSIVE rungs. One tap per door, at the
+// deepest rung you reached. KNOCKED means nobody answered; every
+// other rung means a human opened the door. So:
+//     DOORS    = every tap, all six rungs
+//     SPOKE TO = everything except KNOCKED
+// `kind` drives the animation (shot / auto / dunk), `tone` drives
+// the button skin, and the tally key IS the action id.
+// ============================================================
 const ACTIONS = [
-  { id: "knock",  label: "Knocked",          short: "KNOCKED",     sub: "RANG DOORBELL",       pts: 10,  color: V,        make: 0.78, blurb: "Every knock is a shot on the board." },
-  { id: "pitch",  label: "Full Value Build", short: "VALUE BUILD", sub: "FULL PITCH",          pts: 50,  color: "#38bdf8",make: 1.00, blurb: "A full pitch ALWAYS goes in." },
-  { id: "price",  label: "Price Drop",       short: "PRICE DROP",  sub: "CUSTOMER INTERESTED", pts: 75,  color: "#22d3ee",make: 0.70, blurb: "Deep three. Crowd on its feet." },
-  { id: "close",  label: "CLOSE — Sale",     short: "CLOSE",       sub: "SALE",                pts: 100, color: GREEN,    make: 1.00, blurb: "SLAM. Backboard shatters." },
+  { id: "knock",  label: "Knocked",          short: "KNOCKED",     sub: "NO ANSWER",           stat: "No Answer",     pts: 10,  color: V,         make: 0.78, kind: "shot", tone: null,
+    blurb: "You worked the door, nobody came. Still a shot on the board." },
+  { id: "object", label: "Objected",         short: "OBJECTED",    sub: "NOT INTERESTED",      stat: "Objections",    pts: -5,  color: FIRE,      make: 0.00, kind: "shot", tone: "red",
+    penalty: true, breaksStreak: false, countsAccuracy: false,
+    blurb: "Shut down at the door. Costs 5 — but the streak lives and it never touches your FG%." },
+  { id: "name",   label: "Spoke To",         short: "SPOKE TO",    sub: "GOT NAME",            stat: "Names Got",     pts: 25,  color: GOLD,      make: 1.00, kind: "auto", tone: "gold",
+    blurb: "A real conversation with a name attached. Nothing but net." },
+  { id: "pitch",  label: "Full Value Build", short: "VALUE BUILD", sub: "FULL PITCH",          stat: "Full Pitches",  pts: 50,  color: "#38bdf8", make: 1.00, kind: "auto", tone: null,
+    blurb: "A full pitch ALWAYS goes in." },
+  { id: "price",  label: "Price Drop",       short: "PRICE DROP",  sub: "CUSTOMER INTERESTED", stat: "Price Drops",   pts: 75,  color: "#22d3ee", make: 0.70, kind: "shot", tone: null,
+    blurb: "Deep three. Crowd on its feet." },
+  { id: "close",  label: "CLOSE — Sale",     short: "CLOSE",       sub: "SALE",                stat: "Closes / Sales",pts: 100, color: GREEN,     make: 1.00, kind: "dunk", tone: "green",
+    blurb: "SLAM. The sale is on the board." },
 ];
+const ACTION_BY_ID = Object.fromEntries(ACTIONS.map((a) => [a.id, a]));
+const TALLY_KEYS = ACTIONS.map((a) => a.id);
+// a human answered the door — every rung below KNOCKED
+const SPOKE_KEYS = ACTIONS.filter((a) => a.id !== "knock").map((a) => a.id);
+// only rungs that are a real shot attempt count toward FG% (an objection isn't)
+const ACCURACY_KEYS = ACTIONS.filter((a) => a.countsAccuracy !== false).map((a) => a.id);
+const emptyTally = () => TALLY_KEYS.reduce((t, k) => { t[k] = { a: 0, m: 0 }; return t; }, {});
+const doorsOf = (t) => TALLY_KEYS.reduce((n, k) => n + ((t && t[k] && t[k].a) || 0), 0);
+const spokeOf = (t) => SPOKE_KEYS.reduce((n, k) => n + ((t && t[k] && t[k].a) || 0), 0);
+// ONE label set behind every box score (live stats, quarter report, game report)
+const STAT_ROWS = ACTIONS.map((a) => ({ id: a.id, label: a.stat, color: a.color, penalty: !!a.penalty, pts: a.pts }));
 
 const QUARTER_SECONDS = 2 * 60 * 60;  // default (weekday 2-hr)
 // real D2D day schedules — sets quarter length + the on-clock windows
@@ -66,8 +128,10 @@ const BIG_REWARD_LINES = [
   "UNSTOPPABLE!","CAN'T MISS!","HE'S HEATING UP!","THE ODDS BOW TO YOU!","MONEY MACHINE!","PROBABILITY KING!",
 ];
 
-// hydration: 1 full hour drains the bar; one sip ~ refills a chunk;
-// 4 sips = one full cup logged.
+// HYDRATION — this tracks the REAL bottle on your desk / in your bag. You tap
+// DRINK when you actually drink; the bar is how much is left in the real
+// bottle; empty means go physically fill it up. There is nothing to "find" and
+// nothing to run out of — 4 sips = one full cup logged, refills are counted.
 const DRAIN_PER_GAME_SEC = 100 / 7200; // gentler: ~one bottle per 2h quarter (was 1/hr)
 const SIP_REFILL = 12;                  // (legacy) % per sip
 const DRINK_WATER = 20;                 // % water consumed from bottle per drink
@@ -162,15 +226,41 @@ function useHoopsAudio(enabled) {
 // jump back into it on next open. Live matches aren't persisted (the opponent is
 // realtime). Cleared on finish, on "Back to Arena", and when a fresh game starts.
 const ACTIVE_KEY = "hoops_active_v1";
+const SNAPSHOT_V = 2;                      // v1 = the old slam/names funnel, v2 = the six rungs
 const MAX_RESUME_MS = 18 * 60 * 60 * 1000; // don't resume a game older than ~18h
+// A v1 snapshot can be up to 18h old, and every tally read does `t[key].a` inside a
+// state updater — a missing key white-screens the game mid-play. Rebuild the tally
+// from scratch every load so a v1 (or partial, or hand-edited) blob can't crash it:
+//   slam  → object   (v1's "spoke to, no name" rung is now the objection rung)
+//   names → name     (a bare int becomes a real {a,m}; every name was a guaranteed make)
+function migrateTally(t) {
+  const out = emptyTally();
+  if (!t || typeof t !== "object") return out;
+  TALLY_KEYS.forEach((k) => {
+    const v = t[k];
+    if (v && typeof v === "object") out[k] = { a: v.a || 0, m: v.m || 0 };
+  });
+  if (t.slam && typeof t.slam === "object") out.object.a += t.slam.a || 0;   // objections never "make"
+  if (typeof t.names === "number" && t.names > 0) { out.name.a += t.names; out.name.m += t.names; }
+  return out;
+}
 function loadActiveGame() {
   try {
     const raw = localStorage.getItem(ACTIVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
     // s.clock is the RAW game-seconds left at save time (always > 0 when persisted).
-    if (!s || s.v !== 1 || s.players !== 1 || !(s.clock > 0)) return null;
+    if (!s || !(s.v === 1 || s.v === 2) || s.players !== 1 || !(s.clock > 0)) return null;
     if (s.savedAt && Date.now() - s.savedAt > MAX_RESUME_MS) return null;
+    // ---- funnel migration: BOTH tallies, or a resumed game dies at the buzzer ----
+    // qStart is the quarter-start baseline buildReport() diffs against, so it has to
+    // carry the new keys too — that crash only shows up at the quarter buzzer.
+    s.tally = migrateTally(s.tally);
+    s.qStart = {
+      tally: migrateTally(s.qStart && s.qStart.tally),
+      score: (s.qStart && s.qStart.score) || 0,
+      cups: (s.qStart && s.qStart.cups) || 0,
+    };
     // ---- advance the clock for the real time the app was closed ----
     // The quarter runs in real wall-clock time, so a closed game keeps ticking.
     // Rebuild the anchor from clock + savedAt + timeScale on the next open.
@@ -270,22 +360,24 @@ export default function Hoops({ go, initialFullscreen = false }) {
     try {
       const t = stats?.tally;
       if (!t) return;
-      const names = t.names || 0;
-      const doors = t.knock.a + t.pitch.a + t.price.a + t.close.a + names;
-      const contacts = t.pitch.a + t.price.a + t.close.a + names;
-      const pitches = t.pitch.a + t.price.a;
+      const at = (k) => (t[k] && t[k].a) || 0;
+      const md = (k) => (t[k] && t[k].m) || 0;
       const payload = {
+        // NOTE: az_fullcourt_log_game has no `objections` / `outcomes` column — the RPC
+        // drops both. They ride along so the shape stays honest if it ever gains them.
+        // `mode: "full"` is coerced to 'rookie' server-side; changing it would re-bucket
+        // every historical row, so it stays.
         mode: "full",
         points: stats.score || 0,
-        doors,
-        contacts,
-        pitches,
-        sales: t.close.m,
-        objections: t.price.a,
+        doors: doorsOf(t),                       // every tap = a door worked
+        contacts: spokeOf(t),                    // a human answered
+        pitches: at("pitch") + at("price"),
+        sales: md("close"),
+        objections: at("object"),                // was t.price.a — price is "customer interested"
         q_won: stats.qWon || 0,
         ot: false,
         avg_dollar: 250,
-        outcomes: { knock: t.knock.a, pitch: t.pitch.a, price: t.price.a, close: t.close.m, names },
+        outcomes: TALLY_KEYS.reduce((o, k) => { o[k] = at(k); return o; }, { sales: md("close") }),
         played_on: new Date().toLocaleDateString("en-CA"),
       };
       Promise.resolve(fullcourtLogGame(payload)).catch(() => {});
@@ -321,9 +413,35 @@ export default function Hoops({ go, initialFullscreen = false }) {
         @keyframes floatBoard { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,-4px)} }
         @keyframes flare { 0%,100%{opacity:.4} 50%{opacity:1} }
         @keyframes riseFade { 0%{opacity:0;transform:translate(-50%,10px) scale(.8)} 18%{opacity:1;transform:translate(-50%,-8px) scale(1.15)} 100%{opacity:0;transform:translate(-50%,-70px) scale(1)} }
+        /* Tap toasts. riseFade (above) hit full opacity only around its 18% mark and
+           then faded continuously across 70px of travel — it was translucent for most
+           of the time it was on screen, over a moving crowd. This holds SOLID to 78%
+           and lifts only 22px: the plate no longer has to escape the crowd, so it
+           doesn't need the distance. No translateX(-50%) — the flex lane centers it. */
+        @keyframes toastRise {
+          0%   { opacity:0; transform:translateY(10px) scale(.85) }
+          16%  { opacity:1; transform:translateY(0) scale(1.08) }
+          26%  { opacity:1; transform:translateY(0) scale(1) }
+          78%  { opacity:1; transform:translateY(0) scale(1) }
+          100% { opacity:0; transform:translateY(-22px) scale(1) }
+        }
         @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-6px,3px)} 50%{transform:translate(6px,-3px)} 75%{transform:translate(-4px,-4px)} }
+        /* referenced in two places since launch; it never existed, so both were silent
+           no-ops. A slow breathing fade is what both call sites were asking for. */
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
         @keyframes windup { 0%{transform:translateX(-50%) translateY(0)} 40%{transform:translateX(-50%) translateY(8px)} 100%{transform:translateX(-50%) translateY(0)} }
-        @keyframes rimHang { 0%,100%{transform:translateX(-50%) translateY(-106px) rotate(-2.5deg)} 50%{transform:translateX(-50%) translateY(-102px) rotate(2.5deg)} }
+        /* A miss is the RIM taking a hit, not the arena. This rides on the rim element
+           alone; the whole-rig shake is now reserved for the dunk. */
+        @keyframes hpRimClank { 0%{transform:translateY(0) rotate(0)} 18%{transform:translateY(3px) rotate(-1.4deg)} 44%{transform:translateY(-1.5px) rotate(0.9deg)} 72%{transform:translateY(1px) rotate(-0.4deg)} 100%{transform:translateY(0) rotate(0)} }
+        /* landing: knees absorb, then settle. Paired with a puff of floor dust. */
+        @keyframes hpLand { 0%{transform:scaleY(1)} 30%{transform:scaleY(0.9) scaleX(1.05)} 65%{transform:scaleY(1.03) scaleX(0.99)} 100%{transform:scaleY(1)} }
+        @keyframes hpDust { 0%{opacity:0.75;transform:translate(0,0) scale(0.4)} 100%{opacity:0;transform:translate(var(--dx),-6px) scale(1.5)} }
+        /* Reads --hp-lift off the shooter so the hang sits wherever the COMPUTED rim
+           height put him. It used to hardcode -106px, which silently overrode the lift
+           transform and pinned him below the rim no matter what the jump was retuned to. */
+        @keyframes rimHang { 0%,100%{transform:translateX(-50%) translateY(var(--hp-lift,-106px)) rotate(-2.5deg)} 50%{transform:translateX(-50%) translateY(calc(var(--hp-lift,-106px) + 4px)) rotate(2.5deg)} }
+        /* the ball he just pushed through, dropping out the bottom of the net */
+        @keyframes hpDunkThrough { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(52px)} }
         @keyframes confettiFall { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(115vh) rotate(540deg);opacity:.7} }
         @keyframes stampIn { 0%{opacity:0;transform:scale(2.4) rotate(-8deg)} 60%{opacity:1;transform:scale(0.92) rotate(2deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
         @keyframes spinSlow { to{transform:translate(-50%,-50%) rotate(360deg)} }
@@ -348,7 +466,6 @@ export default function Hoops({ go, initialFullscreen = false }) {
         @keyframes rewardPop { 0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-6deg)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg)} 35%{transform:translate(-50%,-50%) scale(0.96) rotate(-1deg)} 50%{transform:translate(-50%,-50%) scale(1.04)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-70%) scale(1)} }
         @keyframes confettiFly { 0%{opacity:1;transform:translate(0,0) rotate(0)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(360deg)} }
         @keyframes edgePulse { 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
-        @keyframes lifePop { 0%{opacity:0;transform:translate(-50%,-50%) scale(.2)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1.3)} 45%{transform:translate(-50%,-50%) scale(0.95)} 60%{transform:translate(-50%,-50%) scale(1.08)} 80%{opacity:1;transform:translate(-50%,-55%) scale(1)} 100%{opacity:0;transform:translate(-50%,-90%) scale(1)} }
         @keyframes aisleWalk { 0%{top:14px;opacity:.5;transform:translateX(-50%) scale(.7)} 50%{top:var(--h);opacity:1;transform:translateX(-50%) scale(1.05)} 100%{top:14px;opacity:.5;transform:translateX(-50%) scale(.7)} }
         @keyframes aisleWalk2 { 0%{top:var(--h);opacity:1;transform:translateX(-50%) scale(1.05)} 50%{top:20px;opacity:.5;transform:translateX(-50%) scale(.7)} 100%{top:var(--h);opacity:1;transform:translateX(-50%) scale(1.05)} }
         @keyframes mascotDance { 0%,100%{transform:rotate(-7deg) translateY(0)} 50%{transform:rotate(7deg) translateY(-5px)} }
@@ -669,22 +786,36 @@ function HowTo({ onBack }) {
       <div style={{ maxWidth: 540, margin: "0 auto" }}>
         <div style={{ fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 24, letterSpacing: "3px" }}>THE LEGEND</div>
         <p style={{ color: "#b9a9d6", lineHeight: 1.5, fontSize: 14 }}>Every action is a shot. Tap it, the ball flies — points only land when it drops through the net. The math is undefeated. Keep shooting.</p>
-        {ACTIONS.map((a) => (
-          <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", margin: "7px 0", background: CARD, borderRadius: 10, border: "1px solid rgba(168,85,247,0.25)" }}>
-            <div className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 19, minWidth: 50 }}>+{a.pts}</div>
-            <div>
-              <div style={{ fontWeight: 700 }}>{a.label} <span style={{ color: "#6b5b88", fontSize: 11, fontWeight: 600 }}>· {a.make === 1 ? "always in" : Math.round(a.make*100)+"% shot"}</span></div>
-              <div style={{ color: "#8b7ba8", fontSize: 12 }}>{a.blurb}</div>
+        <div style={{ padding: "12px 14px", margin: "12px 0", borderRadius: 12, background: `rgba(168,85,247,0.10)`, border: `1.5px solid ${V}` }}>
+          <div className="seg" style={{ fontWeight: 900, color: V_GLOW, fontSize: 16, letterSpacing: "2px" }}>ONE TAP PER DOOR</div>
+          <p style={{ color: "#cbb8e8", lineHeight: 1.5, fontSize: 13, margin: "6px 0 0" }}>
+            Log the <b>deepest</b> rung you got to and nothing else. Full pitch? Tap VALUE BUILD only — not KNOCKED first.
+            That's what makes the end-of-day numbers real: every tap is one door, and everything below KNOCKED means a human opened it.
+          </p>
+        </div>
+        {ACTIONS.map((a) => {
+          const odds = a.make === 0 ? "always off the rim" : a.make === 1 ? "always in" : Math.round(a.make * 100) + "% shot";
+          return (
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", margin: "7px 0", background: CARD, borderRadius: 10, border: `1px solid ${a.penalty ? `${FIRE}55` : "rgba(168,85,247,0.25)"}` }}>
+              <div className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 19, minWidth: 50 }}>{a.pts < 0 ? `−${Math.abs(a.pts)}` : `+${a.pts}`}</div>
+              <div>
+                <div style={{ fontWeight: 700 }}>{a.label} <span style={{ color: "#6b5b88", fontSize: 11, fontWeight: 600 }}>· {odds}</span></div>
+                <div style={{ color: "#8b7ba8", fontSize: 12 }}>{a.blurb}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div style={{ padding: 15, margin: "14px 0", borderRadius: 12, background: "linear-gradient(135deg,rgba(250,204,21,0.12),rgba(168,85,247,0.12))", border: `1.5px solid ${GOLD}` }}>
           <div className="seg" style={{ fontWeight: 900, color: GOLD, fontSize: 17, letterSpacing: "2px" }}>STILL WINNING</div>
-          <p style={{ color: "#e7d9a8", lineHeight: 1.5, fontSize: 13, margin: "6px 0 0" }}>They said no? Get the name anyway. A no with a name is a follow-up — the sale is on the way. There is no loss column here.</p>
+          <p style={{ color: "#e7d9a8", lineHeight: 1.5, fontSize: 13, margin: "6px 0 0" }}>
+            A flat no costs you 5 and clangs off the rim — that's the only price the door can charge you.
+            It will <b>not</b> break your streak and it never touches your shooting percentage, so log every one honestly.
+            And if they said no but you still got the name? That's SPOKE TO, +25, nothing but net — a no with a name is a follow-up.
+          </p>
         </div>
         <div style={{ padding: 15, margin: "0 0 14px", borderRadius: 12, background: `rgba(56,189,248,0.08)`, border: `1.5px solid ${WATER}` }}>
           <div className="seg" style={{ fontWeight: 900, color: WATER, fontSize: 17, letterSpacing: "2px" }}>HYDRATION</div>
-          <p style={{ color: "#a8d8e7", lineHeight: 1.5, fontSize: 13, margin: "6px 0 0" }}>Door-to-door drains you. The bottle empties about once an hour — tap it to sip. Four sips = one full cup logged. Stay above 80% for the In The Zone multiplier. The game counts every cup you drink.</p>
+          <p style={{ color: "#a8d8e7", lineHeight: 1.5, fontSize: 13, margin: "6px 0 0" }}>This one tracks the <b>real</b> bottle in your bag. Tap DRINK when you actually take a drink — four sips = one full cup logged. When the bar hits empty, your real bottle is empty: go fill it up, then hit REFILL. Stay above 80% energy for the In The Zone multiplier. The game counts every cup you drink and every time you refill.</p>
         </div>
         <button onClick={onBack} style={{ marginTop: 4, width: "100%", padding: 14, borderRadius: 10, cursor: "pointer", background: `linear-gradient(90deg,${V_DEEP},${V})`, border: "none", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: 16, letterSpacing: "2px" }}>BACK TO MENU</button>
       </div>
@@ -694,6 +825,14 @@ function HowTo({ onBack }) {
 
 const RIM_TOP = 112;   // rim distance from the top of the play zone (lowered rig; drives ball landing)
 const RELEASE_BOTTOM_PCT = 0.30;
+// The keyframe offset at which the ball is AT the rim (see Ball()'s frames). Impact FX
+// — net swish, rim clank, sparks — all schedule off this, so retuning the arc can never
+// desync the net from the ball again.
+const BALL_CONTACT_OFFSET = 0.66;
+// Dunk choreography, in ms. gather → jump → hang → drop → land → free.
+// `land` is what makes him arrive with weight instead of teleporting to idle; busyRef
+// releases at the END of it, so back-to-back closes can never overlap.
+const DUNK = { gather: 120, jump: 460, hang: 1700, drop: 420, land: 180 };
 
 function Arena({ players, schedule, snd, match, opponent, meName, publishLine, onEnd, resume, device }) {
   const QSEC = (schedule ? schedule.hrs : 2) * 60 * 60;   // quarter length from schedule
@@ -730,18 +869,22 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   const [energy, setEnergy] = useState(resume ? resume.energy : 70);    // drains from the clock; drinking refills it
   const [water, setWater] = useState(resume ? resume.water : 100);     // water level in your bottle; drinking empties it
   const [cups, setCups] = useState(resume ? resume.cups : 0);         // cups of water drank today (health tracker)
-  const [bottles, setBottles] = useState(resume ? resume.bottles : 3);   // spare bottles you carry (lives)
+  // Times you refilled your REAL bottle today — a health stat that counts UP,
+  // like cups. It used to be "spare bottles you carry (lives)" that you found on
+  // made shots, which was never what this feature was: you can always walk to a
+  // tap, so there is nothing to ration and nothing to find.
+  // Reads `resume.refills` DELIBERATELY, not `resume.bottles`: an in-flight
+  // snapshot carries bottles:3, and inheriting it would seed the new counter with
+  // three refills that never happened. SNAPSHOT_V is intentionally NOT bumped —
+  // that discards the snapshot, and a quarter is 2 real hours of someone's day.
+  const [refills, setRefills] = useState(resume && resume.refills != null ? resume.refills : 0);
   const [refillFlash, setRefillFlash] = useState(0);
-  const [lifeGain, setLifeGain] = useState(0);   // triggers +1 LIFE celebration
   const [reward, setReward] = useState(null);   // {text, big, color} big centered callout
   const [confetti, setConfetti] = useState([]); // particle bursts on makes
   const [edgePulse, setEdgePulse] = useState(0);
   const sipsRef = useRef(0);
   const [floaties, setFloaties] = useState([]);
   const [warn, setWarn] = useState(null);
-  const [nameModal, setNameModal] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const [names, setNames] = useState(resume && Array.isArray(resume.names) ? resume.names : []);
   const [accuracy, setAccuracy] = useState(resume ? resume.accuracy : 0);
   const madeRef = useRef(0);
   const attemptsRef = useRef(0);
@@ -749,17 +892,19 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   const lastHourRef = useRef(0);        // which game-hour block we're in
   const [dryHourWarn, setDryHourWarn] = useState(false);
 
-  // ---- live stat tracker: attempts + makes per action, plus names/cups ----
-  const emptyTally = () => ({
-    knock:{a:0,m:0}, pitch:{a:0,m:0}, price:{a:0,m:0}, close:{a:0,m:0}, slam:{a:0,m:0}, names:0,
-  });
+  // ---- live stat tracker: attempts + makes per rung (tally key === action id) ----
   const [tally, setTally] = useState(resume && resume.tally ? resume.tally : emptyTally());     // running (whole game)
-  const [records, setRecords] = useState({ knock: 0, close: 0, names: 0, score: 0 }); // personal bests
-  // load saved records once
+  const [records, setRecords] = useState({ doors: 0, spoke: 0, names: 0, close: 0, pitch: 0, score: 0 }); // personal bests
+  // Load saved records once. MERGED over the defaults — a record blob saved before the
+  // funnel rework has no `doors`/`spoke` key, and a bare setRecords() would render
+  // "/undefined" against every new PR. The old `knock` PR carries forward as DOORS,
+  // which is exactly what it always meant.
   useEffect(() => {
     try {
       const raw = localStorage.getItem("hoops_records");
-      if (raw) setRecords(JSON.parse(raw));
+      if (!raw) return;
+      const saved = JSON.parse(raw) || {};
+      setRecords((r) => ({ ...r, ...saved, doors: Math.max(saved.doors || 0, saved.knock || 0) }));
     } catch (e) { /* no records yet */ }
   }, []);
   const qStartRef = useRef({ tally: emptyTally(), score: 0, cups: 0 }); // snapshot at quarter start
@@ -807,15 +952,15 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
     if (!running || clock <= 0) return;         // not before tip-off / after the buzzer
     try {
       localStorage.setItem(ACTIVE_KEY, JSON.stringify({
-        v: 1, scheduleId: schedule && schedule.id, players,
-        score, quarter, clock, timeScale, streak, energy, water, cups, bottles,
-        tally, names, accuracy,
+        v: SNAPSHOT_V, scheduleId: schedule && schedule.id, players,
+        score, quarter, clock, timeScale, streak, energy, water, cups, refills,
+        tally, accuracy,
         made: madeRef.current, attempts: attemptsRef.current,
         quarterScores: quarterScoresRef.current, sips: sipsRef.current,
         qStart: qStartRef.current, savedAt: Date.now(),
       }));
     } catch (e) { /* storage blocked/full — non-fatal */ }
-  }, [players, match, running, clock, timeScale, quarter, score, streak, energy, water, cups, bottles, tally, names, accuracy, schedule]);
+  }, [players, match, running, clock, timeScale, quarter, score, streak, energy, water, cups, refills, tally, accuracy, schedule]);
   const [report, setReport] = useState(null);           // legacy stat report (unused — replaced by the coaching break)
   const [breakInfo, setBreakInfo] = useState(null);     // coaching-break payload: { quarter, read, statLine, isFinal }
   const [statsOpen, setStatsOpen] = useState(false);    // live box-score overlay
@@ -824,9 +969,10 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   const [ball, setBall] = useState(null);
   const [shooting, setShooting] = useState(false);
   const [netSwish, setNetSwish] = useState(0);
-  const [rimShake, setRimShake] = useState(false);
+  const [rimShake, setRimShake] = useState(false);   // whole-rig quake — the dunk ONLY
+  const [rimClank, setRimClank] = useState(0);       // rim-only recoil — a miss off the iron
   const [dunk, setDunk] = useState(false);
-  const [dunkPhase, setDunkPhase] = useState(null);  // null | 'jump' | 'hang' | 'drop'
+  const [dunkPhase, setDunkPhase] = useState(null);  // null | 'gather' | 'jump' | 'hang' | 'drop' | 'land'
   const [flash, setFlash] = useState(0);
   const busyRef = useRef(false);
   const idRef = useRef(0);
@@ -841,6 +987,29 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   const [oppBall, setOppBall] = useState(null);
   const [oppFloaties, setOppFloaties] = useState([]);
   const qWonRef = useRef(0); // quarters with a close, for the season stat sheet
+
+  // The two numbers the whole rework exists for: every tap is a door worked, and every
+  // rung below KNOCKED means a human answered it.
+  const doors = doorsOf(tally);
+  const spoke = spokeOf(tally);
+
+  // The funnel breakdown made YOUR NUMBERS ~167px tall (was ~112). It is anchored 190px
+  // off the bottom, and the rim's underside sits ~330px from the top of the play area, so
+  // on a short phone the panel can climb into the rig. Derive the scale from the actual
+  // headroom instead of a magic number, with a legibility floor. On iPad the Arena is
+  // rendered into a fixed 924px design canvas, so the window height is irrelevant there.
+  const [frameTick, setFrameTick] = useState(0);
+  useEffect(() => {
+    const on = () => setFrameTick((n) => n + 1);
+    window.addEventListener("resize", on);
+    window.addEventListener("orientationchange", on);
+    return () => { window.removeEventListener("resize", on); window.removeEventListener("orientationchange", on); };
+  }, []);
+  const panelScale = React.useMemo(() => {
+    if (device === "ipad" || typeof window === "undefined") return 1;
+    return Math.max(0.78, Math.min(1, (window.innerHeight - 190 - 330) / 167));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [device, frameTick]);
 
   const streakTier = [...STREAK_TIERS].reverse().find((t) => streak >= t.at);
   const hotZone = streak >= 5;
@@ -866,7 +1035,9 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   useEffect(() => {
     if (!match || !publishLine) return;
     const s = lastShotRef.current;
-    publishLine({ points: score, doors: tally.knock.a, sales: tally.close.m, quarter, over: false, seq: s.seq, made: s.made, kind: s.kind, gain: s.gain });
+    // `doors` = every rung, not tally.knock.a — under the new labels knock alone is
+    // "nobody answered", which would under-report the rival's day on their pill.
+    publishLine({ points: score, doors: doorsOf(tally), sales: tally.close.m, quarter, over: false, seq: s.seq, made: s.made, kind: s.kind, gain: s.gain });
   }, [pubTick, quarter, match, publishLine, score, tally]);
   // opponent took a shot (seq advanced) → mirror their throw on your screen so you
   // can SEE them play; on a make also flash their pill, pop a pink "+N", and cheer.
@@ -968,25 +1139,31 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
   // build the end-of-quarter NBA-style report by diffing against snapshot
   const buildReport = () => {
     const snap = qStartRef.current;
+    const snapT = (snap && snap.tally) || emptyTally();
     const diff = {};
+    // Two separate accumulators: the FULL tally drives "did you work this quarter",
+    // and only the accuracy rungs drive FG%. Folding an objection into FG% would
+    // punish honest logging — the exact thing this rework exists to prevent.
     let atts = 0, makes = 0;
-    ["knock","pitch","price","close"].forEach((k) => {
-      const a = tally[k].a - snap.tally[k].a;
-      const m = tally[k].m - snap.tally[k].m;
-      diff[k] = { a, m };
-      atts += a; makes += m;
+    TALLY_KEYS.forEach((k) => {
+      const cur = tally[k] || { a: 0, m: 0 };
+      const was = snapT[k] || { a: 0, m: 0 };
+      diff[k] = { a: cur.a - was.a, m: cur.m - was.m };
+      if (ACCURACY_KEYS.indexOf(k) !== -1) { atts += diff[k].a; makes += diff[k].m; }
     });
-    diff.names = tally.names - snap.tally.names;
+    const qDoors = doorsOf(diff);      // every tap this quarter
+    const qSpoke = spokeOf(diff);      // a human answered
     if (diff.close.m > 0) qWonRef.current += 1;
     const qScore = score - snap.score;
     const qCups = cups - snap.cups;
     const acc = atts ? Math.round((makes / atts) * 100) : 0;
-    setReport({ quarter, diff, qScore, qCups, atts, makes, acc, totalScore: score });
+    setReport({ quarter, diff, qScore, qCups, qDoors, qSpoke, atts, makes, acc, totalScore: score });
     // Hand the quarter to the coaching break: a sale won the quarter; barely
     // working = the court saw you hiding (slump); otherwise you fought (rough).
+    // The slump test reads TOTAL taps — a quarter of 10 objections was still work.
     const qCloses = diff.close.m;
-    const read = qCloses > 0 ? "won" : atts < 6 ? "slump" : "rough";
-    setBreakInfo({ quarter, read, isFinal: quarter >= 4, statLine: { score: qScore, doors: diff.knock.a, sales: qCloses } });
+    const read = qCloses > 0 ? "won" : qDoors < 6 ? "slump" : "rough";
+    setBreakInfo({ quarter, read, isFinal: quarter >= 4, statLine: { score: qScore, doors: qDoors, spoke: qSpoke, sales: qCloses } });
   };
   // Keep the recompute helper pointed at a fresh buildReport (the interval is stable).
   buildReportRef.current = buildReport;
@@ -999,28 +1176,24 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
     if (quarter >= 4) {
       // ---- assemble the full end-of-game stat line ----
       let atts = 0, makes = 0;
-      ["knock","pitch","price","close"].forEach((k) => { atts += tally[k].a; makes += tally[k].m; });
+      ACCURACY_KEYS.forEach((k) => { const t = tally[k] || { a: 0, m: 0 }; atts += t.a; makes += t.m; });
       const acc = atts ? Math.round((makes / atts) * 100) : 0;
       // opponent = the "market" — a par score to beat, scaled to your volume
       const oppScore = Math.round(atts * 9 + 40 + (100 - acc) * 1.5);
       const won = score >= oppScore;
       // ---- update personal records ----
-      const newRecords = {
-        knock: Math.max(records.knock || 0, tally.knock.a),
-        close: Math.max(records.close || 0, tally.close.m),
-        names: Math.max(records.names || 0, tally.names),
-        score: Math.max(records.score || 0, score),
-      };
-      const beat = {
-        knock: tally.knock.a > (records.knock || 0),
-        close: tally.close.m > (records.close || 0),
-        names: tally.names > (records.names || 0),
-        score: score > (records.score || 0),
-      };
+      // No PR for OBJECTED, deliberately: a "most objections" trophy is a perverse
+      // incentive on a funnel whose whole point is honest logging.
+      const day = { doors: doorsOf(tally), spoke: spokeOf(tally), names: tally.name.a, close: tally.close.m, pitch: tally.pitch.a, score };
+      const newRecords = {}; const beat = {};
+      Object.keys(day).forEach((k) => {
+        newRecords[k] = Math.max(records[k] || 0, day[k]);
+        beat[k] = day[k] > (records[k] || 0);
+      });
       try { localStorage.setItem("hoops_records", JSON.stringify(newRecords)); } catch (e) {}
-      try { if (publishLine) publishLine({ points: score, doors: tally.knock.a, sales: tally.close.m, quarter, over: true, seq: lastShotRef.current.seq, made: false }); } catch (e) {}
+      try { if (publishLine) publishLine({ points: score, doors: doorsOf(tally), sales: tally.close.m, quarter, over: true, seq: lastShotRef.current.seq, made: false }); } catch (e) {}
       onEnd({
-        score, oppScore, won, acc, atts, makes, cups, bottles,
+        score, oppScore, won, acc, atts, makes, cups, refills,
         tally: JSON.parse(JSON.stringify(tally)),
         quarters: quarterScoresRef.current.slice(),
         players, records: newRecords, beat, qWon: qWonRef.current,
@@ -1081,25 +1254,29 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 
   const takeShot = (a) => {
     if (!running || busyRef.current) return;
-    const kind = a.id === "close" ? "dunk" : a.id === "pitch" ? "auto" : "shot";
+    const kind = a.kind || "shot";
 
-    // ---- CLOSE = a real dunk: jump, grab the rim, hang ~2s, drop ----
+    // ---- CLOSE = a real dunk: gather, explode to the rim, hang, drop, land ----
     if (kind === "dunk") {
       busyRef.current = true;
       const willMake = Math.random() < a.make;   // close is 1.00 → always makes
       snd.ball();
-      setDunkPhase("jump");                       // crouch → explode upward
+      setDunkPhase("gather");                     // load the legs
+      setTimeout(() => setDunkPhase("jump"), DUNK.gather);
       setTimeout(() => {
-        // reached the rim: ball goes through, player grabs rim
+        // at the rim: the ball is pushed through the net and he catches iron
         setDunkPhase("hang");
+        setNetSwish((n) => n + 1);                // net reacts ON contact, not late
         setRimShake(true); setTimeout(() => setRimShake(false), 500);
         resolveShot(a, willMake, "dunk");         // score + confetti + reward
-        // hang on the rim for ~2 seconds
         setTimeout(() => {
           setDunkPhase("drop");                   // let go, drop back down
-          setTimeout(() => { setDunkPhase(null); busyRef.current = false; }, 450);
-        }, 2000);
-      }, 520);
+          setTimeout(() => {
+            setDunkPhase("land");                 // landing crouch + floor dust
+            setTimeout(() => { setDunkPhase(null); busyRef.current = false; }, DUNK.land);
+          }, DUNK.drop);
+        }, DUNK.hang);
+      }, DUNK.gather + DUNK.jump);
       return;
     }
 
@@ -1111,6 +1288,11 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       const bid = ++idRef.current;
       setBall({ id: bid, color: a.color, made: willMake, kind });
       const travel = 880;
+      // Impact FX are NOT scheduled here — <Ball> fires onContact off its own animation
+      // clock, so the net can never drift from the ball again. Scoring deliberately stays
+      // on this separate `travel - 60` tick: it's entangled with the multiplayer publish
+      // and the resume snapshot. Splitting visual impact from bookkeeping is the fix; the
+      // old build ran both off this line and the net landed 239ms after the ball was gone.
       setTimeout(() => resolveShot(a, willMake, kind), travel - 60);
       setTimeout(() => { setBall(null); busyRef.current = false; }, travel + 280);
     }, 240);
@@ -1118,12 +1300,15 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 
   const resolveShot = (a, willMake, kind) => {
     let madeGain = 0;
-    attemptsRef.current += 1;
-    // record attempt + make into the running tally
-    setTally((t) => ({ ...t, [a.id]: { a: t[a.id].a + 1, m: t[a.id].m + (willMake ? 1 : 0) } }));
+    // An objection is a logged door, not a shot attempt — it must not drag FG% down.
+    const countsAccuracy = a.countsAccuracy !== false;
+    if (countsAccuracy) attemptsRef.current += 1;
+    // record attempt + make into the running tally (guarded: a migrated snapshot or a
+    // future rung must never throw inside a state updater — that white-screens the game)
+    setTally((t) => { const c = t[a.id] || { a: 0, m: 0 }; return { ...t, [a.id]: { a: c.a + 1, m: c.m + (willMake ? 1 : 0) } }; });
     if (willMake) {
       madeRef.current += 1;
-      setNetSwish((n) => n + 1); setFlash((f) => f + 1);
+      setFlash((f) => f + 1);
       if (kind === "dunk") { snd.dunkSlam(); }
       else { snd.swish(true); snd.roar(0.34); if (a.id === "price") snd.react(); if ((a.id === "pitch" || a.id === "price") && Math.random() < 0.2) snd.coach("goodPitch"); }
       let mult = 1; if (hotZone) mult *= 2; if (inZone) mult *= 1.15; mult *= quarterBonus;
@@ -1151,57 +1336,42 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       }
       // combo multiplier readout when hot
       if (hotZone) spawnFloatie(`×${(mult).toFixed(2)} COMBO`, FIRE);
-      // ~12% chance a made shot drops a found bottle (spare water to refill with)
-      if (Math.random() < 0.12) {
-        setBottles((b) => b + 1);
-        setLifeGain((n) => n + 1);
-        setTimeout(() => spawnFloatie("💧 WATER BOTTLE FOUND!", WATER), 260);
-        snd.chord([523,784],0.2);
-      }
+      // NOTHING hydration-related fires here. A made shot used to roll
+      // Math.random() < 0.12 for a "found water bottle" + a full-screen takeover.
+      // That was a misread of the feature: the bottle tracks the REAL one in your
+      // bag, so it can't be found on a door. It also rolled on EVERY tap of the
+      // guaranteed-make rungs (SPOKE TO / VALUE BUILD / CLOSE are make:1.00), which
+      // is why it read as a bug — ~40% odds across four VALUE BUILD taps.
+    } else if (a.penalty) {
+      // ---- OBJECTED: a flat cost, never a multiplied one ----
+      // Run through hotZone ×2 × inZone 1.15 × quarterBonus 1.5 this would be −17, so a
+      // hot streak would punish honesty hardest. Floored at 0 as well: a negative score
+      // breaks the jumbotron's toLocaleString seg font and flips `won = score >= oppScore`.
+      const loss = Math.abs(a.pts);
+      madeGain = -loss;
+      setScore((s) => Math.max(0, s - loss));
+      spawnFloatie(`−${loss} — ON TO THE NEXT DOOR`, FIRE);
+      snd.swish(false);
+      if (Math.random() < 0.25) snd.coach("keepGoing");
+      // streak SURVIVES (a.breaksStreak === false) — see the funnel table up top
     } else {
-      setRimShake(true); setTimeout(() => setRimShake(false), 300); setStreak(0);
+      setStreak(0);
       snd.swish(false); if (Math.random() < 0.3) snd.coach("keepGoing"); spawnFloatie("MISS — the odds still favor you", "#8b7ba8");
     }
-    setAccuracy(Math.round((madeRef.current / attemptsRef.current) * 100));
+    if (countsAccuracy && attemptsRef.current > 0) setAccuracy(Math.round((madeRef.current / attemptsRef.current) * 100));
     // record this shot for the live feed to the opponent
     lastShotRef.current = { made: willMake, kind, gain: madeGain, seq: lastShotRef.current.seq + 1 };
     setPubTick((t) => t + 1);
   };
 
-  const logName = () => {
-    const nm = nameInput.trim() || "Anonymous";
-    setNames((n) => [nm, ...n]);
-    setTally((t) => ({ ...t, names: t.names + 1 }));
-    const gain = Math.round(25 * quarterBonus * (inZone ? 1.15 : 1));
-    setScore((s) => s + gain); setNetSwish((n) => n + 1); setFlash((f) => f + 1);
-    spawnFloatie(`STILL WINNING +${gain}`, GOLD); snd.chord([587,784],0.22); snd.roar(0.35);
-    setNameInput(""); setNameModal(false);
-  };
+  // takeSpoke / takeName / logName are gone: SPOKE TO (GOT NAME) is now rung 3 of
+  // ACTIONS and goes through takeShot() like everything else — so it finally gets the
+  // hot-zone ×2 it was silently skipping, and the net only ever moves with a ball.
 
-  // SPOKE TO — a conversation happened but no name yet. A tracked, 0-point rung on
-  // the funnel toward the name; no streak reset, no accuracy hit — there's no loss
-  // column here.
-  const takeSpoke = () => {
-    if (!running) return;
-    setTally((t) => ({ ...t, slam: { a: t.slam.a + 1, m: t.slam.m } }));
-    spawnFloatie("SPOKE TO — GET THE NAME", SPOKE);
-    snd.beep(430, 0.12, "sine", 0.12);
-  };
-
-  // GOT NAME is a one-tap point now — no typing required. Logs the "got the
-  // name" rep instantly (counts toward NAMES, awards the same points).
-  const takeName = () => {
-    if (!running) return;
-    setTally((t) => ({ ...t, names: t.names + 1 }));
-    const gain = Math.round(25 * quarterBonus * (inZone ? 1.15 : 1));
-    setScore((s) => s + gain); setNetSwish((n) => n + 1); setFlash((f) => f + 1);
-    spawnFloatie(`GOT THE NAME +${gain}`, GOLD); snd.chord([587,784],0.22); snd.roar(0.35);
-  };
-
-  // DRINK — consume water from your bottle, gain energy. Needs water in the bottle.
+  // DRINK — you just took a real drink. Water out of the real bottle, energy in.
   const sip = () => {
     if (water <= 0) {
-      spawnFloatie("BOTTLE EMPTY — HIT REFILL", FIRE);
+      spawnFloatie("BOTTLE EMPTY — GO FILL IT UP", FIRE);
       snd.beep(150, 0.18, "square", 0.12);
       return;
     }
@@ -1220,20 +1390,21 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
     }
   };
 
-  // REFILL — fill your bottle back up using a spare you collected door-to-door.
+  // REFILL — you physically went and filled your real bottle back up. There is no
+  // spares count gating this: you can always walk to a tap, so the only no-op is
+  // "it's already full". Counts UP as a health stat.
   const newBottle = () => {
     if (water >= 96) { spawnFloatie("BOTTLE ALREADY FULL", WATER); return; }
-    if (bottles <= 0) { spawnFloatie("NO WATER TO REFILL — FIND MORE ON THE DOORS!", FIRE); snd.beep(150,0.2,"square",0.14); return; }
-    setBottles((b) => b - 1);
+    const n = refills + 1;
+    setRefills(n);
     setWater(100);                 // bottle refilled — NOT energy
     sipsThisHourRef.current += 1;
     setDryHourWarn(false);
     setRefillFlash((f) => f + 1);
     burstConfetti(WATER, true);
-    spawnFloatie("💧 BOTTLE REFILLED — STAY HYDRATED", WATER);
+    spawnFloatie(`💧 BOTTLE REFILLED — ${n} TODAY`, WATER);
     snd.cupPour();
   };
-  // occasionally reward a found bottle on a made shot (handled in resolveShot)
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: `radial-gradient(ellipse at 50% 18%,#2a1850 0%,${BG} 58%)` }}>
@@ -1252,10 +1423,11 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       <div style={{ position: "absolute", top: 200, left: 0, right: 0, bottom: 72, overflow: "hidden" }}>
         <Crowd flash={flash} />
         <Court />
-        <HoopAssembly netSwish={netSwish} rimShake={rimShake} />
+        <HoopAssembly netSwish={netSwish} rimShake={rimShake} rimClank={rimClank} />
         <Shooter big shooting={shooting} fatigued={thirsty} inZone={inZone} dunk={dunk} dunkPhase={dunkPhase} />
         {players === 2 && <Shooter big second shooting={oppShoot} />}
-        {ball && <Ball ball={ball} />}
+        {/* the net swishes / the rim clanks the instant THIS ball reaches the iron */}
+        {ball && <Ball ball={ball} onContact={() => (ball.made ? setNetSwish((n) => n + 1) : setRimClank((n) => n + 1))} />}
         {oppBall && <Ball ball={oppBall} />}
         {/* confetti burst from center court */}
         {confetti.map((p) => (
@@ -1287,29 +1459,45 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
       </div>
 
       {/* reward pops — rendered at the Arena root (above the jumbotron z20 + backboard z4,
-          and outside the play-area's overflow clip) so button feedback is never hidden */}
-      {floaties.map((f) => (
-        <div key={f.id} style={{ position: "absolute", left: "50%", top: 204, fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 24, color: f.color, textShadow: `0 0 16px ${f.color}`, animation: "riseFade 1.5s forwards", pointerEvents: "none", whiteSpace: "nowrap", zIndex: 210 }}>{f.text}</div>
-      ))}
-      {/* opponent's floating "+N" — anchored to their side (their shooter sits at ~64%)
-          and tinted pink so there's no confusion about whose points are whose */}
-      {oppFloaties.map((f) => (
-        <div key={f.id} style={{ position: "absolute", left: "70%", top: 210, fontFamily: "'Orbitron',monospace", fontWeight: 900, fontSize: 19, color: f.color, textShadow: `0 0 14px ${f.color}`, animation: "riseFade 1.5s forwards", pointerEvents: "none", whiteSpace: "nowrap", zIndex: 210 }}>{f.text}</div>
-      ))}
+          and outside the play-area's overflow clip) so button feedback is never hidden.
+          A COLUMN, not a pile: every toast used to render at the identical coordinate, so
+          one hot SPOKE TO overprinted "+25", "×2.00 COMBO" and a streak tier on the same
+          spot. Stacking is structural now — they physically cannot collide. */}
+      <div style={{ position: "absolute", top: 196, left: 0, right: players === 2 ? "48%" : 0, zIndex: 210, pointerEvents: "none",
+        padding: "0 10px", boxSizing: "border-box",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        {floaties.map((f) => (
+          <div key={f.id} style={{ animation: "toastRise 1.5s forwards" }}>
+            <div style={toastPlate(f.color)}>
+              <span style={toastBar(f.color)} />
+              <span style={toastText(f.color, 22)}>{f.text}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* opponent's floating "+N" — same plate, but pinned to their side of the floor and
+          tinted pink so there's no confusion about whose points are whose */}
+      <div style={{ position: "absolute", top: 196, right: 0, width: "48%", zIndex: 210, pointerEvents: "none",
+        padding: "0 10px", boxSizing: "border-box",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+        {oppFloaties.map((f) => (
+          <div key={f.id} style={{ animation: "toastRise 1.5s forwards" }}>
+            <div style={toastPlate(f.color)}>
+              <span style={toastBar(f.color)} />
+              <span style={toastText(f.color, 17)}>{f.text}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* screen-edge reward glow pulse */}
       {edgePulse > 0 && (
         <div key={edgePulse} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 12, boxShadow: `inset 0 0 90px 10px ${V}55`, animation: "edgePulse 0.7s ease-out forwards" }} />
       )}
 
-      {/* ===== +1 bottle celebration when you find water ===== */}
-      {lifeGain > 0 && (
-        <div key={lifeGain} style={{ position: "absolute", left: "50%", top: "42%", zIndex: 88, pointerEvents: "none", textAlign: "center", animation: "lifePop 1.5s ease-out forwards" }}>
-          <div className="seg" style={{ fontWeight: 900, fontSize: "clamp(44px,13vw,88px)", color: WATER, textShadow: `0 0 30px ${WATER}, 0 0 8px #fff`, lineHeight: 1 }}>+1</div>
-          <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "clamp(16px,5vw,26px)", letterSpacing: "4px", color: "#e6f8ff", textShadow: `0 0 18px ${WATER}` }}>WATER BOTTLE</div>
-          <div style={{ fontSize: 12, color: "#7fb8cc", letterSpacing: "2px", fontWeight: 700, marginTop: 4 }}>REFILL WHEN YOU RUN LOW</div>
-        </div>
-      )}
+      {/* The full-screen "+1 / WATER BOTTLE" takeover lived here. It fired off a dice
+          roll on made shots, was larger and longer-lived than the callout for an actual
+          SALE, and duplicated a toast that said the same thing. Deleted with the roll. */}
 
       {/* ===== dry-hour hydration warning ===== */}
       {dryHourWarn && (
@@ -1333,7 +1521,7 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, letterSpacing: "1px", color: "#7c8db5", marginTop: 5, marginBottom: 2, fontWeight: 700 }}>
               <span>BOTTLE {water <= 0 && <span style={{ color: FIRE }}>· EMPTY!</span>}</span>
-              <span>💧 {cups} cups · 🧴 {bottles}</span>
+              <span>💧 {cups} cups · 🧴 {refills} refills</span>
             </div>
             <div style={{ height: 6, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden", border: "1px solid rgba(56,189,248,0.3)" }}>
               <div style={{ height: "100%", width: `${water}%`, borderRadius: 4, transition: "width .3s", background: `linear-gradient(90deg,#0ea5e9,#7dd3fc)`, boxShadow: `0 0 6px ${WATER}` }} />
@@ -1347,21 +1535,35 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 
       {/* ===== LIVE STAT LINE — real-time counters + records to chase ===== */}
       <div style={{ position: "absolute", bottom: 190, [handed === "left" ? "right" : "left"]: 8, zIndex: 30, width: 158, boxSizing: "border-box",
-        transform: "scale(1.0)", transformOrigin: handed === "left" ? "bottom right" : "bottom left",
+        transform: `scale(${panelScale})`,
+        transformOrigin: handed === "left" ? "bottom right" : "bottom left",
         background: "rgba(8,5,16,0.94)", border: "1.5px solid rgba(168,85,247,0.45)", borderRadius: 11, padding: "7px 10px",
         backdropFilter: "blur(4px)", boxShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
-        <div style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: "2px", color: "#fff", textShadow: "0 0 8px rgba(168,85,247,0.95), 0 0 2px rgba(168,85,247,0.95)", textAlign: "center", marginBottom: 5, borderBottom: "1px solid rgba(168,85,247,0.35)", paddingBottom: 3 }}>YOUR NUMBERS</div>
+        {/* DOORS rides in the header row — the day's headline number, zero added height */}
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 4, marginBottom: 5, borderBottom: "1px solid rgba(168,85,247,0.35)", paddingBottom: 3 }}>
+          <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: "1.5px", color: "#fff", textShadow: "0 0 8px rgba(168,85,247,0.95), 0 0 2px rgba(168,85,247,0.95)" }}>YOUR NUMBERS</span>
+          <span style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
+            <span className="seg" style={{ fontWeight: 900, fontSize: 13.5, color: "#c084fc", textShadow: "0 0 6px #c084fc", lineHeight: 1 }}>{doors}</span>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6.6, color: doors > (records.doors || 0) ? GOLD : "#6b5b88", fontWeight: 700 }}>{doors > (records.doors || 0) ? "★PR" : `/${records.doors || 0}`}</span>
+          </span>
+        </div>
         {[
-          { lbl: "KNOCKED",  val: tally.knock.a,  rec: records.knock, c: "#c084fc" },
-          { lbl: "PITCHED",  val: tally.pitch.a,  rec: null,          c: "#38bdf8" },
-          { lbl: "INTERESTED", val: tally.price.a, rec: null,         c: "#fb7185" },
-          { lbl: "SALES",    val: tally.close.m,  rec: records.close, c: "#34d399" },
-          { lbl: "NAMES",    val: tally.names,    rec: records.names, c: "#facc15" },
+          // hero: how many people actually opened the door and talked to you
+          { lbl: "SPOKE TO", val: spoke, rec: records.spoke, c: GOLD, hero: true },
+          // …of those, how it broke down. No PR on OBJECTED — never reward the wrong thing.
+          { lbl: "OBJECTED", val: tally.object.a, rec: null,          c: FIRE,      tier: 1 },
+          { lbl: "GOT NAME", val: tally.name.a,   rec: records.names,  c: "#facc15", tier: 1 },
+          { lbl: "NO ANSWER",  val: tally.knock.a, rec: null, c: "#c084fc", rule: true },
+          { lbl: "PITCHED",    val: tally.pitch.a, rec: null, c: "#38bdf8" },
+          { lbl: "INTERESTED", val: tally.price.a, rec: null, c: "#22d3ee" },
+          { lbl: "SALES",      val: tally.close.m, rec: records.close, c: "#34d399" },
         ].map((s) => (
-          <div key={s.lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4, marginBottom: 2.5 }}>
-            <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 7.7, letterSpacing: "0.3px", color: s.c, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.lbl}</span>
+          <div key={s.lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4, marginBottom: s.hero ? 3 : 2.5,
+            paddingLeft: s.tier ? 5 : 0, borderLeft: s.tier ? `1px solid ${GOLD}44` : "none",
+            marginTop: s.rule ? 4 : 0, paddingTop: s.rule ? 4 : 0, borderTop: s.rule ? "1px solid rgba(168,85,247,0.28)" : "none" }}>
+            <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: s.hero ? 800 : 700, fontSize: s.hero ? 8.6 : 7.7, letterSpacing: "0.3px", color: s.c, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.lbl}</span>
             <span style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
-              <span className="seg" style={{ fontWeight: 900, fontSize: 13.5, color: s.c, textShadow: `0 0 6px ${s.c}`, lineHeight: 1 }}>{s.val}</span>
+              <span className="seg" style={{ fontWeight: 900, fontSize: s.hero ? 19 : 13.5, color: s.c, textShadow: `0 0 ${s.hero ? 9 : 6}px ${s.c}`, lineHeight: 1 }}>{s.val}</span>
               {s.rec != null && <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 6.6, color: s.val > s.rec ? GOLD : "#6b5b88", fontWeight: 700, minWidth: 17, textAlign: "left" }}>{s.val > s.rec ? "★PR" : `/${s.rec}`}</span>}
             </span>
           </div>
@@ -1370,40 +1572,48 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 
       {/* ===== ACTION COLUMN — floating vertical stack overlaid on the side ===== */}
       <div style={{ position: "absolute", bottom: 20, [handed === "left" ? "left" : "right"]: 8, zIndex: 30, display: "flex", flexDirection: "column", gap: 5, width: 100 }}>
-        {[{ id: "slam", short: "SPOKE TO", sub: "NO NAME", pts: 0, color: SPOKE, make: 0 }, { id: "name", short: "GOT NAME", sub: "SPOKE TO", pts: 25, color: GOLD }, ...ACTIONS].map((a) => {
-          const isName = a.id === "name";
+        {/* ONE rail, ONE dispatch — every rung is a shot now, so the funnel table above
+            is the only place a rung is defined. Tap the deepest rung you reached. */}
+        {ACTIONS.map((a) => {
+          const skin = a.tone === "green" ? `linear-gradient(160deg,rgba(6,40,20,0.92),${GREEN}22)`
+                     : a.tone === "gold"  ? "linear-gradient(160deg,rgba(40,30,10,0.92),rgba(250,204,21,0.14))"
+                     : a.tone === "red"   ? `linear-gradient(160deg,rgba(40,10,16,0.92),${FIRE}18)`
+                     : "rgba(20,11,36,0.9)";
+          const lblColor = a.tone === "gold" ? "#e7d9a8" : a.tone === "red" ? "#f5c4cb" : "#cbb8e8";
           return (
-            <button key={a.id} onClick={() => a.id === "slam" ? takeSpoke() : isName ? takeName() : takeShot(a)} disabled={!running} style={{
+            <button key={a.id} onClick={() => takeShot(a)} disabled={!running} style={{
               width: "100%", padding: "7px 8px", borderRadius: 11, cursor: running ? "pointer" : "default",
-              background: a.id === "close" ? `linear-gradient(160deg,rgba(6,40,20,0.92),${GREEN}22)` : isName ? "linear-gradient(160deg,rgba(40,30,10,0.92),rgba(168,85,247,0.14))" : "rgba(20,11,36,0.9)",
+              background: skin,
               border: `1.5px solid ${a.color}`, color: "#fff",
               opacity: running ? 1 : 0.5,
-              boxShadow: a.id === "close" ? `0 0 12px ${GREEN}55, 0 2px 8px rgba(0,0,0,0.5)` : `0 2px 8px rgba(0,0,0,0.5)`,
+              boxShadow: a.tone === "green" ? `0 0 12px ${GREEN}55, 0 2px 8px rgba(0,0,0,0.5)` : `0 2px 8px rgba(0,0,0,0.5)`,
               display: "flex", alignItems: "center", gap: 7, backdropFilter: "blur(3px)",
               flexDirection: handed === "left" ? "row" : "row-reverse", textAlign: handed === "left" ? "left" : "right",
             }}>
               <ActionIcon id={a.id} color={a.color} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: handed === "left" ? "flex-start" : "flex-end", gap: 1, lineHeight: 1 }}>
-                <span style={{ fontWeight: 700, fontSize: 8, color: isName ? "#e7d9a8" : "#cbb8e8", letterSpacing: "0.3px" }}>{a.short}</span>
+                <span style={{ fontWeight: 700, fontSize: 8, color: lblColor, letterSpacing: "0.3px" }}>{a.short}</span>
                 {a.sub && <span style={{ fontWeight: 600, fontSize: 6, color: "#9d8bc0", letterSpacing: "0.2px" }}>({a.sub})</span>}
-                <span className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 15 }}>{a.id === "slam" ? "0" : `+${a.pts}`}</span>
+                <span className="seg" style={{ fontWeight: 900, color: a.color, fontSize: 15 }}>{a.pts < 0 ? `−${Math.abs(a.pts)}` : `+${a.pts}`}</span>
               </div>
             </button>
           );
         })}
-        {/* REFILL + DRINK live directly under CLOSE */}
-        <button onClick={newBottle} disabled={bottles <= 0} style={{
-          width: "100%", padding: "6px 8px", borderRadius: 11, cursor: bottles > 0 ? "pointer" : "default",
-          background: bottles > 0 ? "linear-gradient(160deg,rgba(20,11,36,0.9),rgba(56,189,248,0.14))" : "rgba(20,11,36,0.6)",
-          border: `1.5px solid ${bottles > 0 ? GOLD : "rgba(255,255,255,0.15)"}`, color: "#fff",
-          opacity: bottles > 0 ? 1 : 0.55, boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+        {/* REFILL + DRINK live directly under CLOSE. REFILL is never disabled — it logs
+            that you physically went and filled your real bottle, and you can always do
+            that. It used to grey out when you ran out of "spare bottles to find". */}
+        <button onClick={newBottle} style={{
+          width: "100%", padding: "6px 8px", borderRadius: 11, cursor: "pointer",
+          background: "linear-gradient(160deg,rgba(20,11,36,0.9),rgba(56,189,248,0.14))",
+          border: `1.5px solid ${GOLD}`, color: "#fff",
+          boxShadow: water <= 0 ? `0 0 14px ${GOLD}` : "0 2px 8px rgba(0,0,0,0.5)",
           display: "flex", alignItems: "center", gap: 7, backdropFilter: "blur(3px)",
           flexDirection: handed === "left" ? "row" : "row-reverse", textAlign: handed === "left" ? "left" : "right",
         }}>
           <MiniBottle />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: handed === "left" ? "flex-start" : "flex-end", gap: 1, lineHeight: 1 }}>
-            <span style={{ fontWeight: 700, fontSize: 11, color: bottles > 0 ? "#fff7dc" : "#8b7ba8", letterSpacing: "0.5px", textShadow: bottles > 0 ? `0 0 8px ${GOLD}` : "none" }}>REFILL</span>
-            <span style={{ fontWeight: 600, fontSize: 6, color: "#9d8bc0", letterSpacing: "0.2px" }}>FILL BOTTLE</span>
+            <span style={{ fontWeight: 700, fontSize: 11, color: "#fff7dc", letterSpacing: "0.5px", textShadow: `0 0 8px ${GOLD}` }}>REFILL</span>
+            <span style={{ fontWeight: 600, fontSize: 6, color: "#9d8bc0", letterSpacing: "0.2px" }}>FILLED IT IN REAL LIFE</span>
           </div>
         </button>
         <button onClick={sip} disabled={!running} style={{
@@ -1432,21 +1642,25 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
         </div>
       )}
 
-      {warn === "1MIN" && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, pointerEvents: "none" }}><div className="seg" style={{ fontWeight: 900, fontSize: "clamp(38px,12vw,80px)", color: FIRE, textShadow: `0 0 40px ${FIRE}`, animation: "bigWarn 2.2s forwards", letterSpacing: "3px" }}>ONE MINUTE</div></div>}
-      {urgency === 3 && clock > 0 && <div className="seg" style={{ position: "absolute", top: "46%", left: "50%", transform: "translate(-50%,-50%)", fontWeight: 900, fontSize: "clamp(80px,28vw,200px)", color: "#fff", textShadow: `0 0 50px ${FIRE},0 0 90px ${V}`, zIndex: 55, pointerEvents: "none", animation: "flare 0.5s infinite" }}>{clock}</div>}
-
-      {nameModal && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 80, background: "rgba(5,3,12,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 22 }}>
-          <div style={{ width: "100%", maxWidth: 370, background: CARD, borderRadius: 16, padding: 20, border: `1.5px solid ${GOLD}` }}>
-            <div className="seg" style={{ fontWeight: 900, color: GOLD, fontSize: 19, letterSpacing: "2px" }}>STILL WINNING</div>
-            <p style={{ color: "#c9b876", fontSize: 13, lineHeight: 1.5, margin: "6px 0 14px" }}>They said no — but you got the name. That's a follow-up in the bank. Log it and stay on the board.</p>
-            <input autoFocus value={nameInput} onChange={(e) => setNameInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && logName()} placeholder="Their name…" style={{ width: "100%", padding: 13, borderRadius: 10, background: "#0d0718", border: "1px solid rgba(168,85,247,0.4)", color: "#fff", fontSize: 16, marginBottom: 12, fontFamily: "'Rajdhani',sans-serif", WebkitUserSelect: "text", userSelect: "text" }} />
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setNameModal(false)} style={{ flex: 1, padding: 12, borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", cursor: "pointer", fontWeight: 600 }}>Cancel</button>
-              <button onClick={logName} style={{ flex: 2, padding: 12, borderRadius: 10, background: `linear-gradient(90deg,${V_DEEP},${GOLD})`, border: "none", color: "#111", cursor: "pointer", fontWeight: 800, letterSpacing: "1px" }}>LOG THE NAME +25</button>
-            </div>
-            {names.length > 0 && <div style={{ marginTop: 12, fontSize: 12, color: "#8b7ba8" }}>Name vault ({names.length}): {names.slice(0,6).join(", ")}{names.length>6?"…":""}</div>}
-          </div>
+      {/* Hero text gets a stroke + a soft dark scrim rather than a plate — a box would
+          look wrong at 28vw. Same treatment as the tip-off countdown below, which is the
+          most legible thing in this file. Without it the crowd shows through the letters. */}
+      {warn === "1MIN" && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 50%, rgba(5,3,12,0.72) 0%, rgba(5,3,12,0.34) 42%, transparent 68%)",
+          animation: "bigWarn 2.2s forwards" }}>
+          <div className="seg" style={{ fontWeight: 900, fontSize: "clamp(38px,12vw,80px)", color: "#fff", letterSpacing: "3px",
+            WebkitTextStroke: `2px ${V_DEEP}`, paintOrder: "stroke fill",
+            textShadow: `0 0 40px ${FIRE}, 0 0 12px #fff, 2px 3px 5px rgba(0,0,0,0.95)` }}>ONE MINUTE</div>
+        </div>
+      )}
+      {urgency === 3 && clock > 0 && (
+        <div style={{ position: "absolute", top: "46%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 55, pointerEvents: "none",
+          width: "78vw", height: "78vw", maxWidth: 420, maxHeight: 420, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "radial-gradient(circle, rgba(5,3,12,0.8) 0%, rgba(5,3,12,0.42) 44%, transparent 70%)" }}>
+          <div className="seg" style={{ fontWeight: 900, fontSize: "clamp(80px,28vw,200px)", color: "#fff", lineHeight: 1,
+            WebkitTextStroke: `2px ${V_DEEP}`, paintOrder: "stroke fill",
+            textShadow: `0 0 50px ${FIRE}, 0 0 90px ${V}, 2px 3px 6px rgba(0,0,0,0.95)`, animation: "flare 0.5s infinite" }}>{clock}</div>
         </div>
       )}
 
@@ -1468,12 +1682,37 @@ function Arena({ players, schedule, snd, match, opponent, meName, publishLine, o
 // ============================================================
 // LIVE STATS — tap STATS anytime for the running box score
 // ============================================================
-const STAT_ROWS = [
-  { id: "knock", label: "Doors Knocked", color: V },
-  { id: "pitch", label: "Full Pitches",  color: "#38bdf8" },
-  { id: "price", label: "Price Drops",   color: "#22d3ee" },
-  { id: "close", label: "Closes / Sales",color: GREEN },
-];
+// One shared row renderer behind every box score. `t` may be a whole-game tally or a
+// quarter diff; both are guarded, because a migrated snapshot can legitimately arrive
+// with a key the old build never wrote.
+function StatRows({ tally }) {
+  return (
+    <>
+      {STAT_ROWS.map((r) => {
+        const t = (tally && tally[r.id]) || { a: 0, m: 0 };
+        const pct = t.a ? Math.round((t.m / t.a) * 100) : 0;
+        return (
+          <React.Fragment key={r.id}>
+            <div style={{ fontWeight: 700, color: r.color }}>{r.label}</div>
+            {/* a penalty rung has no "makes" — 0/6 · 0% reads as failure, which is the
+                opposite of what logging an objection honestly deserves */}
+            {r.penalty ? (
+              <>
+                <div className="seg" style={{ textAlign: "right", fontWeight: 900 }}><span style={{ color: "#6b5b88" }}>—/</span>{t.a}</div>
+                <div style={{ textAlign: "right", color: r.color, fontSize: 10, fontWeight: 700, letterSpacing: "0.5px" }}>−{Math.abs(r.pts)} ea</div>
+              </>
+            ) : (
+              <>
+                <div className="seg" style={{ textAlign: "right", fontWeight: 900 }}>{t.m}<span style={{ color: "#6b5b88" }}>/{t.a}</span></div>
+                <div className="seg" style={{ textAlign: "right", color: r.color }}>{pct}%</div>
+              </>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
+}
 function BoxScore({ tally, cups, accuracy }) {
   return (
     <div>
@@ -1481,19 +1720,13 @@ function BoxScore({ tally, cups, accuracy }) {
         <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700 }}>ACTION</div>
         <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>MADE / ATT</div>
         <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>%</div>
-        {STAT_ROWS.map((r) => {
-          const t = tally[r.id]; const pct = t.a ? Math.round((t.m / t.a) * 100) : 0;
-          return (
-            <React.Fragment key={r.id}>
-              <div style={{ fontWeight: 700, color: r.color }}>{r.label}</div>
-              <div className="seg" style={{ textAlign: "right", fontWeight: 900 }}>{t.m}<span style={{ color: "#6b5b88" }}>/{t.a}</span></div>
-              <div className="seg" style={{ textAlign: "right", color: r.color }}>{pct}%</div>
-            </React.Fragment>
-          );
-        })}
-        <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 6 }}>Names Collected</div>
-        <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 6 }}>{tally.names}</div>
+        <StatRows tally={tally} />
+        <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 6 }}>Doors Worked</div>
+        <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 6 }}>{doorsOf(tally)}</div>
         <div style={{ borderTop: "1px solid rgba(168,85,247,0.25)" }} />
+        <div style={{ fontWeight: 700, color: GOLD }}>People Spoken To</div>
+        <div className="seg" style={{ textAlign: "right", fontWeight: 900, color: GOLD }}>{spokeOf(tally)}</div>
+        <div />
         <div style={{ fontWeight: 700, color: WATER }}>💧 Cups of Water</div>
         <div className="seg" style={{ textAlign: "right", fontWeight: 900, color: WATER }}>{cups}</div>
         <div />
@@ -1502,8 +1735,10 @@ function BoxScore({ tally, cups, accuracy }) {
   );
 }
 function LiveStats({ tally, cups, accuracy, score, onClose }) {
-  const totalAtt = STAT_ROWS.reduce((s, r) => s + tally[r.id].a, 0);
-  const totalMade = STAT_ROWS.reduce((s, r) => s + tally[r.id].m, 0);
+  // Reduce over ACCURACY_KEYS, not every row: guaranteed misses folded into the headline
+  // TOTAL would make it silently disagree with the ACCURACY tile beside it.
+  const totalAtt = ACCURACY_KEYS.reduce((s, k) => s + ((tally[k] && tally[k].a) || 0), 0);
+  const totalMade = ACCURACY_KEYS.reduce((s, k) => s + ((tally[k] && tally[k].m) || 0), 0);
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 85, background: "rgba(5,3,12,0.88)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 400, background: "linear-gradient(180deg,#160c2a,#0b0718)", borderRadius: 18, padding: 20, border: `1.5px solid ${V_DEEP}`, boxShadow: `0 0 34px rgba(124,58,247,0.4)` }}>
@@ -1535,14 +1770,8 @@ function MiniStat({ label, value, color }) {
 // QUARTER REPORT — NBA-style end-of-quarter breakdown
 // ============================================================
 function QuarterReport({ report, onNext }) {
-  const { quarter, diff, qScore, qCups, atts, makes, acc, totalScore } = report;
+  const { quarter, diff, qScore, qCups, qDoors, qSpoke, atts, makes, acc, totalScore } = report;
   const medal = acc >= 80 ? { t: "GOLD QUARTER", c: GOLD } : acc >= 60 ? { t: "SILVER QUARTER", c: "#cbd5e1" } : acc >= 40 ? { t: "BRONZE QUARTER", c: "#d19a66" } : { t: "KEEP GRINDING", c: V_GLOW };
-  const rows = [
-    { id: "knock", label: "Doors Knocked", color: V },
-    { id: "pitch", label: "Full Pitches",  color: "#38bdf8" },
-    { id: "price", label: "Price Drops",   color: "#22d3ee" },
-    { id: "close", label: "Closes / Sales",color: GREEN },
-  ];
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 90, background: "rgba(4,2,10,0.94)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" }} className="noscroll">
       <div style={{ width: "100%", maxWidth: 420, background: "linear-gradient(180deg,#1a1030,#0b0718)", borderRadius: 20, padding: "20px 18px", border: `2px solid ${V_DEEP}`, boxShadow: `0 0 40px rgba(124,58,247,0.5)` }}>
@@ -1570,19 +1799,13 @@ function QuarterReport({ report, onNext }) {
             <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700 }}>THIS QUARTER</div>
             <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>MADE / ATT</div>
             <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>%</div>
-            {rows.map((r) => {
-              const d = diff[r.id]; const pct = d.a ? Math.round((d.m / d.a) * 100) : 0;
-              return (
-                <React.Fragment key={r.id}>
-                  <div style={{ fontWeight: 700, color: r.color }}>{r.label}</div>
-                  <div className="seg" style={{ textAlign: "right", fontWeight: 900 }}>{d.m}<span style={{ color: "#6b5b88" }}>/{d.a}</span></div>
-                  <div className="seg" style={{ textAlign: "right", color: r.color }}>{pct}%</div>
-                </React.Fragment>
-              );
-            })}
-            <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 7 }}>Names Collected</div>
-            <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 7 }}>{diff.names}</div>
+            <StatRows tally={diff} />
+            <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 7 }}>Doors Worked</div>
+            <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.25)", paddingTop: 7 }}>{qDoors}</div>
             <div style={{ borderTop: "1px solid rgba(168,85,247,0.25)" }} />
+            <div style={{ fontWeight: 700, color: GOLD }}>People Spoken To</div>
+            <div className="seg" style={{ textAlign: "right", fontWeight: 900, color: GOLD }}>{qSpoke}</div>
+            <div />
             <div style={{ fontWeight: 700, color: WATER }}>💧 Cups of Water</div>
             <div className="seg" style={{ textAlign: "right", fontWeight: 900, color: WATER }}>{qCups}</div>
             <div />
@@ -2137,7 +2360,10 @@ function Court() {
 // HOOP ASSEMBLY — SOLID colored backboard (opaque), orange rim
 // with depth, funnel net.
 // ============================================================
-function HoopAssembly({ netSwish, rimShake }) {
+// `rimShake` moves the WHOLE rig — pole, backboard and all — which is an earthquake,
+// not a clank; it is now reserved for the dunk. `rimClank` is a counter that recoils
+// the rim element on its own for a miss.
+function HoopAssembly({ netSwish, rimShake, rimClank }) {
   return (
     <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%) perspective(400px) rotateX(8deg)", zIndex: 4, width: 170, display: "flex", flexDirection: "column", alignItems: "center", animation: rimShake ? "shake 0.3s" : "none" }}>
       {/* SOLID backboard */}
@@ -2150,7 +2376,7 @@ function HoopAssembly({ netSwish, rimShake }) {
         <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", width: 50, height: 34, border: `3px solid #e8542a`, borderRadius: 2 }} />
       </div>
       {/* rim with depth */}
-      <div style={{ position: "relative", marginTop: -3, width: 70, height: 22, zIndex: 8 }}>
+      <div key={`rim${rimClank}`} style={{ position: "relative", marginTop: -3, width: 70, height: 22, zIndex: 8, animation: rimClank ? "hpRimClank 0.34s cubic-bezier(.2,.9,.3,1)" : "none" }}>
         <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "4px solid #b8560f", opacity: 0.6 }} />
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "60%", borderRadius: "0 0 50% 50% / 0 0 100% 100%", borderBottom: "4px solid #ff7a1a", borderLeft: "4px solid #ff7a1a", borderRight: "4px solid #ff7a1a", boxShadow: "0 0 16px #ff7a1a" }} />
       </div>
@@ -2169,6 +2395,23 @@ function HoopAssembly({ netSwish, rimShake }) {
   );
 }
 
+// ---- how high he must rise for his fists to actually close on the rim ----
+// Derived from the SAME zone height + RIM_TOP that drive the ball's arc, so the jump
+// and the hoop can never drift apart. The old code handed him a flat −102px, which on
+// the 652px design canvas left his fists ~145px BELOW the rim: he jumped at nothing.
+const SHOOTER_UNITS = 220;        // viewBox height (extended so the hands/ball aren't clipped)
+const SHOOTER_FLOOR_UNIT = 150;   // where his feet sit inside the viewBox
+const FIST_TOP_UNIT = -18.5;      // top of the gripping fist (cy -15, r 3.5)
+const SHOOTER_BOTTOM_PCT = 0.08;  // the wrapper's `bottom` within the play zone
+function dunkLiftPx(zoneH, scale) {
+  if (!zoneH) return 0;
+  const fistAboveFeet = ((SHOOTER_FLOOR_UNIT - FIST_TOP_UNIT) / SHOOTER_UNITS) * (SHOOTER_UNITS * scale);
+  const need = (zoneH - RIM_TOP + 10) - (zoneH * SHOOTER_BOTTOM_PCT + fistAboveFeet);
+  // A dunk is delivered from ABOVE the iron, so overshooting slightly is right and
+  // undershooting never is — clamp low so a short phone still gets a real leap.
+  return Math.min(340, Math.max(70, Math.round(need)));
+}
+
 function Shooter({ second, shooting, fatigued, inZone, dunk, dunkPhase, big }) {
   const scale = big ? 1.45 : 1;
   const jersey   = second ? "#0e5a80" : V_DEEP;
@@ -2179,16 +2422,67 @@ function Shooter({ second, shooting, fatigued, inZone, dunk, dunkPhase, big }) {
   const hair     = "#2a1c12";
   const shoe     = inZone ? GOLD : (second ? "#38bdf8" : "#fff");
   const shoeSole = "#e8542a";
-  // vertical lift for the dunk: crouch, explode up to the rim, hang, drop
-  const lift = dunkPhase === "jump" ? "-102px" : dunkPhase === "hang" ? "-106px" : dunkPhase === "drop" ? "0px" : "0px";
-  const liftTrans = dunkPhase === "jump" ? "transform 0.5s cubic-bezier(.2,.8,.3,1)"
-                  : dunkPhase === "drop" ? "transform 0.42s cubic-bezier(.5,0,.8,.5)"
+  // Measure the play zone the same way Ball() does, so the jump is COMPUTED against
+  // RIM_TOP on whatever screen this is, never a constant tuned for one phone.
+  const wrapRef = useRef(null);
+  const [zoneH, setZoneH] = useState(0);
+  useEffect(() => {
+    const el = wrapRef.current;
+    const parent = el && el.parentElement;
+    if (!parent) return undefined;
+    const measure = () => setZoneH(parent.clientHeight);
+    measure();
+    let ro;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(parent); }
+    return () => { if (ro) ro.disconnect(); };
+  }, []);
+  const L = dunkLiftPx(zoneH, scale);
+  const hangLift = -(L + 8);   // the rim pulls him a touch higher as he catches it
+
+  // ---- dunk choreography: gather → jump → hang → drop → land ----
+  const lift = dunkPhase === "gather" ? "6px"
+             : dunkPhase === "jump"   ? `${-L}px`
+             : dunkPhase === "hang"   ? `${hangLift}px` : "0px";
+  const squash = dunkPhase === "gather" ? " scale(1.04,0.92)"      // load the legs
+               : dunkPhase === "jump"   ? " scale(1.00,1.06)"      // stretch into the rise
+               : "";
+  const liftTrans = dunkPhase === "gather" ? "transform 0.12s ease-out"
+                  : dunkPhase === "jump" ? `transform ${DUNK.jump / 1000}s cubic-bezier(.15,.85,.3,1)`
+                  : dunkPhase === "drop" ? `transform ${DUNK.drop / 1000}s cubic-bezier(.5,0,.8,.5)`
                   : dunkPhase === "hang" ? "transform 0.2s" : "transform 0.3s";
   const isDunking = !!dunkPhase;
+  const anim = shooting ? "windup 0.28s"
+             : dunkPhase === "hang" ? "rimHang 0.5s ease-in-out infinite"
+             : dunkPhase === "land" ? `hpLand ${DUNK.land / 1000}s ease-out` : "none";
+  // PERF LAW: never an infinite animation inside a filtered subtree. rimHang loops for
+  // the whole hang, so the root's drop-shadow comes off for exactly that phase.
+  const glow = dunkPhase === "hang" ? "none"
+             : fatigued ? "saturate(0.8) brightness(0.9)"
+             : inZone ? `drop-shadow(0 0 12px ${GOLD})` : `drop-shadow(0 0 8px ${V})`;
   return (
-    <div style={{ position: "absolute", bottom: "8%", left: second ? "64%" : "50%", width: 76 * scale, height: 166 * scale, zIndex: isDunking ? 9 : 5, transform: `translateX(-50%) translateY(${lift})`, transition: liftTrans, animation: shooting ? "windup 0.28s" : (dunkPhase === "hang" ? "rimHang 0.5s ease-in-out infinite" : "none"), filter: fatigued ? "saturate(0.8) brightness(0.9)" : inZone ? `drop-shadow(0 0 12px ${GOLD})` : `drop-shadow(0 0 8px ${V})` }}>
-      <svg viewBox="0 -16 76 166" width={76 * scale} height={166 * scale}>
+    <div ref={wrapRef} style={{ position: "absolute", bottom: "8%", left: second ? "64%" : "50%", width: 76 * scale, height: SHOOTER_UNITS * scale, zIndex: isDunking ? 9 : 5, transformOrigin: "bottom center", transform: `translateX(-50%) translateY(${lift})${squash}`, transition: liftTrans, animation: anim, filter: glow, ["--hp-lift"]: `${hangLift}px` }}>
+      {/* floor dust as he sticks the landing */}
+      {dunkPhase === "land" && [-30, -16, 0, 16, 30].map((dx, i) => (
+        <div key={i} style={{ position: "absolute", left: "50%", marginLeft: -5, bottom: 4, width: 10, height: 10, borderRadius: "50%", background: "rgba(220,203,172,0.45)", pointerEvents: "none",
+          ["--dx"]: `${dx}px`, animation: "hpDust 0.42s ease-out forwards", animationDelay: `${i * 0.02}s` }} />
+      ))}
+      {/* overflow:visible + the taller viewBox is what stopped the hands and the ball
+          being clipped clean off the top of the box mid-dunk */}
+      <svg viewBox={`0 -70 76 ${SHOOTER_UNITS}`} width={76 * scale} height={SHOOTER_UNITS * scale} style={{ overflow: "visible" }}>
         <ellipse cx="38" cy="146" rx="24" ry="5" fill="rgba(0,0,0,0.45)" opacity={isDunking ? 0.15 : 1} />
+
+        {/* motion-blur ghosts trailing the rise — opacity only, NO filter */}
+        {dunkPhase === "jump" && [[14, 0.22], [28, 0.12]].map(([dy, op]) => (
+          <g key={dy} opacity={op} transform={`translate(0 ${dy})`}>
+            <path d="M32 88 L28 124" stroke={skin} strokeWidth="6.5" strokeLinecap="round" />
+            <path d="M44 88 L48 124" stroke={skin} strokeWidth="6.5" strokeLinecap="round" />
+            <path d="M25 74 L51 74 L53 98 L42 98 L38 84 L34 98 L23 98 Z" fill={shorts} />
+            <path d="M24 38 Q24 33 30 32 L46 32 Q52 33 52 38 L54 76 L22 76 Z" fill={jersey} />
+            <circle cx="38" cy="19" r="10.5" fill={hair} />
+            <path d="M27 40 L30 -14" stroke={skin} strokeWidth="6.5" strokeLinecap="round" fill="none" />
+            <path d="M49 40 L46 -14" stroke={skin} strokeWidth="6.5" strokeLinecap="round" fill="none" />
+          </g>
+        ))}
 
         {/* ---- legs (back) ---- */}
         <path d="M32 88 L28 124" stroke={skin} strokeWidth="6.5" strokeLinecap="round" />
@@ -2240,8 +2534,23 @@ function Shooter({ second, shooting, fatigued, inZone, dunk, dunkPhase, big }) {
             {/* fists gripping */}
             <circle cx="30" cy="-15" r="3.5" fill={skin} stroke={jTrim} strokeWidth="1.5"/>
             <circle cx="46" cy="-15" r="3.5" fill={skin} stroke={jTrim} strokeWidth="1.5"/>
-            {/* the ball being slammed (jump), gone once hanging */}
-            {dunkPhase === "jump" && <circle cx="38" cy="-20" r="8" fill="url(#ballGrad)" stroke="#c2410c" strokeWidth="0.8"/>}
+            {/* THE BALL — carried up in his hands through the gather and the rise, then
+                pushed through and dropping out the bottom of the net on the hang. It used
+                to be drawn at cy -20 inside a viewBox that started at -16: clipped away
+                entirely, so he dunked nothing. */}
+            {(dunkPhase === "gather" || dunkPhase === "jump") && (
+              <>
+                <circle cx="38" cy="-23" r="9" fill="url(#ballGrad)" stroke="#c2410c" strokeWidth="0.9"/>
+                <path d="M29 -23 h18 M38 -32 v18" stroke="rgba(0,0,0,0.42)" strokeWidth="0.9"/>
+                <path d="M32 -28.5 Q38 -23 32 -17.5 M44 -28.5 Q38 -23 44 -17.5" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" fill="none"/>
+              </>
+            )}
+            {dunkPhase === "hang" && (
+              <g style={{ animation: "hpDunkThrough 0.5s ease-in forwards" }}>
+                <circle cx="38" cy="2" r="8.5" fill="url(#ballGrad)" stroke="#c2410c" strokeWidth="0.8"/>
+                <path d="M29.5 2 h17 M38 -6.5 v17" stroke="rgba(0,0,0,0.4)" strokeWidth="0.8"/>
+              </g>
+            )}
             <defs><radialGradient id="ballGrad" cx="35%" cy="30%"><stop offset="0" stopColor="#ff9d4d"/><stop offset="1" stopColor="#c2410c"/></radialGradient></defs>
           </>
         ) : shooting ? (
@@ -2274,8 +2583,11 @@ function Shooter({ second, shooting, fatigued, inZone, dunk, dunkPhase, big }) {
   );
 }
 
-function Ball({ ball }) {
+function Ball({ ball, onContact }) {
   const ref = useRef(null);
+  // the impact callback is read through a ref so the arc effect keeps a single dep
+  const contactRef = useRef(onContact);
+  contactRef.current = onContact;
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const parent = el.parentElement;
@@ -2305,11 +2617,27 @@ function Ball({ ball }) {
           { offset: 0.78, transform: `translate(${tx(-20,1)}, ${-(riseToRim+12)}px) scale(0.95)`, opacity: 1 },
           { offset: 1,    transform: `translate(${tx(60,1)}, ${-(riseToRim - 100)}px) scale(0.82)`, opacity: 0 },
         ];
-    const anim = el.animate(frames, { duration: dunk ? 720 : 880, easing: "cubic-bezier(.3,.6,.4,1)", fill: "forwards" });
-    return () => anim.cancel();
+    const duration = dunk ? 720 : 880;
+    const anim = el.animate(frames, { duration, easing: "cubic-bezier(.3,.6,.4,1)", fill: "forwards" });
+    // ---- impact FX ride the BALL'S OWN CLOCK ----
+    // Scheduling this off a setTimeout started at setBall() drifts by however long the
+    // commit takes before .animate() runs, so the net fired a frame or two before the
+    // ball actually got there. anim.ready resolves once the animation is really running,
+    // and currentTime then says exactly how far in we are — so this lands on the frame
+    // the ball is at the rim, whatever the arc is retuned to later.
+    let contactTimer = null;
+    const arm = () => {
+      const elapsed = anim.currentTime || 0;
+      const wait = Math.max(0, Math.round(duration * BALL_CONTACT_OFFSET) - elapsed);
+      contactTimer = setTimeout(() => { if (contactRef.current) contactRef.current(); }, wait);
+    };
+    if (anim.ready && anim.ready.then) anim.ready.then(arm).catch(() => arm()); else arm();
+    return () => { anim.cancel(); if (contactTimer) clearTimeout(contactTimer); };
   }, [ball]);
   return (
-    <div ref={ref} style={{ position: "absolute", bottom: `${RELEASE_BOTTOM_PCT*100}%`, left: ball.second ? "64%" : "50%", zIndex: 9, pointerEvents: "none" }}>
+    /* z31, above the z30 YOUR NUMBERS panel: a guaranteed miss deflects right and used
+       to finish its bounce hidden behind the panel on the left-handed layout. */
+    <div ref={ref} style={{ position: "absolute", bottom: `${RELEASE_BOTTOM_PCT*100}%`, left: ball.second ? "64%" : "50%", zIndex: 31, pointerEvents: "none" }}>
       <div style={{ width: 24, height: 24, borderRadius: "50%", background: ball.kind === "dunk" ? `radial-gradient(circle at 35% 30%,${GOLD},#b45309)` : "radial-gradient(circle at 35% 30%,#ff9d4d,#c2410c)", boxShadow: `0 0 16px ${ball.color}`, position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(90deg,transparent 47%,rgba(0,0,0,0.45) 48%,rgba(0,0,0,0.45) 52%,transparent 53%)" }} />
         <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(0deg,transparent 47%,rgba(0,0,0,0.45) 48%,rgba(0,0,0,0.45) 52%,transparent 53%)" }} />
@@ -2333,14 +2661,17 @@ function ActionIcon({ id, color, size = 20 }) {
   const stroke = { stroke: color, strokeWidth: 2, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" };
   const icons = {
     knock: (<><rect x="6" y="3" width="12" height="18" rx="1" {...stroke} /><circle cx="15" cy="12" r="1.2" fill={color} /></>),        // door
-    talk:  (<><path d="M4 5 h16 v10 h-9 l-4 4 v-4 H4 Z" {...stroke} /></>),                                                              // speech bubble
+    // objection = a bubble with the conversation shut down inside it. Deliberately NOT
+    // the plain bubble the old `slam` used — at 20px it has to read differently from `name`.
+    object:(<><path d="M4 4 h16 v10 h-9 l-4 4 v-4 H4 Z" {...stroke} /><path d="M9 7 l6 5 M15 7 l-6 5" {...stroke} /></>),
     pitch: (<><circle cx="12" cy="12" r="8" {...stroke} /><circle cx="12" cy="12" r="3.5" {...stroke} /><circle cx="12" cy="12" r="1" fill={color} /></>), // target
     price: (<><path d="M4 14 L9 9 L13 12 L20 5" {...stroke} /><path d="M20 5 h-4 M20 5 v4" {...stroke} /></>),                            // trend
     close: (<><path d="M12 3 l2.5 5 5.5 .8 -4 4 1 5.5 -5-2.7 -5 2.7 1-5.5 -4-4 5.5-.8 Z" {...stroke} fill={color} fillOpacity="0.25" /></>), // star
     name:  (<><circle cx="12" cy="8" r="3.5" {...stroke} /><path d="M5 20 c0-4 3.5-6 7-6 s7 2 7 6" {...stroke} /></>),                    // person
-    slam:  (<><path d="M4 5 h16 v10 h-9 l-4 4 v-4 H4 Z" {...stroke} /></>),                                                              // spoke to (speech bubble)
   };
-  return <svg viewBox="0 0 24 24" width={s} height={s} style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}>{icons[id]}</svg>;
+  // An unknown id would render an empty <svg> with no error, so a missed rename shows up
+  // only as a blank button — fall back to the door glyph instead of silence.
+  return <svg viewBox="0 0 24 24" width={s} height={s} style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}>{icons[id] || icons.knock}</svg>;
 }
 function ActionIconBig({ id, color }) { return <ActionIcon id={id} color={color} size={26} />; }
 
@@ -2521,7 +2852,7 @@ function IntroScene({ scene }) {
       <div style={{ marginBottom: 12, animation: "sip 1.4s ease-in-out infinite" }}><WaterBottle fill={70} thirsty={false} scale={1.6} /></div>
       <Eyebrow c={WATER}>STAY IN THE ZONE</Eyebrow>
       <Title>HYDRATION<br/>BREAK</Title>
-      <Sub>Drink to stay hot. Find bottles on the doors for extra life.</Sub>
+      <Sub>Tap DRINK when you actually drink. Empty means go fill it up.</Sub>
     </>
   );
 
@@ -2765,12 +3096,6 @@ function ResultSplash({ won, stats, onSkip }) {
 // ===== full ESPN-style game report =====
 function GameReport({ stats, players, onMenu, onReplay }) {
   const { score, oppScore, won, acc, atts, makes, cups, tally, quarters } = stats;
-  const rows = [
-    { id: "knock", label: "Doors Knocked", color: V },
-    { id: "pitch", label: "Full Pitches",  color: "#38bdf8" },
-    { id: "price", label: "Price Drops",   color: "#22d3ee" },
-    { id: "close", label: "Closes / Sales",color: GREEN },
-  ];
   const medal = acc >= 80 ? { t: "MVP PERFORMANCE", c: GOLD } : acc >= 60 ? { t: "ALL-STAR GAME", c: "#cbd5e1" } : acc >= 40 ? { t: "SOLID OUTING", c: "#d19a66" } : { t: "GRIND CONTINUES", c: V_GLOW };
   // build 4 quarter columns (pad if missing)
   const qs = [...(quarters || [])];
@@ -2843,10 +3168,14 @@ function GameReport({ stats, players, onMenu, onReplay }) {
           <div style={{ fontFamily: "'Oswald',sans-serif", fontSize: 10, letterSpacing: "2px", color: GOLD, fontWeight: 700, marginBottom: 10, textAlign: "center" }}>🔥 PERSONAL RECORDS</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }}>
             {[
-              { lbl: "MOST DOORS", val: stats.records.knock, pr: stats.beat && stats.beat.knock },
-              { lbl: "MOST SALES", val: stats.records.close, pr: stats.beat && stats.beat.close },
-              { lbl: "MOST NAMES", val: stats.records.names, pr: stats.beat && stats.beat.names },
-              { lbl: "TOP SCORE",  val: stats.records.score, pr: stats.beat && stats.beat.score },
+              // `records.doors` is every rung summed — records.knock would now read
+              // "most NO ANSWERS", which is not a record anyone is chasing.
+              { lbl: "MOST DOORS",    val: stats.records.doors, pr: stats.beat && stats.beat.doors },
+              { lbl: "MOST SPOKE TO", val: stats.records.spoke, pr: stats.beat && stats.beat.spoke },
+              { lbl: "MOST NAMES",    val: stats.records.names, pr: stats.beat && stats.beat.names },
+              { lbl: "MOST PITCHES",  val: stats.records.pitch, pr: stats.beat && stats.beat.pitch },
+              { lbl: "MOST SALES",    val: stats.records.close, pr: stats.beat && stats.beat.close },
+              { lbl: "TOP SCORE",     val: stats.records.score, pr: stats.beat && stats.beat.score },
             ].map((r) => (
               <div key={r.lbl} style={{ background: r.pr ? `${GOLD}18` : "#0c0718", border: `1px solid ${r.pr ? GOLD : "rgba(168,85,247,0.2)"}`, borderRadius: 10, padding: "8px 6px", textAlign: "center", position: "relative" }}>
                 {r.pr && <span style={{ position: "absolute", top: -8, right: -6, background: GOLD, color: "#111", fontSize: 7, fontWeight: 900, padding: "1px 5px", borderRadius: 6, fontFamily: "'Oswald',sans-serif", letterSpacing: "0.5px", boxShadow: `0 0 8px ${GOLD}` }}>NEW!</span>}
@@ -2864,19 +3193,13 @@ function GameReport({ stats, players, onMenu, onReplay }) {
           <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700 }}>STAT LEADERS</div>
           <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>MADE / ATT</div>
           <div style={{ fontSize: 9, letterSpacing: "1px", color: "#6b5b88", fontWeight: 700, textAlign: "right" }}>%</div>
-          {rows.map((r) => {
-            const t = tally[r.id]; const pct = t.a ? Math.round((t.m / t.a) * 100) : 0;
-            return (
-              <React.Fragment key={r.id}>
-                <div style={{ fontWeight: 700, color: r.color }}>{r.label}</div>
-                <div className="seg" style={{ textAlign: "right", fontWeight: 900 }}>{t.m}<span style={{ color: "#6b5b88" }}>/{t.a}</span></div>
-                <div className="seg" style={{ textAlign: "right", color: r.color }}>{pct}%</div>
-              </React.Fragment>
-            );
-          })}
-          <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.2)", paddingTop: 8 }}>Names Collected</div>
-          <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.2)", paddingTop: 8 }}>{tally.names}</div>
+          <StatRows tally={tally} />
+          <div style={{ fontWeight: 700, color: "#fff", borderTop: "1px solid rgba(168,85,247,0.2)", paddingTop: 8 }}>Doors Worked</div>
+          <div className="seg" style={{ textAlign: "right", fontWeight: 900, borderTop: "1px solid rgba(168,85,247,0.2)", paddingTop: 8 }}>{doorsOf(tally)}</div>
           <div style={{ borderTop: "1px solid rgba(168,85,247,0.2)" }} />
+          <div style={{ fontWeight: 700, color: GOLD }}>People Spoken To</div>
+          <div className="seg" style={{ textAlign: "right", fontWeight: 900, color: GOLD }}>{spokeOf(tally)}</div>
+          <div />
         </div>
       </div>
 

@@ -409,8 +409,21 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cdb-sever-hud span { display: block; color: #76c7ff; font: 750 9px/1.3 var(--font-display, "Sora", sans-serif); letter-spacing: 1.5px; }
 .cdb-sever-hud strong { display: block; margin-top: 2px; color: #f7f4ea; font: 750 16px/1.2 var(--font-display, "Sora", sans-serif); text-transform: uppercase; }
 .cdb-sever-time { color: #ffc46b; font: 800 17px/1 var(--font-display, "Sora", sans-serif); }
-.cdb-sever-notice { min-height: 24px; color: #cdd8ee; font: 700 11px/1.4 var(--font-display, "Sora", sans-serif); letter-spacing: .6px; text-align: center; text-transform: uppercase; }
-.cdb-sever-stage { position: relative; height: min(52dvh, 430px); min-height: 330px; overflow: hidden; border-radius: 22px; border: 1px solid rgba(118,199,255,.22); background: rgba(5,8,19,.82); box-shadow: inset 0 0 50px rgba(118,199,255,.04), 0 22px 50px -26px #000; touch-action: none; }
+.cdb-sever-notice { min-height: 24px; color: #cdd8ee; font: 700 11px/1.4 var(--font-display, "Sora", sans-serif); letter-spacing: .6px; text-align: center; text-transform: uppercase; transition: color .16s, text-shadow .16s; }
+.cdb-sever-notice[data-crit="true"] { color: #ffd68c; text-shadow: 0 0 14px rgba(255,196,107,.8); }
+
+/* ── the Mask's grip on you — not a health bar; it is never killed ── */
+.cdb-grip { margin: 2px 0 7px; }
+.cdb-grip-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+.cdb-grip-name { font: 800 12px/1 var(--font-display, "Sora", sans-serif); letter-spacing: 1.2px; text-transform: uppercase; }
+.cdb-grip-label { color: #7f8ba8; font: 750 8px/1 var(--font-display, "Sora", sans-serif); letter-spacing: 2px; }
+.cdb-grip-track { position: relative; height: 7px; border-radius: 6px; overflow: hidden; background: rgba(10,15,32,.9); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+.cdb-grip-fill { display: block; height: 100%; border-radius: 6px; transition: width .22s cubic-bezier(.2,.9,.3,1); }
+.cdb-grip[data-low="true"] .cdb-grip-track { animation: cdb-grip-panic .5s ease-in-out infinite; }
+@keyframes cdb-grip-panic { 0%,100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); } 50% { box-shadow: inset 0 0 0 1px rgba(255,214,140,.5), 0 0 14px rgba(255,196,107,.35); } }
+
+.cdb-sever-stage { position: relative; height: min(60dvh, 520px); min-height: 380px; overflow: hidden; border-radius: 22px; border: 1px solid rgba(118,199,255,.22); background: rgba(5,8,19,.82); box-shadow: inset 0 0 50px rgba(118,199,255,.04), 0 22px 50px -26px #000; touch-action: none; transition: border-color .2s, box-shadow .2s; }
+.cdb-sever-stage[data-hot="true"] { border-color: rgba(255,196,107,.5); box-shadow: inset 0 0 60px rgba(255,176,80,.07), 0 0 26px -6px rgba(255,176,80,.35), 0 22px 50px -26px #000; }
 .cdb-sever-stage::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, transparent 49.6%, rgba(118,199,255,.06) 50%, transparent 50.4%), linear-gradient(0deg, transparent 49.6%, rgba(118,199,255,.04) 50%, transparent 50.4%); }
 .cdb-sever-canvas { position: relative; z-index: 1; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
 .cdb-sever-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 9px; }
@@ -419,6 +432,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 .cdb-sever-stats span { display: block; margin-top: 3px; color: #7f8ba8; font-size: 8px; }
 .cdb-combo { height: 20px; margin-top: 6px; color: #77819c; font: 800 9px/20px var(--font-display, "Sora", sans-serif); letter-spacing: 1.5px; text-align: center; transition: color .2s, text-shadow .2s, transform .2s; }
 .cdb-combo[data-on="true"] { color: #ffc46b; text-shadow: 0 0 12px rgba(255,196,107,.65); transform: scale(1.04); }
+.cdb-combo[data-hot="true"] { color: #fff6e2; text-shadow: 0 0 18px rgba(255,176,80,.9); transform: scale(1.12); }
 .cdb-sort-game { position: relative; z-index: 2; }
 .cdb-sever-round { color: #76c7ff; font: 750 10px/1.3 var(--font-display, "Sora", sans-serif); letter-spacing: 1.6px; }
 .cdb-sort-card { min-height: 170px; display: grid; place-items: center; margin: 18px 0; padding: 24px; border-radius: 22px; color: #f7f4ea; font: 750 21px/1.4 var(--font-display, "Sora", sans-serif); text-align: center; }
@@ -507,7 +521,7 @@ html[data-reduced-motion="true"] .cd-ceremony-rays {
 }
 @media (max-width: 360px) {
   .cdb2 { padding-left: 14px; padding-right: 14px; }
-  .cdb-sever-stage { min-height: 300px; }
+  .cdb-sever-stage { min-height: 340px; }
   .cdb2-flame-name { font-size: 7px; }
 }
 
@@ -991,7 +1005,8 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
 .cd-hero-progress { height: 3px; margin-top: 10px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.1); }
 .cd-hero-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cd-dawn), var(--cd-teal), var(--cd-amber)); box-shadow: 0 0 12px var(--cd-dawn); transition: width 0.8s cubic-bezier(.2,.8,.2,1); }
 
-.cd-card--checkin { --cd-acc: 92, 224, 211; background: radial-gradient(circle at 92% 0%, rgba(92,224,211,.12), transparent 38%), linear-gradient(165deg, #1a2540, var(--cd-slate)) padding-box; }
+/* the check-in leans green now — the good row is the one that leads */
+.cd-checkin { --cd-acc: 123, 228, 149; background: radial-gradient(circle at 92% 0%, rgba(123,228,149,.13), transparent 40%), linear-gradient(165deg, #1a2540, var(--cd-slate)) padding-box; }
 .cd-card--lesson { --cd-acc: 180, 155, 255; padding: 18px; background: radial-gradient(circle at 100% 0%, rgba(180,155,255,.14), transparent 42%), linear-gradient(165deg, #1c2440, #12182d) padding-box; }
 .cd-card--lesson .cd-lesson-title { font-size: 20px; letter-spacing: -.3px; }
 .cd-card--lesson .cd-vote-box { border-left: 3px solid var(--cd-dawn); background: linear-gradient(90deg, rgba(127,180,255,.12), rgba(12,16,34,.75)); }
@@ -1082,20 +1097,81 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
   50% { opacity: 1; }
 }
 
-.cd-halt-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.cd-halt {
-  padding: 9px 14px;
-  border-radius: 12px;
+/* ── HOW ARE YOU, ACTUALLY — the two-direction check-in ────────────────
+   Good leads. The rows are visually distinct so the eye never reads the
+   card as a symptom list: green, warm, slightly raised on top; the HALT-B
+   row cooler and quieter underneath, behind a hairline. */
+.cd-checkin { overflow: hidden; }
+.cd-checkin-lede {
+  font-size: 13px; line-height: 1.5; color: var(--cd-mute);
+  margin: 7px 0 15px;
+}
+.cd-feel-row + .cd-feel-row {
+  margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--cd-line-soft);
+}
+.cd-feel-rowhead {
+  display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.cd-feel-rowlabel { font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+.cd-feel-rowcap { font-size: 11.5px; color: var(--cd-mute); }
+.cd-feel-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.cd-feel {
+  padding: 10px 15px;
+  border-radius: 999px;
   background: var(--cd-ink2);
   border: 1px solid var(--cd-line-soft);
-  color: var(--cd-text);
-  font-size: 13px;
+  color: var(--cd-soft);
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .18s var(--ease-out), border-color .18s var(--ease-out),
+              color .18s var(--ease-out), background .18s var(--ease-out),
+              box-shadow .18s var(--ease-out);
 }
-.cd-halt--on { border-color: var(--cd-dawn); color: var(--cd-bright); background: var(--cd-slate2); }
-.cd-halt-fix { margin-top: 12px; padding: 12px; border-radius: 11px; background: var(--cd-ink2); border: 1px solid rgba(127, 180, 255, 0.25); }
-.cd-halt-line { font-size: 12.5px; color: var(--cd-soft); margin-bottom: 6px; }
-.cd-halt-do { font-size: 13.5px; color: var(--cd-text); line-height: 1.55; }
+.cd-feel:active { transform: scale(.96); }
+.cd-feel--good {
+  border-color: rgba(123,228,149,.24);
+  background: linear-gradient(165deg, rgba(123,228,149,.07), rgba(255,255,255,.015));
+  color: #d3ecda;
+}
+.cd-feel--good.is-on {
+  border-color: var(--cd-green); color: #0d1a12; font-weight: 800;
+  background: linear-gradient(165deg, #a5efb8, var(--cd-green));
+  box-shadow: 0 8px 22px -12px rgba(123,228,149,.9);
+}
+.cd-feel--rough.is-on {
+  border-color: var(--cd-dawn); color: var(--cd-bright); background: var(--cd-slate2);
+  box-shadow: 0 8px 22px -14px rgba(127,180,255,.8);
+}
+.cd-feel-panel {
+  margin-top: 15px; padding: 14px; border-radius: 14px;
+  background: var(--cd-ink2); border: 1px solid var(--cd-line);
+  animation: cd-feel-in .3s var(--ease-out) both;
+}
+.cd-feel-panel--good {
+  border-color: rgba(123,228,149,.3);
+  background: linear-gradient(165deg, rgba(123,228,149,.10), rgba(16,21,43,.6));
+}
+.cd-feel-panel--rough {
+  border-color: rgba(127,180,255,.25);
+  background: linear-gradient(165deg, rgba(127,180,255,.07), rgba(16,21,43,.6));
+}
+@keyframes cd-feel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.cd-feel-line { font-size: 13px; color: var(--cd-soft); margin-bottom: 7px; line-height: 1.5; }
+.cd-feel-do { font-size: 15px; font-weight: 600; color: var(--cd-bright); line-height: 1.55; }
+.cd-feel-panel .cd-btn--good { margin-top: 13px; }
+.cd-feel-panel .cd-done-line { margin-top: 12px; }
+.cd-feel-panel .cd-cite { margin-top: 11px; }
+.cd-btn--good {
+  background: linear-gradient(135deg, #a5efb8, var(--cd-green));
+  border-color: transparent; color: #0d1a12;
+  box-shadow: 0 10px 26px -14px rgba(123,228,149,.95);
+}
 
 .cd-lesson-top { display: flex; justify-content: space-between; align-items: baseline; }
 .cd-lesson-skill { font-size: 11px; color: var(--cd-mute); letter-spacing: 1px; }
@@ -3002,21 +3078,8 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
 .cd-clock-row-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
 .cd-clock-row-sub { margin-top: 6px; font-size: 12.5px; line-height: 1.55; color: rgba(201, 205, 232, 0.85); }
 
-.cd-clock-chip {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 196, 107, 0.35);
-  background: rgba(255, 196, 107, 0.08);
-  color: rgba(255, 224, 178, 0.95);
-  font-size: 12.5px;
-  letter-spacing: 0.03em;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-.cd-clock-chip:active { transform: scale(0.98); }
+/* (the Today countdown chip is gone — the clock lives on Journey, where it
+   has room to show its milestones instead of shouting hours at the hero.) */
 
 /* ═══════════════════════════════════════════════════════════════════════
    THE NIGHT SHIFT — clock-aware evening layer (Today card, Night Ledger
@@ -3475,9 +3538,11 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
 .cd-nwmenu-title { display:block; font-size:16px; line-height:1.22; color:#fffdf5; letter-spacing:-.02em; }
 .cd-nwmenu-sub { display:block; margin-top:4px; font-size:13px; line-height:1.42; color:#bac4dc; }
 .cd-nwmenu-tag { grid-column:2; justify-self:start; align-self:start; font-size:9px; padding:4px 8px; }
-.cd-halt { min-height:43px; padding:10px 15px; font-size:14px; }
-.cd-halt-line { font-size:13.5px; }
-.cd-halt-do { font-size:15.5px; line-height:1.5; color:#f0f3fb; }
+.cd-feel { min-height:44px; padding:11px 16px; font-size:14px; }
+.cd-feel-line { font-size:13.5px; }
+.cd-feel-do { font-size:15.5px; line-height:1.5; color:#f0f3fb; }
+.cd-checkin-lede { font-size:13.5px; color:#aeb8d0; }
+.cd-feel-rowcap { font-size:12px; color:#aeb8d0; }
 .cd-lesson-title { font-size:24px !important; line-height:1.12; letter-spacing:-.04em; margin:7px 0 11px; }
 .cd-lesson-teach { font-size:15.5px; line-height:1.62; color:#dfe5f3; }
 .cd-lesson-skill { font-size:11.5px; color:#aeb8d0; }
@@ -3958,17 +4023,109 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
   color: #00F0FF; font-size: 10.5px; font-weight: 800;
   letter-spacing: 1.2px; text-transform: uppercase;
 }
-.cd-streak-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  border: 1px solid rgba(255,196,107,.34); border-radius: 999px;
-  background: rgba(255,196,107,.08); color: var(--cd-amber);
-  font-family: var(--font-body, "Manrope", sans-serif);
-  font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer;
+/* ── THE STREAK BANNER — Today's headline ──────────────────────────────
+   Replaced the 12px pill that used to sit in a stack of three competing
+   chips. Warmth, not alarm: the glow drifts on a 9s cycle, the halo only
+   breathes opacity, and nothing here uses filter: blur() or scales a
+   vignette — a whole-card repaint per frame is the one thing this screen
+   can't afford. */
+.cd-streakbanner {
+  position: relative; display: block; width: 100%; text-align: left; cursor: pointer;
+  border: 1px solid rgba(255,196,107,.26);
+  border-radius: 22px;
+  background:
+    linear-gradient(165deg, rgba(255,196,107,.12) 0%, rgba(255,122,136,.05) 46%, rgba(16,21,43,.55) 100%);
+  padding: 18px 18px 15px;
+  margin: 0 0 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 38px -24px rgba(255,196,107,.85), inset 0 1px rgba(255,255,255,.07);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .22s var(--ease-out), border-color .22s var(--ease-out);
 }
-.cd-streak-chip--reclaim {
-  border-color: rgba(0,240,255,.42); background: rgba(0,240,255,.10); color: #00F0FF;
+.cd-streakbanner:hover { border-color: rgba(255,196,107,.45); }
+.cd-streakbanner:active { transform: scale(.988); }
+.cd-streakbanner-glow {
+  position: absolute; inset: -45% -25% auto -25%; height: 165%;
+  background:
+    radial-gradient(ellipse 52% 58% at 20% 34%, rgba(255,196,107,.26), transparent 68%),
+    radial-gradient(ellipse 46% 52% at 84% 10%, rgba(180,155,255,.15), transparent 72%);
+  animation: cd-sb-glow 9s ease-in-out infinite;
+  pointer-events: none;
 }
-.cd-streak-chip .cd-flame { width: 15px; height: 17px; }
+@keyframes cd-sb-glow {
+  0%, 100% { opacity: .72; transform: translate3d(0, 0, 0); }
+  50% { opacity: 1; transform: translate3d(0, -7px, 0); }
+}
+.cd-streakbanner-main { position: relative; display: flex; align-items: center; gap: 12px; }
+.cd-streakbanner-fire {
+  position: relative; flex: 0 0 auto;
+  display: grid; place-items: center;
+  width: 78px; height: 84px;
+}
+.cd-streakbanner-halo {
+  position: absolute; inset: -10px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,196,107,.30), transparent 66%);
+  animation: cd-sb-halo 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cd-sb-halo { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+.cd-streakbanner-count { display: flex; flex-direction: column; min-width: 0; }
+.cd-streakbanner-n {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900; line-height: .9; letter-spacing: -.045em;
+  font-size: clamp(42px, 14vw, 58px);
+  background: linear-gradient(180deg, #fff6e2 0%, var(--cd-amber) 68%, #ff9d59 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.cd-streakbanner-unit {
+  margin-top: 5px; font-size: 11px; font-weight: 800; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--cd-amber);
+}
+.cd-streakbanner-best { margin-top: 4px; font-size: 12px; color: var(--cd-mute); }
+.cd-streakbanner-go {
+  margin-left: auto; align-self: center;
+  color: rgba(255,196,107,.55); font-size: 23px; line-height: 1;
+}
+.cd-streakbanner .cd-streakcard-week { position: relative; margin-top: 16px; }
+.cd-streakbanner-foot {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+  margin-top: 13px; padding-top: 12px;
+  border-top: 1px solid rgba(255,196,107,.16);
+  font-size: 12.5px; line-height: 1.45; color: var(--cd-soft);
+}
+.cd-streakbanner-link {
+  flex: 0 0 auto; color: var(--cd-amber);
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1.3px; text-transform: uppercase;
+}
+.cd-streakbanner--reclaim {
+  border-color: rgba(0,240,255,.34);
+  background: linear-gradient(165deg, rgba(0,240,255,.13) 0%, rgba(16,21,43,.55) 100%);
+  box-shadow: 0 14px 38px -24px rgba(0,240,255,.9), inset 0 1px rgba(255,255,255,.07);
+}
+.cd-streakbanner--reclaim .cd-streakbanner-glow {
+  background: radial-gradient(ellipse 52% 58% at 20% 34%, rgba(0,240,255,.22), transparent 68%);
+}
+.cd-streakbanner--reclaim .cd-streakbanner-halo {
+  background: radial-gradient(circle, rgba(0,240,255,.28), transparent 66%);
+}
+.cd-streakbanner--reclaim .cd-streakbanner-n {
+  background: linear-gradient(180deg, #ffffff 0%, #8ff8ff 45%, #00F0FF 100%);
+  -webkit-background-clip: text; background-clip: text;
+}
+.cd-streakbanner--reclaim .cd-streakbanner-unit,
+.cd-streakbanner--reclaim .cd-streakbanner-link,
+.cd-streakbanner--reclaim .cd-streakbanner-go { color: #00F0FF; }
+.cd-streakbanner--reclaim .cd-streakbanner-foot { border-top-color: rgba(0,240,255,.2); }
+
+html[data-reduced-motion="true"] .cd-streakbanner-glow,
+html[data-reduced-motion="true"] .cd-streakbanner-halo { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .cd-streakbanner-glow, .cd-streakbanner-halo { animation: none !important; }
+  .cd-feel-panel { animation: none !important; }
+}
 
 /* ── the re-ignition sheet ── */
 .cd-reignite {
