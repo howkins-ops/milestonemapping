@@ -30,13 +30,6 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
 
       <ZoneHeroCard onEnter={() => onNavigate("zone")} />
 
-      {/* CLEARDAY standing — self-gates: renders null until the Claim is made. */}
-      <ClearDayStatusCard />
-
-      {/* The integrity door, one tap from the dashboard — deep-links into the
-          Zone and opens the Recommit ritual. */}
-      {onRecommit && <RecommitLauncher onClick={onRecommit} />}
-
       <VisionFeatureCard onNavigate={onNavigate} />
 
       {onOpenMapQuest && <MapQuestHero onLaunch={onOpenMapQuest} />}
@@ -62,6 +55,13 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
           <span>The Formula</span>
         </button>
       </div>
+
+      {/* CLEARDAY standing — self-gates: renders null until the Claim is made. */}
+      <ClearDayStatusCard />
+
+      {/* The integrity door, one tap from the dashboard — deep-links into the
+          Zone and opens the Recommit ritual. */}
+      {onRecommit && <RecommitLauncher onClick={onRecommit} />}
     </div>
   );
 }
