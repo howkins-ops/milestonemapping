@@ -92,6 +92,14 @@ const FEATURE_STORE_KEYS = [
   "shifts_state",         // 5 Shifts training
   "hoops_records",        // Hoops personal records
   "arena_frog_v1",        // Eat The Frog streak
+  // The Anger Gym. Same omission as the Alchemist above, third time: every
+  // door a player had knocked down and every forge they had run lived only on
+  // the device that ran it. Both were device-local from the day they shipped.
+  "door_levels_state",    // legacy 4-house unlock map — kept for rollback
+  "door_campaign_v2",     // The Door campaign, keyed by slug
+  "door_heat_v1",         // Heat meter / day log / the branded polo
+  "door_grudge_v1",       // per-house grudge + neighbour suspicion
+  "pressure_forge",       // Pressure Forge streak + trail
 ];
 
 function snapshotFeatureStores() {
