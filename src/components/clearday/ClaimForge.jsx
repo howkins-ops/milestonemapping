@@ -3,6 +3,8 @@ import { forgeClaims, claimFault, claimOk, CLAIM_FRAMES } from "./identityForge.
 import cdFx from "./cdFx.js";
 import { tapLight, tapMedium } from "../../lib/haptics.js";
 import { sfxPop, sfxCoin } from "../../lib/sfx.js";
+import { hasAiConsent } from "../../lib/aiConsent.js";
+import AiConsentModal from "../common/AiConsentModal.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    THE CLAIM FORGE — stage 3 of the Identity Forge.
@@ -20,6 +22,7 @@ export default function ClaimForge({ ctx, value, onSave, settings }) {
   const [source, setSource] = useState(null); // "corner" | "local"
   const [busy, setBusy] = useState(false);
   const [asked, setAsked] = useState(false);
+  const [pendingMode, setPendingMode] = useState(null);
   const inputRef = useRef(null);
 
   const fault = claimFault(draft);
@@ -27,6 +30,9 @@ export default function ClaimForge({ ctx, value, onSave, settings }) {
 
   const run = async (mode) => {
     if (busy) return;
+    // 5.1.2: his two paragraphs don't reach Anthropic until he has said yes.
+    // Without consent the forge still works — it just stays local.
+    if (!hasAiConsent("anthropic")) { setPendingMode(mode); return; }
     setBusy(true);
     setAsked(true);
     tapMedium();
@@ -143,6 +149,30 @@ export default function ClaimForge({ ctx, value, onSave, settings }) {
           </button>
         </div>
       </div>
+
+      {pendingMode && (
+        <AiConsentModal
+          provider="anthropic"
+          onAccept={() => { const m = pendingMode; setPendingMode(null); run(m); }}
+          onCancel={() => {
+            // Declining is a real answer, not a dead end — fall through to the
+            // local composer so the stage still completes.
+            const m = pendingMode;
+            setPendingMode(null);
+            setBusy(true);
+            setAsked(true);
+            forgeClaims({
+              ...ctx,
+              mode: m === "sharpen" ? "sharpen" : "forge",
+              draft: m === "sharpen" ? draft : "",
+            }).then(({ claims, source: src }) => {
+              setCands(claims);
+              setSource(claims.length ? src : null);
+              setBusy(false);
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import DataBackupPanel from "./DataBackupPanel.jsx";
 import ThemeSelector from "./ThemeSelector.jsx";
 import DangerZone from "./DangerZone.jsx";
 import ReportsInbox from "./ReportsInbox.jsx";
+import AiConsentSettings from "./AiConsentSettings.jsx";
 import { useSettings } from "../../hooks/useSettings.js";
 import { useAppData } from "../../hooks/useAppData.js";
 import Button from "../ui/Button.jsx";
@@ -147,7 +148,30 @@ export default function SettingsPage() {
           >
             Terms of Service
           </button>
+          <button
+            type="button"
+            onClick={() => setLegalDoc("guidelines")}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent)", fontSize: 13.5, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+          >
+            Community Guidelines
+          </button>
+          <button
+            type="button"
+            onClick={() => setLegalDoc("health")}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent)", fontSize: 13.5, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+          >
+            Health Disclaimer
+          </button>
+          <button
+            type="button"
+            onClick={() => setLegalDoc("support")}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--accent)", fontSize: 13.5, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+          >
+            Support &amp; FAQ
+          </button>
         </div>
+
+        <AiConsentSettings />
         <p className="soft" style={{ fontSize: 12.5, lineHeight: 1.55 }}>{WELLNESS_DISCLAIMER}</p>
       </Card>
 

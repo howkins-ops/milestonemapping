@@ -32,13 +32,9 @@ Deno.serve(async (req) => {
   const user = userData?.user;
   if (userErr || !user) return json({ error: "Not authenticated" }, 401);
 
-  // Protect the App Review demo account: a reviewer testing 5.1.1(v) deletion
-  // must not be able to destroy the shared review credentials mid-review.
-  // Report success so the delete flow still looks correct to the reviewer.
-  const protectedEmail = (Deno.env.get("PROTECTED_REVIEW_EMAIL") ?? "coachowkins@gmail.com").toLowerCase();
-  if ((user.email ?? "").toLowerCase() === protectedEmail) {
-    return json({ deleted: true });
-  }
+  // No account is exempt. Deletion here is always real — a flow that reports
+  // success without deleting would falsify 5.1.1(v) to the reviewer who tests
+  // it. Reviewers get throwaway credentials that are meant to be destroyed.
 
   const admin = createClient(supabaseUrl, serviceKey);
 

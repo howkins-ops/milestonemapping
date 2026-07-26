@@ -19,8 +19,16 @@ export const TAGLINE = "Map the mission. Execute the day. Unlock the reward.";
 export const SUPPORT_EMAIL = "howkins.ops@gmail.com";
 export const PRIVACY_URL = "/legal/privacy.html";
 export const TERMS_URL = "/legal/terms.html";
+export const GUIDELINES_URL = "/legal/guidelines.html";
+export const HEALTH_DISCLAIMER_URL = "/legal/health-disclaimer.html";
+export const DELETE_ACCOUNT_URL = "/legal/delete-account.html";
+export const SUPPORT_URL = "/legal/support.html";
+
+// Google Play's Health Content and Services policy requires an app that is not
+// a cleared medical device to say so in these words, and to point people at a
+// professional. Keep the wording — it is quoted, not paraphrased, on purpose.
 export const WELLNESS_DISCLAIMER =
-  "Milestone Mapping is a self-development tool, not medical care. It is not a substitute for advice, diagnosis, or treatment from a licensed physician or mental-health professional.";
+  "Milestone Mapping is a self-development and training tool. It is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Always consult a qualified healthcare professional for medical advice, diagnosis, or treatment.";
 
 export const MOTIVATIONAL_COPY = [
   {

@@ -1,12 +1,14 @@
 import React from "react";
-import { grantAiConsent } from "../../lib/aiConsent.js";
+import { grantAiConsent, AI_PROVIDERS } from "../../lib/aiConsent.js";
 
-// Shown once, before the first time any prompt text leaves the device for the
-// AI image generator. Names the provider and states exactly what is sent, per
-// App Store Guideline 5.1.2(i). Reuses the shared `rig-*` modal styles.
-export default function AiConsentModal({ onAccept, onCancel }) {
+// Shown once per provider, before the first time any text leaves the device for
+// a third-party AI service. Names the provider and states exactly what is sent,
+// per App Store Guideline 5.1.2. Reuses the shared `rig-*` modal styles.
+export default function AiConsentModal({ provider = "pollinations", onAccept, onCancel }) {
+  const p = AI_PROVIDERS[provider] || AI_PROVIDERS.pollinations;
+
   const accept = () => {
-    grantAiConsent();
+    grantAiConsent(p.id);
     onAccept();
   };
 
@@ -19,21 +21,18 @@ export default function AiConsentModal({ onAccept, onCancel }) {
       <div className="rig-panel cyber-panel" style={{ maxWidth: 440 }}>
         <div className="rig-header">
           <div>
-            <div className="rig-kicker">BEFORE YOU GENERATE</div>
-            <div className="rig-title">This uses an AI image service</div>
+            <div className="rig-kicker">{p.kicker}</div>
+            <div className="rig-title">{p.title}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, lineHeight: 1.6, color: "rgba(234,251,255,0.78)" }}>
+          {p.body.map((line, i) => (
+            <p key={i} style={{ margin: 0 }}>{line}</p>
+          ))}
           <p style={{ margin: 0 }}>
-            To paint your image, the words you type are sent to{" "}
-            <strong style={{ color: "#eafbff" }}>Pollinations.ai</strong>, a third-party AI
-            image generator, which sends the picture back.
-          </p>
-          <p style={{ margin: 0 }}>
-            Only your prompt text is shared — never your name, email, journal, or
-            any other personal data. See “Optional AI features” in the Privacy
-            Policy for details.
+            See “AI features” in the Privacy Policy for details. You can withdraw
+            this in Settings at any time.
           </p>
         </div>
 

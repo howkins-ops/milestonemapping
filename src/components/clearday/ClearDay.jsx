@@ -13,6 +13,8 @@ import StreakPage from "./StreakPage.jsx";
 import StreakIgnition from "./StreakIgnition.jsx";
 import StreakFlame from "./StreakFlame.jsx";
 import { StreakWeekStrip } from "./StreakCalendar.jsx";
+import { SafetyStrip } from "./ClearDaySafety.jsx";
+import { hasAdultAck, grantAdultAck } from "../../lib/adultAck.js";
 import {
   loadClearDay, subscribeClearDay, dayNumber, elapsedDay, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
@@ -200,8 +202,14 @@ function Onboard({ onDone }) {
   const [whys, setWhys] = useState([{ text: "", intensity: 4 }]);
   const TOTAL = 8;
 
-  const toggleTrack = (t) =>
+  // Picking the porn track opens the most adult surface in the app. It asks
+  // for the same one-time 18+ acknowledgement the Anger Gym's RAW floor uses —
+  // one answer, shared (src/lib/adultAck.js).
+  const [ageGate, setAgeGate] = useState(false);
+  const toggleTrack = (t) => {
+    if (t === "porn" && !tracks.includes("porn") && !hasAdultAck()) { setAgeGate(true); return; }
     setTracks((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  };
 
   const lawsOk = tracks.every((t) => lawValid(laws[t] || ""));
   const whysOk = whys.some((w) => w.text.trim().length >= 4);
@@ -260,6 +268,27 @@ function Onboard({ onDone }) {
             </button>
           </div>
           <button type="button" className="cd-btn" disabled={!tracks.length} onClick={() => setStep(2)}>NEXT</button>
+
+          {ageGate && (
+            <div className="cd-safety-back" role="dialog" aria-label="Adult content confirmation"
+              onClick={(e) => { if (e.target === e.currentTarget) setAgeGate(false); }}>
+              <div className="cd-safety-card">
+                <div className="cd-label cd-label--dawn">18+ ONLY</div>
+                <h2 className="cd-safety-title">This front talks about porn, plainly.</h2>
+                <p className="cd-safety-lead">
+                  The porn track names urges, triggers and relapse in adult language. There is
+                  no explicit imagery anywhere in CLEARDAY — but the writing is frank, and it is
+                  written for adults.
+                </p>
+                <p className="cd-safety-lead">You'll only be asked this once.</p>
+                <button type="button" className="cd-btn cd-btn--sm"
+                  onClick={() => { grantAdultAck(); setAgeGate(false); setTracks((cur) => [...cur, "porn"]); }}>
+                  I'M 18 OR OVER
+                </button>
+                <button type="button" className="cd-ghost" onClick={() => setAgeGate(false)}>not this one</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1334,6 +1363,11 @@ export default function ClearDay({ onExit, settings }) {
           )}
           {tab === "vault" && <Vault S={S} day={absDay} settings={settings} />}
 
+          <div className="cd-bottom">
+          {/* Required health-app disclaimer + crisis lines. Pinned above the
+              tab bar so it is reachable from every screen in the module. */}
+          <SafetyStrip />
+
           <nav className="cd-tabbar" aria-label="CLEARDAY sections">
             {[
               { id: "today", label: "Today" },
@@ -1351,6 +1385,7 @@ export default function ClearDay({ onExit, settings }) {
             ))}
             <button type="button" className="cd-tab cd-tab--exit" onClick={onExit} aria-label="Close CLEARDAY"><span aria-hidden="true">×</span></button>
           </nav>
+          </div>
         </>
       )}
 

@@ -12,6 +12,7 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { GRANDIOSE_RE } from "./clearDayData.js";
+import { hasAiConsent } from "../../lib/aiConsent.js";
 
 export const CLAIM_MIN = 10;
 export const CLAIM_MAX_WORDS = 18; // the forge asks Haiku for 14; his own hand gets slack
@@ -216,9 +217,15 @@ export const CLAIM_FRAMES = ["I'm someone who ", "I don't ", "I'm the man who "]
 
 /* ── the forge call ──────────────────────────────────────────────────────
    Never throws, never blocks the stage. Resolves { claims, source } where
-   source is "corner" (real, forged in his voice) or "local" (scaffolds). */
+   source is "corner" (real, forged in his voice) or "local" (scaffolds).
+
+   Consent is enforced here as well as in the UI: this is the only function in
+   the module that can put his words on the wire, so it is the right place to
+   make "no consent, no transmission" structurally true rather than a promise
+   the calling component has to remember to keep (5.1.2). */
 export async function forgeClaims(ctx) {
   const local = composeClaims(ctx);
+  if (!hasAiConsent("anthropic")) return { claims: local, source: "local" };
   try {
     const res = await fetch("/.netlify/functions/claim-forge", {
       method: "POST",

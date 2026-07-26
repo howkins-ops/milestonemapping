@@ -535,7 +535,8 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
 .cd-page {
   max-width: 480px;
   margin: 0 auto;
-  padding: 18px 18px calc(96px + var(--safe-bottom, 0px));
+  /* clears the pinned bottom slab: safety strip + tab bar + home indicator */
+  padding: 18px 18px calc(124px + var(--safe-bottom, 0px));
 }
 
 @keyframes cd-rise {
@@ -1319,13 +1320,87 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
 
 /* ── tab bar ────────────────────────────────────────────────────────── */
 
-.cd-tabbar {
+/* The pinned bottom furniture: required safety strip stacked on the tab bar.
+   The wrapper owns the fixed positioning so the strip can never drift away
+   from the tabs or be covered by them. */
+.cd-bottom {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
+  z-index: 30;
+}
+.cd-safety-strip {
+  display: block;
+  width: 100%;
+  padding: 7px 14px 6px;
+  border: none;
+  border-top: 1px solid var(--cd-line-soft);
+  background: rgba(8, 11, 24, 0.94);
+  backdrop-filter: blur(20px) saturate(140%);
+  color: var(--cd-mute);
+  font-family: var(--font-body, "Manrope", sans-serif);
+  font-size: 10.5px;
+  line-height: 1.45;
+  letter-spacing: 0.2px;
+  text-align: center;
+  cursor: pointer;
+}
+.cd-safety-strip strong { color: var(--cd-soft); font-weight: 800; }
+.cd-safety-strip:active { color: var(--cd-soft); }
+
+.cd-safety-back {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px 14px calc(20px + var(--safe-bottom, 0px));
+  background: rgba(4, 6, 15, 0.82);
+  backdrop-filter: blur(6px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cd-safety-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 22px;
+  border: 1px solid var(--cd-line);
+  border-radius: 22px;
+  background: var(--cd-slate2, #10162c);
+  box-shadow: 0 -20px 60px -30px #000;
+}
+.cd-safety-title {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--cd-bright);
+  margin: 8px 0 12px;
+}
+.cd-safety-lead { font-size: 13.5px; line-height: 1.62; color: var(--cd-text); margin: 0 0 12px; }
+.cd-safety-lead strong { color: var(--cd-bright); font-weight: 800; }
+.cd-safety-warn {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 196, 107, 0.32);
+  border-radius: 14px;
+  background: rgba(255, 196, 107, 0.07);
+  font-size: 13px;
+  line-height: 1.58;
+  color: var(--cd-text);
+}
+.cd-safety-list { margin: 10px 0 14px; padding-left: 18px; }
+.cd-safety-list li { font-size: 13.5px; line-height: 1.6; color: var(--cd-text); margin-bottom: 7px; }
+.cd-safety-list strong { color: var(--cd-bright); font-weight: 800; }
+.cd-safety-foot { font-size: 12.5px; line-height: 1.6; color: var(--cd-mute); margin: 0 0 16px; }
+
+.cd-tabbar {
+  position: relative;
+  width: 100%;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -1725,7 +1800,7 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
 /* ═══════════════════════════════════════════════════════════════════════════
    CLEAR 3.0 — cinematic hierarchy and ADHD-first scanability
    ═══════════════════════════════════════════════════════════════════════════ */
-.cd-page { padding: 22px 18px calc(112px + var(--safe-bottom, 0px)); }
+.cd-page { padding: 22px 18px calc(140px + var(--safe-bottom, 0px)); }
 .cd-page > * + * { margin-top: 4px; }
 .cd-h1 {
   font-size: clamp(38px, 11vw, 58px);
@@ -1827,7 +1902,12 @@ html[data-reduced-motion="true"] .cd-proof-tile--loading { animation: none !impo
 .cd-nwmenu-title { font-size:14px; color:#f4f1e8; }
 .cd-nwmenu-sub { font-size:12px; color:#abb5d0; }
 
-.cd-tabbar { max-width:500px; padding-top:10px; border:1px solid rgba(127,180,255,.16); border-bottom:0; border-radius:24px 24px 0 0; box-shadow:0 -18px 50px -26px #000; }
+/* The chrome lives on the wrapper now that the safety strip caps the stack —
+   the rounded lip and the border belong to the whole bottom slab, not the
+   tab row halfway down it. */
+.cd-bottom { border:1px solid rgba(127,180,255,.16); border-bottom:0; border-radius:24px 24px 0 0; box-shadow:0 -18px 50px -26px #000; overflow:hidden; }
+.cd-safety-strip { border-top:0; }
+.cd-tabbar { padding-top:10px; }
 .cd-tab { min-height:55px; font-size:10px; color:#929dc1; }
 .cd-tab--on::after { content:""; position:absolute; bottom:-5px; width:22px; height:2px; border-radius:9px; background:linear-gradient(90deg,var(--cd-dawn),var(--cd-amber)); box-shadow:0 0 10px var(--cd-dawn); animation:cd-tab-light .38s cubic-bezier(.2,.9,.2,1); }
 
@@ -3159,7 +3239,7 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
 }
 .cd-corner-msg--typing { color: var(--cd-mute); letter-spacing: 3px; }
 .cd-corner-inputrow {
-  display: flex; gap: 9px; padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  display: flex; gap: 9px; padding: 12px 14px 10px;
   border-top: 1px solid var(--cd-line-soft);
 }
 .cd-corner-input {
@@ -3173,6 +3253,13 @@ html[data-reduced-motion="true"] .cd-flame-spark { animation: none !important; }
   color: #0c1022; background: linear-gradient(135deg, var(--cd-dawn), #a8ccff);
 }
 .cd-corner-send:disabled { opacity: 0.35; }
+/* Standing "this is an AI, and here is the real line" footer. It carries the
+   home-indicator inset now that it sits below the composer. */
+.cd-corner-foot {
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  font-size: 11px; line-height: 1.5; color: var(--cd-mute); text-align: center;
+}
+.cd-corner-foot strong { color: var(--cd-soft); }
 
 /* ── The Last Rep (ritual-complete, night only) ── */
 .cd-lastrep {

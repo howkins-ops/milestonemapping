@@ -294,7 +294,26 @@ export default function Hoops({ go, initialFullscreen = false }) {
   return (
     <div ref={rootRef} style={{ position: "fixed", top: "var(--safe-top, 0px)", bottom: "var(--safe-bottom, 0px)", left: "var(--safe-left, 0px)", right: "var(--safe-right, 0px)", zIndex: 20, background: BG, overflow: "hidden", fontFamily: "'Rajdhani',system-ui,sans-serif", color: "#fff", WebkitTapHighlightColor: "transparent" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@500;600;700&family=Orbitron:wght@700;900&display=swap');
+        /* Scoreboard type, served from the bundle. This used to @import from
+           fonts.googleapis.com, which meant an undisclosed third-party request
+           on every launch of the game and system-fallback type whenever the
+           phone was offline. The family names are kept so the ~30 inline
+           styles below don't have to change; they now resolve to woff2 files
+           that ship with the app.
+
+           To restore the exact original faces, drop these five files into
+           public/fonts/ and repoint the src urls — nothing else changes:
+             rajdhani-500/600/700.woff2  fonts.gstatic.com/s/rajdhani/v17/
+             oswald-var.woff2            fonts.gstatic.com/s/oswald/v57/
+             orbitron-var.woff2          fonts.gstatic.com/s/orbitron/v35/ */
+        @font-face { font-family:'Rajdhani'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/inter-tight-500.woff2') format('woff2'); }
+        @font-face { font-family:'Rajdhani'; font-style:normal; font-weight:600; font-display:swap; src:url('/fonts/inter-tight-500.woff2') format('woff2'); }
+        @font-face { font-family:'Rajdhani'; font-style:normal; font-weight:700; font-display:swap; src:url('/fonts/inter-tight-700.woff2') format('woff2'); }
+        @font-face { font-family:'Oswald';   font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/inter-tight-500.woff2') format('woff2'); }
+        @font-face { font-family:'Oswald';   font-style:normal; font-weight:600; font-display:swap; src:url('/fonts/inter-tight-700.woff2') format('woff2'); }
+        @font-face { font-family:'Oswald';   font-style:normal; font-weight:700; font-display:swap; src:url('/fonts/inter-tight-700.woff2') format('woff2'); }
+        @font-face { font-family:'Orbitron'; font-style:normal; font-weight:700; font-display:swap; src:url('/fonts/sora-700.woff2') format('woff2'); }
+        @font-face { font-family:'Orbitron'; font-style:normal; font-weight:900; font-display:swap; src:url('/fonts/sora-800.woff2') format('woff2'); }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         @keyframes pulseGlow { 0%,100%{filter:drop-shadow(0 0 12px ${V})} 50%{filter:drop-shadow(0 0 34px ${V_GLOW})} }
         @keyframes ringDraw { to { stroke-dashoffset: 0; } }

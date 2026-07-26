@@ -6,6 +6,10 @@ import Modal from "../ui/Modal.jsx";
 const DOCS = {
   privacy: { path: "/legal/privacy.html", title: "Privacy Policy" },
   terms: { path: "/legal/terms.html", title: "Terms of Service" },
+  guidelines: { path: "/legal/guidelines.html", title: "Community Guidelines" },
+  health: { path: "/legal/health-disclaimer.html", title: "Health Disclaimer" },
+  support: { path: "/legal/support.html", title: "Support" },
+  deleteAccount: { path: "/legal/delete-account.html", title: "Delete Your Account" },
 };
 
 export default function LegalModal({ doc, onClose }) {

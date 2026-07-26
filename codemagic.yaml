@@ -48,3 +48,62 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # ── Android → Play internal testing ──────────────────────────────────────
+  #
+  # One-time setup in the Codemagic dashboard:
+  #   1. Teams → Integrations → Google Play: upload the service-account JSON
+  #      (Play Console → Setup → API access → create service account, grant it
+  #      "Release to testing tracks"). Name the variable group "google_play".
+  #   2. Codemagic → this app → Environment variables, group "keystore_creds":
+  #        CM_KEYSTORE           (the .jks, uploaded as a secure file)
+  #        CM_KEYSTORE_PASSWORD
+  #        CM_KEY_ALIAS
+  #        CM_KEY_PASSWORD
+  #      Generate the keystore once and BACK IT UP — losing it means you can
+  #      never update the app under this package name again.
+  #   3. Create the app in Play Console and upload one AAB by hand first; Play
+  #      will not accept an API upload to a track that has never been released.
+  #
+  # Play requires an AAB (not an APK) and, for a personal developer account
+  # created after 2023-11-13, a closed test with 12 testers for 14 consecutive
+  # days before production is unlocked. Start that clock early.
+  android-play:
+    name: Android → Play internal
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      node: 22
+      java: 21
+      groups:
+        - keystore_creds
+      vars:
+        PACKAGE_NAME: com.milestonemapping.app
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Build web app
+        script: npm run build
+      - name: Capacitor sync
+        script: npx cap sync android
+      - name: Set up keystore
+        script: |
+          echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/android/release.keystore"
+          cat >> "$CM_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=$CM_BUILD_DIR/android/release.keystore
+          EOF
+      - name: Build AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

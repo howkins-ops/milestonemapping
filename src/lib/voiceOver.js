@@ -3,6 +3,8 @@
 // Always degrades gracefully: if the network/endpoint fails it falls back to the
 // device's built-in speech engine so a guided meditation still narrates aloud.
 
+import { hasAiConsent } from "./aiConsent.js";
+
 const TTS_BASE = "https://text.pollinations.ai";
 
 // The six studio voices Pollinations exposes. Ordered for meditation warmth first.
@@ -40,7 +42,15 @@ export function createLineAudio(text, voice = "onyx", localSrc = null, opts = {}
     const sources = [];
     if (localSrc) sources.push(localSrc);
     if (opts.elevenVoiceId) sources.push(buildElevenUrl(text, opts.elevenVoiceId));
-    sources.push(buildVoiceUrl(text, voice)); // Pollinations — always the last remote fallback
+    // Pollinations is the last remote fallback — and it only gets used with
+    // consent. This path is not always scripted copy: CLEARDAY's Incantation
+    // speaks the user's OWN identity claim and devotion line, and there is no
+    // baked mp3 for a sentence they wrote themselves, so without this guard
+    // their recovery statement would leave the device unasked (5.1.2).
+    // Declining costs nothing audible: the on-device speech engine below is
+    // still the final fallback, so every guided line still narrates.
+    if (hasAiConsent("pollinations")) sources.push(buildVoiceUrl(text, voice));
+    if (!sources.length) return null; // nothing to preload; caller falls through to synth
     const a = new Audio(sources[0]);
     a.preload = "auto";
     a._fallbackSrcs = sources.slice(1); // ordered remaining remotes; synth is the final fallback

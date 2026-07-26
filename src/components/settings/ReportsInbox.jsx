@@ -13,6 +13,15 @@ export default function ReportsInbox() {
   const [filter, setFilter] = useState("open");
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
+  const [openCount, setOpenCount] = useState(0);
+
+  // The authoritative open-report count, independent of the current filter.
+  // Counting the loaded rows instead (as this did) reported "0 open" the moment
+  // you switched to the Resolved tab — the opposite of a moderation signal.
+  const refreshCount = useCallback(async () => {
+    const { data } = await supabase.rpc("az_admin_open_report_count");
+    setOpenCount(typeof data === "number" ? data : 0);
+  }, []);
 
   const load = useCallback(async (status) => {
     const { data, error: err } = await supabase.rpc("az_admin_list_reports", {
@@ -32,11 +41,12 @@ export default function ReportsInbox() {
       if (cancelled || !data) return;
       setIsAdmin(true);
       load("open");
+      refreshCount();
     });
     return () => {
       cancelled = true;
     };
-  }, [load]);
+  }, [load, refreshCount]);
 
   if (!isAdmin) return null;
 
@@ -53,9 +63,8 @@ export default function ReportsInbox() {
       return;
     }
     load(filter);
+    refreshCount();
   };
-
-  const openCount = reports.filter((r) => r.status === "open").length;
 
   return (
     <>

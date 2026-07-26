@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { castVote } from "./clearDayStore.js";
 import { tapLight } from "../../lib/haptics.js";
+import { hasAiConsent } from "../../lib/aiConsent.js";
+import AiConsentModal from "../common/AiConsentModal.jsx";
 
 /* ═══════════════════════════════════════════════════════════════
    THE CORNER — the always-awake corner man. Mid-urge or late-night
@@ -22,6 +24,7 @@ export default function CornerChat({ S, day, onClose }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [showConsent, setShowConsent] = useState(false);
   const logged = useRef(false);
   const scrollRef = useRef(null);
 
@@ -32,6 +35,8 @@ export default function CornerChat({ S, day, onClose }) {
   const send = async () => {
     const clean = text.trim();
     if (!clean || busy) return;
+    // 5.1.2: nothing he types reaches Anthropic until he has said yes, by name.
+    if (!hasAiConsent("anthropic")) { setShowConsent(true); return; }
     tapLight();
     const next = [...msgs, { role: "user", content: clean }];
     setMsgs(next);
@@ -81,7 +86,7 @@ export default function CornerChat({ S, day, onClose }) {
           <img className="cd-corner-art" src="/assets/clearday/reach-out-v3.webp" alt="" />
           <div>
             <div className="cd-corner-title">THE CORNER</div>
-            <div className="cd-corner-sub">{offline ? "reconnecting…" : "always awake · nothing leaves this room"}</div>
+            <div className="cd-corner-sub">{offline ? "reconnecting…" : "always awake · an AI, not a person"}</div>
           </div>
           <button type="button" className="cd-corner-x" onClick={onClose} aria-label="Close">×</button>
         </div>
@@ -114,7 +119,20 @@ export default function CornerChat({ S, day, onClose }) {
             ➤
           </button>
         </div>
+
+        <div className="cd-corner-foot">
+          Not a therapist, counselor or crisis line. In danger right now? Call or text{" "}
+          <strong>988</strong> (US), or your local emergency number.
+        </div>
       </div>
+
+      {showConsent && (
+        <AiConsentModal
+          provider="anthropic"
+          onAccept={() => { setShowConsent(false); send(); }}
+          onCancel={() => setShowConsent(false)}
+        />
+      )}
     </div>
   );
 }
