@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import "../../styles/zone.css";
 import "../../styles/arena.css";
 import "../../styles/arena3d.css";
@@ -20,8 +20,8 @@ import MessagesHub from "./messages/MessagesHub.jsx";
 import ZoneProfile from "./profile/ZoneProfile.jsx";
 import ReportsPanel from "./reports/ReportsPanel.jsx";
 import ArenaHome from "./arena/ArenaHome.jsx";
+import RosterPage from "./arena/RosterPage.jsx";
 import { getArenaGame } from "./arena/arenaGames.js";
-import RosterSheet from "../layout/RosterSheet.jsx";
 import MapQuestCityPage from "../city/MapQuestCityPage.jsx";
 import { EmberCanvas, ArenaIntro } from "./arena/ArenaFX.jsx";
 
@@ -57,8 +57,13 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
   );
   const [viewParam, setViewParam] = useState(bootHoops ? "full_court" : initialParam ?? null);
   const [gameFullscreen, setGameFullscreen] = useState(bootHoops);
-  const [rosterOpen, setRosterOpen] = useState(false);
   const [overlay, setOverlay] = useState(null); // 'declare' | 'proof' | null
+  // Games are hosted by the arena view, but they can be launched from the Games
+  // tab (the Roster). Every game's exit is a bare go("arena"), so remember where
+  // the launch came from and send it back there instead of stranding the player
+  // on the Squad page. viewRef tracks the live view for that decision.
+  const viewRef = useRef(bootHoops ? "arena" : bootRecommit ? "home" : initialView || "home");
+  const gameOriginRef = useRef(null);
   // One-shot: the deep-link intent opens the Recommit ritual on first Home
   // render only — leaving and returning to Home must not reopen it.
   const [recommitPending, setRecommitPending] = useState(bootRecommit);
@@ -75,14 +80,26 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
       return;
     }
     if (next === "hoops") {
+      gameOriginRef.current = viewRef.current === "roster" ? "roster" : null;
       setGameFullscreen(true);
       setView("arena");
+      viewRef.current = "arena";
       setViewParam("full_court");
       window.scrollTo({ top: 0 });
       return;
     }
+    let target = next;
+    if (next === "arena" && param) {
+      // Launching a game — remember the screen it was launched from.
+      gameOriginRef.current = viewRef.current === "roster" ? "roster" : null;
+    } else if (next === "arena" && !param && gameOriginRef.current === "roster") {
+      // Leaving a game that started on the Games tab — land back on the Roster.
+      target = "roster";
+      gameOriginRef.current = null;
+    }
     setGameFullscreen(false);
-    setView(next);
+    setView(target);
+    viewRef.current = target;
     setViewParam(param);
     window.scrollTo({ top: 0 });
   }, [bootHoops, onCloseZone]);
@@ -147,11 +164,7 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
             </span>
           </header>
 
-          <ZoneNav
-            view={view === "arena" ? "squad" : view}
-            go={go}
-            onOpenRoster={() => setRosterOpen(true)}
-          />
+          <ZoneNav view={view === "arena" ? "squad" : view} go={go} />
         </>
       )}
 
@@ -173,6 +186,7 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
       )}
       {view === "feed" && <ZoneFeed go={go} />}
       {view === "arena" && <ArenaHome go={go} gameKey={viewParam} fullscreen={gameFullscreen} />}
+      {view === "roster" && <RosterPage go={go} />}
       {view === "squad" && <SquadPanel go={go} squadId={viewParam} />}
       {view === "messages" && <MessagesHub go={go} conversationId={viewParam} initialTab="chats" />}
       {view === "inbox" && <MessagesHub go={go} initialTab="alerts" />}
@@ -184,14 +198,6 @@ function ZoneInner({ onNavigate, onOpenMapQuest, onCloseZone, initialView, initi
 
       {overlay === "declare" && <DeclareMission onClose={closeOverlay} onDone={closeOverlay} />}
       {isProofOverlay && <PostProof onClose={closeOverlay} onDone={closeOverlay} challengeId={overlay.param} />}
-
-      {/* Roster — the games launcher, opened from the Zone nav's Roster tab. */}
-      <RosterSheet
-        open={rosterOpen}
-        onClose={() => setRosterOpen(false)}
-        onPickGame={(key) => { setRosterOpen(false); go("arena", key); }}
-        onPickView={(v) => { setRosterOpen(false); go(v, null); }}
-      />
     </div>
   );
 }

@@ -23,7 +23,7 @@ const SCOPE_META = {
   solo: { label: "Solo", c1: "#00FFBF", c2: "#00F0FF" },
 };
 
-function GameCard({ game, index, onPick }) {
+function GameCard({ game, index, no, onPick }) {
   const meta = SCOPE_META[game.scope] || SCOPE_META.squad;
   const tiltRef = useCardTilt({ max: 9 });
 
@@ -57,7 +57,7 @@ function GameCard({ game, index, onPick }) {
           <span className="arn-card__glare" />
         </span>
         <span className="arn-card__num" aria-hidden="true">
-          {index < 9 ? `0${index + 1}` : index + 1}
+          {no < 10 ? `0${no}` : no}
         </span>
         <span className="arn-card__scope" aria-hidden="true">
           {meta.label}
@@ -78,7 +78,10 @@ function GameCard({ game, index, onPick }) {
   );
 }
 
-export default function ArenaGamesGrid({ go }) {
+// `games` lets a caller show a slice of the roster (RosterPage's scope filter);
+// the card number always comes from the registry so 04 is Hoops in every view.
+// `showHeader` is off when the page already carries the title (RosterPage).
+export default function ArenaGamesGrid({ go, games = ARENA_GAMES, showHeader = true }) {
   const reveal = useReveal();
   const burst = useArenaBurst();
 
@@ -94,18 +97,26 @@ export default function ArenaGamesGrid({ go }) {
 
   return (
     <section className="arn-wrap" ref={reveal}>
-      <header className="arn-head">
-        <p className="zn-eyebrow arn-eyebrow">Choose your fighter</p>
-        <h2 className="arn-title">The Roster</h2>
-        <p className="arn-sub">
-          Ten arenas, ten ways to burn. Every game trains a different muscle of the fire.
-          Lock one in and step into the light.
-        </p>
-      </header>
+      {showHeader && (
+        <header className="arn-head">
+          <p className="zn-eyebrow arn-eyebrow">Choose your fighter</p>
+          <h2 className="arn-title">The Roster</h2>
+          <p className="arn-sub">
+            Ten arenas, ten ways to burn. Every game trains a different muscle of the fire.
+            Lock one in and step into the light.
+          </p>
+        </header>
+      )}
 
       <div className="arn-grid">
-        {ARENA_GAMES.map((game, i) => (
-          <GameCard key={game.key} game={game} index={i} onPick={pick} />
+        {games.map((game, i) => (
+          <GameCard
+            key={game.key}
+            game={game}
+            index={i}
+            no={ARENA_GAMES.indexOf(game) + 1}
+            onPick={pick}
+          />
         ))}
       </div>
     </section>

@@ -157,6 +157,41 @@
   animation: ah-pulse 2.4s ease-in-out infinite;
 }
 
+/* ---- roster door (the grid itself lives on the Games tab) ---- */
+.ah-roster {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.14s ease, box-shadow 0.18s ease;
+}
+.ah-roster__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ah-roster__big {
+  font-family: "Sora", "Manrope", sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.15;
+  background: linear-gradient(100deg, #00f0ff 0%, #ff3edb 60%, #d11eff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ah-roster:active {
+  transform: scale(0.985);
+}
+@media (hover: hover) {
+  .ah-roster:hover {
+    box-shadow: 0 0 0 1px var(--zfire-glow), 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+}
+
 /* ---- boss ---- */
 .ah-boss {
   display: flex;

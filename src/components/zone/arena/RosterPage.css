@@ -1,0 +1,137 @@
+/* RosterPage — the Games tab's own screen. The card grid itself is styled by
+   ArenaHome.css (.arn-*); this file only owns the page frame, the scope filter
+   and the human shortcuts. Prefix: rp-. */
+
+.rp-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-head {
+  padding-top: 2px;
+}
+.rp-title {
+  /* h1 on this screen — same fire gradient as the old section title. */
+  margin: 6px 0 0;
+}
+
+/* ---- scope filter ---- */
+.rp-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: none;
+}
+.rp-filters::-webkit-scrollbar {
+  display: none;
+}
+.rp-filter {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--zn-line, rgba(255, 255, 255, 0.12));
+  background: var(--zn-card);
+  color: var(--text-soft);
+  font-family: "Sora", "Manrope", sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+.rp-filter__n {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-soft);
+  opacity: 0.75;
+}
+.rp-filter.is-on {
+  color: var(--text-main);
+  border-color: var(--zfire);
+  background: var(--zfire-soft);
+  box-shadow: 0 0 18px -6px var(--zfire-glow);
+}
+.rp-filter.is-on .rp-filter__n {
+  color: var(--zfire);
+  opacity: 1;
+}
+.rp-filter:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .rp-filter:hover {
+    color: var(--text-main);
+    border-color: var(--zfire);
+  }
+}
+
+/* ---- human shortcuts ---- */
+.rp-quick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.rp-quick__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 620px) {
+  .rp-quick__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.rp-quick__btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 13px 38px 13px 15px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--rq) 38%, transparent);
+  background: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--rq) 12%, transparent),
+      transparent 62%
+    ),
+    var(--zn-card);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.rp-quick__label {
+  font-family: "Sora", "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.rp-quick__sub {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.rp-quick__arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 17px;
+  color: var(--rq);
+}
+.rp-quick__btn:active {
+  transform: scale(0.985);
+}
+@media (hover: hover) {
+  .rp-quick__btn:hover {
+    border-color: var(--rq);
+    box-shadow: 0 10px 26px -14px var(--rq);
+  }
+}

@@ -80,8 +80,8 @@ function Glyph({ name }) {
 // Friends is its own tab (people asked "how do I add a friend?") — one tap
 // to the search + your circle, right next to Squad.
 // Chat now folds Inbox in (Chats + Alerts sub-tabs), freeing a slot for the
-// Games tab (key stays "roster") — the games launcher that opens the roster
-// sheet, not a view swap.
+// Games tab (key stays "roster"). It is a REAL view swap now — the full-page
+// Roster (RosterPage), not the old bottom sheet.
 const TABS = [
   { key: "home", label: "Home" },
   { key: "friends", label: "Friends" },
@@ -104,7 +104,7 @@ const TAB_ALIAS = {
   inbox: "messages",
 };
 
-export default function ZoneNav({ view, go, onOpenRoster }) {
+export default function ZoneNav({ view, go }) {
   const { unreadNotifications, unreadMessages } = useZoneCtx();
   const active = TAB_ALIAS[view] || view;
   // The merged Chat tab carries both unread streams (messages + notifications).
@@ -122,11 +122,7 @@ export default function ZoneNav({ view, go, onOpenRoster }) {
             type="button"
             data-key={t.key}
             className={`zn-tab${isActive ? " zn-tab--active" : ""}${badge > 0 ? " zn-tab--alert" : ""}`}
-            onClick={() =>
-              t.key === "roster"
-                ? onOpenRoster?.()
-                : go(t.key === "squad" ? "arena" : t.key)
-            }
+            onClick={() => go(t.key === "squad" ? "arena" : t.key)}
             aria-current={isActive ? "page" : undefined}
           >
             <span className="zn-tab__icon" aria-hidden="true">

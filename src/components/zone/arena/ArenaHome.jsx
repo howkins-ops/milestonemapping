@@ -1,7 +1,9 @@
 // ArenaHome — the living Squad Arena screen. This is the redesigned squad
 // experience: a crest + fire-tier division, a Chain-of-Fire strip, a Boss HP
 // bar, an ACTIVITY board (this week's real fire), a live Vows preview, a
-// one-tap fire-bump on the squad's latest win, and the full game Roster.
+// one-tap fire-bump on the squad's latest win, and one door to the Roster.
+// (The Roster grid itself moved out to its own screen — RosterPage, the Zone's
+// Games tab. This page must never render a second copy of it.)
 //
 // It is ALSO the arena router: when `gameKey` matches a registry entry it renders
 // that game's <Component go={go} /> under a zn-back to the hub; otherwise it shows
@@ -18,8 +20,7 @@ import { useZoneCtx } from "../../../hooks/useZone.js";
 import { useAppData } from "../../../hooks/useAppData.js";
 import { getLeaderboard, fetchFeed, react } from "../../../lib/zoneService.js";
 import { chainState, bossState, vowList } from "../../../lib/arenaService.js";
-import { getArenaGame } from "./arenaGames.js";
-import ArenaGamesGrid from "./ArenaGamesGrid.jsx";
+import { getArenaGame, ARENA_GAMES } from "./arenaGames.js";
 import { ArenaSoundToggle } from "./ArenaFX.jsx";
 import { useReveal, useArenaBurst } from "./useArenaFX.js";
 import { sfxCoin } from "../../../lib/sfx.js";
@@ -294,8 +295,24 @@ function ArenaHub({ go }) {
         )}
       </div>
 
-      {/* The Roster */}
-      <ArenaGamesGrid go={go} />
+      {/* The Roster lives on its own screen now (the Games tab) — this squad
+          page keeps one door to it instead of a second copy of the grid. */}
+      <button
+        type="button"
+        className="ah-roster zn-card"
+        onClick={() => go && go("roster")}
+      >
+        <span className="ah-roster__body">
+          <span className="ah-strip__eyebrow">The Roster</span>
+          <span className="ah-roster__big">Choose your fighter</span>
+          <span className="ah-strip__sub">
+            All {ARENA_GAMES.length} arenas live on the Games tab.
+          </span>
+        </span>
+        <span className="ah-strip__go" aria-hidden="true">
+          →
+        </span>
+      </button>
     </div>
   );
 }
