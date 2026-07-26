@@ -9,12 +9,16 @@ import NightLedger from "./NightLedger.jsx";
 import CornerChat from "./CornerChat.jsx";
 import ReachOut from "./ReachOut.jsx";
 import DevotionSetup from "./DevotionSetup.jsx";
+import StreakPage from "./StreakPage.jsx";
+import StreakIgnition from "./StreakIgnition.jsx";
+import StreakFlame from "./StreakFlame.jsx";
+import { StreakWeekStrip } from "./StreakCalendar.jsx";
 import {
-  loadClearDay, subscribeClearDay, dayNumber, currentRun, PROGRAM_DAYS,
+  loadClearDay, subscribeClearDay, dayNumber, elapsedDay, currentRun, PROGRAM_DAYS,
   completeOnboarding, castVote, castDailyRep, closeOutDay, logBattle,
-  addWhy, addCard, saveTape,
+  addWhy, addCard, saveTape, streakStats, backfillStreak,
   addFreedomItem, addFutureLetter, openFutureLetter,
-  setLaw, fileService, addRepair, setRepairStatus, setDevotion,
+  setLaw, fileService, addRepair, setRepairStatus, setDevotion, addCatch,
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
@@ -495,11 +499,65 @@ function UnseenWorkCard({ S, day, settings, celebrate, addXPSafe }) {
   );
 }
 
+/* ═══ THE CATCH — one compact identity rep, right on Today ═══════════
+   The minimum viable daily identity rep, folded into the field instead
+   of living only behind a pointer chip to Identity. Collapsed to a
+   single row until tapped; the full 3-rep workout still lives in
+   Identity for anyone who wants to go deeper. */
+function CatchCard({ S, day, settings, celebrate, addXPSafe }) {
+  const [open, setOpen] = useState(false);
+  const [lie, setLie] = useState("");
+  const [truth, setTruth] = useState("");
+  const maskName = S.identity.maskName || "The Mask";
+  const done = S.ballot.some((b) => b.day === day && b.kind === "catch");
+
+  if (done) {
+    return (
+      <button type="button" className="cd-catch cd-catch--done" onClick={() => setOpen((o) => !o)}>
+        <span className="cd-catch-check" aria-hidden="true">✓</span>
+        <span className="cd-catch-line">Caught {maskName} today. On the record.</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="cd-card cd-catch-card">
+      <button type="button" className="cd-catch-toggle" onClick={() => { tapLight(); setOpen((o) => !o); }}>
+        <span className="cd-label" style={{ color: "var(--cd-violet)" }}>THE CATCH — what did {maskName} say today?</span>
+        <span className={`cd-nightshift-chev ${open ? "cd-nightshift-chev--open" : ""}`} aria-hidden="true">›</span>
+      </button>
+      {open && (
+        <>
+          <input className="cd-input" value={lie} onChange={(e) => setLie(e.target.value)} placeholder={`The lie, word for word — "${maskName} said…"`} />
+          <input className="cd-input" value={truth} onChange={(e) => setTruth(e.target.value)} placeholder="What's actually true" />
+          <button
+            type="button"
+            className="cd-btn cd-btn--rep"
+            disabled={lie.trim().length < 3 || truth.trim().length < 3}
+            onClick={(e) => {
+              addCatch(lie, truth);
+              addXPSafe(XP_VALUES.cleardayWorkoutRep, "The catch");
+              cdFx.burstFrom(e, "spark", 14, "#b49bff");
+              tapMedium();
+              sfxPop(settings);
+              celebrate();
+              setLie(""); setTruth("");
+            }}
+          >
+            FILE THE CATCH
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
 function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner, onLedger }) {
   const [reachOpen, setReachOpen] = useState(false);
   const [devotionOpen, setDevotionOpen] = useState(false);
+  const [nightOpen, setNightOpen] = useState(false);
   const lesson = lessonFor(day);
   const repDone = S.curriculumDone.includes(day);
   const closed = Boolean(S.closedDays[day]);
@@ -540,76 +598,88 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
         </div>
       </div>
 
+      <CatchCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
+
       {/* ── THE NIGHT SHIFT — dusk onward, Today knows what time it is.
            One night surface only: every chip is a POINTER into the Ritual,
            never a duplicate. Weed's window is the evening; porn's is
            10pm–2am (research §4) — the card escalates as the night deepens. */}
       {isNightShift(hour) && (
-        !closed ? (
-          <div className="cd-card cd-nightshift">
-            <div className="cd-nightshift-glow" aria-hidden="true" />
-            <div className="cd-label" style={{ color: "var(--cd-amber)" }}>☾ THE NIGHT WORK</div>
-            <div className="cd-nightshift-line">The Mask works nights. So do we. Tap any row.</div>
-            {hour >= NIGHT.ESCALATE_H && S.tracks.includes("porn") && (
-              <div className="cd-nightshift-curfew">
-                Phone leaves the bedroom at {NIGHT.CURFEW_H - 12}. That's not willpower — that's the law.
-              </div>
-            )}
+        !closed ? (() => {
+          const ledgerDone = S.ballot.some((b) => b.day === day && b.kind === "ledger");
+          const serviceDone = S.ballot.some((b) => b.day === day && b.kind === "service");
+          const reachDone = S.ballot.some((b) => b.day === day && b.kind === "reachout");
+          const devotionSet = Boolean(S.identity.devotion);
+          const nightDoneCount = [ledgerDone, serviceDone, reachDone, devotionSet].filter(Boolean).length;
+          return (
+            <div className="cd-card cd-nightshift">
+              <button type="button" className="cd-nightshift-summary" onClick={() => { tapLight(); setNightOpen((o) => !o); }}>
+                <span className="cd-nightshift-glow" aria-hidden="true" />
+                <span className="cd-nightshift-summary-text">
+                  <span className="cd-label" style={{ color: "var(--cd-amber)" }}>☾ THE NIGHT WORK</span>
+                  <span className="cd-nightshift-summary-sub">{nightDoneCount}/4 done tonight — {nightOpen ? "tap to close" : "tap to open"}</span>
+                </span>
+                <span className={`cd-nightshift-chev ${nightOpen ? "cd-nightshift-chev--open" : ""}`} aria-hidden="true">›</span>
+              </button>
 
-            {(() => {
-              const ledgerDone = S.ballot.some((b) => b.day === day && b.kind === "ledger");
-              const serviceDone = S.ballot.some((b) => b.day === day && b.kind === "service");
-              const devotionSet = Boolean(S.identity.devotion);
-              const rows = [
-                {
-                  image: "/assets/clearday/night-ledger-v3.webp", tag: "NIGHTLY", tagClass: "amber", title: "The Night Ledger",
-                  sub: "Take tonight's fuel out of the Mask's hands. ~60s.",
-                  done: ledgerDone, onClick: () => onLedger && onLedger(),
-                },
-                {
-                  image: "/assets/clearday/unseen-work-v3.webp", tag: "DAILY", tagClass: "teal", title: "Unseen Work",
-                  sub: "One thing for someone else — crit if you're never found out.",
-                  done: serviceDone,
-                  onClick: () => document.getElementById("cd-unseen-work")?.scrollIntoView({ behavior: "smooth", block: "center" }),
-                },
-                {
-                  image: "/assets/clearday/reach-out-v3.webp", tag: "BATTLE", tagClass: "rose", title: "Reach Out",
-                  sub: "Put a human in the room before you face the Mask alone.",
-                  done: false, onClick: () => setReachOpen(true),
-                },
-                {
-                  image: "/assets/clearday/overwrite-v3.webp", tag: "VAULT", tagClass: "violet", title: "The Overwrite",
-                  sub: "Old-chapter scenes, reshot by the clear you.",
-                  done: false, onClick: () => onGoTab && onGoTab("vault"),
-                },
-                {
-                  image: "/assets/clearday/devotion-line-v3.webp", tag: "RITUAL", tagClass: "violet", title: "The Devotion Line",
-                  sub: devotionSet ? `Speaking for: ${S.identity.devotion}` : "One outward line added to your Incantation.",
-                  done: devotionSet, onClick: () => setDevotionOpen(true),
-                },
-              ];
-              return rows.map((r) => (
-                <button
-                  key={r.title}
-                  type="button"
-                  className={`cd-nwmenu-row ${r.done ? "cd-nwmenu-row--done" : ""}`}
-                  onClick={() => { tapLight(); r.onClick(); }}
-                >
-                  <span className="cd-nwmenu-art"><img src={r.image} alt="" loading="lazy" /></span>
-                  <span className="cd-nwmenu-text">
-                    <span className="cd-nwmenu-title">{r.title}{r.done && " ✓"}</span>
-                    <span className="cd-nwmenu-sub">{r.sub}</span>
-                  </span>
-                  <span className={`cd-nwmenu-tag cd-nwmenu-tag--${r.tagClass}`}>{r.tag}</span>
-                </button>
-              ));
-            })()}
+              {nightOpen && (
+                <>
+                  {hour >= NIGHT.ESCALATE_H && S.tracks.includes("porn") && (
+                    <div className="cd-nightshift-curfew">
+                      Phone leaves the bedroom at {NIGHT.CURFEW_H - 12}. That's not willpower — that's the law.
+                    </div>
+                  )}
+                  {[
+                    {
+                      image: "/assets/clearday/night-ledger-v3.webp", tag: "NIGHTLY", tagClass: "amber", title: "The Night Ledger",
+                      sub: "Take tonight's fuel out of the Mask's hands. ~60s.",
+                      done: ledgerDone, onClick: () => onLedger && onLedger(),
+                    },
+                    {
+                      image: "/assets/clearday/unseen-work-v3.webp", tag: "DAILY", tagClass: "teal", title: "Unseen Work",
+                      sub: "One thing for someone else — crit if you're never found out.",
+                      done: serviceDone,
+                      onClick: () => document.getElementById("cd-unseen-work")?.scrollIntoView({ behavior: "smooth", block: "center" }),
+                    },
+                    {
+                      image: "/assets/clearday/reach-out-v3.webp", tag: "BATTLE", tagClass: "rose", title: "Reach Out",
+                      sub: "Put a human in the room before you face the Mask alone.",
+                      done: reachDone, onClick: () => setReachOpen(true),
+                    },
+                    {
+                      image: "/assets/clearday/overwrite-v3.webp", tag: "VAULT", tagClass: "violet", title: "The Overwrite",
+                      sub: "Old-chapter scenes, reshot by the clear you.",
+                      done: false, onClick: () => onGoTab && onGoTab("vault"),
+                    },
+                    {
+                      image: "/assets/clearday/devotion-line-v3.webp", tag: "RITUAL", tagClass: "violet", title: "The Devotion Line",
+                      sub: devotionSet ? `Speaking for: ${S.identity.devotion}` : "One outward line added to your Incantation.",
+                      done: devotionSet, onClick: () => setDevotionOpen(true),
+                    },
+                  ].map((r) => (
+                    <button
+                      key={r.title}
+                      type="button"
+                      className={`cd-nwmenu-row ${r.done ? "cd-nwmenu-row--done" : ""}`}
+                      onClick={() => { tapLight(); r.onClick(); }}
+                    >
+                      <span className="cd-nwmenu-art"><img src={r.image} alt="" loading="lazy" /></span>
+                      <span className="cd-nwmenu-text">
+                        <span className="cd-nwmenu-title">{r.title}{r.done && " ✓"}</span>
+                        <span className="cd-nwmenu-sub">{r.sub}</span>
+                      </span>
+                      <span className={`cd-nwmenu-tag cd-nwmenu-tag--${r.tagClass}`}>{r.tag}</span>
+                    </button>
+                  ))}
 
-            <button type="button" className="cd-btn cd-btn--rep" style={{ marginTop: 12 }} onClick={() => onGoTab && onGoTab("daily")}>
-              ☾ ENTER THE RITUAL — SEAL THE DAY →
-            </button>
-          </div>
-        ) : (
+                  <button type="button" className="cd-btn cd-btn--rep" style={{ marginTop: 12 }} onClick={() => onGoTab && onGoTab("daily")}>
+                    ☾ ENTER THE RITUAL — SEAL THE DAY →
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })() : (
           <div className="cd-card cd-nightshift cd-nightshift--settled">
             <div className="cd-label" style={{ color: "var(--cd-teal)" }}>☾ THE NIGHT WORK</div>
             <div className="cd-nightshift-line">Day {day} is closed. The night has nothing to work with.</div>
@@ -621,6 +691,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
       {devotionOpen && <DevotionSetup current={S.identity.devotion} onClose={() => setDevotionOpen(false)} />}
 
       <ReclamationChip S={S} onGoTab={onGoTab} />
+      <StreakChip S={S} onGoTab={onGoTab} />
 
       {/* the Ritual is the only place laws are held — Today just points */}
       {!S.tracks.every((t) => S.ballot.some((b) => b.day === day && b.kind === "law" && b.track === t)) && (
@@ -816,9 +887,64 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
   );
 }
 
+/* ═══ THE STREAK — entry points ═══════════════════════════════════════
+   The calendar is the honest record of authored days, so it gets its own
+   page. These two are the doors: a live strip on Journey (the record) and
+   a chip on Today (the nudge). Both read the same derivation. */
+
+function StreakCard({ S, onOpen }) {
+  const st = streakStats(S);
+  const reclaim = st.reignitable.length;
+  // never a bare 0 on the wall — an unsigned chain is a chain waiting, not nil
+  const waiting = st.current === 0 && reclaim > 0;
+  return (
+    <button
+      type="button"
+      className={`cd-streakcard ${reclaim ? "cd-streakcard--reclaim" : ""}`}
+      onClick={() => { tapLight(); onOpen(); }}
+    >
+      <div className="cd-streakcard-top">
+        <StreakFlame tone={waiting ? "ash" : reclaim ? "blue" : "day"} size="md" />
+        <div>
+          <div className="cd-streakcard-n">{waiting ? reclaim : st.current}</div>
+          <div className="cd-streakcard-label">
+            {waiting
+              ? `${reclaim === 1 ? "day" : "days"} to claim · best ${st.best}`
+              : `${st.current === 1 ? "day lit" : "days in a row"} · best ${st.best}`}
+          </div>
+        </div>
+        <span className="cd-streakcard-go" aria-hidden="true">›</span>
+      </div>
+      <StreakWeekStrip S={S} absDay={st.absDay} />
+      {reclaim > 0 && (
+        <span className="cd-streakcard-badge">
+          {reclaim} {reclaim === 1 ? "day" : "days"} to reclaim
+        </span>
+      )}
+    </button>
+  );
+}
+
+function StreakChip({ S, onGoTab }) {
+  const st = streakStats(S);
+  const reclaim = st.reignitable.length;
+  return (
+    <button
+      type="button"
+      className={`cd-streak-chip ${reclaim ? "cd-streak-chip--reclaim" : ""}`}
+      onClick={() => { tapLight(); onGoTab("streak"); }}
+    >
+      <StreakFlame tone={reclaim ? "blue" : "day"} size="sm" />
+      {reclaim
+        ? `${reclaim} ${reclaim === 1 ? "day" : "days"} to reclaim → The Streak`
+        : `${st.current}-day streak → The Streak`}
+    </button>
+  );
+}
+
 /* ═══ JOURNEY — the 66 days ═══════════════════════════════════════════ */
 
-function Journey({ S, day }) {
+function Journey({ S, day, onGoTab }) {
   const [openPhase, setOpenPhase] = useState(PHASES.find((p) => day >= p.range[0] && day <= p.range[1])?.key || "Fog");
   return (
     <div className="cd-page">
@@ -832,6 +958,7 @@ function Journey({ S, day }) {
         <div className="cd-journey-progress"><span style={{ width: `${Math.min(100, (day / PROGRAM_DAYS) * 100)}%` }} /></div>
       </div>
       <ReclamationClock S={S} />
+      <StreakCard S={S} onOpen={() => onGoTab("streak")} />
       {PHASES.map((p) => {
         const inP = day >= p.range[0] && day <= p.range[1];
         const done = day > p.range[1];
@@ -900,6 +1027,7 @@ const EVIDENCE_KINDS = {
   reachout: { label: "Reached the corner", color: "var(--cd-rose)" },
   repair: { label: "The Overwrite", color: "var(--cd-violet)" },
   devotion: { label: "The Devotion Line", color: "var(--cd-green)" },
+  reignite: { label: "Reclaimed a day", color: "#00F0FF" },
 };
 
 const REPAIR_STATUS = {
@@ -976,6 +1104,9 @@ function OverwriteSection({ S, settings }) {
 function Vault({ S, day, settings }) {
   const [letter, setLetter] = useState("");
   const [freedom, setFreedom] = useState("");
+  // Clear days and the best run come off the calendar now, not a counter —
+  // the number you see is the number of days you actually signed for.
+  const st = streakStats(S);
   return (
     <div className="cd-page">
       <div className="cd-vault-hero">
@@ -992,9 +1123,9 @@ function Vault({ S, day, settings }) {
 
       <div className="cd-vault-stats">
         <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-dawn)" }}>{S.votes}</div><div className="cd-stat-label">exhibits, forever</div></div>
-        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-teal)" }}>{S.stats.clearDays}</div><div className="cd-stat-label">clear days</div></div>
+        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-teal)" }}>{st.lit}</div><div className="cd-stat-label">clear days</div></div>
         <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-green)" }}>{S.stats.battlesWon}</div><div className="cd-stat-label">urges interrupted</div></div>
-        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-amber)" }}>{S.stats.bestRun}</div><div className="cd-stat-label">best run</div></div>
+        <div className="cd-stat"><div className="cd-stat-num" style={{ color: "var(--cd-amber)" }}>{st.best}</div><div className="cd-stat-label">best run</div></div>
       </div>
 
       <ClearProofWall battles={S.battles} />
@@ -1071,19 +1202,30 @@ function Vault({ S, day, settings }) {
 
 export default function ClearDay({ onExit, settings }) {
   const [S, setS] = useState(loadClearDay);
-  const [tab, setTab] = useState("daily"); // Ritual is the front door — the ceremony leads, the field follows
+  const [tab, setTab] = useState("today"); // Today is the front door — the field leads, the ceremony is one tap away
   const [battle, setBattle] = useState(null); // { track } | "pick"
   const [slip, setSlip] = useState(false);
   const [incant, setIncant] = useState(false);
   const [ledger, setLedger] = useState(false);
   const [corner, setCorner] = useState(false);
   const [ceremony, setCeremony] = useState(null);
+  const [ignition, setIgnition] = useState(null); // { kind, reclaimed }
   const gamify = useGamification();
   const gamifyRef = useRef(gamify);
   gamifyRef.current = gamify;
 
   useEffect(() => subscribeClearDay(() => setS(loadClearDay())), []);
+  // Runs once, ever: days lived before THE STREAK shipped had no way to be
+  // signed. Done at the root so the Journey card, the Today chip and the
+  // page all read the same post-migration numbers instead of the card
+  // showing pre-backfill stats until the page happens to be opened.
+  useEffect(() => { backfillStreak(); }, []);
+  // Two readings of the same day, and mixing them up breaks things:
+  // `day` is the curriculum position (clamped at 66 — lessons, phases,
+  // "of 66"); `absDay` is the real elapsed day and the key every ledger
+  // write and every calendar cell hangs off.
   const day = dayNumber(S);
+  const absDay = elapsedDay(S);
 
   const addXPSafe = useCallback((amount, label) => {
     try { gamifyRef.current.addXP(amount, label); } catch { /* XP is decoration, never a blocker */ }
@@ -1136,7 +1278,7 @@ export default function ClearDay({ onExit, settings }) {
           onReachOutCorner={() => setCorner(true)}
         />
         <Ceremony show={ceremony} onDone={() => setCeremony(null)} />
-        {corner && <CornerChat S={S} day={day} onClose={() => setCorner(false)} />}
+        {corner && <CornerChat S={S} day={absDay} onClose={() => setCorner(false)} />}
       </>
     );
   }
@@ -1164,12 +1306,12 @@ export default function ClearDay({ onExit, settings }) {
       {!slip && (
         <>
           {tab === "today" && (
-            <Today S={S} day={day} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} onLedger={() => setLedger(true)} />
+            <Today S={S} day={absDay} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} onLedger={() => setLedger(true)} />
           )}
           {tab === "daily" && (
             <DailyTab
               S={S}
-              day={day}
+              day={absDay}
               settings={settings}
               celebrate={celebrate}
               addXPSafe={addXPSafe}
@@ -1177,21 +1319,32 @@ export default function ClearDay({ onExit, settings }) {
               onIncant={() => setIncant(true)}
               onSlipFlow={() => setSlip(true)}
               onLedger={() => setLedger(true)}
+              onSealed={() => setIgnition({ kind: "seal" })}
             />
           )}
-          {tab === "identity" && <IdentityTab S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />}
-          {tab === "days" && <Journey S={S} day={day} />}
-          {tab === "vault" && <Vault S={S} day={day} settings={settings} />}
+          {tab === "identity" && <IdentityTab S={S} day={absDay} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />}
+          {tab === "days" && <Journey S={S} day={day} onGoTab={setTab} />}
+          {tab === "streak" && (
+            <StreakPage
+              S={S}
+              settings={settings}
+              onBack={() => setTab("days")}
+              onReclaimed={(res) => setIgnition({ kind: "reignite", reclaimed: res.reclaimed || 1 })}
+            />
+          )}
+          {tab === "vault" && <Vault S={S} day={absDay} settings={settings} />}
 
           <nav className="cd-tabbar" aria-label="CLEARDAY sections">
             {[
-              { id: "daily", label: "Ritual" },
               { id: "today", label: "Today" },
               { id: "identity", label: "Identity" },
               { id: "days", label: "Journey" },
               { id: "vault", label: "Evidence" },
+              { id: "daily", label: "Ritual" },
             ].map((it) => (
-              <button key={it.id} type="button" className={`cd-tab ${tab === it.id ? "cd-tab--on" : ""}`} onClick={() => setTab(it.id)}>
+              /* The Streak is a Journey sub-page, not a sixth tab — Journey
+                 stays lit while you're inside it. */
+              <button key={it.id} type="button" className={`cd-tab ${(tab === "streak" ? "days" : tab) === it.id ? "cd-tab--on" : ""}`} onClick={() => setTab(it.id)}>
                 <span className="cd-tab-icon"><ClearNavIcon type={it.id} /></span>
                 <span>{it.label}</span>
               </button>
@@ -1217,7 +1370,7 @@ export default function ClearDay({ onExit, settings }) {
 
       {ledger && (
         <NightLedger
-          day={day}
+          day={absDay}
           settings={settings}
           onDone={() => {
             addXPSafe(XP_VALUES.cleardayWorkoutRep, "Settled the ledger");
@@ -1226,7 +1379,17 @@ export default function ClearDay({ onExit, settings }) {
         />
       )}
 
-      {corner && <CornerChat S={S} day={day} onClose={() => setCorner(false)} />}
+      {ignition && (
+        <StreakIgnition
+          kind={ignition.kind}
+          reclaimed={ignition.reclaimed}
+          settings={settings}
+          onClose={() => setIgnition(null)}
+          onSeeMonth={() => { setIgnition(null); setTab("streak"); }}
+        />
+      )}
+
+      {corner && <CornerChat S={S} day={absDay} onClose={() => setCorner(false)} />}
 
       <Ceremony show={ceremony} onDone={() => setCeremony(null)} />
     </div>

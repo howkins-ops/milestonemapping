@@ -37,6 +37,11 @@ const DEFAULT_STATE = {
     maskName: "", // the named Addict voice (externalization)
     beliefs: [], // belief ladder: { id, track, text, adoptedAt }
     devotion: "", // The Devotion Line — outward incantation closer: "My clear life is for ___"
+    // THE SEAL — the Identity Forge's finale. He signs a contract for the DAY
+    // every night; this is the one time he signs WHO HE IS. `claim` records the
+    // exact sentence that was signed, so refining it later shows the file as
+    // needing a re-signature instead of quietly drifting.
+    seal: null, // { sig: dataURL|null, sealedAt: ISO, claim: string }
   },
   laws: { weed: "", porn: "" }, // the categorical "I don't ..." per track
   doors: { dark: "", clear: "", actions: [] }, // feared self / clear self / 3 concrete acts
@@ -54,6 +59,8 @@ const DEFAULT_STATE = {
   battles: [], // urge battle log, newest first: { day, track, won, beats, seconds, rating?, t }
   closedDays: {}, // { [dayNum]: "clear" | "slip" }
   contracts: {}, // { [dayNum]: { signedAt: ISO, sig: dataURL|null } } — the daily signed contract
+  reignited: {}, // { [dayNum]: ISO } — gaps reclaimed after the fact (the blue flame)
+  streakBackfilledAt: null, // one-time stamp: days that predate THE STREAK were counted lit
   seenLies: { weed: [], porn: [] }, // last-shown seed-lie ids (anti-repeat, cap 8)
   curriculumDone: [], // day numbers with the daily rep cast
   freedomAudit: [], // strings — what's been reclaimed
@@ -141,6 +148,13 @@ function normalize(parsed) {
       maskName: typeof id.maskName === "string" ? id.maskName : "",
       beliefs: arr(id.beliefs).filter((b) => b && typeof b === "object"),
       devotion: typeof id.devotion === "string" ? id.devotion : "",
+      seal: id.seal && typeof id.seal === "object" && typeof id.seal.sealedAt === "string"
+        ? {
+            sig: typeof id.seal.sig === "string" ? id.seal.sig : null,
+            sealedAt: id.seal.sealedAt,
+            claim: typeof id.seal.claim === "string" ? id.seal.claim : "",
+          }
+        : null,
     },
     laws: {
       weed: typeof obj(p.laws).weed === "string" ? p.laws.weed : "",
@@ -162,6 +176,8 @@ function normalize(parsed) {
     battles: arr(p.battles).filter((b) => b && typeof b === "object"),
     closedDays: obj(p.closedDays),
     contracts: pruneContracts(obj(p.contracts), p),
+    reignited: obj(p.reignited),
+    streakBackfilledAt: typeof p.streakBackfilledAt === "string" ? p.streakBackfilledAt : null,
     seenLies: {
       weed: arr(obj(p.seenLies).weed).filter((s) => typeof s === "string").slice(-8),
       porn: arr(obj(p.seenLies).porn).filter((s) => typeof s === "string").slice(-8),
@@ -210,25 +226,285 @@ export function localDateString(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-// Day number from real calendar dates — day 1 is startedAt itself.
-// Clamped to the program window; before onboarding it reads as day 1.
-export function dayNumber(state = loadClearDay(), today = new Date()) {
+// The real elapsed day — day 1 is startedAt itself, and it keeps counting
+// past 66 forever. Every ledger write keys off this: clamping the write key
+// would collapse every post-graduation day onto key 66, so contracts would
+// silently stop sealing and no calendar could map a day back to a date.
+export function elapsedDay(state = loadClearDay(), today = new Date()) {
   if (!state.startedAt) return 1;
   const [y, m, d] = state.startedAt.split("-").map(Number);
   const start = new Date(y, (m || 1) - 1, d || 1);
   const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const diff = Math.floor((now - start) / 86400000);
-  return Math.min(PROGRAM_DAYS, Math.max(1, diff + 1));
+  return Math.max(1, diff + 1);
+}
+
+// The curriculum position — the same day, clamped to the program window.
+// Display only: "day N of 66", phase accordions, CURRICULUM rows.
+export function dayNumber(state = loadClearDay(), today = new Date()) {
+  return Math.min(PROGRAM_DAYS, elapsedDay(state, today));
 }
 
 export function currentRun(state = loadClearDay()) {
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   let run = 0;
   for (let d = day - 1; d >= 1; d--) {
     if (state.closedDays[d] === "clear") run += 1;
     else break;
   }
   return run;
+}
+
+/* ── THE STREAK — the fire calendar ───────────────────────────────────────
+   closedDays is keyed by day NUMBER, so the calendar's whole job is mapping
+   n ↔ date through startedAt. Dates are built at local noon, never midnight:
+   a DST jump across a midnight-anchored date silently shifts the day by one
+   (same trick as lib/dates.js).
+
+   Two marks, and the difference is the point:
+     GAP — never closed out. Reclaimable for REIGNITE_WINDOW days by signing
+           for it, then it freezes cold. Bounded forgiveness: a streak that
+           can never be repaired is a bomb set for a bad day, but unlimited
+           repair means the number stops meaning anything.
+     ASH — closed as a slip. Permanent. The streak restarts after it. Ash is
+           never re-ignitable, because the flame has to be worth something.
+   ──────────────────────────────────────────────────────────────────────── */
+
+export const REIGNITE_WINDOW = 7;
+
+function startOf(state) {
+  if (!state.startedAt || typeof state.startedAt !== "string") return null;
+  const [y, m, d] = state.startedAt.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0, 0); // noon anchor
+}
+
+// n → the real calendar date that day n fell on.
+export function dateForDay(state = loadClearDay(), n) {
+  const start = startOf(state);
+  if (!start || !Number.isFinite(n)) return null;
+  return new Date(start.getFullYear(), start.getMonth(), start.getDate() + (n - 1), 12, 0, 0, 0);
+}
+
+// date → its day number, or null if it lands outside the program.
+export function dayForDate(state = loadClearDay(), date) {
+  const start = startOf(state);
+  if (!start || !date) return null;
+  const at = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+  const n = Math.round((at - start) / 86400000) + 1;
+  return n >= 1 ? n : null;
+}
+
+// The one derivation every streak surface reads.
+export function dayStatus(state = loadClearDay(), n, absDay = elapsedDay(state)) {
+  if (!Number.isFinite(n) || n < 1) return "pre";
+  if (n > absDay) return "future";
+  const mark = state.closedDays[n];
+  if (mark === "slip") return "ash";
+  if (mark === "clear") return state.reignited[n] ? "relit" : "lit";
+  if (n === absDay) return "open";
+  return absDay - n <= REIGNITE_WINDOW ? "gap" : "cold";
+}
+
+// The current run — counts back from today and INCLUDES today once it's
+// closed. (currentRun() deliberately excludes today and has live callers;
+// this sits alongside it rather than changing it underneath them.)
+export function flameStreak(state = loadClearDay()) {
+  const absDay = elapsedDay(state);
+  let run = 0;
+  for (let d = absDay; d >= 1; d -= 1) {
+    if (state.closedDays[d] === "clear") run += 1;
+    // today merely unsigned doesn't break anything — the run behind it stands.
+    // today marked as a slip does: ash breaks the chain like any other day.
+    else if (d === absDay && !state.closedDays[d]) continue;
+    else break;
+  }
+  return run;
+}
+
+// The day numbers of the current run, oldest first — what the ceremony
+// walks when it runs the fire down the chain.
+export function streakChain(state = loadClearDay()) {
+  const absDay = elapsedDay(state);
+  const chain = [];
+  for (let d = absDay; d >= 1; d -= 1) {
+    if (state.closedDays[d] === "clear") chain.unshift(d);
+    else if (d === absDay && !state.closedDays[d]) continue;
+    else break;
+  }
+  return chain;
+}
+
+// Full scan for the high-water mark — the old inline `currentRun() + 1`
+// undercounted whenever a day was closed out of order.
+export function longestRun(state = loadClearDay()) {
+  const absDay = elapsedDay(state);
+  let best = 0;
+  let run = 0;
+  for (let d = 1; d <= absDay; d += 1) {
+    if (state.closedDays[d] === "clear") {
+      run += 1;
+      if (run > best) best = run;
+    } else {
+      run = 0;
+    }
+  }
+  return best;
+}
+
+export function streakStats(state = loadClearDay()) {
+  const absDay = elapsedDay(state);
+  const reignitable = [];
+  let lit = 0;
+  let relit = 0;
+  let ash = 0;
+  let gaps = 0;
+  let cold = 0;
+  for (let d = 1; d <= absDay; d += 1) {
+    switch (dayStatus(state, d, absDay)) {
+      case "lit": lit += 1; break;
+      case "relit": lit += 1; relit += 1; break;
+      case "ash": ash += 1; break;
+      case "gap": gaps += 1; reignitable.push(d); break;
+      case "cold": cold += 1; break;
+      default: break;
+    }
+  }
+  reignitable.reverse(); // newest gap first — the one still easiest to remember
+  return {
+    current: flameStreak(state),
+    best: Math.max(state.stats.bestRun || 0, longestRun(state)),
+    lit,
+    relit,
+    ash,
+    gaps,
+    cold,
+    reignitable,
+    absDay,
+  };
+}
+
+// One month of cells, leading blanks included, ready to drop into a 7-col grid.
+export function monthCells(state = loadClearDay(), year, month) {
+  const absDay = elapsedDay(state);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leading = new Date(year, month, 1).getDay();
+  const cells = [];
+  for (let i = 0; i < leading; i += 1) cells.push({ blank: true, key: `lead-${i}` });
+  for (let i = 1; i <= daysInMonth; i += 1) {
+    const date = new Date(year, month, i, 12, 0, 0, 0);
+    const dayNum = dayForDate(state, date);
+    cells.push({
+      blank: false,
+      key: `d-${i}`,
+      date,
+      dateNum: i,
+      dayNum,
+      status: dayNum === null ? "pre" : dayStatus(state, dayNum, absDay),
+    });
+  }
+  return cells;
+}
+
+// How many days are left to reclaim a given gap.
+export function reigniteDaysLeft(state = loadClearDay(), n) {
+  return Math.max(0, REIGNITE_WINDOW - (elapsedDay(state) - n));
+}
+
+// RE-IGNITE — claim a gap after the fact. Guarded hard on purpose: today
+// signs through the contract, ash is final, and anything past the window
+// has frozen. Costs the same signature the day itself would have.
+export function reigniteDay(dayNum, sigDataUrl = null) {
+  const state = loadClearDay();
+  const absDay = elapsedDay(state);
+  const n = Number(dayNum);
+  if (!state.onboarded) return { relit: false, reason: "not-started", state };
+  if (!Number.isFinite(n) || n < 1 || n >= absDay) return { relit: false, reason: "out-of-range", state };
+  if (state.closedDays[n]) return { relit: false, reason: "already-closed", state };
+  if (absDay - n > REIGNITE_WINDOW) return { relit: false, reason: "too-cold", state };
+
+  const at = new Date().toISOString();
+  state.contracts = {
+    ...state.contracts,
+    [n]: { signedAt: at, sig: typeof sigDataUrl === "string" ? sigDataUrl : null },
+  };
+  state.closedDays = { ...state.closedDays, [n]: "clear" };
+  state.reignited = { ...state.reignited, [n]: at };
+  state.stats.clearDays += 1;
+  state.stats.bestRun = Math.max(state.stats.bestRun, longestRun(state));
+  state.votes += 1;
+  state.ballot = [
+    {
+      day: n,
+      kind: "reignite",
+      track: "all",
+      note: "Went back and claimed a day I never closed out. The day still counted — I just hadn't said so.",
+      t: Date.now(),
+    },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  const remaining = streakStats(state).reignitable;
+  return {
+    relit: true,
+    chain: flameStreak(state),
+    chainDays: streakChain(state),
+    remaining: remaining.length,
+    state,
+  };
+}
+
+// "No — I didn't make it." Honesty is free: no signature, no ink gate.
+export function markAshDay(dayNum) {
+  const state = loadClearDay();
+  const absDay = elapsedDay(state);
+  const n = Number(dayNum);
+  if (!Number.isFinite(n) || n < 1 || n >= absDay) return { marked: false, state };
+  if (state.closedDays[n]) return { marked: false, state };
+  state.closedDays = { ...state.closedDays, [n]: "slip" };
+  state.stats.slips += 1;
+  state.votes += 1;
+  state.ballot = [
+    {
+      day: n,
+      kind: "slip",
+      track: "all",
+      note: "Told the truth about a day I'd left blank. One vote against isn't the election.",
+      t: Date.now(),
+    },
+    ...state.ballot,
+  ].slice(0, 400);
+  save(state);
+  return { marked: true, state };
+}
+
+// One-time migration: days lived before THE STREAK existed had no way to be
+// signed, so they're counted lit rather than punished for a feature that
+// didn't ship yet. Days already marked as slips stay ash.
+//
+// It stops at the reclaim window on purpose. Days still inside that window
+// are ones he can actually remember and sign for himself — claiming those on
+// his behalf would fabricate the exact thing this feature exists to make
+// honest. Old history is preserved; recent history is his to author.
+export function backfillStreak() {
+  const state = loadClearDay();
+  if (state.streakBackfilledAt || !state.onboarded || !state.startedAt) {
+    return { filled: 0, state };
+  }
+  const absDay = elapsedDay(state);
+  const closed = { ...state.closedDays };
+  let filled = 0;
+  for (let d = 1; d < absDay - REIGNITE_WINDOW; d += 1) {
+    if (!closed[d]) {
+      closed[d] = "clear";
+      filled += 1;
+    }
+  }
+  state.closedDays = closed;
+  state.streakBackfilledAt = new Date().toISOString();
+  state.stats.clearDays = Math.max(state.stats.clearDays, streakStats(state).lit);
+  state.stats.bestRun = Math.max(state.stats.bestRun, longestRun(state));
+  save(state);
+  return { filled, state };
 }
 
 /* ── onboarding ───────────────────────────────────────────────────────── */
@@ -291,7 +567,7 @@ export function setDevotion(text) {
   if (first) {
     state.votes += 1;
     state.ballot = [
-      { day: dayNumber(state), kind: "devotion", track: "all", note: `Added the devotion line: "${clean}" — who the clear life is for.`, t: Date.now() },
+      { day: elapsedDay(state), kind: "devotion", track: "all", note: `Added the devotion line: "${clean}" — who the clear life is for.`, t: Date.now() },
       ...state.ballot,
     ].slice(0, 400);
   }
@@ -317,7 +593,7 @@ export function upgradeRung(rung) {
     state.rung = rung;
     state.votes += 1;
     state.ballot = [
-      { day: dayNumber(state), kind: "identity", track: "all", note: "Climbed the ladder. The label ratchets up — never back.", t: Date.now() },
+      { day: elapsedDay(state), kind: "identity", track: "all", note: "Climbed the ladder. The label ratchets up — never back.", t: Date.now() },
       ...state.ballot,
     ].slice(0, 400);
     save(state);
@@ -328,7 +604,7 @@ export function upgradeRung(rung) {
 
 export function addPulse(value) {
   const state = loadClearDay();
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   // one pulse per rolling week
   const last = state.pulses[state.pulses.length - 1];
   if (last && day - last.day < 7) return { taken: false, state };
@@ -343,7 +619,7 @@ export function castVote(kind, note, track = "all") {
   const state = loadClearDay();
   state.votes += 1;
   state.ballot = [
-    { day: dayNumber(state), kind, track, note: String(note || ""), t: Date.now() },
+    { day: elapsedDay(state), kind, track, note: String(note || ""), t: Date.now() },
     ...state.ballot,
   ].slice(0, 400);
   save(state);
@@ -369,15 +645,14 @@ export function castDailyRep(day, note) {
 
 export function closeOutDay(result) {
   const state = loadClearDay();
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   if (state.closedDays[day]) return { firstTime: false, state };
   const clear = result === "clear";
   state.closedDays = { ...state.closedDays, [day]: clear ? "clear" : "slip" };
   state.votes += 1;
   if (clear) {
     state.stats.clearDays += 1;
-    const run = currentRun(state) + 1;
-    state.stats.bestRun = Math.max(state.stats.bestRun, run);
+    state.stats.bestRun = Math.max(state.stats.bestRun, longestRun(state));
   } else {
     state.stats.slips += 1;
   }
@@ -404,7 +679,7 @@ export function closeOutDay(result) {
 // double-counts.
 export function signDailyContract(sigDataUrl = null) {
   const state = loadClearDay();
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   if (!state.contracts[day]) {
     state.contracts = {
       ...state.contracts,
@@ -442,7 +717,7 @@ export function logBattle({
   if (won) state.stats.battlesWon += 1;
   state.battles = [
     {
-      day: dayNumber(state),
+      day: elapsedDay(state),
       track: track || "all",
       won: Boolean(won),
       beats: Number(beats) || 0,
@@ -468,7 +743,7 @@ export function logBattle({
   if (won) {
     state.votes += 1;
     state.ballot = [
-      { day: dayNumber(state), kind: "battle", track: track || "all", note: "Interrupted an urge and chose the next protective action.", t: Date.now() },
+      { day: elapsedDay(state), kind: "battle", track: track || "all", note: "Interrupted an urge and chose the next protective action.", t: Date.now() },
       ...state.ballot,
     ].slice(0, 400);
   }
@@ -481,6 +756,22 @@ export function logBattle({
 export function setIdentityStatement(statement) {
   const state = loadClearDay();
   state.identity.statement = String(statement || "").trim();
+  save(state);
+  return state;
+}
+
+// THE SEALING — the Identity Forge's finale, and the re-signature after the
+// claim is refined. Idempotent by design: signing again just re-stamps, and
+// the signed claim is recorded alongside it so a drifted file is detectable.
+// Identity-relevant signatures raise follow-through where administrative ones
+// don't (Kettle & Häubl) — that's why this costs a real stroke of ink.
+export function sealIdentity(sig, claim) {
+  const state = loadClearDay();
+  state.identity.seal = {
+    sig: typeof sig === "string" ? sig : null,
+    sealedAt: new Date().toISOString(),
+    claim: String(claim || state.identity.statement || "").trim(),
+  };
   save(state);
   return state;
 }
@@ -561,7 +852,7 @@ export function addFutureLetter(text, deliverDay) {
   if (!clean) return state;
   state.futureLetters = [
     ...state.futureLetters,
-    { fromDay: dayNumber(state), deliverDay: Number(deliverDay) || PROGRAM_DAYS, text: clean, openedAt: null },
+    { fromDay: elapsedDay(state), deliverDay: Number(deliverDay) || PROGRAM_DAYS, text: clean, openedAt: null },
   ];
   save(state);
   return state;
@@ -652,7 +943,7 @@ export function burnShedding(id) {
   );
   state.votes += 1;
   state.ballot = [
-    { day: dayNumber(state), kind: "burn", track: "all", note: `Burned it: "${item.text}" — that belonged to the old me.`, t: Date.now() },
+    { day: elapsedDay(state), kind: "burn", track: "all", note: `Burned it: "${item.text}" — that belonged to the old me.`, t: Date.now() },
     ...state.ballot,
   ].slice(0, 400);
   save(state);
@@ -666,7 +957,7 @@ export function addCatch(lie, truth) {
   const l = String(lie || "").trim();
   const tr = String(truth || "").trim();
   if (!l || !tr) return state;
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   state.catches = [{ day, lie: l, truth: tr, t: Date.now() }, ...state.catches].slice(0, 100);
   state.votes += 1;
   state.ballot = [
@@ -683,7 +974,7 @@ export function addOpposite(push, counter) {
   const p = String(push || "").trim();
   const c = String(counter || "").trim();
   if (!p || !c) return state;
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   state.opposites = [{ day, push: p, counter: c, t: Date.now() }, ...state.opposites].slice(0, 100);
   state.votes += 1;
   state.ballot = [
@@ -700,7 +991,7 @@ export function addChapter(text) {
   const state = loadClearDay();
   const clean = String(text || "").trim();
   if (!clean) return { added: false, state };
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   // one chapter per rolling week, same cadence as the pulse
   const last = state.chapters[0];
   if (last && day - last.day < 7) return { added: false, state };
@@ -719,7 +1010,7 @@ export function addChapter(text) {
 // Clean sweep (nothing held) is a completable state, never a skipped chore.
 export function settleLedger({ fuel, hit, myPart, clean } = {}) {
   const state = loadClearDay();
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   if (state.ballot.some((b) => b.day === day && b.kind === "ledger")) {
     return { firstTime: false, state };
   }
@@ -760,7 +1051,7 @@ export function addRepair({ scene, should, who }) {
   const sh = String(should || "").trim().slice(0, 160);
   const w = String(who || "").trim().slice(0, 80);
   if (!s || !sh || !w) return { added: false, state };
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   const entry = { id: `rp${Date.now()}`, scene: s, should: sh, who: w, status: "scheduled", day, at: new Date().toISOString() };
   state.repairs = [entry, ...state.repairs];
   state.votes += 1;
@@ -783,7 +1074,7 @@ export function setRepairStatus(id, status) {
 // ── UNSEEN WORK — daily service rep. Undetected files a 2nd vote: the crit.
 export function fileService({ who, what, unseen } = {}) {
   const state = loadClearDay();
-  const day = dayNumber(state);
+  const day = elapsedDay(state);
   if (state.ballot.some((b) => b.day === day && b.kind === "service")) {
     return { firstTime: false, crit: false, state };
   }

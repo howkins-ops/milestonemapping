@@ -31,6 +31,9 @@ export const XP_VALUES = {
   cleardayRuleAdded: 20,
   cleardayWorkoutRep: 10,
   cleardayChapter: 25,
+  // signing the identity file — the one-time forge, and any re-signing
+  // after the claim is refined. Weighted like the crossing, not like a rep.
+  cleardayIdentitySealed: 50,
   // Milestone City
   cityFirstVisit: 50,
   cityDailySweep: 15,

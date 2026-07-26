@@ -53,6 +53,26 @@ export async function createEntry(userId, entry) {
   return { data, error };
 }
 
+/* A revision only ever touches what the writer can see on the page —
+   title, body, tone. Space, pillar, chapter, linkage and created_at are
+   the entry's identity and stay put. */
+export async function updateEntry(userId, entryId, patch) {
+  if (!supabase || !userId) return { data: null, offline: true };
+  const { data, error } = await supabase
+    .from("journal_entries")
+    .update({
+      title: patch.title || null,
+      body: patch.body,
+      mood: patch.mood ?? null,
+    })
+    .eq("user_id", userId)
+    .eq("id", entryId)
+    .select()
+    .single();
+  if (error) console.error("[journalService] updateEntry:", error.message);
+  return { data, error };
+}
+
 export async function deleteEntry(userId, entryId) {
   if (!supabase || !userId) return { data: null, offline: true };
   const { error } = await supabase

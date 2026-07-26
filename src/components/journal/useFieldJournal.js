@@ -3,6 +3,8 @@ import { safeLoad, safeSave } from "../../lib/storage.js";
 import {
   fetchJournal,
   createEntry as dbCreateEntry,
+  updateEntry as dbUpdateEntry,
+  deleteEntry as dbDeleteEntry,
   createChapter as dbCreateChapter,
   createPrayer as dbCreatePrayer,
   answerPrayer as dbAnswerPrayer,
@@ -100,6 +102,31 @@ export function useFieldJournal(userId) {
     return row;
   }, [userId, commit]);
 
+  /* A revision, not a new page: same id, same date, new ink. */
+  const editEntry = useCallback((entryId, patch) => {
+    commit((prev) => ({
+      ...prev,
+      entries: prev.entries.map((e) =>
+        e.id === entryId
+          ? { ...e, title: patch.title || null, body: patch.body, mood: patch.mood ?? null }
+          : e
+      ),
+    }));
+    dbUpdateEntry(userId, entryId, patch);
+  }, [userId, commit]);
+
+  /* Torn out. Reflections written on this page survive — we mirror the
+     schema's `on delete set null` locally so the cache matches the cloud. */
+  const removeEntry = useCallback((entryId) => {
+    commit((prev) => ({
+      ...prev,
+      entries: prev.entries
+        .filter((e) => e.id !== entryId)
+        .map((e) => (e.linked_to === entryId ? { ...e, linked_to: null } : e)),
+    }));
+    dbDeleteEntry(userId, entryId);
+  }, [userId, commit]);
+
   const addChapter = useCallback((chapter) => {
     const row = {
       id: newId(),
@@ -153,6 +180,8 @@ export function useFieldJournal(userId) {
     prayers: data.prayers,
     wizardSeen: data.wizardSeen,
     addEntry,
+    editEntry,
+    removeEntry,
     addChapter,
     addPrayer,
     markPrayerAnswered,

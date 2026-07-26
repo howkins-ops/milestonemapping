@@ -8,6 +8,7 @@ import {
   sfxPrayerBell,
   sfxHalo,
 } from "../../lib/sfx.js";
+import { tapLight } from "../../lib/haptics.js";
 
 /* ═══════════════════════════════════════════════════════════════
    THE FIELD JOURNAL
@@ -18,13 +19,25 @@ import {
 
 const GOLD = "#C9A24B";
 
+/* `soft` is the same colour pre-diluted for the paper wash — precomputed
+   rather than color-mix()'d so the old iOS WebViews Capacitor ships
+   against render it too. */
 const MOODS = [
-  { id: "ember", label: "ember", color: "#B4452F" },
-  { id: "gold", label: "steady", color: "#C9A24B" },
-  { id: "forest", label: "grounded", color: "#4C5B3F" },
-  { id: "ash", label: "heavy", color: "#6B675E" },
-  { id: "night", label: "quiet", color: "#33415C" },
+  { id: "ember", label: "ember", color: "#B4452F", soft: "rgba(180,69,47,.15)" },
+  { id: "gold", label: "steady", color: "#C9A24B", soft: "rgba(201,162,75,.16)" },
+  { id: "forest", label: "grounded", color: "#4C5B3F", soft: "rgba(76,91,63,.16)" },
+  { id: "ash", label: "heavy", color: "#6B675E", soft: "rgba(107,103,94,.15)" },
+  { id: "night", label: "quiet", color: "#33415C", soft: "rgba(51,65,92,.17)" },
 ];
+
+const moodOf = (moodId) => MOODS.find((m) => m.id === moodId);
+
+/* The tone rides on custom properties so one card rule paints the ribbon
+   and the wash; an untoned entry passes nothing and both fall back clear. */
+const toneStyle = (moodId) => {
+  const m = moodOf(moodId);
+  return m ? { "--fj-tone": m.color, "--fj-tone-soft": m.soft } : undefined;
+};
 
 const LEATHERS = [
   { id: "oxblood", label: "oxblood", css: "linear-gradient(145deg,#3a1210,#1a0907 60%,#0d0504)" },
@@ -252,7 +265,7 @@ export default function FieldJournal({ onExit, startOpen = false }) {
   const { userId, settings, addXP } = useAppData();
   const {
     chapters, entries, prayers, wizardSeen,
-    addEntry, addChapter, addPrayer, markPrayerAnswered, markWizardSeen,
+    addEntry, editEntry, removeEntry, addChapter, addPrayer, markPrayerAnswered, markWizardSeen,
   } = useFieldJournal(userId);
 
   const [view, setView] = useState({ name: "cover" }); // cover | wizard | pillars | pillar | story | chapter | prayers | prayer-write | memories | write | entry
@@ -263,10 +276,12 @@ export default function FieldJournal({ onExit, startOpen = false }) {
   const [pageKey, setPageKey] = useState(0);
   const [memFilter, setMemFilter] = useState("all");
   const [newChapterOpen, setNewChapterOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // entry id awaiting a tear-out confirm
 
   const go = useCallback((v) => {
     setView(v);
     setPageKey((k) => k + 1);
+    setConfirmDelete(null);
     sfxPageTurn(settings);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
@@ -471,7 +486,7 @@ export default function FieldJournal({ onExit, startOpen = false }) {
         <div className="fj-stack">
           {list.map((e) => (
             <button key={e.id} className="fj-card" onClick={() => go({ name: "entry", id: e.id, from: { name: "pillar", pillar: p.id } })}
-              style={{ borderLeftColor: MOODS.find((m) => m.id === e.mood)?.color || "transparent" }}>
+              style={toneStyle(e.mood)}>
               <div className="fj-card-top"><span className="fj-card-title">{e.title || "untitled"}</span><span className="fj-card-date">{fmtDate(e.created_at)}</span></div>
               <div className="fj-hand fj-card-preview">{e.body.slice(0, 90)}…</div>
             </button>
@@ -595,7 +610,7 @@ export default function FieldJournal({ onExit, startOpen = false }) {
         <div className="fj-stack">
           {list.map((e) => (
             <button key={e.id} className="fj-card" onClick={() => go({ name: "entry", id: e.id, from: { name: "chapter", id: c.id } })}
-              style={{ borderLeftColor: MOODS.find((m) => m.id === e.mood)?.color || "transparent" }}>
+              style={toneStyle(e.mood)}>
               <div className="fj-card-top"><span className="fj-card-title">{e.title || "untitled"}</span><span className="fj-card-date">{fmtDate(e.created_at)}</span></div>
               <div className="fj-hand fj-card-preview">{e.body.slice(0, 90)}…</div>
             </button>
@@ -628,7 +643,7 @@ export default function FieldJournal({ onExit, startOpen = false }) {
             const p = PILLARS.find((x) => x.id === e.pillar);
             const c = chapters.find((x) => x.id === e.chapter_id);
             return (
-              <button key={e.id} className="fj-mem-card fj-drawer-in" style={{ animationDelay: `${Math.min(i * 60, 600)}ms` }}
+              <button key={e.id} className="fj-mem-card fj-drawer-in" style={{ animationDelay: `${Math.min(i * 60, 600)}ms`, ...toneStyle(e.mood) }}
                 onClick={() => go({ name: "entry", id: e.id, from: { name: "memories" } })}>
                 <div className="fj-mem-tab">{fmtDate(e.created_at)}</div>
                 <div className="fj-mem-src">{p ? `${p.icon} ${p.name}` : `📖 ${c?.title || "story"}`}{e.linked_to ? " · then & now" : ""}</div>
@@ -651,15 +666,15 @@ export default function FieldJournal({ onExit, startOpen = false }) {
     const c = chapters.find((x) => x.id === e.chapter_id);
     const linked = e.linked_to ? entries.find((x) => x.id === e.linked_to) : null;
     return (
-      <div className="fj-page fj-page-turn" key={`en${e.id}`}>
+      <div className="fj-page fj-page-turn" key={`en${e.id}`} style={toneStyle(e.mood)}>
         <button className="fj-back" onClick={() => go(view.from || { name: "memories" })}>❮ back</button>
         <div className="fj-entry-head">
           <div className="fj-eyebrow">{p ? `${p.icon} ${p.name}` : `📖 ${c?.title || "story"}`} · {fmtDate(e.created_at)}</div>
           <h2 className="fj-display fj-entry-title">{e.title || "untitled"}</h2>
-          {e.mood && <div className="fj-mood-pill" style={{ background: MOODS.find((m) => m.id === e.mood)?.color }}>{MOODS.find((m) => m.id === e.mood)?.label}</div>}
+          {e.mood && <div className="fj-mood-pill" style={{ background: moodOf(e.mood)?.color }}>{moodOf(e.mood)?.label}</div>}
         </div>
         {linked && <div className="fj-linked">reflecting on · “{linked.body.slice(0, 80)}…”</div>}
-        <div className="fj-parchment">
+        <div className="fj-parchment fj-parchment-toned">
           <div className="fj-hand fj-entry-body"><InkReveal text={e.body} /></div>
         </div>
         <button className="fj-btn-ghost fj-btn-wide" onClick={() =>
@@ -667,6 +682,46 @@ export default function FieldJournal({ onExit, startOpen = false }) {
         }>
           what has changed — write a reflection
         </button>
+
+        <div className="fj-entry-actions">
+          <button className="fj-btn-ghost fj-btn-half" onClick={() =>
+            go({ name: "write", editId: e.id, space: e.space, pillar: e.pillar, chapterId: e.chapter_id, from: view.from })
+          }>
+            ✎ revise this page
+          </button>
+          <button className="fj-btn-ghost fj-btn-half fj-btn-danger" onClick={() => setConfirmDelete(e.id)}>
+            tear out ✂
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  /* Lives at the root, not inside .fj-page — the page's staggered reveal
+     targets every direct child and would slide a fixed overlay. */
+  const renderTearOut = () => {
+    const e = entries.find((x) => x.id === confirmDelete);
+    if (!e) return null;
+    return (
+      <div className="fj-modal-veil" onClick={() => setConfirmDelete(null)}>
+        <div className="fj-modal" onClick={(ev) => ev.stopPropagation()}>
+          <div className="fj-eyebrow">tear this page out?</div>
+          <h3 className="fj-display fj-modal-title">{e.title || "untitled"}</h3>
+          <div className="fj-hand fj-modal-note">
+            this cannot be undone — the ink is gone. anything you wrote in reflection on it stays.
+          </div>
+          <div className="fj-modal-actions">
+            <button className="fj-btn-ghost" onClick={() => setConfirmDelete(null)}>keep it</button>
+            <button className="fj-btn-ghost fj-btn-danger" onClick={() => {
+              const back = view.from || { name: "memories" };
+              setConfirmDelete(null);
+              removeEntry(e.id);
+              go(back);
+            }}>
+              tear it out
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
@@ -696,10 +751,23 @@ export default function FieldJournal({ onExit, startOpen = false }) {
         {view.name === "entry" && renderEntry()}
         {view.name === "write" && (
           <WritePage key={`w${pageKey}`} view={view} entries={entries} chapters={chapters} settings={settings}
-            onCancel={() => go(view.from || (view.space === "story" ? { name: "chapter", id: view.chapterId } : view.pillar ? { name: "pillar", pillar: view.pillar } : { name: "pillars" }))}
-            onSave={(entry) => saveEntry(entry, () =>
-              go(entry.space === "story" ? { name: "chapter", id: entry.chapter_id } : { name: "pillar", pillar: entry.pillar })
+            onCancel={() => go(
+              view.editId
+                ? { name: "entry", id: view.editId, from: view.from }
+                : view.from || (view.space === "story" ? { name: "chapter", id: view.chapterId } : view.pillar ? { name: "pillar", pillar: view.pillar } : { name: "pillars" })
             )}
+            onSave={(entry) => {
+              /* A revision earns no seal and no XP — those belong to the
+                 first writing, or re-saving would farm them. */
+              if (entry.editId) {
+                editEntry(entry.editId, entry);
+                go({ name: "entry", id: entry.editId, from: view.from });
+                return;
+              }
+              saveEntry(entry, () =>
+                go(entry.space === "story" ? { name: "chapter", id: entry.chapter_id } : { name: "pillar", pillar: entry.pillar })
+              );
+            }}
           />
         )}
       </div>
@@ -732,6 +800,8 @@ export default function FieldJournal({ onExit, startOpen = false }) {
           setNewChapterOpen(false);
         }} />
       )}
+
+      {confirmDelete && renderTearOut()}
     </div>
   );
 }
@@ -805,23 +875,39 @@ function WritePage({ view, entries, chapters, onSave, onCancel, settings }) {
   const pillar = PILLARS.find((p) => p.id === view.pillar);
   const chapter = chapters.find((c) => c.id === view.chapterId);
   const linked = view.linkedTo ? entries.find((e) => e.id === view.linkedTo) : null;
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [mood, setMood] = useState(null);
+  /* Revising an existing page. WritePage is keyed on pageKey, so it
+     remounts on every navigation and these initialisers reseed cleanly. */
+  const editing = view.editId ? entries.find((e) => e.id === view.editId) : null;
+  const [title, setTitle] = useState(editing?.title || "");
+  const [body, setBody] = useState(editing?.body || "");
+  const [mood, setMood] = useState(editing?.mood ?? null);
   const [borrowed, setBorrowed] = useState(null);
   const [inkTick, setInkTick] = useState(0);
+  const [toneTick, setToneTick] = useState(0);
   const taRef = useRef(null);
   const lastScratch = useRef(0);
 
   const placeholder = borrowed || (pillar ? pillar.prompts.join("  ·  ") : "write freely — no prompts, no rules");
 
   const canSave = body.trim().length > 0;
+  const toneIdx = MOODS.findIndex((m) => m.id === mood);
+  const tone = moodOf(mood);
+
+  const pickTone = (m, i) => {
+    const clearing = mood === m.id;
+    setMood(clearing ? null : m.id);
+    if (!clearing) setToneTick(i + 1);
+    tapLight();
+  };
 
   return (
-    <div className="fj-page fj-page-turn">
-      <button className="fj-back" onClick={onCancel}>❮ close without saving</button>
+    <div className="fj-page fj-page-turn" style={toneStyle(mood)}>
+      <button className="fj-back" onClick={onCancel}>
+        {editing ? "❮ close without saving changes" : "❮ close without saving"}
+      </button>
       <div className="fj-eyebrow">
-        {pillar ? `${pillar.icon} ${pillar.name} · new entry` : `📖 ${chapter?.title || "story"} · next page`}
+        {pillar ? `${pillar.icon} ${pillar.name}` : `📖 ${chapter?.title || "story"}`}
+        {editing ? " · revising" : pillar ? " · new entry" : " · next page"}
       </div>
 
       {linked && <div className="fj-linked">then &amp; now · “{linked.body.slice(0, 80)}…” — what has changed</div>}
@@ -853,22 +939,31 @@ function WritePage({ view, entries, chapters, onSave, onCancel, settings }) {
 
       <div className="fj-mood-row">
         <span className="fj-eyebrow">tone of the page</span>
-        <div className="fj-moods">
-          {MOODS.map((m) => (
-            <button key={m.id} aria-label={m.label} className={`fj-mood-dot ${mood === m.id ? "fj-mood-on" : ""}`}
-              style={{ background: m.color }} onClick={() => setMood(mood === m.id ? null : m.id)} />
+        <div className="fj-tone-strip" style={{ "--fj-idx": toneIdx < 0 ? 0 : toneIdx }}>
+          {MOODS.map((m, i) => (
+            <button key={m.id} type="button" aria-label={m.label} aria-pressed={mood === m.id}
+              className={`fj-tone-tile ${mood === m.id ? "fj-tone-on" : ""}`}
+              style={{ background: m.color }} onClick={() => pickTone(m, i)} />
           ))}
+          <span className={`fj-tone-marker ${mood ? "" : "fj-tone-marker-off"}`} aria-hidden="true" />
+          {toneTick > 0 && (
+            <span key={`bleed${toneTick}${mood || "none"}`} className="fj-tone-bleed" aria-hidden="true"
+              style={{ left: `${(toneTick - 1) * 20 + 10}%` }} />
+          )}
         </div>
-        {mood && <span className="fj-mood-name">{MOODS.find((m) => m.id === mood)?.label}</span>}
+        <span key={mood || "none"} className="fj-hand fj-tone-name">
+          {tone ? <>the tone of this page is <em>{tone.label}</em></> : "pick a tone — or leave the page plain"}
+        </span>
       </div>
 
       <button className={`fj-btn-gold fj-btn-wide fj-foil-btn ${canSave ? "" : "fj-btn-off"}`} disabled={!canSave}
         onClick={() => onSave({
+          editId: view.editId,
           space: view.space || (pillar ? "pillar" : "story"),
           pillar: pillar?.id, chapter_id: chapter?.id,
           title: title.trim(), body: body.trim(), mood, linked_to: view.linkedTo || undefined,
         })}>
-        seal the entry
+        {editing ? "re-seal the page" : "seal the entry"}
       </button>
     </div>
   );

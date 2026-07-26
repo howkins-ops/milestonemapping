@@ -1,0 +1,615 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE IDENTITY FORGE  (idf-)
+   Its own stylesheet, imported by IdentityTab.jsx — the same pattern
+   incantation.css already uses. Keeps the forge out of the 3.5k-line
+   clearday.css and lets the two evolve without stepping on each other.
+
+   Reuses the stable cd- primitives (cd-card, cd-btn, cd-input, cd-label,
+   cd-chip, cd-nudge, cd-cite, cd-sigpad, cd-door, cd-shed, cd-rule*,
+   cd-ceremony*) and only adds what's genuinely new.
+
+   Two looks, one system:
+     THE FORGE — a build. Numbered spine, gold thread, one live stage.
+     THE FILE  — a sealed document. Dark parchment, letterpress claim,
+                 his real signature, a pressed wax stamp.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.idf-page { --idf-gold: #ffc46b; --idf-goldsoft: rgba(255, 196, 107, 0.5); }
+
+/* ── collapsed science receipt ─────────────────────────────────────────── */
+.idf-receipt { margin-top: 12px; }
+.idf-receipt > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--idf-goldsoft);
+  padding: 6px 0;
+  transition: color 0.2s ease;
+}
+.idf-receipt > summary::-webkit-details-marker { display: none; }
+.idf-receipt > summary::after { content: " ▾"; opacity: 0.55; }
+.idf-receipt[open] > summary::after { content: " ▴"; }
+.idf-receipt > summary:hover { color: var(--idf-gold); }
+.idf-receipt-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #aab8d7;
+  border-left: 2px solid rgba(255, 196, 107, 0.28);
+  padding: 4px 0 4px 12px;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STATE A — THE FORGE
+   ══════════════════════════════════════════════════════════════════════ */
+
+.idf-forge-hero { padding: 6px 2px 4px; }
+.idf-h1 {
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: clamp(25px, 7.4vw, 33px);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  font-weight: 700;
+  color: var(--cd-bright);
+  margin: 8px 0 0;
+}
+.idf-h1 span {
+  background: linear-gradient(96deg, var(--cd-dawn), var(--idf-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.idf-lede {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--cd-soft);
+  margin: 12px 0 0;
+  max-width: 43ch;
+}
+
+.idf-progress { display: flex; gap: 5px; margin: 18px 0 7px; }
+.idf-progress-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cd-line);
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+.idf-progress-seg--on {
+  background: linear-gradient(90deg, var(--cd-dawn), var(--idf-gold));
+  box-shadow: 0 0 10px rgba(255, 196, 107, 0.4);
+}
+.idf-progress-label {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cd-mute);
+}
+
+/* ── the spine: a numbered build, one stage live ───────────────────────── */
+.idf-spine { position: relative; display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.idf-spine::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(255, 196, 107, 0.32), rgba(38, 46, 82, 0.7));
+  pointer-events: none;
+}
+
+.idf-stage { position: relative; }
+.idf-stage-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.idf-stage-n {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--cd-mute);
+  background: var(--cd-slate);
+  border: 1px solid var(--cd-line);
+}
+.idf-stage-n--big {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  color: #10152b;
+  background: linear-gradient(150deg, var(--idf-gold), #ff9d5c);
+  border-color: transparent;
+  box-shadow: 0 0 16px rgba(255, 196, 107, 0.34);
+}
+.idf-stage-label {
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--cd-bright);
+  margin: 3px 0 0;
+}
+.idf-stage-lead { font-size: 12.5px; line-height: 1.55; color: var(--cd-soft); margin: 5px 0 0; }
+
+.idf-stage-shut {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px 11px 4px;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.2s ease;
+}
+.idf-stage-shut:hover:not(:disabled) { background: rgba(29, 36, 64, 0.5); }
+.idf-stage-shut--done .idf-stage-n {
+  color: #10152b;
+  background: var(--cd-green);
+  border-color: transparent;
+}
+.idf-stage-shut--locked { cursor: default; opacity: 0.42; }
+.idf-stage-shutlabel {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cd-soft);
+  flex: 1;
+}
+.idf-stage-shut--done .idf-stage-shutlabel { color: var(--cd-mute); }
+.idf-stage-lock { color: var(--cd-mute); font-size: 16px; }
+.idf-next { margin-top: 14px; width: 100%; }
+
+.idf-maskline { font-size: 13px; line-height: 1.6; color: var(--cd-text); margin-bottom: 12px; }
+.idf-maskline strong { color: var(--cd-rose); }
+
+.idf-gate {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--cd-mute);
+  border-top: 1px dashed var(--cd-line);
+  padding-top: 11px;
+}
+.idf-gate-now { display: block; margin-top: 4px; color: var(--idf-gold); letter-spacing: 0.04em; }
+
+/* ── the claim forge ──────────────────────────────────────────────────── */
+.idf-forge-btn { width: 100%; }
+.idf-forge-wait {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--cd-mute);
+  padding: 14px 2px;
+}
+.idf-forge-anvil { color: var(--idf-gold); font-size: 15px; animation: idf-anvil 1.1s ease-in-out infinite; }
+@keyframes idf-anvil {
+  0%, 100% { opacity: 0.35; transform: scale(0.86); }
+  50% { opacity: 1; transform: scale(1.14); }
+}
+.idf-forge-src {
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--idf-goldsoft);
+  line-height: 1.5;
+  margin: 4px 0 10px;
+}
+.idf-cands { display: flex; flex-direction: column; gap: 9px; }
+.idf-cand {
+  position: relative;
+  text-align: left;
+  width: 100%;
+  padding: 14px 15px 14px 34px;
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--cd-text);
+  background: linear-gradient(160deg, rgba(21, 27, 51, 0.9), rgba(16, 21, 43, 0.9));
+  border: 1px solid var(--cd-line);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.25s ease;
+}
+.idf-cand:hover { transform: translateY(-1px); border-color: rgba(127, 180, 255, 0.5); }
+.idf-cand--on {
+  color: var(--cd-bright);
+  border-color: var(--idf-gold);
+  box-shadow: 0 0 0 1px rgba(255, 196, 107, 0.35), 0 8px 26px -14px rgba(255, 196, 107, 0.55);
+}
+.idf-cand-mark {
+  position: absolute;
+  left: 13px;
+  top: 11px;
+  font-size: 27px;
+  line-height: 1;
+  color: var(--idf-goldsoft);
+  font-family: Georgia, serif;
+}
+.idf-claim-own { margin-top: 18px; }
+.idf-claim-input {
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+}
+.idf-claim-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.idf-claim-row .cd-btn { margin-left: auto; }
+.idf-claim-row .cd-ghost--sm { margin-top: 0; }
+
+/* ── the deed: the file laid out to be signed ──────────────────────────── */
+.idf-deed {
+  position: relative;
+  margin-top: 4px;
+  padding: 18px 17px 17px;
+  border-radius: 15px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 196, 107, 0.07), transparent 62%),
+    linear-gradient(168deg, #131a30, #0d1223);
+  border: 1px solid rgba(255, 196, 107, 0.24);
+  overflow: hidden;
+}
+.idf-deed::before {
+  /* the letterpress rule under the header */
+  content: "";
+  position: absolute;
+  left: 17px;
+  right: 17px;
+  top: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 196, 107, 0.42), transparent);
+}
+.idf-deed--sealing { animation: idf-press 0.42s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes idf-press {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.982); }
+  100% { transform: scale(1); }
+}
+.idf-deed-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.idf-deed-title {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--idf-gold);
+  font-weight: 700;
+}
+.idf-deed-date { font-size: 10.5px; letter-spacing: 0.1em; color: var(--cd-mute); text-transform: uppercase; }
+.idf-deed-claim {
+  position: relative;
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: clamp(18px, 5.2vw, 22px);
+  line-height: 1.34;
+  letter-spacing: -0.012em;
+  color: var(--cd-bright);
+  margin: 26px 0 18px;
+  padding-left: 26px;
+}
+.idf-deed-quote {
+  position: absolute;
+  left: -2px;
+  top: -8px;
+  font-family: Georgia, serif;
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(255, 196, 107, 0.42);
+}
+.idf-deed-body { display: flex; flex-direction: column; gap: 9px; }
+.idf-deed-row { display: flex; gap: 11px; font-size: 12.5px; line-height: 1.55; }
+.idf-deed-k {
+  flex: 0 0 74px;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cd-mute);
+  padding-top: 3px;
+}
+.idf-deed-v { flex: 1; color: var(--cd-soft); }
+.idf-deed-v strong { color: var(--cd-rose); }
+.idf-deed-law {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-left: 2px solid;
+  border-radius: 0 8px 8px 0;
+  background: rgba(12, 16, 34, 0.55);
+}
+.idf-deed-sigline {
+  margin: 20px 0 8px;
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--cd-mute);
+}
+.idf-deed-sigrow { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.idf-deed-signbtn { flex: 1; }
+.idf-deed-sigrow .cd-ghost { margin-top: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STATE B — THE FILE
+   ══════════════════════════════════════════════════════════════════════ */
+
+.idf-file-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 196, 107, 0.2);
+  background:
+    radial-gradient(110% 74% at 50% 0%, rgba(127, 180, 255, 0.13), transparent 60%),
+    linear-gradient(170deg, #141b33, #0c1022 72%);
+  box-shadow: 0 22px 54px -32px rgba(0, 0, 0, 0.9);
+}
+.idf-file-inner { position: relative; padding: 17px 17px 16px; }
+
+.idf-file-stamp {
+  display: inline-block;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--idf-gold);
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 196, 107, 0.45);
+  border-radius: 4px;
+  transform: rotate(-1.6deg);
+  background: rgba(255, 196, 107, 0.06);
+}
+.idf-file-claim {
+  position: relative;
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: clamp(21px, 6.4vw, 28px);
+  line-height: 1.26;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--cd-bright);
+  margin: 16px 0 0;
+  padding-left: 24px;
+  text-wrap: balance;
+}
+.idf-file-quote {
+  position: absolute;
+  left: -4px;
+  top: -12px;
+  font-family: Georgia, serif;
+  font-size: 52px;
+  line-height: 1;
+  color: rgba(255, 196, 107, 0.34);
+}
+.idf-file-sig {
+  display: block;
+  height: 46px;
+  width: auto;
+  max-width: 62%;
+  margin: 10px 0 0 auto;
+  opacity: 0.72;
+  transform: rotate(-2.6deg);
+  filter: drop-shadow(0 0 9px rgba(255, 196, 107, 0.32));
+  pointer-events: none;
+}
+.idf-file-standing {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(255, 196, 107, 0.18);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--idf-goldsoft);
+  line-height: 1.7;
+}
+.idf-file-key { margin-top: 7px; font-size: 11.5px; line-height: 1.55; color: var(--cd-mute); max-width: 40ch; }
+.idf-file-acts { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.idf-file-acts .cd-ghost--sm { margin-top: 0; }
+
+.idf-pointers { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.idf-pointer {
+  font-size: 11.5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: var(--cd-dawn);
+  background: rgba(127, 180, 255, 0.1);
+  border: 1px solid rgba(127, 180, 255, 0.32);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s ease;
+}
+.idf-pointer:hover { background: rgba(127, 180, 255, 0.2); }
+.idf-pointer--flat { color: var(--cd-mute); background: none; border-color: var(--cd-line); cursor: default; }
+
+/* ── zone headers ─────────────────────────────────────────────────────── */
+.idf-zone-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 24px 0 10px;
+}
+.idf-zone-head .cd-label { margin: 0; }
+.idf-zone-sub { font-size: 11.5px; color: var(--cd-mute); }
+
+/* ── the three proof reps ─────────────────────────────────────────────── */
+.idf-rep {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 13px;
+  border: 1px solid var(--cd-line-soft);
+  background: rgba(21, 27, 51, 0.5);
+  font: inherit;
+  color: inherit;
+  margin-top: 8px;
+}
+.idf-rep--shut { cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+.idf-rep--shut:hover { border-color: rgba(127, 180, 255, 0.4); background: rgba(29, 36, 64, 0.6); }
+.idf-rep--done { border-color: rgba(123, 228, 149, 0.24); background: rgba(123, 228, 149, 0.05); }
+.idf-rep-mark {
+  flex: 0 0 auto;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cd-mute);
+  background: var(--cd-slate2);
+  border: 1px solid var(--cd-line);
+}
+.idf-rep--done .idf-rep-mark { color: #10152b; background: var(--cd-green); border-color: transparent; }
+.idf-rep-shuttitle {
+  flex: 1;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cd-soft);
+}
+.idf-rep-chev { color: var(--cd-mute); }
+.idf-rep-doneline { flex: 1; font-size: 12.5px; line-height: 1.5; color: #9fd8b2; }
+
+.idf-rep-card { margin-top: 8px; }
+.idf-rep-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display, "Sora"), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--cd-bright);
+  margin: 0;
+}
+.idf-rep-title span {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: #10152b;
+  background: linear-gradient(150deg, var(--cd-dawn), #5ce0d3);
+}
+.idf-rep-sub { font-size: 12.5px; line-height: 1.55; color: var(--cd-soft); margin: 9px 0 12px; }
+
+/* the secondary field — the Fog's line is never the one with the cursor,
+   and it never looks like the main event either */
+.idf-input--minor { opacity: 0.78; font-size: 12.5px !important; }
+.idf-input--minor:focus { opacity: 1; }
+
+.idf-quiet {
+  display: block;
+  width: 100%;
+  margin-top: 11px;
+  padding: 9px 0 2px;
+  background: none;
+  border: 0;
+  border-top: 1px dashed var(--cd-line);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--cd-mute);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+.idf-quiet:hover { color: var(--cd-teal); }
+
+.idf-sealed-day { margin-top: 8px; }
+
+/* ── the armed meter ──────────────────────────────────────────────────── */
+.idf-armed-meter { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.idf-armed-count {
+  font-size: 10px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--idf-gold);
+  font-weight: 700;
+}
+.idf-armed-pips { display: flex; gap: 4px; flex-wrap: wrap; }
+.idf-pip {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cd-line);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.idf-pip--on { background: var(--idf-gold); box-shadow: 0 0 7px rgba(255, 196, 107, 0.55); }
+
+/* ── the record: everything else, folded ──────────────────────────────── */
+.idf-record { margin-top: 26px; }
+.idf-record > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 13px 15px;
+  border: 1px solid var(--cd-line);
+  border-radius: 13px;
+  background: rgba(21, 27, 51, 0.42);
+  font-size: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--cd-soft);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.idf-record > summary::-webkit-details-marker { display: none; }
+.idf-record > summary::after { content: "▾"; margin-left: auto; opacity: 0.6; letter-spacing: 0; }
+.idf-record[open] > summary::after { content: "▴"; }
+.idf-record > summary:hover { border-color: rgba(127, 180, 255, 0.42); color: var(--cd-bright); }
+.idf-record-sub { font-size: 11px; letter-spacing: 0.02em; text-transform: none; color: var(--cd-mute); }
+.idf-record > .cd-card { margin-top: 10px; }
+
+/* ── scoped fixes for two inherited cd- layouts ────────────────────────────
+   Both live in clearday.css; overriding them here keeps this rebuild out of
+   that file entirely. Scoped to .idf-page so nothing else shifts. */
+
+/* the "edit" tag sits absolutely bottom-right and was colliding with the last
+   line of a two-line law — reserve the corner for it */
+.idf-page .cd-seal-law--edit { padding-bottom: 24px; }
+.idf-page .cd-law-edittag { bottom: 7px; }
+
+/* "A rule the new you doesn't break…" was clipped to a few characters next to
+   the +ADD button on a phone. Give the input the full row and drop the button
+   beneath it. */
+@media (max-width: 460px) {
+  .idf-page .cd-rule-add { flex-wrap: wrap; }
+  .idf-page .cd-rule-add .cd-input { flex: 1 0 100%; }
+  .idf-page .cd-rule-add .cd-btn { flex: 1 0 100%; }
+}
+
+/* ── motion policy — mirrored from clearday.css: the app attribute AND
+      the OS media query, both hard-off ─────────────────────────────────── */
+html[data-reduced-motion="true"] .idf-forge-anvil,
+html[data-reduced-motion="true"] .idf-deed--sealing {
+  animation: none !important;
+}
+html[data-reduced-motion="true"] .idf-cand:hover,
+html[data-reduced-motion="true"] .idf-rep--shut:hover {
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .idf-forge-anvil,
+  .idf-deed--sealing { animation: none !important; }
+  .idf-cand:hover,
+  .idf-rep--shut:hover { transform: none !important; }
+}
+
+/* ── narrow phones ────────────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .idf-deed-row { flex-direction: column; gap: 2px; }
+  .idf-deed-k { flex: none; padding-top: 0; }
+  .idf-file-sig { max-width: 74%; height: 40px; }
+  .idf-claim-row .cd-btn { margin-left: 0; width: 100%; }
+}

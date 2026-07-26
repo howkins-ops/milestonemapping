@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadClearDay, subscribeClearDay, dayNumber } from "./clearDayStore.js";
+import { loadClearDay, subscribeClearDay, dayNumber, elapsedDay, flameStreak } from "./clearDayStore.js";
 
 /* Read-only CLEARDAY status for chrome outside the overlay (topbar,
    dashboard). loadClearDay() returns a fresh object per call, so this
@@ -8,8 +8,9 @@ import { loadClearDay, subscribeClearDay, dayNumber } from "./clearDayStore.js";
 
 function readStatus() {
   const S = loadClearDay();
-  const day = dayNumber(S);
-  const ritualOpen = Boolean(S.onboarded) && !S.closedDays[day];
+  const day = dayNumber(S); // the "day N of 66" the chrome shows
+  const abs = elapsedDay(S); // the key the ledger actually writes to
+  const ritualOpen = Boolean(S.onboarded) && !S.closedDays[abs];
   // Evening-aware pulse: the breathing "due" cue only starts at dusk (7pm) —
   // the app is evening-used and both tracks are night-cued (research §4/§5).
   // An all-day pulse is noise; a dusk pulse is a signal.
@@ -18,7 +19,8 @@ function readStatus() {
     onboarded: Boolean(S.onboarded),
     day,
     votes: S.votes,
-    closedClear: S.closedDays[day] === "clear",
+    closedClear: S.closedDays[abs] === "clear",
+    streak: flameStreak(S),
     ritualOpen: ritualOpen && (hour >= 19 || hour < 4),
   };
 }

@@ -4,27 +4,60 @@ import {
   setMaskName, addBelief, setDoors, addRule, deleteRule, armRule,
   addShedding, burnShedding, addCatch, addOpposite, addChapter,
 } from "./clearDayStore.js";
-import { LADDER, TRACK_META, RULE_STARTERS, powerCheck, GRANDIOSE_RE } from "./clearDayData.js";
+import { LADDER, TRACK_META, RULE_STARTERS, powerCheck } from "./clearDayData.js";
+import { STAGES, SCIENCE, QUIET_DAY_LIE, QUIET_DAY_TRUTH, claimOk } from "./identityForge.js";
+import ClaimForge from "./ClaimForge.jsx";
+import IdentitySeal from "./IdentitySeal.jsx";
+import Incantation from "./Incantation.jsx";
 import { XP_VALUES } from "../../lib/gamification.js";
 import cdFx from "./cdFx.js";
 import { tapLight, tapMedium, buzzSuccess } from "../../lib/haptics.js";
 import { sfxPop, sfxCoin, sfxPhoenix, sfxRungUp } from "../../lib/sfx.js";
+import "../../styles/clearday-forge.css";
 
 /* ═══════════════════════════════════════════════════════════════
-   IDENTITY — the GYM and the FILE.
-   Ritual performs; Identity builds. Two zones:
-     ZONE 1 · TODAY'S IDENTITY WORKOUT — three 60-second cognitive
-       reps (catch the Mask's lie → do the opposite → file an
-       exhibit). Daily minutes beat weekly hours (CBT dose research).
-     ZONE 2 · THE IDENTITY FILE — the claim, the ladder, WAS/AM,
-       THE CODE (non-negotiables + when-then arming), the weekly
-       rewrite. Every card carries its science receipt — nothing
-       in here is decoration.
-   All done-states derive from the ballot; nothing drifts.
+   IDENTITY — THE FORGE, then THE FILE.
+
+   Two states, never both:
+
+   THE FORGE (until it's signed) — a real build, in order, gated.
+     1 THE OLD NAME   past tense, once. The only space he gets.
+     2 THE NEW NAME   specific enough to walk into.
+     3 THE CLAIM      one present-tense sentence, forged from his
+                      own words by THE CORNER (Haiku 4.5).
+     4 THE CODE       the laws + non-negotiables, when-then armed.
+     5 SEAL IT        signed in his own hand, then said out loud.
+
+   THE FILE (once signed) — three zones, not seven cards.
+     HERO             the claim IS the header. Signed, stamped.
+     TODAY'S PROOF    inverted: his move first, the Fog last and
+                      optional. The old self never gets the first
+                      cursor of the day again.
+     THE CODE         compact, with the armed meter.
+     THE RECORD       everything else, folded away. Nothing lost.
+
+   Laws that still hold: every done-state derives from the ballot;
+   the reps reuse the exhibit/opposite/catch kinds so nothing
+   migrates and the Ritual's pointer chip keeps agreeing; the word
+   "addict" appears nowhere; nothing ever resets to zero.
    ═══════════════════════════════════════════════════════════════ */
 
+/* The open receipt — kept exported and byte-identical in markup because
+   the Vault renders it too (ClearDay.jsx imports Science from here). */
 export function Science({ children }) {
   return <div className="cd-cite cd-cite--science">◈ THE SCIENCE · {children}</div>;
+}
+
+/* The collapsed receipt — one per zone instead of one per card. The
+   citations were the best thing on the old page and also most of its
+   wall of text; folding them keeps the proof and drops the noise. */
+function Receipt({ children, label = "why this works" }) {
+  return (
+    <details className="idf-receipt">
+      <summary>◈ {label}</summary>
+      <div className="idf-receipt-body">{children}</div>
+    </details>
+  );
 }
 
 /* ── the rung-upgrade moment — a full-screen sunrise for a new label ── */
@@ -52,7 +85,7 @@ function RungMoment({ rung, onDone }) {
 }
 
 /* the identity constellation — one star per belief, per pulse, per rung,
-   per workout rep. The file only fills; the sky only gains stars. */
+   per rep. The file only fills; the sky only gains stars. */
 function ConstellationCanvas({ S }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -96,13 +129,26 @@ function ConstellationCanvas({ S }) {
       if (document.hidden) { raf = requestAnimationFrame(draw); return; }
       t += 0.012;
       ctx.clearRect(0, 0, W, H);
-      // connective lines between the bright stars — the identity taking shape
+      // Connective lines between the bright stars — the identity taking shape.
+      // Only short hops, and only once there are enough stars to make a shape:
+      // with two or three, the polyline reads as a scratch across the claim
+      // rather than a constellation, and the claim is the one thing on this
+      // screen that must stay clean.
       const bright = stars.filter((s) => s.b);
-      ctx.strokeStyle = "rgba(127, 180, 255, 0.16)";
-      ctx.lineWidth = 1 * dpr;
-      ctx.beginPath();
-      bright.forEach((s, i) => { if (i === 0) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); });
-      ctx.stroke();
+      if (bright.length >= 4) {
+        const maxHop = W * 0.34;
+        ctx.strokeStyle = "rgba(127, 180, 255, 0.13)";
+        ctx.lineWidth = 1 * dpr;
+        for (let i = 1; i < bright.length; i++) {
+          const a = bright[i - 1];
+          const b = bright[i];
+          if (Math.hypot(b.x - a.x, b.y - a.y) > maxHop) continue;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
       stars.forEach((s) => {
         const tw = still ? 0.8 : 0.55 + Math.sin(t + s.ph) * 0.35;
         ctx.fillStyle = s.b ? `rgba(255, 196, 107, ${0.5 + tw * 0.4})` : `rgba(201, 205, 232, ${0.3 + tw * 0.3})`;
@@ -133,7 +179,7 @@ function LawLine({ track, law, settings }) {
         onClick={() => { setDraft(law || TRACK_META[track].lawHint); setEditing(true); }}
       >
         {law || TRACK_META[track].lawHint}
-        <span className="cd-law-edittag">edit</span>
+        <span className="cd-law-edittag">{law ? "edit" : "sign it"}</span>
       </button>
     );
   }
@@ -145,15 +191,15 @@ function LawLine({ track, law, settings }) {
       )}
       <button type="button" className="cd-btn cd-btn--sm" disabled={!ok}
         onClick={() => { setLaw(track, draft.trim()); sfxPop(settings); setEditing(false); }}>
-        Re-sign the {TRACK_META[track].label} law
+        Sign the {TRACK_META[track].label} law
       </button>
     </div>
   );
 }
 
 /* a view/edit textarea used by the WAS / AM doors */
-function DoorField({ label, tone, value, placeholder, onSave }) {
-  const [editing, setEditing] = useState(false);
+function DoorField({ label, tone, value, placeholder, onSave, settings }) {
+  const [editing, setEditing] = useState(!value);
   const [draft, setDraft] = useState(value || "");
   if (!editing) {
     return (
@@ -171,73 +217,74 @@ function DoorField({ label, tone, value, placeholder, onSave }) {
       <textarea className="cd-input cd-input--sm" rows={3} value={draft}
         onChange={(e) => setDraft(e.target.value)} placeholder={placeholder} />
       <button type="button" className="cd-btn cd-btn--sm" disabled={draft.trim().length < 10}
-        onClick={() => { onSave(draft.trim()); setEditing(false); }}>Save</button>
+        onClick={() => { onSave(draft.trim()); sfxPop(settings); setEditing(false); }}>Save</button>
     </div>
   );
 }
 
-/* one workout rep card — collapses to a done-line once filed */
-function RepCard({ n, title, done, doneLine, children }) {
+/* the ashes list — name what he took with him, then burn it */
+function ShedList({ shedding, settings, celebrate }) {
+  const [draft, setDraft] = useState("");
   return (
-    <div className={`cd-card cd-rep ${done ? "cd-rep--done" : ""}`}>
-      <h2 className="cd-rep-title"><span>{n}</span>{title}</h2>
-      {done ? <div className="cd-done-line" style={{ textAlign: "left" }}>{doneLine}</div> : children}
-    </div>
+    <>
+      {shedding.map((s) => (
+        <div key={s.id} className={`cd-shed ${s.burnedAt ? "cd-shed--burned" : ""}`}>
+          <span className="cd-shed-text">{s.text}</span>
+          {!s.burnedAt ? (
+            <button type="button" className="cd-shed-burn" aria-label={`Burn: ${s.text}`}
+              onClick={(e) => {
+                burnShedding(s.id);
+                cdFx.burstFrom(e, "ember", 16, "#ff9d5c");
+                tapMedium();
+                sfxPhoenix(settings);
+                celebrate();
+              }}>BURN IT</button>
+          ) : (
+            <span className="cd-shed-ash">burned · it stays in the ashes</span>
+          )}
+        </div>
+      ))}
+      <input className="cd-input cd-input--sm" value={draft} onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && draft.trim().length >= 3) { addShedding(draft); setDraft(""); tapLight(); } }}
+        placeholder="a habit, an excuse, a version of the story… ⏎ to add" />
+    </>
   );
 }
 
-export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(S.identity.statement);
-  const [rungMoment, setRungMoment] = useState(null);
+/* what he believes — each one becomes a bright star */
+function BeliefList({ beliefs, settings }) {
+  const [draft, setDraft] = useState("");
+  return (
+    <>
+      {beliefs.map((b) => (
+        <div key={b.id} className="cd-shed">
+          <span className="cd-shed-text"><span className="cd-belief-mark" aria-hidden="true" />{b.text}</span>
+        </div>
+      ))}
+      <input className="cd-input cd-input--sm" value={draft} onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && draft.trim().length >= 4) {
+            addBelief("all", draft); setDraft(""); tapLight(); sfxPop(settings);
+          }
+        }}
+        placeholder="something true of him you're proving… ⏎ to add a star" />
+    </>
+  );
+}
 
-  /* workout inputs */
-  const [lie, setLie] = useState("");
-  const [truth, setTruth] = useState("");
-  const [push, setPush] = useState("");
-  const [counter, setCounter] = useState("");
-  const [exhibit, setExhibit] = useState("");
-
-  /* file inputs */
-  const [maskDraft, setMaskDraft] = useState(null); // null = viewing
-  const [shedDraft, setShedDraft] = useState("");
-  const [beliefDraft, setBeliefDraft] = useState("");
+/* THE CODE — laws + non-negotiables, when-then armed. One component,
+   mounted by forge stage 4 and by the sealed file's zone 3. */
+function TheCode({ S, settings, addXPSafe }) {
   const [ruleDraft, setRuleDraft] = useState("");
-  const [armOpen, setArmOpen] = useState(null); // rule id being armed
+  const [armOpen, setArmOpen] = useState(null);
   const [armWhen, setArmWhen] = useState("");
   const [armThen, setArmThen] = useState("");
-  const [chapterDraft, setChapterDraft] = useState("");
 
-  /* done-states — ballot-derived, never stored locally */
-  const repDone = (kind) => S.ballot.some((b) => b.day === day && b.kind === kind);
-  const catchDone = repDone("catch");
-  const oppositeDone = repDone("opposite");
-  const exhibitDone = repDone("exhibit");
-  const workoutCount = [catchDone, oppositeDone, exhibitDone].filter(Boolean).length;
-  const workoutDone = workoutCount === 3;
-
-  const lastPulse = S.pulses[S.pulses.length - 1];
-  const pulseDue = day >= 7 && (!lastPulse || day - lastPulse.day >= 7);
-  const lastChapter = (S.chapters || [])[0];
-  const chapterDue = day >= 7 && (!lastChapter || day - lastChapter.day >= 7);
-
-  const maskName = S.identity.maskName || "The Mask";
   const rules = S.rules || [];
-  const shedding = S.shedding || [];
+  const armed = rules.filter((r) => r.armedAt);
   const unusedStarters = RULE_STARTERS.filter(
     (ex) => !rules.some((r) => r.text.toLowerCase() === ex.toLowerCase())
   );
-
-  const fileRep = (e, xpLabel) => {
-    addXPSafe(XP_VALUES.cleardayWorkoutRep, xpLabel);
-    cdFx.burstFrom(e, "spark", 12);
-    tapMedium();
-    sfxCoin(settings);
-    celebrate();
-  };
-
-  const claimGrandiose = editing && GRANDIOSE_RE.test(draft);
-  const exhibitBankrupt = powerCheck(exhibit);
 
   const adoptRule = (text) => {
     const { added } = addRule(text);
@@ -249,217 +296,21 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
   };
 
   return (
-    <div className="cd-page">
-      <div className="cd-identity-hero">
-        <div className="cd-identity-art" aria-hidden="true" />
-        <ConstellationCanvas S={S} />
-        <div className="cd-identity-hero-copy">
-          <h1 className="cd-h1">Who you are</h1>
-          <p className="cd-p cd-p--soft">Not a scoreboard — the evidence file. Every star up there is something you did. The sky only fills.</p>
-        </div>
-      </div>
+    <>
+      {S.tracks.map((t) => (
+        <LawLine key={t} track={t} law={S.laws[t]} settings={settings} />
+      ))}
 
-      {/* ═══ ZONE 1 — TODAY'S IDENTITY WORKOUT ═══ */}
-      <div className="cd-idw-head">
-        <div className="cd-label cd-label--dawn">TODAY'S IDENTITY WORKOUT · {workoutCount}/3</div>
-        <div className="cd-idw-dots" aria-hidden="true">
-          {[catchDone, oppositeDone, exhibitDone].map((d, i) => (
-            <span key={i} className={`cd-daily-dot ${d ? "cd-daily-dot--on" : ""}`} />
-          ))}
-        </div>
-      </div>
-      {!workoutDone && (
-        <Science>
-          Your brain decides who you are by watching what you do — self-perception, Bem 1972.
-          Three reps, two minutes, filed as evidence. Daily minutes rewire more than weekly hours.
-        </Science>
-      )}
-
-      {workoutDone ? (
-        <div className="cd-card cd-rep--sealed">
-          <div className="cd-done-line">✓ Workout done — 3 exhibits filed. The case for the new you grew again today.</div>
-        </div>
-      ) : (
+      {rules.length > 0 && (
         <>
-          <RepCard n="1" title={`THE CATCH — what did ${maskName} say today?`} done={catchDone}
-            doneLine={`✓ Caught it, answered it. ${maskName} lost the argument on the record.`}>
-            <input className="cd-input cd-input--sm" value={lie} onChange={(e) => setLie(e.target.value)}
-              placeholder={`The lie, word for word — “${maskName} said…”`} />
-            <input className="cd-input cd-input--sm" value={truth} onChange={(e) => setTruth(e.target.value)}
-              placeholder="Your answer — with evidence from your own file" />
-            <button type="button" className="cd-btn cd-btn--sm" disabled={lie.trim().length < 4 || truth.trim().length < 4}
-              onClick={(e) => { addCatch(lie, truth); fileRep(e, "The catch"); setLie(""); setTruth(""); }}>
-              CAUGHT IT — FILE THE EXHIBIT
-            </button>
-            <Science>
-              Naming the thought as {maskName} talking cuts its pull — you're the one watching the fog,
-              not the fog (ACT defusion). Answering with evidence is the CBT rep that rewires the pathway.
-            </Science>
-          </RepCard>
-
-          <RepCard n="2" title="THE OPPOSITE — reverse one push" done={oppositeDone}
-            doneLine="✓ Reversed it. The old identity got outvoted in real time.">
-            <input className="cd-input cd-input--sm" value={push} onChange={(e) => setPush(e.target.value)}
-              placeholder="What did the old you push for today?" />
-            <input className="cd-input cd-input--sm" value={counter} onChange={(e) => setCounter(e.target.value)}
-              placeholder="The opposite move — done, or done within the hour" />
-            <button type="button" className="cd-btn cd-btn--sm" disabled={push.trim().length < 4 || counter.trim().length < 4}
-              onClick={(e) => { addOpposite(push, counter); fileRep(e, "The opposite"); setPush(""); setCounter(""); }}>
-              REVERSED — FILE THE EXHIBIT
-            </button>
-            <Science>
-              The old identity is a pattern of predictions. Every deliberate reversal is a prediction
-              error — the raw material your brain uses to update who it thinks you are.
-            </Science>
-          </RepCard>
-
-          <RepCard n="3" title="FILE AN EXHIBIT — proof only" done={exhibitDone}
-            doneLine="✓ Exhibit filed. Receipts, not announcements.">
-            <input className="cd-input cd-input--sm" value={exhibit} onChange={(e) => setExhibit(e.target.value)}
-              placeholder="One thing you DID today that only the new you would do" />
-            {exhibitBankrupt && (
-              <div className="cd-nudge">
-                “{exhibitBankrupt.from}” is a spectator word. Swap it for <strong>{exhibitBankrupt.to}</strong> — this file only takes things that happened.
-              </div>
-            )}
-            <button type="button" className="cd-btn cd-btn--sm" disabled={exhibit.trim().length < 6}
-              onClick={(e) => { castVote("exhibit", exhibit.trim()); fileRep(e, "Exhibit filed"); setExhibit(""); }}>
-              IT HAPPENED — FILE IT
-            </button>
-            <Science>
-              Logged actions change self-concept; announced intentions don't — telling people your new
-              identity actually reduces the striving (Gollwitzer 2009). Receipts beat announcements.
-            </Science>
-          </RepCard>
-        </>
-      )}
-
-      {/* ═══ ZONE 2 — THE IDENTITY FILE ═══ */}
-      <div className="cd-label" style={{ margin: "22px 0 10px" }}>THE IDENTITY FILE</div>
-
-      <div className="cd-card cd-card--claim">
-        <div className="cd-label cd-label--dawn">THE CLAIM</div>
-        {editing ? (
-          <>
-            <textarea className="cd-input" rows={3} value={draft} onChange={(e) => setDraft(e.target.value)} />
-            {claimGrandiose && (
-              <div className="cd-nudge">
-                Keep it believable <em>today</em> — “choosing,” “becoming,” “someone who” beat “forever” and “never again.”
-                Claims your brain rejects backfire (Wood 2009).
-              </div>
-            )}
-            <button type="button" className="cd-btn cd-btn--sm" disabled={draft.trim().length < 10}
-              onClick={() => { setIdentityStatement(draft); setEditing(false); }}>Save</button>
-          </>
-        ) : (
-          <>
-            <div className="cd-claim-text cd-claim-text--big">{S.identity.statement}</div>
-            <button type="button" className="cd-ghost" onClick={() => { setDraft(S.identity.statement); setEditing(true); }}>refine it</button>
-          </>
-        )}
-      </div>
-
-      <div className="cd-card">
-        <div className="cd-label">THE LABEL LADDER — it only goes up</div>
-        {LADDER.map((r) => {
-          const active = S.rung === r.id;
-          const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
-          const available = !reached && day >= r.minDay;
-          return (
-            <div key={r.id} className={`cd-rung ${active ? "cd-rung--on" : ""} ${reached && !active ? "cd-rung--past" : ""}`}>
-              <div className="cd-rung-label">{r.label}</div>
-              {active && <span className="cd-rung-tag">YOU ARE HERE</span>}
-              {available && (
-                <button type="button" className="cd-btn cd-btn--sm" onClick={() => {
-                  const { upgraded } = upgradeRung(r.id);
-                  if (upgraded) { sfxRungUp(settings); setRungMoment(r); }
-                }}>
-                  TAKE THE RUNG
-                </button>
-              )}
-              {!reached && !available && <span className="cd-rung-lock">unlocks day {r.minDay}</span>}
-            </div>
-          );
-        })}
-        <div className="cd-cite">◈ “A user trying to quit” is the highest-relapse identity in the data — it's not on this ladder on purpose.</div>
-      </div>
-
-      {/* WAS / AM — the two doors, alive */}
-      <div className="cd-card cd-wasam">
-        <div className="cd-wasam-col cd-wasam-col--was">
-          <div className="cd-label cd-label--rose">THE MAN I'M LEAVING</div>
-          <div className="cd-mask-line">
-            Its voice is <strong>{maskName}</strong>.{" "}
-            {maskDraft === null ? (
-              <button type="button" className="cd-law-edittag" onClick={() => setMaskDraft(maskName)}>rename</button>
-            ) : (
-              <span className="cd-mask-edit">
-                <input className="cd-input cd-input--sm" value={maskDraft} onChange={(e) => setMaskDraft(e.target.value)} />
-                <button type="button" className="cd-btn cd-btn--sm" disabled={maskDraft.trim().length < 2}
-                  onClick={() => { setMaskName(maskDraft); setMaskDraft(null); }}>Save</button>
-              </span>
-            )}
+          <div className="idf-armed-meter">
+            <span className="idf-armed-count">{armed.length}/{rules.length} ARMED</span>
+            <span className="idf-armed-pips" aria-hidden="true">
+              {rules.map((r) => (
+                <span key={r.id} className={`idf-pip ${r.armedAt ? "idf-pip--on" : ""}`} />
+              ))}
+            </span>
           </div>
-          <DoorField label="DOOR A — where he was headed" tone="dark" value={S.doors.dark}
-            placeholder="You at 40 if nothing changed — keep it specific, keep it visible"
-            onSave={(v) => setDoors({ dark: v })} />
-          <div className="cd-label" style={{ marginTop: 12 }}>WHAT HE TOOK WITH HIM — name it, then burn it</div>
-          {shedding.map((s) => (
-            <div key={s.id} className={`cd-shed ${s.burnedAt ? "cd-shed--burned" : ""}`}>
-              <span className="cd-shed-text">{s.text}</span>
-              {!s.burnedAt ? (
-                <button type="button" className="cd-shed-burn" aria-label={`Burn: ${s.text}`}
-                  onClick={(e) => {
-                    burnShedding(s.id);
-                    cdFx.burstFrom(e, "ember", 16, "#ff9d5c");
-                    tapMedium();
-                    sfxPhoenix(settings);
-                    celebrate();
-                  }}>BURN IT</button>
-              ) : (
-                <span className="cd-shed-ash">burned · it stays in the ashes</span>
-              )}
-            </div>
-          ))}
-          <input className="cd-input cd-input--sm" value={shedDraft} onChange={(e) => setShedDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && shedDraft.trim().length >= 3) { addShedding(shedDraft); setShedDraft(""); tapLight(); } }}
-            placeholder="a habit, an excuse, a version of the story… ⏎ to add" />
-        </div>
-
-        <div className="cd-wasam-col cd-wasam-col--am">
-          <div className="cd-label cd-label--green">THE MAN I'M BECOMING</div>
-          <DoorField label="DOOR B — a Tuesday in his life" tone="clear" value={S.doors.clear}
-            placeholder="Also specific: the morning, who's there, what you've built"
-            onSave={(v) => setDoors({ clear: v })} />
-          {S.doors.actions.length > 0 && (
-            <div className="cd-door-actions">Door B runs on: {S.doors.actions.join(" · ")}</div>
-          )}
-          <div className="cd-label" style={{ marginTop: 12 }}>WHAT HE BELIEVES — the constellation feeds on these</div>
-          {(S.identity.beliefs || []).map((b) => (
-            <div key={b.id} className="cd-shed">
-              <span className="cd-shed-text"><span className="cd-belief-mark" aria-hidden="true" />{b.text}</span>
-            </div>
-          ))}
-          <input className="cd-input cd-input--sm" value={beliefDraft} onChange={(e) => setBeliefDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && beliefDraft.trim().length >= 4) { addBelief("all", beliefDraft); setBeliefDraft(""); tapLight(); sfxPop(settings); } }}
-            placeholder="something true of him you're proving… ⏎ to add a star" />
-        </div>
-        <Science>
-          Vivid contact with the future self is the strongest known antidote to “just this once”
-          (future-self continuity, Hershfield). Writing the old self out loud makes it something
-          you HAD, not something you ARE — narrative externalization.
-        </Science>
-      </div>
-
-      {/* THE CODE — laws + non-negotiables, when-then armed */}
-      <div className="cd-card">
-        <div className="cd-label">THE CODE — the laws &amp; the non-negotiables</div>
-        <div className="cd-mask-line">{maskName} talks. It doesn't get a say in this file.</div>
-        {S.tracks.map((t) => (
-          <LawLine key={t} track={t} law={S.laws[t]} settings={settings} />
-        ))}
-
-        {rules.length > 0 && (
           <div className="cd-rules">
             {rules.map((r, i) => (
               <div key={r.id} className="cd-rule">
@@ -494,30 +345,444 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
               </div>
             ))}
           </div>
-        )}
+        </>
+      )}
 
-        <div className="cd-rule-add">
-          <input className="cd-input cd-input--sm" value={ruleDraft} onChange={(e) => setRuleDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && ruleDraft.trim().length >= 6) { adoptRule(ruleDraft.trim()); setRuleDraft(""); } }}
-            placeholder="A rule the new you doesn't break…" />
-          <button type="button" className="cd-btn cd-btn--sm" disabled={ruleDraft.trim().length < 6}
-            onClick={() => { adoptRule(ruleDraft.trim()); setRuleDraft(""); }}>+ ADD (+{XP_VALUES.cleardayRuleAdded} XP)</button>
+      <div className="cd-rule-add">
+        <input className="cd-input cd-input--sm" value={ruleDraft} onChange={(e) => setRuleDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && ruleDraft.trim().length >= 6) { adoptRule(ruleDraft.trim()); setRuleDraft(""); } }}
+          placeholder="A rule the new you doesn't break…" />
+        <button type="button" className="cd-btn cd-btn--sm" disabled={ruleDraft.trim().length < 6}
+          onClick={() => { adoptRule(ruleDraft.trim()); setRuleDraft(""); }}>+ ADD (+{XP_VALUES.cleardayRuleAdded} XP)</button>
+      </div>
+      {unusedStarters.length > 0 && (
+        <div className="cd-chips cd-chips--wrap" style={{ marginTop: 10 }}>
+          {unusedStarters.map((ex) => (
+            <button key={ex} type="button" className="cd-chip" onClick={() => adoptRule(ex)}>+ {ex}</button>
+          ))}
         </div>
-        {unusedStarters.length > 0 && (
-          <div className="cd-chips cd-chips--wrap" style={{ marginTop: 10 }}>
-            {unusedStarters.map((ex) => (
-              <button key={ex} type="button" className="cd-chip" onClick={() => adoptRule(ex)}>+ {ex}</button>
+      )}
+    </>
+  );
+}
+
+/* one daily rep — the active one is a full card, everything else is a line.
+   The page never shows three open reps at once. */
+function Rep({ n, title, sub, done, doneLine, open, onOpen, children }) {
+  if (done) {
+    return (
+      <div className="idf-rep idf-rep--done">
+        <span className="idf-rep-mark" aria-hidden="true">✓</span>
+        <span className="idf-rep-doneline">{doneLine}</span>
+      </div>
+    );
+  }
+  if (!open) {
+    return (
+      <button type="button" className="idf-rep idf-rep--shut" onClick={onOpen}>
+        <span className="idf-rep-mark" aria-hidden="true">{n}</span>
+        <span className="idf-rep-shuttitle">{title}</span>
+        <span className="idf-rep-chev" aria-hidden="true">›</span>
+      </button>
+    );
+  }
+  return (
+    <div className="cd-card idf-rep-card">
+      <h2 className="idf-rep-title"><span>{n}</span>{title}</h2>
+      {sub && <p className="idf-rep-sub">{sub}</p>}
+      {children}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+
+export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) {
+  const [rungMoment, setRungMoment] = useState(null);
+  const [speakOpen, setSpeakOpen] = useState(false);
+  const [refining, setRefining] = useState(false);
+  const [maskDraft, setMaskDraft] = useState(null);
+  const [chapterDraft, setChapterDraft] = useState("");
+  const [openStage, setOpenStage] = useState(null);
+  const [openRep, setOpenRep] = useState(null);
+
+  /* workout inputs — his line is always the first field */
+  const [move, setMove] = useState("");
+  const [counter, setCounter] = useState("");
+  const [push, setPush] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [said, setSaid] = useState("");
+
+  const claim = S.identity.statement || "";
+  const seal = S.identity.seal || null;
+  const sealed = Boolean(seal && seal.sealedAt);
+  // The file is only as good as the last time he signed it.
+  const staleSeal = sealed && String(seal.claim || "").trim() !== claim.trim();
+
+  const maskName = S.identity.maskName || "The Mask";
+  const rules = S.rules || [];
+  const armed = rules.filter((r) => r.armedAt);
+  const shedding = S.shedding || [];
+  const beliefs = S.identity.beliefs || [];
+  const lawSigned = S.tracks.some((t) => /i don'?t/i.test(S.laws[t] || ""));
+
+  /* ── forge stage gates ── */
+  const stageDone = {
+    old: Boolean(S.identity.maskName) && (S.doors.dark || "").trim().length >= 10,
+    new: (S.doors.clear || "").trim().length >= 10,
+    claim: claimOk(claim),
+    code: lawSigned && rules.length >= 3 && armed.length >= 1,
+    seal: sealed,
+  };
+  const doneCount = STAGES.filter((s) => stageDone[s.id]).length;
+  const firstUndoneStage = STAGES.findIndex((s) => !stageDone[s.id]);
+  const shownStage = openStage !== null ? openStage : firstUndoneStage;
+  useEffect(() => { setOpenStage(null); }, [doneCount]);
+
+  /* ── done-states — ballot-derived, never stored locally ── */
+  const repDone = (kind) => S.ballot.some((b) => b.day === day && b.kind === kind);
+  const moveDone = repDone("exhibit");
+  const reversalDone = repDone("opposite");
+  const answerDone = repDone("catch");
+  const proof = [moveDone, reversalDone, answerDone];
+  const proofCount = proof.filter(Boolean).length;
+  const firstUndoneRep = proof.findIndex((p) => !p);
+  const shownRep = openRep !== null ? openRep : firstUndoneRep;
+  useEffect(() => { setOpenRep(null); }, [proofCount]);
+
+  const lastPulse = S.pulses[S.pulses.length - 1];
+  const pulseDue = day >= 7 && (!lastPulse || day - lastPulse.day >= 7);
+  const lastChapter = (S.chapters || [])[0];
+  const chapterDue = day >= 7 && (!lastChapter || day - lastChapter.day >= 7);
+  const claimableRung = LADDER.find((r) => {
+    const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
+    return !reached && day >= r.minDay;
+  });
+
+  const fileRep = (e, xpLabel) => {
+    addXPSafe(XP_VALUES.cleardayWorkoutRep, xpLabel);
+    cdFx.burstFrom(e, "spark", 12);
+    tapMedium();
+    sfxCoin(settings);
+    celebrate();
+  };
+
+  const onSpoke = () => {
+    addXPSafe(XP_VALUES.cleardayIncant, "Spoke the claim");
+    // Deliberately NOT the "incant" kind — the Ritual's step 1 is its own
+    // ceremony and must never silently complete itself from this tab.
+    castVote("identity", "Said the claim out loud — whisper, voice, roar.");
+  };
+
+  const sealedPretty = (() => {
+    if (!sealed) return "";
+    try {
+      return new Date(seal.sealedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    } catch {
+      return "";
+    }
+  })();
+
+  const forgeCtx = {
+    old: S.doors.dark,
+    future: S.doors.clear,
+    beliefs: beliefs.map((b) => b.text).join(" · "),
+    law: S.tracks.map((t) => S.laws[t]).filter(Boolean).join(" · "),
+    maskName: S.identity.maskName,
+    track: S.tracks.length === 1 ? S.tracks[0] : "both",
+    day,
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     STATE A — THE FORGE
+     ══════════════════════════════════════════════════════════════ */
+  if (!sealed) {
+    const stageBody = (id) => {
+      if (id === "old") {
+        return (
+          <>
+            <div className="idf-maskline">
+              His voice has a name: <strong>{maskName}</strong>.{" "}
+              {maskDraft === null ? (
+                <button type="button" className="cd-law-edittag" onClick={() => setMaskDraft(S.identity.maskName || "")}>
+                  {S.identity.maskName ? "rename" : "name it"}
+                </button>
+              ) : (
+                <span className="cd-mask-edit">
+                  <input className="cd-input cd-input--sm" value={maskDraft} onChange={(e) => setMaskDraft(e.target.value)}
+                    placeholder="The Fog, The Salesman, Marcus…" />
+                  <button type="button" className="cd-btn cd-btn--sm" disabled={maskDraft.trim().length < 2}
+                    onClick={() => { setMaskName(maskDraft); setMaskDraft(null); tapLight(); sfxPop(settings); }}>Save</button>
+                </span>
+              )}
+            </div>
+            <DoorField label="WHERE HE WAS HEADED" tone="dark" value={S.doors.dark} settings={settings}
+              placeholder="You at 40 if nothing had changed — specific, visible, past tense"
+              onSave={(v) => setDoors({ dark: v })} />
+            <div className="cd-label" style={{ marginTop: 14 }}>WHAT HE TOOK WITH HIM — name it, then burn it</div>
+            <ShedList shedding={shedding} settings={settings} celebrate={celebrate} />
+          </>
+        );
+      }
+      if (id === "new") {
+        return (
+          <>
+            <DoorField label="A TUESDAY IN HIS LIFE" tone="clear" value={S.doors.clear} settings={settings}
+              placeholder="The morning, who's there, what you've built — specific enough to walk into"
+              onSave={(v) => setDoors({ clear: v })} />
+            <div className="cd-label" style={{ marginTop: 14 }}>WHAT HE BELIEVES — each one becomes a star</div>
+            <BeliefList beliefs={beliefs} settings={settings} />
+          </>
+        );
+      }
+      if (id === "claim") {
+        return <ClaimForge ctx={forgeCtx} value={claim} settings={settings} onSave={(v) => setIdentityStatement(v)} />;
+      }
+      if (id === "code") {
+        return (
+          <>
+            <TheCode S={S} settings={settings} addXPSafe={addXPSafe} />
+            {!stageDone.code && (
+              <div className="idf-gate">
+                To seal the file: one law signed with “I don't” · three non-negotiables · at least one ARMED.
+                {" "}<span className="idf-gate-now">
+                  now — {lawSigned ? "law ✓" : "law ✗"} · {rules.length}/3 rules · {armed.length ? "armed ✓" : "armed ✗"}
+                </span>
+              </div>
+            )}
+          </>
+        );
+      }
+      return (
+        <IdentitySeal S={S} day={day} claim={claim} settings={settings}
+          onSealed={() => {
+            addXPSafe(XP_VALUES.cleardayIdentitySealed, "Signed the identity file");
+            castVote("identity", `Signed the identity file: "${claim}"`);
+            celebrate();
+            setSpeakOpen(true);
+          }} />
+      );
+    };
+
+    return (
+      <div className="cd-page idf-page">
+        <div className="idf-forge-hero">
+          <div className="cd-eyebrow">THE IDENTITY FORGE</div>
+          <h1 className="idf-h1">Goals change what you chase.<br /><span>Identity changes what you keep.</span></h1>
+          <p className="idf-lede">
+            Five stages, in order. Name the old version, name the new one, compress it into one sentence,
+            write the code it runs on — then sign it. Nothing on this page is a scoreboard.
+          </p>
+          <div className="idf-progress" aria-label={`stage ${Math.min(doneCount + 1, 5)} of 5`}>
+            {STAGES.map((s) => (
+              <span key={s.id} className={`idf-progress-seg ${stageDone[s.id] ? "idf-progress-seg--on" : ""}`} />
             ))}
           </div>
+          <div className="idf-progress-label">STAGE {Math.min(doneCount + 1, 5)} OF 5</div>
+        </div>
+
+        <Receipt label="why the order matters">{SCIENCE.forge}</Receipt>
+
+        <div className="idf-spine">
+          {STAGES.map((s, i) => {
+            const done = stageDone[s.id];
+            const open = i === shownStage;
+            const locked = i > firstUndoneStage && firstUndoneStage !== -1;
+            if (!open) {
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`idf-stage-shut ${done ? "idf-stage-shut--done" : ""} ${locked ? "idf-stage-shut--locked" : ""}`}
+                  onClick={() => { if (!locked || done) setOpenStage(i); }}
+                  disabled={locked && !done}
+                >
+                  <span className="idf-stage-n">{done ? "✓" : s.n}</span>
+                  <span className="idf-stage-shutlabel">{s.label}</span>
+                  {locked && !done && <span className="idf-stage-lock" aria-hidden="true">·</span>}
+                </button>
+              );
+            }
+            return (
+              <div key={s.id} className={`cd-card idf-stage ${done ? "idf-stage--done" : ""}`} style={{ "--cd-acc": s.accent }}>
+                <div className="idf-stage-head">
+                  <span className="idf-stage-n idf-stage-n--big">{done ? "✓" : s.n}</span>
+                  <div>
+                    <h2 className="idf-stage-label">{s.label}</h2>
+                    <p className="idf-stage-lead">{s.lead}</p>
+                  </div>
+                </div>
+                {stageBody(s.id)}
+                {s.id === "claim" && <Receipt>{SCIENCE.claim}</Receipt>}
+                {s.id === "code" && <Receipt>{SCIENCE.code}</Receipt>}
+                {s.id === "seal" && <Receipt>{SCIENCE.seal}</Receipt>}
+                {done && i < STAGES.length - 1 && (
+                  <button type="button" className="cd-btn cd-btn--sm idf-next" onClick={() => setOpenStage(i + 1)}>
+                    NEXT — {STAGES[i + 1].label} →
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {speakOpen && claim && (
+          <Incantation statement={claim} devotionLine={S.identity.devotion} settings={settings}
+            onComplete={onSpoke} onClose={() => setSpeakOpen(false)} />
         )}
-        <Science>
-          A rule armed with a when-then trigger is one of the strongest effects in behavior science —
-          d = 0.65 across 94 studies (Gollwitzer &amp; Sheeran). The Ritual rehearses one armed rule
-          every night; write them here.
-        </Science>
+        <RungMoment rung={rungMoment} onDone={() => setRungMoment(null)} />
+      </div>
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     STATE B — THE FILE
+     ══════════════════════════════════════════════════════════════ */
+  return (
+    <div className="cd-page idf-page">
+      {/* ── HERO: the claim IS the header ── */}
+      <div className="idf-file-hero">
+        <ConstellationCanvas S={S} />
+        <div className="idf-file-inner">
+          <div className="idf-file-stamp">{(LADDER.find((r) => r.id === S.rung) || {}).label || "CHOSE"}</div>
+          <blockquote className="idf-file-claim">
+            <span className="idf-file-quote" aria-hidden="true">“</span>{claim}
+          </blockquote>
+          {seal.sig && <img className="idf-file-sig" src={seal.sig} alt="Your signature on the identity file" />}
+          <div className="idf-file-standing">
+            SEALED {sealedPretty} · DAY {day} · {S.votes} EXHIBIT{S.votes === 1 ? "" : "S"} · §{rules.length} · {armed.length} ARMED
+          </div>
+          <div className="idf-file-key">
+            One star per belief, per rung, per rep. The sky only fills — nothing up there can be taken back.
+          </div>
+          <div className="idf-file-acts">
+            <button type="button" className="cd-btn cd-btn--sm" onClick={() => { setSpeakOpen(true); tapMedium(); }}>
+              ⚡ SPEAK IT
+            </button>
+            <button type="button" className="cd-ghost cd-ghost--sm" onClick={() => setRefining((v) => !v)}>
+              {refining ? "keep it as it is" : "refine the claim"}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* THE WEEKLY REWRITE — pulse + chapter, one card, due weekly */}
+      {(claimableRung || pulseDue || chapterDue) && (
+        <div className="idf-pointers">
+          {claimableRung && (
+            <button type="button" className="idf-pointer" onClick={() => {
+              const { upgraded } = upgradeRung(claimableRung.id);
+              if (upgraded) { sfxRungUp(settings); setRungMoment(claimableRung); }
+            }}>
+              a rung is waiting — take “{claimableRung.label}”
+            </button>
+          )}
+          {(pulseDue || chapterDue) && <span className="idf-pointer idf-pointer--flat">the weekly rewrite is due ↓</span>}
+        </div>
+      )}
+
+      {refining && (
+        <div className="cd-card idf-stage" style={{ "--cd-acc": "127, 180, 255" }}>
+          <div className="cd-label cd-label--dawn">REFINE THE CLAIM</div>
+          <ClaimForge ctx={forgeCtx} value={claim} settings={settings}
+            onSave={(v) => { setIdentityStatement(v); setRefining(false); }} />
+          <Receipt>{SCIENCE.claim}</Receipt>
+        </div>
+      )}
+
+      {staleSeal && !refining && (
+        <div className="cd-card idf-stage" style={{ "--cd-acc": "255, 196, 107" }}>
+          <div className="cd-label cd-label--amber">THE CLAIM CHANGED — RE-SIGN THE FILE</div>
+          <IdentitySeal S={S} day={day} claim={claim} settings={settings} resign
+            onSealed={() => {
+              addXPSafe(XP_VALUES.cleardayIdentitySealed, "Re-signed the identity file");
+              castVote("identity", `Re-signed the file: "${claim}"`);
+              celebrate();
+              setSpeakOpen(true);
+            }} />
+        </div>
+      )}
+
+      {/* ── ZONE 2: TODAY'S PROOF — his move first, always ── */}
+      <div className="idf-zone-head">
+        <div className="cd-label cd-label--dawn">TODAY'S PROOF · {proofCount}/3</div>
+        <div className="cd-idw-dots" aria-hidden="true">
+          {proof.map((d, i) => <span key={i} className={`cd-daily-dot ${d ? "cd-daily-dot--on" : ""}`} />)}
+        </div>
+      </div>
+
+      {proofCount === 3 ? (
+        <div className="cd-card idf-sealed-day">
+          <div className="cd-done-line">✓ Three exhibits filed. The case for the new man grew again today.</div>
+        </div>
+      ) : (
+        <>
+          <Rep n="1" title="THE MOVE" done={moveDone} open={shownRep === 0} onOpen={() => setOpenRep(0)}
+            sub="One thing you DID today that only the new you would do. Proof, not plans."
+            doneLine="The move is filed. Receipts, not announcements.">
+            <input className="cd-input cd-input--sm" value={move} onChange={(e) => setMove(e.target.value)}
+              placeholder="What you did — it already happened" />
+            {powerCheck(move) && (
+              <div className="cd-nudge">
+                “{powerCheck(move).from}” is a spectator word. Swap it for <strong>{powerCheck(move).to}</strong> —
+                this file only takes things that happened.
+              </div>
+            )}
+            <button type="button" className="cd-btn cd-btn--sm" disabled={move.trim().length < 6}
+              onClick={(e) => { castVote("exhibit", move.trim()); fileRep(e, "The move"); setMove(""); }}>
+              IT HAPPENED — FILE IT
+            </button>
+          </Rep>
+
+          <Rep n="2" title="THE REVERSAL" done={reversalDone} open={shownRep === 1} onOpen={() => setOpenRep(1)}
+            sub="One push you turned around today. Your move goes first."
+            doneLine="Reversed it. The old identity got outvoted in real time.">
+            <input className="cd-input cd-input--sm" value={counter} onChange={(e) => setCounter(e.target.value)}
+              placeholder="What you did instead — done, or done within the hour" />
+            <input className="cd-input cd-input--sm idf-input--minor" value={push} onChange={(e) => setPush(e.target.value)}
+              placeholder="what the old you pushed for" />
+            <button type="button" className="cd-btn cd-btn--sm" disabled={counter.trim().length < 4 || push.trim().length < 4}
+              onClick={(e) => { addOpposite(push, counter); fileRep(e, "The reversal"); setPush(""); setCounter(""); }}>
+              REVERSED — FILE IT
+            </button>
+          </Rep>
+
+          <Rep n="3" title="THE ANSWER" done={answerDone} open={shownRep === 2} onOpen={() => setOpenRep(2)}
+            sub={`If ${maskName} said anything today, here's your answer. Your line first — it gets the rebuttal, not the opening.`}
+            doneLine={`Answered it. ${maskName} lost the argument on the record.`}>
+            <input className="cd-input cd-input--sm" value={answer} onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Your answer — with evidence from your own file" />
+            <input className="cd-input cd-input--sm idf-input--minor" value={said} onChange={(e) => setSaid(e.target.value)}
+              placeholder={`what ${maskName} said (optional)`} />
+            <button type="button" className="cd-btn cd-btn--sm" disabled={answer.trim().length < 4}
+              onClick={(e) => {
+                addCatch(said.trim() || QUIET_DAY_LIE, answer.trim());
+                fileRep(e, "The answer");
+                setAnswer(""); setSaid("");
+              }}>
+              ANSWERED — FILE IT
+            </button>
+            <button type="button" className="idf-quiet" onClick={(e) => {
+              addCatch(QUIET_DAY_LIE, QUIET_DAY_TRUTH);
+              fileRep(e, "A quiet day, filed");
+            }}>
+              it stayed quiet today →
+            </button>
+          </Rep>
+        </>
+      )}
+      <Receipt label="why proof goes first">{SCIENCE.proof}</Receipt>
+
+      {/* ── ZONE 3: THE CODE ── */}
+      <div className="idf-zone-head">
+        <div className="cd-label cd-label--amber">THE CODE</div>
+        <span className="idf-zone-sub">{maskName} talks. It doesn't get a say in here.</span>
+      </div>
+      <div className="cd-card">
+        <TheCode S={S} settings={settings} addXPSafe={addXPSafe} />
+        <Receipt>{SCIENCE.code}</Receipt>
+      </div>
+
+      {/* ── THE WEEKLY REWRITE — only when due ── */}
       {(pulseDue || chapterDue) && (
         <div className="cd-card cd-card--pulse">
           <div className="cd-label cd-label--dawn">THE WEEKLY REWRITE</div>
@@ -539,7 +804,7 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
                   sfxPop(settings);
                 }}>{opt.label}</button>
               ))}
-              <div className="cd-pulse-note">“Holding the door shut” isn't failure — it's a signal to do one extra workout rep today. The trend is the real progress bar.</div>
+              <div className="cd-pulse-note">“Holding the door shut” isn't failure — it's a signal to do one extra rep today. The trend is the real progress bar.</div>
             </>
           )}
           {chapterDue && (
@@ -568,22 +833,92 @@ export default function IdentityTab({ S, day, settings, celebrate, addXPSafe }) 
           )}
         </div>
       )}
-      {!pulseDue && S.pulses.length > 0 && (
-        <div className="cd-card">
-          <div className="cd-label">PULSE TREND</div>
-          <div className="cd-pulse-trend">
-            {S.pulses.slice(-8).map((p, i) => (
-              <div key={i} className={`cd-pulse-bar cd-pulse-bar--${p.value}`} title={`day ${p.day}`} />
-            ))}
-          </div>
-          {lastChapter && (
-            <div className="cd-cite" style={{ marginTop: 8 }}>
-              last chapter · day {lastChapter.day} — “{lastChapter.text.slice(0, 90)}{lastChapter.text.length > 90 ? "…" : ""}”
-            </div>
-          )}
-        </div>
-      )}
 
+      {/* ── THE RECORD — folded. Nothing deleted, nothing shouting. ── */}
+      <details className="idf-record">
+        <summary>
+          <span>THE RECORD</span>
+          <span className="idf-record-sub">the ladder, the two doors, the ashes, the pulse</span>
+        </summary>
+
+        <div className="cd-card">
+          <div className="cd-label">THE LABEL LADDER — it only goes up</div>
+          {LADDER.map((r) => {
+            const active = S.rung === r.id;
+            const reached = LADDER.findIndex((x) => x.id === S.rung) >= LADDER.findIndex((x) => x.id === r.id);
+            const available = !reached && day >= r.minDay;
+            return (
+              <div key={r.id} className={`cd-rung ${active ? "cd-rung--on" : ""} ${reached && !active ? "cd-rung--past" : ""}`}>
+                <div className="cd-rung-label">{r.label}</div>
+                {active && <span className="cd-rung-tag">YOU ARE HERE</span>}
+                {available && (
+                  <button type="button" className="cd-btn cd-btn--sm" onClick={() => {
+                    const { upgraded } = upgradeRung(r.id);
+                    if (upgraded) { sfxRungUp(settings); setRungMoment(r); }
+                  }}>
+                    TAKE THE RUNG
+                  </button>
+                )}
+                {!reached && !available && <span className="cd-rung-lock">unlocks day {r.minDay}</span>}
+              </div>
+            );
+          })}
+          <div className="cd-cite">◈ “A user trying to quit” is the highest-relapse identity in the data — it's not on this ladder on purpose.</div>
+        </div>
+
+        <div className="cd-card cd-wasam">
+          <div className="cd-wasam-col cd-wasam-col--was">
+            <div className="cd-label cd-label--rose">THE MAN HE WAS</div>
+            <div className="idf-maskline">
+              His voice was named <strong>{maskName}</strong>.{" "}
+              {maskDraft === null ? (
+                <button type="button" className="cd-law-edittag" onClick={() => setMaskDraft(maskName)}>rename</button>
+              ) : (
+                <span className="cd-mask-edit">
+                  <input className="cd-input cd-input--sm" value={maskDraft} onChange={(e) => setMaskDraft(e.target.value)} />
+                  <button type="button" className="cd-btn cd-btn--sm" disabled={maskDraft.trim().length < 2}
+                    onClick={() => { setMaskName(maskDraft); setMaskDraft(null); }}>Save</button>
+                </span>
+              )}
+            </div>
+            <DoorField label="WHERE HE WAS HEADED" tone="dark" value={S.doors.dark} settings={settings}
+              placeholder="You at 40 if nothing had changed" onSave={(v) => setDoors({ dark: v })} />
+            <div className="cd-label" style={{ marginTop: 12 }}>THE ASHES</div>
+            <ShedList shedding={shedding} settings={settings} celebrate={celebrate} />
+          </div>
+          <div className="cd-wasam-col cd-wasam-col--am">
+            <div className="cd-label cd-label--green">THE MAN HE'S BECOMING</div>
+            <DoorField label="A TUESDAY IN HIS LIFE" tone="clear" value={S.doors.clear} settings={settings}
+              placeholder="The morning, who's there, what you've built" onSave={(v) => setDoors({ clear: v })} />
+            {S.doors.actions.length > 0 && (
+              <div className="cd-door-actions">It runs on: {S.doors.actions.join(" · ")}</div>
+            )}
+            <div className="cd-label" style={{ marginTop: 12 }}>WHAT HE BELIEVES</div>
+            <BeliefList beliefs={beliefs} settings={settings} />
+          </div>
+        </div>
+
+        {S.pulses.length > 0 && (
+          <div className="cd-card">
+            <div className="cd-label">PULSE TREND</div>
+            <div className="cd-pulse-trend">
+              {S.pulses.slice(-8).map((p, i) => (
+                <div key={i} className={`cd-pulse-bar cd-pulse-bar--${p.value}`} title={`day ${p.day}`} />
+              ))}
+            </div>
+            {lastChapter && (
+              <div className="cd-cite" style={{ marginTop: 8 }}>
+                last chapter · day {lastChapter.day} — “{lastChapter.text.slice(0, 90)}{lastChapter.text.length > 90 ? "…" : ""}”
+              </div>
+            )}
+          </div>
+        )}
+      </details>
+
+      {speakOpen && claim && (
+        <Incantation statement={claim} devotionLine={S.identity.devotion} settings={settings}
+          onComplete={onSpoke} onClose={() => setSpeakOpen(false)} />
+      )}
       <RungMoment rung={rungMoment} onDone={() => setRungMoment(null)} />
     </div>
   );
