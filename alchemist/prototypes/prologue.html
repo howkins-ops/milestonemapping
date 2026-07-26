@@ -1,0 +1,1419 @@
+<title>The Inner Alchemist — Prologue</title>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   THE INNER ALCHEMIST · PROLOGUE — "The Boy Who Dreamed of Gold"
+
+   Look: INSIDE / Limbo / Little Nightmares. Near-black silhouettes, one
+   brutal light source, volumetric haze, real bloom, atmospheric depth.
+   Built from light and shape rather than texture detail — which is what
+   canvas can actually do beautifully.
+
+   Pipeline per frame:
+     1  scene painted back-to-front into the main buffer
+     2  emissives painted into a half-res LIGHT buffer
+     3  light buffer gaussian-blurred and composited additively  → bloom
+     4  haze planes between depth layers                         → aerial perspective
+     5  vignette · film grain · colour grade
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  color-scheme: dark;
+  --gold:#E8B23C; --gold-hot:#FFD98A;
+  --bone:#D5CEC2; --bone-dim:#7E7A72; --rust:#C25A38;
+  --myth:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,serif;
+  --ui:ui-rounded,'SF Pro Rounded','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;
+}
+*{ box-sizing:border-box; }
+body{
+  margin:0; background:#000; color:var(--bone); font-family:var(--ui);
+  overflow:hidden; overscroll-behavior:none; -webkit-font-smoothing:antialiased;
+}
+#stage{
+  position:fixed; inset:0; height:100vh; height:100dvh; overflow:hidden;
+  background:#000; user-select:none; -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#game{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+#ui{ position:absolute; inset:0; pointer-events:none; }
+#ui > *{ pointer-events:auto; }
+
+.caption{
+  font-family:var(--myth); font-size:clamp(19px,4.2vw,30px);
+  line-height:1.5; text-wrap:balance; margin:0;
+}
+.label{
+  font-family:var(--ui); font-size:11px; font-weight:600;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--bone-dim);
+}
+
+#ribbon{
+  position:absolute; left:0; right:0; bottom:0; z-index:8; display:none;
+  flex-direction:column; justify-content:flex-end; min-height:150px;
+  padding:26px clamp(22px,5vw,64px) calc(34px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,rgba(3,4,6,.97) 52%,rgba(3,4,6,0));
+  cursor:pointer;
+}
+#ribbon.on{ display:flex; }
+#ribbon .who{
+  font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--rust); margin:0 0 10px;
+}
+#ribbon .line{
+  font-family:var(--myth); font-size:clamp(18px,3.4vw,26px); line-height:1.5;
+  min-height:3em; margin:0; max-width:34em;
+}
+.tapon{
+  margin:14px 0 0; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--bone-dim); opacity:0; transition:opacity .4s;
+}
+.tapon.show{ opacity:.65; animation:pulse 2.4s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{opacity:.28} 50%{opacity:.8} }
+
+#copy{
+  position:absolute; left:0; right:0; bottom:14%;
+  padding:0 clamp(24px,6vw,80px); display:none; flex-direction:column;
+  gap:14px; align-items:center; text-align:center; z-index:7;
+}
+#copy.on{ display:flex; }
+#copy .caption{
+  opacity:0; transform:translateY(10px);
+  transition:opacity 1.2s ease, transform 1.2s ease;
+  text-shadow:0 2px 30px rgba(0,0,0,.95);
+}
+#copy .caption.in{ opacity:1; transform:none; }
+#copy .caption.dim{ color:var(--bone-dim); font-style:italic; }
+
+.btn{
+  font-family:var(--ui); font-size:13px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--bone); background:rgba(4,5,8,.55);
+  border:1px solid rgba(213,206,194,.3); padding:14px 28px; border-radius:2px;
+  cursor:pointer; transition:.22s; backdrop-filter:blur(4px);
+}
+.btn:hover,.btn:focus-visible{ border-color:var(--gold); color:var(--gold-hot); }
+.btn:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+.btn.quiet{ border-color:rgba(213,206,194,.13); color:var(--bone-dim); }
+.btn.quiet:hover{ border-color:var(--rust); color:var(--rust); }
+
+#choices{
+  position:absolute; left:0; right:0; bottom:calc(28px + env(safe-area-inset-bottom));
+  display:none; flex-direction:column; align-items:center; gap:12px;
+  padding:0 24px; z-index:9;
+}
+#choices.on{ display:flex; }
+
+#controls{ position:absolute; inset:0; display:none; z-index:5; }
+#controls.on{ display:block; }
+#controls.mute .pad, #controls.mute #act{ pointer-events:none; opacity:.1; }
+.pad{
+  position:absolute; bottom:0; width:34%; height:58%;
+  background:transparent; border:0; cursor:pointer;
+}
+.pad.l{ left:0 } .pad.r{ right:0 }
+.pad:focus-visible{ outline:2px solid rgba(232,178,60,.45); outline-offset:-10px; }
+.pad::after{
+  content:''; position:absolute; top:50%; width:14px; height:14px;
+  border-top:2px solid rgba(213,206,194,.24); border-left:2px solid rgba(213,206,194,.24);
+}
+.pad.l::after{ left:5%; transform:translateY(-50%) rotate(-45deg); }
+.pad.r::after{ right:5%; transform:translateY(-50%) rotate(135deg); }
+
+#act{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:calc(30px + env(safe-area-inset-bottom));
+  font-family:var(--ui); font-size:12px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:#14100A; background:var(--gold-hot);
+  border:0; padding:15px 34px; border-radius:2px; cursor:pointer;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+  box-shadow:0 0 40px rgba(255,217,138,.45);
+}
+#act.on{ opacity:1; pointer-events:auto; animation:bob 2.4s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+#hint{
+  position:absolute; left:0; right:0; top:calc(20px + env(safe-area-inset-top));
+  text-align:center;
+}
+
+#question{
+  position:absolute; inset:0; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:clamp(16px,3vh,28px);
+  padding:34px; z-index:7;
+}
+#question.on{ display:flex; }
+.q-ask{
+  font-family:var(--myth); color:var(--gold-hot);
+  font-size:clamp(25px,5.4vw,44px); text-align:center; text-wrap:balance;
+  line-height:1.3; margin:0; text-shadow:0 0 50px rgba(232,178,60,.4);
+}
+.q-sub{ font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--bone-dim); margin:0; }
+#qhead{ display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+.q-eyebrow{
+  font-size:11px; font-weight:700; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rust); margin:0;
+}
+.q-lead{
+  font-family:var(--myth); font-size:clamp(19px,3.4vw,27px); color:var(--bone);
+  margin:0; text-wrap:balance;
+}
+/* Recognition, not generation: you pick your treasure out of the dream.
+   Nobody should face a blank box thirty seconds into a game. */
+#cloud{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+  gap:6px 10px; max-width:min(94vw,700px);
+}
+.word{
+  font-family:var(--myth); font-size:clamp(17px,2.9vw,26px);
+  color:rgba(213,206,194,.55); background:none; border:0; cursor:pointer;
+  padding:7px 11px; letter-spacing:.03em; border-radius:2px;
+  transition:color .25s, text-shadow .25s, transform .25s;
+  animation:drift 7s ease-in-out infinite;
+}
+.word:hover,.word:focus-visible{
+  color:var(--gold-hot); text-shadow:0 0 30px rgba(232,178,60,.7); transform:scale(1.06);
+}
+.word:focus-visible{ outline:1px solid rgba(232,178,60,.5); outline-offset:2px; }
+.word.taken{ display:none; }
+@keyframes drift{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
+#cloud.done{ opacity:0; pointer-events:none; transition:opacity .7s; }
+.linky{
+  background:none; border:0; cursor:pointer; color:var(--bone-dim);
+  font-family:var(--ui); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  text-decoration:underline; text-underline-offset:5px; padding:6px;
+}
+.linky:hover{ color:var(--gold); }
+#ring:empty{ display:none; }
+#ring{
+  position:relative; width:min(70vw,300px); height:min(70vw,300px);
+  display:grid; place-items:center;
+  transition:transform 1.5s cubic-bezier(.4,0,.2,1), opacity .8s;
+}
+.chip{
+  position:absolute; font-family:var(--myth); font-size:clamp(15px,2.6vw,20px);
+  color:var(--bone); white-space:nowrap; animation:ignite 1s ease-out;
+  transition:transform 1.4s cubic-bezier(.34,1.3,.4,1), color 1.4s;
+}
+@keyframes ignite{
+  0%  { color:#fff; text-shadow:0 0 40px var(--gold),0 0 12px #fff; transform:scale(1.4); }
+  60% { color:var(--gold-hot); text-shadow:0 0 20px rgba(232,178,60,.85); }
+  100%{ color:var(--bone); text-shadow:none; transform:scale(1); }
+}
+#ring.cooled .chip{ color:var(--gold); text-shadow:0 0 14px rgba(232,178,60,.45); }
+#ring.cooled::after{
+  content:''; position:absolute; inset:12%; border-radius:50%;
+  border:1px solid rgba(232,178,60,.5);
+  box-shadow:0 0 50px rgba(232,178,60,.32), inset 0 0 40px rgba(232,178,60,.15);
+  animation:ringIn 1.4s ease-out;
+}
+@keyframes ringIn{ from{transform:scale(.65);opacity:0} to{transform:none;opacity:1} }
+#ring.dock{ transform:scale(.14); opacity:0; }
+.field{ width:min(100%,360px); }
+.field input{
+  width:100%; background:transparent; color:var(--bone); border:0;
+  border-bottom:1px solid rgba(213,206,194,.28); font-family:var(--myth);
+  font-size:clamp(18px,3vw,22px); padding:11px 2px; text-align:center;
+}
+.field input::placeholder{ color:rgba(126,122,114,.5); font-style:italic; }
+.field input:focus{ outline:0; border-bottom-color:var(--gold); }
+.q-count{ font-size:12px; letter-spacing:.2em; color:var(--bone-dim);
+          font-variant-numeric:tabular-nums; margin:0; }
+
+#pendant{
+  position:absolute; z-index:20; top:calc(16px + env(safe-area-inset-top)); right:16px;
+  width:62px; height:62px; border-radius:50%; border:1px solid rgba(232,178,60,.45);
+  background:radial-gradient(circle at 38% 32%,rgba(255,217,138,.24),rgba(8,7,6,.95));
+  box-shadow:0 0 30px rgba(232,178,60,.3); display:none; place-items:center;
+  cursor:pointer; animation:dockIn .9s cubic-bezier(.3,1.4,.5,1);
+}
+#pendant.on{ display:grid; }
+@keyframes dockIn{ from{transform:scale(3);opacity:0} to{transform:none;opacity:1} }
+#pendant .glyph{ font-family:var(--myth); color:var(--gold); font-size:23px; }
+#plist{
+  position:absolute; top:72px; right:0; width:200px; background:rgba(5,6,8,.97);
+  border:1px solid rgba(232,178,60,.28); padding:14px 16px; display:none;
+  text-align:right; margin:0; list-style:none;
+}
+#pendant.open #plist{ display:block; }
+#plist li{ font-family:var(--myth); font-size:15px; color:var(--bone); padding:3px 0; }
+#plist .label{ display:block; margin-bottom:8px; }
+
+.hold{
+  position:relative; overflow:hidden; font-family:var(--ui); font-size:13px;
+  font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--bone);
+  background:transparent; border:1px solid var(--gold); padding:17px 32px;
+  border-radius:2px; cursor:pointer;
+}
+.hold .fill{ position:absolute; inset:0; width:0; background:rgba(232,178,60,.3); }
+.hold span{ position:relative; }
+.hold:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+#title{
+  position:absolute; left:0; right:0; top:20%; text-align:center; padding:0 30px;
+  opacity:0; transition:opacity 2.2s; z-index:7;
+}
+#title.on{ opacity:1; }
+#title h1{
+  font-family:var(--myth); font-weight:400; font-size:clamp(30px,6.2vw,64px);
+  letter-spacing:.05em; margin:0 0 14px; color:#F4EAD4;
+  text-shadow:0 4px 50px rgba(0,0,0,.9); text-wrap:balance;
+}
+#mark, #skiphint{
+  position:absolute; z-index:6; opacity:0; transition:opacity 1.4s; pointer-events:none;
+}
+#mark{ left:0; right:0; top:calc(22px + env(safe-area-inset-top)); text-align:center; }
+#skiphint{ left:0; right:0; bottom:calc(26px + env(safe-area-inset-bottom)); text-align:center; }
+#mark.on{ opacity:.5; } #skiphint.on{ opacity:.45; animation:pulse 2.6s ease-in-out infinite; }
+
+#restart{
+  position:absolute; z-index:30; bottom:calc(14px + env(safe-area-inset-bottom)); left:14px;
+  font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(213,206,194,.34); background:rgba(0,0,0,.45);
+  border:1px solid rgba(213,206,194,.13); padding:8px 12px; border-radius:2px;
+  cursor:pointer; display:none;
+}
+#restart.on{ display:block; }
+#restart:hover{ color:var(--gold); border-color:var(--gold); }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+}
+</style>
+
+<div id="stage">
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div id="copy"></div>
+    <div id="mark"><span class="label">The Inner Alchemist · prologue</span></div>
+    <div id="skiphint"><span class="label">tap to continue</span></div>
+    <div id="controls">
+      <div id="hint"><span class="label" id="hintText">hold either side to walk</span></div>
+      <button class="pad l" id="padL" aria-label="Walk left"></button>
+      <button class="pad r" id="padR" aria-label="Walk right"></button>
+      <button id="act">look</button>
+    </div>
+    <div id="question">
+      <div id="qhead">
+        <p class="q-eyebrow">the dream is always the same</p>
+        <p class="q-ask">The vault opens. You wake up<br>before you see what's inside.</p>
+        <p class="q-lead">So tell me — what's in there?</p>
+        <p class="q-sub">tap five · these become the thing you carry</p>
+      </div>
+      <div id="cloud"></div>
+      <div id="ring"></div>
+      <p class="q-count"><span id="wordN">0</span> of 5 chosen</p>
+      <button id="ownBtn" class="linky">or use my own words</button>
+      <div class="field" id="ownField" hidden>
+        <input id="wordIn" type="text" autocomplete="off" autocapitalize="none"
+               spellcheck="false" maxlength="18" placeholder="your word, then enter"
+               aria-label="Your own word">
+      </div>
+    </div>
+    <div id="title">
+      <h1>The Inner Alchemist</h1>
+      <span class="label">prologue · the boy who dreamed of gold</span>
+    </div>
+    <div id="ribbon">
+      <p class="who" id="who"></p>
+      <p class="line" id="line"></p>
+      <p class="tapon" id="tapon">tap to continue</p>
+    </div>
+    <div id="choices"></div>
+    <div id="pendant" role="button" tabindex="0" aria-label="Your pendant">
+      <span class="glyph">✦</span>
+      <ul id="plist"><span class="label">what the dream showed you</span></ul>
+    </div>
+    <button id="restart">restart</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const TAU = Math.PI*2;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=(t)=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const smooth=(t)=>t*t*(3-2*t);
+
+// ══ VIRTUAL RESOLUTION ════════════════════════════════════════════════
+const VH=540;
+const cv=$("#game"), g=cv.getContext("2d",{alpha:false});
+let VW=960, SCALE=1, DPR=1;
+
+// half-res light buffer for bloom
+const LC=document.createElement("canvas"), L=LC.getContext("2d");
+let LW=480, LH=270;
+
+function fit(){
+  DPR=Math.min(window.devicePixelRatio||1, 2);
+  const w=cv.clientWidth, h=cv.clientHeight;
+  SCALE=h/VH; VW=Math.round(w/SCALE);
+  cv.width=Math.round(w*DPR); cv.height=Math.round(h*DPR);
+  g.setTransform(DPR*SCALE,0,0,DPR*SCALE,0,0);
+  LW=Math.max(64,Math.round(VW*0.5)); LH=Math.round(VH*0.5);
+  LC.width=LW; LC.height=LH;
+}
+addEventListener("resize",fit);
+
+// ══ BLOOM ═════════════════════════════════════════════════════════════
+/* Emissives are painted into a half-res buffer, gaussian-blurred by the
+   compositor, then added back. This is what makes light feel like light
+   instead of a flat bright rectangle. */
+function bloom(paintLights, amount, radius){
+  L.setTransform(LW/VW,0,0,LH/VH,0,0);
+  L.clearRect(0,0,VW,VH);
+  paintLights(L);
+  g.save();
+  g.globalCompositeOperation="lighter";
+  g.globalAlpha=amount;
+  g.filter="blur("+radius+"px)";
+  g.drawImage(LC,0,0,VW,VH);
+  g.filter="none";
+  g.restore();
+}
+
+// ══ TEXTURE + GRADE ═══════════════════════════════════════════════════
+const noiseTile=(()=>{
+  const c=document.createElement("canvas"); c.width=c.height=192;
+  const x=c.getContext("2d"), d=x.createImageData(192,192);
+  for(let i=0;i<d.data.length;i+=4){
+    const v=110+Math.random()*145;
+    d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255;
+  }
+  x.putImageData(d,0,0); return c;
+})();
+let noisePat=null;
+function grain(a){
+  if(!noisePat) noisePat=g.createPattern(noiseTile,"repeat");
+  g.save(); g.globalAlpha=a; g.globalCompositeOperation="overlay";
+  g.fillStyle=noisePat;
+  g.translate(-(Math.random()*192)|0,-(Math.random()*192)|0);
+  g.fillRect(0,0,VW+192,VH+192); g.restore();
+}
+function vignette(s,r,gr,b){
+  const v=g.createRadialGradient(VW/2,VH*.5,VH*.12,VW/2,VH*.5,VH*1.15);
+  v.addColorStop(0,"rgba(0,0,0,0)");
+  v.addColorStop(.55,"rgba("+r+","+gr+","+b+","+(s*.28)+")");
+  v.addColorStop(1,"rgba("+r+","+gr+","+b+","+s+")");
+  g.fillStyle=v; g.fillRect(0,0,VW,VH);
+}
+/* Aerial perspective — the single trick that sells depth. Each plane
+   further back gets a wash of the sky colour laid over it. */
+function haze(y0,y1,col,a){
+  const h=g.createLinearGradient(0,y0,0,y1);
+  h.addColorStop(0,col.replace("%A%",a));
+  h.addColorStop(1,col.replace("%A%","0"));
+  g.fillStyle=h; g.fillRect(0,y0,VW,y1-y0);
+}
+function grade(shadowCol,shadowA,liftCol,liftA){
+  g.save();
+  g.globalCompositeOperation="multiply"; g.globalAlpha=shadowA;
+  g.fillStyle=shadowCol; g.fillRect(0,0,VW,VH);
+  g.globalCompositeOperation="screen"; g.globalAlpha=liftA;
+  g.fillStyle=liftCol; g.fillRect(0,0,VW,VH);
+  g.restore();
+}
+function radial(ctx,x,y,r,col,a){
+  const rg=ctx.createRadialGradient(x,y,0,x,y,r);
+  rg.addColorStop(0,col.replace("%A%",a));
+  rg.addColorStop(.45,col.replace("%A%",a*0.35));
+  rg.addColorStop(1,col.replace("%A%","0"));
+  ctx.fillStyle=rg; ctx.fillRect(x-r,y-r,r*2,r*2);
+}
+
+// ══ STATE ═════════════════════════════════════════════════════════════
+const ORDINALS=["Third","Fourth","Fifth","Sixth","Seventh","Eighth","Ninth","Tenth"];
+const RETURNS=[
+  "Warmer in there?",
+  "I'll be here.",
+  "You keep coming back out. That's not nothing.",
+  "Take your time. The tower isn't going anywhere. Neither am I."
+];
+const S={ dreams:0, words:[], carrying:"", seen:new Set(), doorTries:0 };
+let beat="dream", t0=0, T=0, timers=[];
+const after=(ms,fn)=>{ const t=setTimeout(fn,REDUCED?Math.min(ms,450):ms); timers.push(t); return t; };
+const clearTimers=()=>{ timers.forEach(clearTimeout); timers=[]; };
+
+// ══ UI ════════════════════════════════════════════════════════════════
+const ui={ copy:$("#copy"),ribbon:$("#ribbon"),who:$("#who"),line:$("#line"),
+  tapon:$("#tapon"),choices:$("#choices"),controls:$("#controls"),
+  question:$("#question"),title:$("#title"),act:$("#act"),hint:$("#hintText") };
+/* Cinematic beats are skippable. Fourteen seconds of gold with no way
+   out is a long time when you don't yet know what you're watching. */
+let skipTarget=null;
+cv.addEventListener("click",()=>{ if(skipTarget){ const n=skipTarget; skipTarget=null; go(n); } });
+function skippable(next,delay){
+  after(delay,()=>{ skipTarget=next; $("#skiphint").className="on"; });
+}
+
+function hideAll(){
+  skipTarget=null; $("#skiphint").className=""; $("#mark").className="";
+  ui.copy.className=""; ui.copy.innerHTML="";
+  ui.ribbon.className=""; ui.ribbon.onclick=null;
+  ui.choices.className=""; ui.choices.innerHTML="";
+  ui.controls.className=""; ui.question.className="";
+  ui.title.className=""; ui.act.className="";
+}
+function showCopy(lines,gap=1600,start=800){
+  ui.copy.className="on"; ui.copy.innerHTML="";
+  lines.forEach((txt,i)=>{
+    const p=document.createElement("p");
+    p.className="caption"+(txt.dim?" dim":"");
+    p.textContent=txt.text||txt; ui.copy.appendChild(p);
+    after(start+i*gap,()=>p.classList.add("in"));
+  });
+}
+function buttons(list){
+  ui.choices.className="on"; ui.choices.innerHTML="";
+  list.forEach(b=>{ const el=document.createElement("button");
+    el.className="btn"+(b.quiet?" quiet":""); el.textContent=b.label;
+    el.onclick=b.on; ui.choices.appendChild(el); });
+}
+function typeInto(el,text,done){
+  let i=0; el.textContent="";
+  if(REDUCED){ el.textContent=text; done&&done(); return ()=>{}; }
+  const iv=setInterval(()=>{ el.textContent=text.slice(0,++i);
+    if(i>=text.length){ clearInterval(iv); done&&done(); } },24);
+  timers.push(iv);
+  return ()=>{ clearInterval(iv); el.textContent=text; done&&done(); };
+}
+function dialogue(speaker,lines,onDone){
+  ui.ribbon.className="on"; ui.who.textContent=speaker||"";
+  ui.who.style.display=speaker?"block":"none";
+  let i=0,typing=false,finish=null;
+  const step=()=>{
+    if(i>=lines.length){ ui.ribbon.onclick=null; ui.ribbon.className=""; onDone&&onDone(); return; }
+    ui.tapon.classList.remove("show"); typing=true;
+    finish=typeInto(ui.line,lines[i++],()=>{ typing=false; ui.tapon.classList.add("show"); });
+  };
+  ui.ribbon.onclick=()=>{ typing?finish():step(); };
+  step();
+}
+
+// ══ THE BOY — a silhouette, three-point lit ═══════════════════════════
+function boy(ctx,x,groundY,h,face,walkT,rim,fill){
+  const u=h/100, sw=Math.sin(walkT), sw2=Math.cos(walkT);
+  ctx.save(); ctx.translate(x,groundY); ctx.scale(face,1);
+  const INK = fill||"#04050A";
+
+  ctx.strokeStyle=INK; ctx.fillStyle=INK; ctx.lineCap="round"; ctx.lineJoin="round";
+
+  // far leg
+  ctx.lineWidth=8.5*u;
+  ctx.beginPath(); ctx.moveTo(0,-44*u);
+  ctx.lineTo(-sw*10*u,-22*u); ctx.lineTo(-sw*16*u,-1*u); ctx.stroke();
+  // far arm
+  ctx.lineWidth=6.5*u;
+  ctx.beginPath(); ctx.moveTo(-2*u,-76*u);
+  ctx.lineTo(sw*8*u-4*u,-58*u); ctx.lineTo(sw*13*u-3*u,-42*u); ctx.stroke();
+
+  // torso — coat, flared, with a little lean into the walk
+  ctx.save(); ctx.rotate(Math.abs(sw)*0.02);
+  ctx.beginPath();
+  ctx.moveTo(-8.5*u,-80*u); ctx.lineTo(8.5*u,-80*u);
+  ctx.quadraticCurveTo(12*u,-60*u, 13*u,-38*u);
+  ctx.lineTo(-12*u,-38*u);
+  ctx.quadraticCurveTo(-11.5*u,-60*u,-8.5*u,-80*u);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // near leg
+  ctx.lineWidth=9.5*u;
+  ctx.beginPath(); ctx.moveTo(0,-44*u);
+  ctx.lineTo(sw*10*u,-22*u); ctx.lineTo(sw*16*u,-1*u); ctx.stroke();
+  // boot
+  ctx.lineWidth=6*u;
+  ctx.beginPath(); ctx.moveTo(sw*16*u,-2.5*u); ctx.lineTo(sw*16*u+6*u,-2.5*u); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-sw*16*u,-2.5*u); ctx.lineTo(-sw*16*u+6*u,-2.5*u); ctx.stroke();
+
+  // near arm
+  ctx.lineWidth=7*u;
+  ctx.beginPath(); ctx.moveTo(3*u,-76*u);
+  ctx.lineTo(-sw*8*u+5*u,-58*u); ctx.lineTo(-sw*13*u+4*u,-42*u); ctx.stroke();
+
+  // neck + head + hair
+  ctx.lineWidth=6*u;
+  ctx.beginPath(); ctx.moveTo(1*u,-80*u); ctx.lineTo(1*u,-86*u); ctx.stroke();
+  ctx.beginPath(); ctx.arc(1.5*u,-93*u,9.5*u,0,TAU); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(1.5*u,-95*u,10.6*u,Math.PI*0.98,Math.PI*2.10); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(9*u,-97*u); ctx.lineTo(13.5*u,-90*u);
+  ctx.lineTo(9*u,-89*u); ctx.closePath(); ctx.fill();
+
+  // rim light — a hard thin edge on the lit side. sells the whole figure.
+  if(rim>0.01){
+    ctx.globalCompositeOperation="lighter";
+    ctx.strokeStyle="rgba(196,222,248,"+rim+")";
+    ctx.lineWidth=1.8*u;
+    ctx.beginPath(); ctx.arc(1.5*u,-93*u,9.9*u,-Math.PI*.92,-Math.PI*.12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8.5*u,-79*u);
+    ctx.quadraticCurveTo(12*u,-60*u,13*u,-39*u); ctx.stroke();
+    ctx.lineWidth=1.4*u;
+    ctx.beginPath(); ctx.moveTo(sw*10*u+4*u,-22*u); ctx.lineTo(sw*16*u+4*u,-3*u); ctx.stroke();
+    ctx.globalCompositeOperation="source-over";
+  }
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE DREAM
+// ══════════════════════════════════════════════════════════════════════
+const motes=Array.from({length:190},()=>({
+  x:Math.random(),y:Math.random(),r:Math.random()*2.4+.35,
+  v:Math.random()*.28+.05,a:Math.random()*.55+.15,d:Math.random()*.3-.15,ph:Math.random()*TAU
+}));
+
+function drawDream(){
+  const p=clamp(T/12,0,1), z=1+p*0.55;
+  const cx=VW/2, cy=VH*0.46;
+
+  g.fillStyle="#100A02"; g.fillRect(0,0,VW,VH);
+
+  // the blinding source behind everything
+  const core=g.createRadialGradient(cx,cy,0,cx,cy,VH*1.15*z);
+  core.addColorStop(0,   "#FFF6DF");
+  core.addColorStop(.10, "#FFE2A4");
+  core.addColorStop(.26, "#E9A82F");
+  core.addColorStop(.52, "#8A5510");
+  core.addColorStop(.80, "#331D05");
+  core.addColorStop(1,   "#0C0801");
+  g.fillStyle=core; g.fillRect(0,0,VW,VH);
+
+  // volumetric god rays
+  g.save(); g.globalCompositeOperation="lighter"; g.translate(cx,cy);
+  g.rotate(T*0.03);
+  for(let i=0;i<20;i++){
+    g.rotate(TAU/20);
+    const w=16+Math.sin(T*0.5+i*1.7)*11;
+    const grd=g.createLinearGradient(0,0,VH*1.5,0);
+    grd.addColorStop(0,"rgba(255,240,206,.13)");
+    grd.addColorStop(.4,"rgba(255,226,168,.055)");
+    grd.addColorStop(1,"rgba(255,226,168,0)");
+    g.fillStyle=grd; g.beginPath(); g.moveTo(0,0);
+    g.lineTo(VH*1.5,-w); g.lineTo(VH*1.5,w); g.closePath(); g.fill();
+  }
+  g.restore();
+
+  // the far tower — the same needle you'll see on the horizon
+  const tx=cx+VW*0.30, tb=cy+VH*0.12, th=VH*0.34*z;
+  g.save(); g.globalAlpha=.42; g.fillStyle="#1A1004";
+  g.beginPath(); g.moveTo(tx-7*z,tb); g.lineTo(tx+7*z,tb);
+  g.lineTo(tx+3*z,tb-th); g.lineTo(tx-3*z,tb-th); g.closePath(); g.fill(); g.restore();
+
+  // THE VAULT DOOR — a dark mass against the light
+  const R=VH*0.27*z;
+  g.save(); g.translate(cx,cy);
+  const face=g.createRadialGradient(-R*.35,-R*.4,R*.04,0,0,R);
+  face.addColorStop(0,  "rgba(120,84,26,.60)");
+  face.addColorStop(.55,"rgba(52,34,10,.86)");
+  face.addColorStop(1,  "rgba(16,10,2,.96)");
+  g.fillStyle=face; g.beginPath(); g.arc(0,0,R,0,TAU); g.fill();
+  // beveled edge catching the light
+  g.strokeStyle="rgba(255,222,160,.30)"; g.lineWidth=2.5;
+  g.beginPath(); g.arc(0,0,R-1.5,-Math.PI*0.95,-Math.PI*0.10); g.stroke();
+  g.strokeStyle="rgba(0,0,0,.55)"; g.lineWidth=3;
+  g.beginPath(); g.arc(0,0,R-1.5,Math.PI*0.08,Math.PI*0.92); g.stroke();
+  // rotating lock ring
+  g.save(); g.rotate(T*0.11);
+  g.strokeStyle="rgba(255,214,148,.20)"; g.lineWidth=2;
+  g.beginPath(); g.arc(0,0,R*.76,0,TAU); g.stroke();
+  for(let i=0;i<16;i++){ const a=(i/16)*TAU;
+    g.beginPath(); g.moveTo(Math.cos(a)*R*.76,Math.sin(a)*R*.76);
+    g.lineTo(Math.cos(a)*R*.87,Math.sin(a)*R*.87); g.stroke(); }
+  g.restore();
+  // the name, never settling
+  g.fillStyle="rgba(255,226,168,.42)";
+  g.font=(R*0.15)+"px "+getComputedStyle(document.body).getPropertyValue("--myth");
+  g.textAlign="center"; g.textBaseline="middle";
+  const GL="AEIOUNRSTLMDHVK◇◆▮";
+  let s=""; const n=Math.min(7,Math.floor(T*1.1));
+  for(let i=0;i<n;i++) s+= REDUCED?"▮":GL[(Math.random()*GL.length)|0];
+  g.filter="blur(2px)"; g.fillText(s,0,0); g.filter="none";
+  g.restore();
+
+  // the hand that never arrives
+  const reach=ease(clamp((T-1.8)/7.5,0,1));
+  const hy=VH+50-reach*(VH*0.32);
+  g.fillStyle="rgba(12,8,2,.80)";
+  g.beginPath(); g.roundRect(cx-19,hy,38,220,19); g.fill();
+  g.save(); g.globalCompositeOperation="lighter";
+  g.strokeStyle="rgba(255,224,164,.32)"; g.lineWidth=2;
+  g.beginPath(); g.moveTo(cx+18,hy+20); g.lineTo(cx+18,hy+210); g.stroke(); g.restore();
+
+  // dust in the light
+  g.save();
+  for(const m of motes){
+    m.y-=m.v*0.0018; if(m.y<-.02){ m.y=1.02; m.x=Math.random(); }
+    m.x+=m.d*0.0005;
+    const mx=m.x*VW+Math.sin(T*.5+m.ph)*6, my=m.y*VH;
+    g.beginPath(); g.arc(mx,my,m.r,0,TAU);
+    g.fillStyle="rgba(255,242,208,"+m.a+")"; g.fill();
+  }
+  g.restore();
+
+  bloom((c)=>{
+    radial(c,cx,cy,VH*0.95*z,"rgba(255,228,168,%A%)",.85);
+    radial(c,tx,tb-th,54*z,"rgba(255,246,214,%A%)",1);
+  }, .75, 26);
+
+  vignette(.86,10,5,0);
+  grade("#FFD9A0",.16,"#3A1E00",.10);
+  grain(.055);
+
+  if(T>11.4){
+    const dp=ease(clamp((T-11.4)/2.4,0,1));
+    g.fillStyle="#0B0C10"; g.fillRect(0,0,VW,VH*dp);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE CEILING
+// ══════════════════════════════════════════════════════════════════════
+function drawCeiling(){
+  g.fillStyle="#0A0C10"; g.fillRect(0,0,VW,VH);
+  const sky=g.createLinearGradient(0,0,0,VH);
+  sky.addColorStop(0,"#141821"); sky.addColorStop(.5,"#0E1119"); sky.addColorStop(1,"#070910");
+  g.fillStyle=sky; g.fillRect(0,0,VW,VH);
+
+  // cold dawn creeping in from the window, off-frame left
+  g.save(); g.globalCompositeOperation="lighter";
+  radial(g,-VW*0.05,VH*0.72,VH*0.95,"rgba(120,152,190,%A%)",.20);
+  g.restore();
+
+  // the crack you've memorised
+  const cy=VH*0.32;
+  g.save(); g.globalAlpha=.85;
+  g.strokeStyle="#050710"; g.lineWidth=3.4; g.lineCap="round"; g.lineJoin="round";
+  g.beginPath(); g.moveTo(VW*.03,cy);
+  g.lineTo(VW*.20,cy+24); g.lineTo(VW*.29,cy+9);
+  g.lineTo(VW*.49,cy+42); g.lineTo(VW*.60,cy+28);
+  g.lineTo(VW*.79,cy+60); g.lineTo(VW*.89,cy+47); g.lineTo(VW*.99,cy+78);
+  g.stroke();
+  // the lit lip of the crack
+  g.strokeStyle="rgba(150,175,205,.20)"; g.lineWidth=1.2;
+  g.beginPath(); g.moveTo(VW*.03,cy-2);
+  g.lineTo(VW*.20,cy+22); g.lineTo(VW*.29,cy+7);
+  g.lineTo(VW*.49,cy+40); g.lineTo(VW*.60,cy+26);
+  g.lineTo(VW*.79,cy+58); g.lineTo(VW*.89,cy+45); g.lineTo(VW*.99,cy+76);
+  g.stroke();
+  g.strokeStyle="#060812"; g.lineWidth=2;
+  g.beginPath(); g.moveTo(VW*.29,cy+9);  g.lineTo(VW*.33,cy+44); g.stroke();
+  g.beginPath(); g.moveTo(VW*.60,cy+28); g.lineTo(VW*.57,cy+68); g.stroke();
+  g.restore();
+
+  vignette(.92,0,2,6);
+  grade("#8FA8C8",.14,"#000410",.05);
+  grain(.05);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE ROOM
+// ══════════════════════════════════════════════════════════════════════
+const FLOOR=436, WALLTOP=44, WORLD_W=2700;
+const WIN_X=800, WIN_Y0=112, WIN_Y1=300, WIN_HW=78;
+
+const PROPS={
+  clock:{x:430,r:130,verb:"look",lines:[
+    "It's been going for twenty minutes.",
+    "You've gotten good at not hearing it."]},
+  window:{x:WIN_X,r:165,verb:"look",lines:[
+    "The same six houses.",
+    "You could draw them from memory. You have."]},
+  mirror:{x:1560,r:145,verb:"look",lines:[
+    "The mirror shows the room behind you. The bed. The chair. The light.",
+    "Where your face should be, there's nothing. Not frightening — just not filled in yet.",
+    "You'll come back to this."]},
+  door:{x:2370,r:165,verb:"open",lines:[]}
+};
+const NUDGE={ clock:"You always kill the alarm first.",
+              window:"You always check the window first.",
+              mirror:"You haven't looked at yourself yet." };
+
+let px=140, vel=0, dir=0, camX=0, walkT=0, talking=false;
+const airDust=Array.from({length:110},()=>({
+  x:Math.random(),y:Math.random(),r:Math.random()*1.7+.25,
+  v:Math.random()*.2+.03,ph:Math.random()*TAU
+}));
+
+function nearest(){
+  let best=null,bd=1e9;
+  for(const k in PROPS){ const d=Math.abs(px-PROPS[k].x);
+    if(d<PROPS[k].r&&d<bd){ bd=d; best=k; } }
+  return best;
+}
+function updateRoom(dt){
+  if(talking){ dir=0; vel*=0.72; }
+  vel+=dir*2200*dt; vel*=dir?0.90:0.78; vel=clamp(vel,-440,440);
+  px=clamp(px+vel*dt,70,WORLD_W-70);
+  if(Math.abs(vel)>26) walkT+=dt*10.5; else walkT*=0.86;
+  camX=clamp(px-VW*0.46,0,Math.max(0,WORLD_W-VW));
+  const n=talking?null:nearest();
+  ui.act.className=n?"on":""; if(n) ui.act.textContent=PROPS[n].verb;
+  ui.act.dataset.key=n||"";
+}
+
+/* Anything solid between the window and the floor throws a wedge of
+   shadow away from the light. Cheap, and it's most of what reads as 3D. */
+function castShadow(objX,objTop,objW){
+  const lx=WIN_X-camX, ly=(WIN_Y0+WIN_Y1)/2;
+  const x=objX-camX;
+  const dx=x-lx; if(Math.abs(dx)<1) return;
+  const k=(FLOOR-ly)/(objTop-ly);
+  const x1=lx+(x-objW/2-lx)*k, x2=lx+(x+objW/2-lx)*k;
+  g.save(); g.globalAlpha=.5;
+  const sg=g.createLinearGradient(0,objTop,0,FLOOR);
+  sg.addColorStop(0,"rgba(2,3,6,.75)"); sg.addColorStop(1,"rgba(2,3,6,0)");
+  g.fillStyle=sg; g.beginPath();
+  g.moveTo(x-objW/2,objTop); g.lineTo(x+objW/2,objTop);
+  g.lineTo(x2,FLOOR); g.lineTo(x1,FLOOR); g.closePath(); g.fill();
+  g.restore();
+}
+
+function drawRoom(){
+  const c=camX, sx=(w)=>w-c;
+  const INK="#05070C", INK2="#080B12";
+
+  // ── ground + wall, deep cold black
+  g.fillStyle="#070910"; g.fillRect(0,0,VW,VH);
+  const wall=g.createLinearGradient(0,WALLTOP,0,FLOOR);
+  wall.addColorStop(0,"#0B0E16"); wall.addColorStop(.55,"#10141E"); wall.addColorStop(1,"#080A11");
+  g.fillStyle=wall; g.fillRect(0,0,VW,FLOOR);
+
+  // ── the window's light on the wall (before any object)
+  g.save(); g.globalCompositeOperation="lighter";
+  radial(g,sx(WIN_X)+40,(WIN_Y0+WIN_Y1)/2+40,430,"rgba(120,158,200,%A%)",.30);
+  radial(g,sx(WIN_X)+150,FLOOR+10,330,"rgba(140,175,215,%A%)",.24);
+  g.restore();
+
+  // ── floor
+  const fl=g.createLinearGradient(0,FLOOR,0,VH);
+  fl.addColorStop(0,"#0A0C12"); fl.addColorStop(1,"#030407");
+  g.fillStyle=fl; g.fillRect(0,FLOOR,VW,VH-FLOOR);
+  // floorboards catching light
+  g.save(); g.globalAlpha=.5;
+  for(let i=1;i<8;i++){
+    const y=FLOOR+(VH-FLOOR)*Math.pow(i/8,1.7);
+    g.strokeStyle="rgba(150,180,215,.055)"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(0,y); g.lineTo(VW,y); g.stroke();
+  }
+  g.restore();
+  // ambient occlusion at the wall/floor join
+  const ao=g.createLinearGradient(0,FLOOR-30,0,FLOOR+22);
+  ao.addColorStop(0,"rgba(0,0,0,0)"); ao.addColorStop(.55,"rgba(0,0,0,.72)");
+  ao.addColorStop(1,"rgba(0,0,0,0)");
+  g.fillStyle=ao; g.fillRect(0,FLOOR-30,VW,52);
+
+  // ── BED
+  (function(){ const x=sx(170); if(x>-360&&x<VW+90){
+    castShadow(170,FLOOR-104,250);
+    g.fillStyle=INK;
+    g.beginPath(); g.roundRect(x,FLOOR-96,246,88,3); g.fill();
+    g.beginPath(); g.roundRect(x+6,FLOOR-124,74,30,10); g.fill();     // pillow
+    g.fillRect(x-14,FLOOR-160,15,154);                                 // headboard
+    g.fillRect(x+244,FLOOR-126,13,120);
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(150,182,220,.13)"; g.lineWidth=1.6;
+    g.beginPath(); g.moveTo(x,FLOOR-95); g.lineTo(x+246,FLOOR-95); g.stroke();
+    g.beginPath(); g.moveTo(x+246,FLOOR-95); g.lineTo(x+246,FLOOR-10); g.stroke();
+    g.restore();
+  }})();
+
+  // ── NIGHTSTAND + CLOCK
+  (function(){ const x=sx(PROPS.clock.x); if(x<-170||x>VW+170) return;
+    castShadow(PROPS.clock.x,FLOOR-84,86);
+    g.fillStyle=INK; g.beginPath(); g.roundRect(x-42,FLOOR-84,84,80,2); g.fill();
+    g.fillStyle=INK2; g.beginPath(); g.roundRect(x-21,FLOOR-118,42,36,4); g.fill();
+    const on=(T*2|0)%2===0;
+    if(on){
+      g.save(); g.globalCompositeOperation="lighter";
+      g.fillStyle="rgba(226,92,50,.95)";
+      g.font="16px "+getComputedStyle(document.body).getPropertyValue("--ui");
+      g.textAlign="center"; g.textBaseline="middle"; g.fillText("6:20",x,FLOOR-100);
+      radial(g,x,FLOOR-100,58,"rgba(226,92,50,%A%)",.28); g.restore();
+    }
+    g.fillStyle=INK;
+    g.beginPath(); g.arc(x-18,FLOOR-121,7.5,0,TAU); g.fill();
+    g.beginPath(); g.arc(x+18,FLOOR-121,7.5,0,TAU); g.fill();
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(150,182,220,.12)"; g.lineWidth=1.5;
+    g.beginPath(); g.moveTo(x+42,FLOOR-84); g.lineTo(x+42,FLOOR-6); g.stroke(); g.restore();
+  })();
+
+  // ── THE WINDOW — the only real light in this room
+  (function(){
+    const x=sx(WIN_X);
+    if(x>-300&&x<VW+300){
+      const og=g.createLinearGradient(0,WIN_Y0,0,WIN_Y1);
+      og.addColorStop(0,"#DCE9F6"); og.addColorStop(.55,"#C2D4E6"); og.addColorStop(1,"#E6EAE4");
+      g.fillStyle=og; g.fillRect(x-WIN_HW,WIN_Y0,WIN_HW*2,WIN_Y1-WIN_Y0);
+      // the same six houses, in silhouette
+      g.fillStyle="rgba(28,36,48,.55)";
+      [[-68,30],[-44,44],[-16,34],[10,50],[38,38],[60,46]].forEach(([hx,hh])=>{
+        g.fillRect(x+hx,WIN_Y1-hh,24,hh);
+        g.beginPath(); g.moveTo(x+hx-4,WIN_Y1-hh); g.lineTo(x+hx+12,WIN_Y1-hh-13);
+        g.lineTo(x+hx+28,WIN_Y1-hh); g.closePath(); g.fill();
+      });
+      // frame, in silhouette against the glare
+      g.strokeStyle=INK; g.lineWidth=11;
+      g.strokeRect(x-WIN_HW,WIN_Y0,WIN_HW*2,WIN_Y1-WIN_Y0);
+      g.lineWidth=6;
+      g.beginPath(); g.moveTo(x,WIN_Y0); g.lineTo(x,WIN_Y1);
+      g.moveTo(x-WIN_HW,(WIN_Y0+WIN_Y1)/2); g.lineTo(x+WIN_HW,(WIN_Y0+WIN_Y1)/2); g.stroke();
+      g.fillStyle=INK; g.fillRect(x-WIN_HW-14,WIN_Y1,WIN_HW*2+28,13);
+    }
+    // volumetric shaft
+    g.save(); g.globalCompositeOperation="lighter";
+    for(let i=0;i<3;i++){
+      const sp=1+i*0.42, a=[.16,.09,.05][i];
+      const sg=g.createLinearGradient(x,WIN_Y0,x+190,FLOOR);
+      sg.addColorStop(0,"rgba(198,220,244,"+a+")");
+      sg.addColorStop(.6,"rgba(180,205,235,"+(a*.5)+")");
+      sg.addColorStop(1,"rgba(180,205,235,0)");
+      g.fillStyle=sg; g.beginPath();
+      g.moveTo(x-WIN_HW*sp,WIN_Y0); g.lineTo(x+WIN_HW*sp,WIN_Y0);
+      g.lineTo(x+WIN_HW*sp+210,FLOOR); g.lineTo(x-WIN_HW*sp+130,FLOOR);
+      g.closePath(); g.fill();
+    }
+    // window-bar shadows inside the shaft
+    g.globalCompositeOperation="destination-out"; g.globalAlpha=.30;
+    g.beginPath(); g.moveTo(x-5,WIN_Y0); g.lineTo(x+5,WIN_Y0);
+    g.lineTo(x+178,FLOOR); g.lineTo(x+160,FLOOR); g.closePath(); g.fill();
+    g.restore();
+    // pool on the floor
+    g.save(); g.globalCompositeOperation="lighter";
+    const pg=g.createRadialGradient(x+168,FLOOR+18,4,x+168,FLOOR+18,215);
+    pg.addColorStop(0,"rgba(206,224,246,.26)"); pg.addColorStop(1,"rgba(206,224,246,0)");
+    g.fillStyle=pg; g.fillRect(x-110,FLOOR-14,560,VH-FLOOR+14); g.restore();
+    // motes riding the shaft
+    g.save();
+    for(const d of airDust){
+      const dy=WIN_Y0+d.y*(FLOOR-WIN_Y0);
+      const spread=76+(dy-WIN_Y0)*0.66;
+      const dx=x+(d.x-.5)*spread*2+(dy-WIN_Y0)*0.46+Math.sin(T*.6+d.ph)*8;
+      d.y-=d.v*0.0012; if(d.y<0){ d.y=1; d.x=Math.random(); }
+      const a=0.5*(1-Math.abs(d.x-.5)*1.4);
+      if(a>0){ g.beginPath(); g.arc(dx,dy,d.r,0,TAU);
+        g.fillStyle="rgba(224,238,252,"+a+")"; g.fill(); }
+    }
+    g.restore();
+  })();
+
+  // ── DESK + CHAIR
+  (function(){ const x=sx(1210); if(x<-240||x>VW+240) return;
+    castShadow(1210,FLOOR-104,150);
+    g.fillStyle=INK;
+    g.fillRect(x-76,FLOOR-104,152,11);
+    g.fillRect(x-70,FLOOR-93,10,89); g.fillRect(x+60,FLOOR-93,10,89);
+    g.beginPath(); g.roundRect(x-44,FLOOR-120,48,16,2); g.fill();
+    g.fillRect(x+96,FLOOR-78,9,74);
+    g.fillRect(x+80,FLOOR-78,56,9);
+    g.fillRect(x+80,FLOOR-69,8,65); g.fillRect(x+128,FLOOR-69,8,65);
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(150,182,220,.14)"; g.lineWidth=1.6;
+    g.beginPath(); g.moveTo(x-76,FLOOR-103); g.lineTo(x+76,FLOOR-103); g.stroke();
+    g.restore();
+  })();
+
+  // ── THE MIRROR
+  (function(){ const x=sx(PROPS.mirror.x); if(x<-240||x>VW+240) return;
+    const y0=FLOOR-262, y1=FLOOR-76, w=68;
+    castShadow(PROPS.mirror.x,FLOOR-78,120);
+    g.fillStyle=INK; g.beginPath(); g.roundRect(x-62,FLOOR-78,124,74,2); g.fill();
+    g.fillStyle=INK2; g.fillRect(x-w-10,y0-10,(w+10)*2,(y1-y0)+20);
+    const mg=g.createLinearGradient(0,y0,0,y1);
+    mg.addColorStop(0,"#131822"); mg.addColorStop(1,"#0A0D14");
+    g.fillStyle=mg; g.fillRect(x-w,y0,w*2,y1-y0);
+
+    g.save(); g.beginPath(); g.rect(x-w,y0,w*2,y1-y0); g.clip();
+    // the room reflected — dimmer, and the light is on the wrong side
+    g.globalAlpha=.5;
+    g.fillStyle="#161C28"; g.fillRect(x-w,y0,w*2,(y1-y0)*.66);
+    g.fillStyle="#080B11"; g.fillRect(x-w,y0+(y1-y0)*.66,w*2,(y1-y0)*.34);
+    g.fillStyle="#0A0E16"; g.fillRect(x-w+10,y0+34,34,56);
+    g.globalCompositeOperation="lighter";
+    radial(g,x+34,y0+40,80,"rgba(150,185,225,%A%)",.35);
+    g.globalCompositeOperation="source-over"; g.globalAlpha=1;
+
+    /* Where you should be, there is nothing. Not a monster — an absence.
+       The one prop in this room that pays off twenty-four chapters later. */
+    const rel=clamp((px-PROPS.mirror.x)/PROPS.mirror.r,-1,1);
+    if(Math.abs(rel)<1){
+      g.globalAlpha=(1-Math.abs(rel))*0.96;
+      g.save(); g.translate(x-rel*44,y1);
+      boy(g,0,0,168,-1,0,0,"#04060B");
+      g.restore(); g.globalAlpha=1;
+    }
+    g.restore();
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(160,190,225,.18)"; g.lineWidth=1.4;
+    g.strokeRect(x-w,y0,w*2,y1-y0); g.restore();
+  })();
+
+  // ── THE DOOR
+  (function(){ const x=sx(PROPS.door.x); if(x<-300||x>VW+300) return;
+    const y0=FLOOR-290;
+    g.fillStyle=INK2; g.fillRect(x-72,y0-14,144,14);
+    g.fillStyle=INK;  g.fillRect(x-60,y0,120,FLOOR-y0);
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(255,206,140,.30)"; g.lineWidth=2;
+    g.beginPath(); g.moveTo(x-60,y0); g.lineTo(x-60,FLOOR); g.stroke();
+    g.beginPath(); g.moveTo(x-60,y0); g.lineTo(x+60,y0); g.stroke();
+    g.fillStyle="rgba(255,214,150,.55)"; g.beginPath(); g.arc(x+44,y0+164,5,0,TAU); g.fill();
+    // the light bleeding under it — warm, unlike everything else in here
+    const ug=g.createLinearGradient(0,FLOOR-10,0,FLOOR+56);
+    ug.addColorStop(0,"rgba(255,196,110,.55)"); ug.addColorStop(1,"rgba(255,196,110,0)");
+    g.fillStyle=ug; g.fillRect(x-62,FLOOR-10,124,66);
+    g.restore();
+  })();
+
+  // ── THE BOY
+  const bx=px-c;
+  const rim=clamp(1-Math.abs(px-WIN_X)/560,0,1)*0.85;
+  // contact shadow, tight and dark
+  g.save(); g.globalAlpha=.72;
+  const cs=g.createRadialGradient(bx,FLOOR+2,2,bx,FLOOR+2,44);
+  cs.addColorStop(0,"rgba(0,0,0,.9)"); cs.addColorStop(1,"rgba(0,0,0,0)");
+  g.fillStyle=cs; g.fillRect(bx-46,FLOOR-14,92,34); g.restore();
+  castShadow(px,FLOOR-150,42);
+  boy(g,bx,FLOOR,168,vel<-14?-1:1,walkT,rim);
+
+  // ── DEPTH OF FIELD — blurred foreground mass at the frame edge
+  g.save(); g.filter="blur(9px)"; g.fillStyle="rgba(1,2,4,.92)";
+  const fgx=-(c*1.45)%1500;
+  g.fillRect(fgx-70,VH-150,110,180);
+  g.fillRect(fgx+1180,VH-190,150,230);
+  g.filter="none"; g.restore();
+
+  // ── bloom, grade, grain
+  bloom((ctx)=>{
+    const wx=sx(WIN_X);
+    ctx.fillStyle="rgba(226,240,255,.95)";
+    ctx.fillRect(wx-WIN_HW,WIN_Y0,WIN_HW*2,WIN_Y1-WIN_Y0);
+    radial(ctx,wx+160,FLOOR+10,190,"rgba(180,210,245,%A%)",.5);
+    const dx=sx(PROPS.door.x);
+    radial(ctx,dx,FLOOR+6,120,"rgba(255,190,104,%A%)",.55);
+    if(S.seen.size>=3) radial(ctx,dx,FLOOR-140,190,"rgba(255,200,120,%A%)",.22+Math.sin(T*1.9)*.1);
+  }, .95, 22);
+
+  haze(WALLTOP,FLOOR,"rgba(96,124,160,%A%)",.05);
+  vignette(.95,0,2,7);
+  grade("#93B4D8",.20,"#00060F",.06);
+  grain(.06);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE DOOR OPENS
+// ══════════════════════════════════════════════════════════════════════
+function drawDoorOpen(){
+  drawRoom();
+  const p=ease(clamp(T/2.8,0,1));
+  g.save(); g.globalCompositeOperation="lighter";
+  const lg=g.createLinearGradient(VW*0.9,0,VW*(1-p*1.5),0);
+  lg.addColorStop(0,"rgba(255,244,220,"+(p*0.98)+")");
+  lg.addColorStop(.55,"rgba(255,226,170,"+(p*0.5)+")");
+  lg.addColorStop(1,"rgba(255,226,170,0)");
+  g.fillStyle=lg; g.fillRect(0,0,VW,VH);
+  g.restore();
+  if(p>.72){ g.fillStyle="rgba(252,246,234,"+((p-.72)/.28)+")"; g.fillRect(0,0,VW,VH); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE VISTA — layered silhouettes in aerial perspective
+// ══════════════════════════════════════════════════════════════════════
+const SPIRE_WX=0.845;
+function drawVista(force){
+  const p = force!=null ? force : ease(clamp((T-0.6)/6.8,0,1));
+  const z = lerp(3.2,1,p);
+  const ox= lerp(VW*0.30,0,p), oy=lerp(VH*0.20,0,p);
+
+  // dawn sky
+  const sky=g.createLinearGradient(0,0,0,VH);
+  sky.addColorStop(0,  "#121C2C");
+  sky.addColorStop(.28,"#2E4258");
+  sky.addColorStop(.46,"#6E7B82");
+  sky.addColorStop(.60,"#C29A6A");
+  sky.addColorStop(.70,"#E8B979");
+  sky.addColorStop(.80,"#8E7351");
+  sky.addColorStop(1,  "#201914");
+  g.fillStyle=sky; g.fillRect(0,0,VW,VH);
+
+  g.save();
+  g.translate(VW/2-ox,VH*0.62-oy); g.scale(z,z); g.translate(-VW/2,-VH*0.62);
+
+  const SUNX=VW*0.70, SUNY=VH*0.615;
+  g.save(); g.globalCompositeOperation="lighter";
+  radial(g,SUNX,SUNY,VH*0.75,"rgba(255,216,150,%A%)",.42);
+  radial(g,SUNX,SUNY,VH*0.22,"rgba(255,244,214,%A%)",.8);
+  g.restore();
+  g.fillStyle="#FFF3D8"; g.beginPath(); g.arc(SUNX,SUNY,17,0,TAU); g.fill();
+
+  /* Aerial perspective: each successive ridge is DARKER and higher
+     contrast as it comes forward. That gradient is the whole illusion. */
+  const RIDGES=[
+    { y:.575, h:[.500,.560,.470,.550,.445,.535,.455,.525,.470], col:"#8496A4", a:.55 },
+    { y:.615, h:[.545,.600,.520,.590,.505,.580,.515,.575,.520], col:"#5E6F7E", a:.75 },
+    { y:.660, h:[.605,.650,.585,.645,.575,.640,.590,.635,.590], col:"#3A4650", a:.9  },
+    { y:.715, h:[.665,.700,.650,.700,.640,.695,.655,.690,.650], col:"#1E262C", a:1   }
+  ];
+  RIDGES.forEach((R,ri)=>{
+    g.save(); g.globalAlpha=R.a; g.fillStyle=R.col;
+    g.beginPath(); g.moveTo(0,VH*R.h[0]);
+    R.h.forEach((hy,i)=>g.lineTo(VW*(i/(R.h.length-1)),VH*hy));
+    g.lineTo(VW,VH); g.lineTo(0,VH); g.closePath(); g.fill();
+    g.restore();
+    // haze sitting in front of each ridge
+    g.save(); g.globalCompositeOperation="lighter";
+    const hz=g.createLinearGradient(0,VH*(R.y-.045),0,VH*(R.y+.055));
+    hz.addColorStop(0,"rgba(232,196,150,0)");
+    hz.addColorStop(.5,"rgba(232,196,150,"+(0.16-ri*0.03)+")");
+    hz.addColorStop(1,"rgba(232,196,150,0)");
+    g.fillStyle=hz; g.fillRect(0,VH*(R.y-.05),VW,VH*.11); g.restore();
+  });
+
+  // ── THE SPIRE. tiny, far, lit at the top.
+  (function(){
+    const x=VW*SPIRE_WX, base=VH*0.652, h=68;
+    g.fillStyle="#171E24";
+    g.beginPath(); g.moveTo(x-6.5,base); g.lineTo(x+6.5,base);
+    g.lineTo(x+3,base-h); g.lineTo(x-3,base-h); g.closePath(); g.fill();
+    g.fillStyle="rgba(190,170,140,.20)"; g.fillRect(x-3,base-h,2.5,h);
+    g.save(); g.globalCompositeOperation="lighter";
+    radial(g,x,base-h-5,30,"rgba(255,224,164,%A%)",.55+Math.sin(T*1.5)*.28);
+    g.restore();
+    g.fillStyle="#FFE8B8"; g.beginPath(); g.arc(x,base-h-5,2.4,0,TAU); g.fill();
+  })();
+
+  // your town — six roofs, from outside now
+  (function(){
+    const base=VH*0.752;
+    const seed=[24,38,20,46,30,40,22,36,26,42,19,32];
+    g.fillStyle="#12181C";
+    seed.forEach((hh,i)=>{
+      const x=VW*0.07+i*(VW*0.052), w=VW*0.033;
+      g.fillRect(x,base-hh,w,hh+VH*0.02);
+      g.beginPath(); g.moveTo(x-4,base-hh); g.lineTo(x+w/2,base-hh-13);
+      g.lineTo(x+w+4,base-hh); g.closePath(); g.fill();
+    });
+    g.save(); g.globalCompositeOperation="lighter";
+    seed.forEach((hh,i)=>{ if(i%3) return;
+      const x=VW*0.07+i*(VW*0.052);
+      radial(g,x+VW*0.014,base-hh*0.55,22,"rgba(255,196,120,%A%)",.5);
+    }); g.restore();
+  })();
+
+  // the road east
+  g.fillStyle="#0E100F"; g.beginPath();
+  g.moveTo(0,VH*0.99); g.lineTo(VW,VH*0.80); g.lineTo(VW,VH); g.lineTo(0,VH);
+  g.closePath(); g.fill();
+  g.save(); g.globalCompositeOperation="lighter";
+  const rg=g.createLinearGradient(0,VH*0.95,VW,VH*0.80);
+  rg.addColorStop(0,"rgba(255,206,140,0)"); rg.addColorStop(1,"rgba(255,206,140,.30)");
+  g.fillStyle=rg; g.fillRect(0,VH*0.78,VW,VH*0.22); g.restore();
+  g.restore();
+
+  bloom((c)=>{
+    radial(c,VW*0.70,VH*0.615,VH*0.55,"rgba(255,226,168,%A%)",.75);
+    radial(c,VW*SPIRE_WX,VH*0.652-68,34,"rgba(255,232,180,%A%)",.9);
+  }, .8, 24);
+
+  const lb=VH*0.075*clamp(p*1.7,0,1);
+  g.fillStyle="#040404"; g.fillRect(0,0,VW,lb); g.fillRect(0,VH-lb,VW,lb);
+
+  vignette(.66,14,7,0);
+  grade("#FFD9A8",.14,"#0A1424",.07);
+  grain(.045);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE GUIDE / THE FLOCK — the low wall at the edge of town
+// ══════════════════════════════════════════════════════════════════════
+function drawWall(){
+  drawVista(1);
+  const base=VH*0.815;
+  g.fillStyle="#0B0D0C"; g.fillRect(0,base,VW,VH-base);
+  g.save(); g.globalCompositeOperation="lighter";
+  g.strokeStyle="rgba(255,206,146,.20)"; g.lineWidth=2;
+  g.beginPath(); g.moveTo(0,base+1); g.lineTo(VW,base+1); g.stroke(); g.restore();
+  g.save(); g.globalAlpha=.5; g.fillStyle="#000";
+  for(let x=0;x<VW;x+=62) g.fillRect(x,base+6,3,VH-base);
+  g.restore();
+
+  // the guide, sitting, backlit
+  (function(){
+    const x=VW*0.29, y=base+2;
+    g.fillStyle="#06080A";
+    g.beginPath(); g.moveTo(x-27,y); g.lineTo(x+26,y);
+    g.quadraticCurveTo(x+22,y-44,x+17,y-68);
+    g.lineTo(x-17,y-68); g.quadraticCurveTo(x-23,y-42,x-27,y); g.closePath(); g.fill();
+    g.beginPath(); g.arc(x,y-80,14.5,0,TAU); g.fill();
+    g.beginPath(); g.arc(x,y-83,16.5,Math.PI*0.97,Math.PI*2.08); g.fill();
+    g.strokeStyle="#06080A"; g.lineWidth=9; g.lineCap="round";
+    g.beginPath(); g.moveTo(x+14,y-48); g.lineTo(x+42,y-18); g.stroke();
+    g.save(); g.globalCompositeOperation="lighter";
+    g.strokeStyle="rgba(255,204,148,.55)"; g.lineWidth=2;
+    g.beginPath(); g.arc(x,y-80,15,-Math.PI*.95,-Math.PI*.15); g.stroke();
+    g.beginPath(); g.moveTo(x+26,y-2); g.quadraticCurveTo(x+22,y-44,x+17,y-68); g.stroke();
+    g.restore();
+  })();
+
+  boy(g,VW*0.62,base+2,168,-1,0,.55);
+  g.save(); g.globalAlpha=.6; g.fillStyle="#000";
+  g.beginPath(); g.ellipse(VW*0.62,base+4,34,7,0,0,TAU); g.fill(); g.restore();
+
+  vignette(.66,14,7,0);
+  grain(.045);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  THE ROAD
+// ══════════════════════════════════════════════════════════════════════
+function drawRoad(){
+  drawVista(1);
+  const base=VH*0.90;
+  g.save(); g.globalAlpha=.55; g.fillStyle="#000";
+  g.beginPath(); g.ellipse(VW*0.40,base+4,36,8,0,0,TAU); g.fill(); g.restore();
+  boy(g,VW*0.40,base,168,1,T*6.5,.60);
+  vignette(.6,14,7,0);
+  grain(.045);
+}
+
+// ══ LOOP ══════════════════════════════════════════════════════════════
+const DRAW={ dream:drawDream, ceiling:drawCeiling, room:drawRoom,
+  question:drawRoom, dooropen:drawDoorOpen, vista:drawVista,
+  guide:drawWall, flock:drawWall, road:drawRoad };
+let last=0;
+function frame(ts){
+  if(!last) last=ts;
+  const dt=Math.min((ts-last)/1000,0.05); last=ts;
+  T=(ts-t0)/1000;
+  if(beat==="room") updateRoom(dt);
+  (DRAW[beat]||drawCeiling)();
+  requestAnimationFrame(frame);
+}
+
+// ══ BEATS ═════════════════════════════════════════════════════════════
+function go(name){
+  clearTimers(); hideAll(); beat=name; t0=performance.now(); T=0;
+  $("#restart").className=(name==="dream"||name==="road")?"":"on";
+  (ENTER[name]||(()=>{}))();
+}
+const ENTER={};
+ENTER.dream=()=>{
+  after(2200,()=>$("#mark").className="on");
+  skippable("ceiling",4500);
+  after(REDUCED?1400:14000,()=>go("ceiling"));
+};
+ENTER.ceiling=()=>{
+  showCopy(["Same ceiling.",
+    {text:(ORDINALS[Math.min(S.dreams,ORDINALS.length-1)])+" time this month.",dim:true},
+    "Same dream. Same town you were born in.",
+    {text:"Nothing about today is different — unless you make it different.",dim:true}],1650,1000);
+  after(1000+4*1650+800,()=>buttons([{label:"get up",on:()=>go("room")}]));
+};
+ENTER.room=()=>{
+  px=140; vel=0; dir=0; walkT=0; talking=false;
+  ui.controls.className="on"; ui.hint.textContent="hold either side to walk";
+};
+
+function openProp(key){
+  if(key==="door"){
+    S.doorTries++;
+    // Nudge once. Never trap — the second try always opens it.
+    if(S.seen.size<3 && S.doorTries===1){
+      const miss=["clock","window","mirror"].filter(k=>!S.seen.has(k));
+      talk([NUDGE[miss[0]]]); return;
+    }
+    go("question"); return;
+  }
+  S.seen.add(key);
+  talk(PROPS[key].lines,()=>{
+    if(S.seen.size===3) ui.hint.textContent="walk right — the door";
+  });
+}
+function talk(lines,done){
+  talking=true; ui.controls.classList.add("mute");
+  dialogue(null,lines,()=>{
+    talking=false; ui.controls.classList.remove("mute");
+    ui.controls.className="on"; done&&done();
+  });
+}
+const press=(el,d)=>{
+  const on=(e)=>{ e.preventDefault(); if(!talking) dir=d; };
+  const off=()=>{ dir=0; };
+  el.addEventListener("pointerdown",on);
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>el.addEventListener(ev,off));
+};
+press($("#padL"),-1); press($("#padR"),1);
+addEventListener("keydown",e=>{
+  if(beat!=="room"||talking) return;
+  if(e.key==="ArrowLeft") dir=-1;
+  if(e.key==="ArrowRight") dir=1;
+  if(e.key===" "||e.key==="Enter"){ const k=ui.act.dataset.key; if(k){ e.preventDefault(); openProp(k); } }
+});
+addEventListener("keyup",e=>{ if(e.key==="ArrowLeft"||e.key==="ArrowRight") dir=0; });
+$("#act").onclick=()=>{ const k=ui.act.dataset.key; if(k) openProp(k); };
+
+/* The dream's vocabulary. Real things people actually want, in plain
+   language — no program jargon, nothing you'd need context to understand. */
+const DREAM_WORDS=[
+  "FREEDOM","RESPECT","ENOUGH","PROOF","OUT","QUIET","PEACE","MY NAME",
+  "NOT AFRAID","TIME","HOME","TO MATTER","CLEAN","CHOSEN","DISCIPLINE","NO DEBT"
+];
+
+ENTER.question=()=>{
+  ui.question.className="on";
+  S.words=[];
+  $("#ring").innerHTML=""; $("#ring").className="";
+  $("#wordN").textContent="0";
+  $("#wordIn").value=""; $("#wordIn").disabled=false;
+  $("#ownField").hidden=true; $("#ownBtn").hidden=false;
+
+  const cloud=$("#cloud"); cloud.className=""; cloud.innerHTML="";
+  DREAM_WORDS.forEach((w,i)=>{
+    const b=document.createElement("button");
+    b.className="word"; b.type="button"; b.textContent=w;
+    b.style.animationDelay=(-(i*0.9))+"s";
+    b.onclick=()=>{ b.classList.add("taken"); addWord(w); };
+    cloud.appendChild(b);
+  });
+};
+
+$("#ownBtn").onclick=()=>{
+  $("#ownBtn").hidden=true; $("#ownField").hidden=false;
+  after(80,()=>$("#wordIn").focus());
+};
+function placeChips(ring){
+  const n=S.words.length;
+  Array.from(document.querySelectorAll("#ring .chip")).forEach((c,i)=>{
+    if(!ring){ c.style.transform="translateY("+((i-(n-1)/2)*34)+"px)"; return; }
+    const a=(i/5)*TAU-Math.PI/2;
+    c.style.transform="translate("+(Math.cos(a)*104)+"px,"+(Math.sin(a)*104)+"px)";
+  });
+}
+function addWord(w){
+  if(!w || S.words.length>=5) return;
+  S.words.push(w);
+  $("#wordN").textContent=String(S.words.length);
+  const chip=document.createElement("span");
+  chip.className="chip"; chip.textContent=w;
+  $("#ring").appendChild(chip); placeChips(false);
+
+  if(S.words.length<5) return;
+
+  $("#wordIn").disabled=true; $("#wordIn").blur();
+  $("#ownBtn").hidden=true; $("#ownField").hidden=true;
+  $("#cloud").classList.add("done");
+  $("#qhead").style.transition="opacity .8s"; $("#qhead").style.opacity="0";
+  after(700,()=>{ placeChips(true); $("#ring").classList.add("cooled"); });
+  after(3000,()=>$("#ring").classList.add("dock"));
+  after(3600,()=>{
+    const list=$("#plist");
+    list.innerHTML='<span class="label">what the dream showed you</span>';
+    S.words.forEach(x=>{ const li=document.createElement("li"); li.textContent=x; list.appendChild(li); });
+    $("#pendant").classList.add("on");
+    $("#qhead").style.opacity="1";
+    go("dooropen");
+  });
+}
+
+$("#wordIn").addEventListener("keydown",(e)=>{
+  if(e.key!=="Enter") return;
+  const w=e.target.value.trim().toUpperCase();
+  if(!w) return;
+  e.target.value=""; addWord(w);
+});
+$("#pendant").onclick=()=>$("#pendant").classList.toggle("open");
+$("#pendant").onkeydown=(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("#pendant").click(); } };
+
+ENTER.dooropen=()=>{ after(REDUCED?600:3200,()=>go("vista")); };
+ENTER.vista=()=>{
+  skippable("guide",9000);
+  after(REDUCED?900:8600, ()=>showCopy(["That tower has been on your horizon your whole life."],0,0));
+  after(REDUCED?1400:11600,()=>showCopy([
+    "That tower has been on your horizon your whole life.",
+    "You've just never once walked toward it."],1700,0));
+  after(REDUCED?2200:16200,()=>go("guide"));
+};
+ENTER.guide=()=>{
+  /* This is the orientation beat. Plain, warm, direct — a coach who likes
+     you and gets to the point. At most one metaphor. No riddles.
+     (The voice law from the app's own cityMentors.js header.) */
+  const first=[
+    "Morning. I've been sat here a while.",
+    "See the tower? That's where you're going. Twenty-four floors, and every one of them asks you something you've been ducking.",
+    "Those five words you're carrying — that's what people say is at the top. Gold, freedom, whatever you picked.",
+    "I'll be straight with you: what's actually up there isn't what you think. But you'd never believe me, and you shouldn't. You have to go see.",
+    "You can go back inside. Most do — and they're not wrong, it's warm in there.",
+    "But you'd have to walk past me, and I'd have to watch you do it."
+  ];
+  const again=[
+    RETURNS[Math.min(S.dreams-1,RETURNS.length-1)],
+    "The tower hasn't moved. Neither have I.",
+    "Same two options. Bed, or road."
+  ];
+  dialogue("the guide", S.dreams===0?first:again, ()=>{
+    buttons([
+      { label:"keep walking", on:()=>go("flock") },
+      { label:"go back inside", quiet:true, on:()=>{ S.dreams++; go("dream"); } }
+    ]);
+  });
+};
+ENTER.flock=()=>{
+  ui.copy.className="on";
+  const ask=document.createElement("p");
+  ask.className="caption in"; ask.style.maxWidth="22em"; ui.copy.appendChild(ask);
+  const field=document.createElement("div");
+  field.className="field"; field.style.marginTop="10px";
+  field.innerHTML='<input id="carryIn" type="text" autocomplete="off" '+
+    'placeholder="one real thing, this week" aria-label="What you will do this week">';
+  ui.copy.appendChild(field);
+  typeInto(ask,"One more thing. Nobody leaves town on a feeling — they leave on a promise they said out loud. Name one real thing you'll do this week. Small is fine. Real is the only rule.",
+    ()=>after(250,()=>$("#carryIn").focus()));
+  $("#carryIn").addEventListener("keydown",(e)=>{
+    if(e.key!=="Enter"||!e.target.value.trim()) return;
+    S.carrying=e.target.value.trim(); e.target.blur(); field.remove();
+    typeInto(ask,"Alright. Now say it out loud — actually out loud — and hold the button while you do. I'll hold you to it.",()=>{
+      const btn=document.createElement("button");
+      btn.className="hold";
+      btn.innerHTML='<span class="fill"></span><span>hold to say it out loud</span>';
+      ui.copy.appendChild(btn); holdToCommit(btn);
+    });
+  });
+};
+function holdToCommit(btn){
+  const fill=btn.querySelector(".fill");
+  let t=0,hr=0; const DUR=REDUCED?350:1900;
+  const tick=()=>{ const p=Math.min(1,(performance.now()-t)/DUR);
+    fill.style.width=(p*100)+"%";
+    if(p>=1){ cancelAnimationFrame(hr); go("road"); return; }
+    hr=requestAnimationFrame(tick); };
+  btn.addEventListener("pointerdown",(e)=>{ e.preventDefault(); t=performance.now(); hr=requestAnimationFrame(tick); });
+  ["pointerup","pointerleave"].forEach(ev=>btn.addEventListener(ev,()=>{ cancelAnimationFrame(hr); fill.style.width="0%"; }));
+  btn.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go("road"); } });
+}
+ENTER.road=()=>{
+  after(1200,()=>ui.title.className="on");
+  after(3200,()=>{
+    ui.copy.className="on";
+    const p=document.createElement("p");
+    p.className="caption in"; p.style.fontSize="clamp(15px,2.4vw,19px)"; p.style.maxWidth="26em";
+    ui.copy.appendChild(p);
+    typeInto(p,"You walk east carrying "+(S.carrying||"the thing you named").toLowerCase()+
+      ". No loading screen, no menu — the prologue just becomes the game. "+
+      "Twenty-four chapters between here and the top of that tower. "+
+      "And when the vault finally opens, it opens onto a mirror — which is why the one in your bedroom had no face in it yet.");
+    const b=document.createElement("button");
+    b.className="btn"; b.textContent="watch it again"; b.style.marginTop="18px";
+    b.onclick=reset; ui.copy.appendChild(b);
+  });
+};
+function reset(){
+  S.dreams=0; S.seen.clear(); S.words=[]; S.carrying=""; S.doorTries=0;
+  $("#pendant").className=""; go("dream");
+}
+$("#restart").onclick=reset;
+
+fit(); go("dream"); requestAnimationFrame(frame);
+})();
+</script>
