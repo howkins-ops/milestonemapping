@@ -81,6 +81,13 @@ const FEATURE_STORE_KEYS = [
   "mapquest_city_v1",     // Milestone City campaign
   "mq_street_v1",
   "mask_court_v1",
+  // The Inner Alchemist. The city half of this journey was already carried
+  // and these four were not, so a reinstall restored the streets a player had
+  // walked while silently wiping every chapter they had finished inside them.
+  "milestone-quest:mode-v1", // the 24 chapters, the Day-One snapshot, the dashboard
+  "mapquest_journey_v1",     // ACT 0-3 gate state (hometown / city / spire / crossing)
+  "mq_crossing_stop_v1",     // how far through the Crossing
+  "mq_quest_view_v1",        // world-vs-book preference
   "shadow_descent_v1",    // The Descent
   "shifts_state",         // 5 Shifts training
   "hoops_records",        // Hoops personal records

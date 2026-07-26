@@ -46,7 +46,7 @@ export const MENTORS = {
     greetings: [
       "You came back. That's the real secret — the people who become something keep coming back.",
       "I'm you, further down the road. I remember standing exactly where you're standing.",
-      "Twenty chambers in this spire. Each one is a piece of work on yourself. One is ready for you today.",
+      "Twenty-four chambers in this spire. Each one is a piece of work on yourself. One is ready for you today.",
       "I'm not going to turn lead into gold. I'm going to help you become the person you keep imagining. That's the only alchemy that pays.",
     ],
     lesson: {

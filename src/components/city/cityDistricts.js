@@ -86,11 +86,13 @@ export const DISTRICTS = [
     glow: "rgba(123, 44, 255, 0.38)",
     action: { type: "quest" },
     lore:
-      "The Spire predates the grid — a needle of black glass that hums when a seeker walks its stairs. Twenty chambers rise inside it, each one holding a question you have been avoiding. The city's lights answer to whoever climbs.",
+      "The Spire predates the grid — a needle of black glass that hums when a seeker walks its stairs. Twenty-four chambers rise inside it, each one holding a question you have been avoiding. The city's lights answer to whoever climbs.",
     position: { x: 46, w: 9, h: 5 },
     readProgress: total((ctx) => {
       const q = ctx.quest || {};
-      const totalCh = Math.max(1, Math.round(num(q.total)) || 20);
+      // Fallback only — ctx.quest.total is authoritative. Kept in step with
+      // QUEST_CHAPTERS.length (24); it read 20 and under-reported the spine.
+      const totalCh = Math.max(1, Math.round(num(q.total)) || 24);
       const completed = Math.max(0, Math.min(totalCh, Math.round(num(q.completed))));
       const active = Math.max(1, Math.min(totalCh, Math.round(num(q.activeChapter)) || 1));
       const doneAll = completed >= totalCh;
