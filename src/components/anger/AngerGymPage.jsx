@@ -3,10 +3,11 @@ import { useAppData } from "../../hooks/useAppData.js";
 import PressureForge from "./PressureForge.jsx";
 import StormCaptain from "../storm/StormCaptain.jsx";
 import SwampValve from "../shadow/swamp/SwampValve.jsx";
-import TheDoorHub from "./TheDoorHub.jsx";
+import TheRoute from "./TheRoute.jsx";
 import ObjectionSlam from "./ObjectionSlam.jsx";
 import { loadForgeState, clearForgeTrail } from "./pressureForgeStore.js";
 import { getLevel, getNextLevel } from "./pressureForgeData.js";
+import { hasAdultAck, grantAdultAck } from "../../lib/adultAck.js";
 import "../../styles/anger.css";
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -46,8 +47,8 @@ const GAMES = [
     name: "The Door",
     when: "They keep telling you no",
     relic: "The Threshold",
-    sub: "FOUR levels of persistence warfare. Knock through the screaming, chase him behind a gated steel door, saw your way in, and make him regret saying 'come back later.' Bloody Knuckles, power slaps, porch brawls. 21+, sound on.",
-    tag: "Persistence arcade · 4 levels · 21+",
+    sub: "Walk your territory door to door. Four houses, escalating warfare — knock through the screaming, breach a gated community, saw your way through steel, and finish every one of them in a Punch-Out bout on the porch. Bloody Knuckles, aimed rocks, real chainsaws. 21+, sound on.",
+    tag: "Door-to-door arcade · 4 houses · 21+",
     accent: "#FF3B5C",
     live: true,
   },
@@ -84,14 +85,23 @@ const GAMES = [
 ];
 
 // One-time explicit-content confirmation before any RAW (18+) game mounts.
-// The "21+ RAW" badge is a promise — this is where the app actually keeps it.
-const RAW_ACK_KEY = "anger_raw_ack_v1";
+// The 18+ badge on the level cards is a promise — this is where the app
+// actually keeps it. The acknowledgement is shared app-wide (see
+// src/lib/adultAck.js) so CLEARDAY's porn track honours the same one answer.
 
 function RawGate({ onConfirm, onBack }) {
   return (
     <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
       <div style={{ maxWidth: 420, textAlign: "center", background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.35)", borderRadius: 16, padding: "34px 26px" }}>
-        <div style={{ fontSize: 40, marginBottom: 10 }} aria-hidden="true">🔞</div>
+        {/* drawn, not a glyph — this gate is the front door of The Door */}
+        <svg width="56" height="56" viewBox="0 0 48 48" aria-hidden="true" style={{ display: "block", margin: "0 auto 10px" }}>
+          <circle cx="24" cy="24" r="21" fill="none" stroke="#FF3B5C" strokeWidth="3.5" />
+          <text
+            x="24" y="30" textAnchor="middle"
+            fontFamily="Sora, sans-serif" fontWeight="900" fontSize="17" letterSpacing="0.5"
+            fill="#FF3B5C"
+          >18+</text>
+        </svg>
         <h2 style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "0.04em" }}>RAW MODE AHEAD</h2>
         <p style={{ margin: "0 0 8px", fontSize: 14.5, lineHeight: 1.6, color: "rgba(255,255,255,0.75)" }}>
           This training floor contains <strong>frequent explicit language</strong> and{" "}
@@ -137,12 +147,10 @@ export default function AngerGymPage() {
   const [view, setView] = useState(null); // null=hub | "forge"
   const [refresh, setRefresh] = useState(0);
   const { addXP, celebrate } = useAppData();
-  const [rawAck, setRawAck] = useState(() => {
-    try { return localStorage.getItem(RAW_ACK_KEY) === "1"; } catch { return false; }
-  });
+  const [rawAck, setRawAck] = useState(hasAdultAck);
 
   const confirmRaw = () => {
-    try { localStorage.setItem(RAW_ACK_KEY, "1"); } catch { /* ignore */ }
+    grantAdultAck();
     setRawAck(true);
   };
 
@@ -221,7 +229,7 @@ export default function AngerGymPage() {
 
   if (view === "door") {
     return (
-      <TheDoorHub
+      <TheRoute
         onClose={() => { setView(null); setRefresh((n) => n + 1); }}
         onComplete={onDoorComplete}
       />

@@ -165,6 +165,10 @@ export function sfxImpact(level = 1, settings) {
     if (!c) return;
     const n = Math.max(1, Math.min(8, level));
     const g = 0.25 + n * 0.12;
+    // LAYER 1 · transient. 8ms of bright click. Without this the hit has no
+    // "contact" — it just swells, which is why a lone sub reads as mushy.
+    crack(c, { hp: 3200, lp: 14000, duration: 0.008, gain: g * 0.55 });
+    // LAYER 2 · body
     subDrop(c, { from: 150, to: 34, duration: 0.26 + n * 0.04, gain: g });
     crack(c, { hp: 200, lp: 7000, duration: 0.1 + n * 0.02, gain: g * 0.8 });
     if (n >= 3) crack(c, { hp: 80, lp: 900, duration: 0.3, gain: g * 0.5, start: 0.02 });
@@ -178,17 +182,61 @@ export function sfxImpact(level = 1, settings) {
   } catch { /* silent */ }
 }
 
-// Doorbell: two-tone ding-dong. rushed=true clips it short for angry spam.
-export function sfxDoorbell(rushed = false, settings) {
+/* A struck metal bar. Real chime bars are INHARMONIC — the overtones sit at
+   roughly 1 : 2.76 : 5.40 of the fundamental, not at whole multiples. That
+   ratio set is the whole difference between "doorbell" and "synth beep". */
+function barStrike(c, { f0 = 659.25, gain = 0.22, decay = 1.6, start = 0, detune = 0 }) {
+  const partials = [
+    { r: 1.0, g: 1.0, d: 1.0 },
+    { r: 2.76, g: 0.34, d: 0.62 },
+    { r: 5.4, g: 0.12, d: 0.38 },
+  ];
+  const t = c.currentTime + start;
+  for (const p of partials) {
+    const o = c.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f0 * p.r * (1 + detune * (p.r - 1) * 0.02);
+    const g = c.createGain();
+    // fast strike, long exponential ring-out
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * p.g), t + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + decay * p.d);
+    o.connect(g).connect(bus);
+    o.start(t);
+    o.stop(t + decay * p.d + 0.05);
+  }
+  // the solenoid plunger hitting the bar. 6ms of filtered noise, and it is
+  // the single reason a real chime sounds physical instead of generated.
+  crack(c, { hp: 2600, lp: 11000, duration: 0.006, gain: gain * 0.5, start });
+}
+
+/* Doorbell. `rings` is how many times you've leaned on it this round: the
+   chime sours, shortens and detunes as the button wears out, and past ~30
+   it just buzzes. Legacy callers may still pass a boolean. */
+export function sfxDoorbell(rings = 0, settings) {
   try {
     const c = ok(settings);
     if (!c) return;
-    const d1 = rushed ? 0.16 : 0.34;
-    const d2 = rushed ? 0.2 : 0.5;
-    blip(c, { from: 659.25, to: 659.25, duration: d1, type: "triangle", gain: 0.22 });
-    blip(c, { from: 659.25 * 2, to: 659.25 * 2, duration: d1 * 0.7, type: "sine", gain: 0.06 });
-    blip(c, { from: 523.25, to: 523.25, duration: d2, type: "triangle", gain: 0.2, start: rushed ? 0.09 : 0.22 });
-    blip(c, { from: 523.25 * 2, to: 523.25 * 2, duration: d2 * 0.7, type: "sine", gain: 0.05, start: rushed ? 0.09 : 0.22 });
+    const n = typeof rings === "boolean" ? (rings ? 24 : 0) : rings;
+
+    // stuck button — it never releases, so it never rings properly again
+    if (n > 30) {
+      blip(c, { from: 430, to: 380, duration: 0.5, type: "sawtooth", gain: 0.14 });
+      crack(c, { hp: 900, lp: 3400, duration: 0.5, gain: 0.09 });
+      return;
+    }
+
+    const wear = Math.min(1, n / 26);              // 0 fresh → 1 dying
+    const decay = 1.6 - wear * 1.15;               // the ring-out dries up
+    const detune = wear * 2.4;                     // and drifts out of tune
+    const gap = 0.5 - wear * 0.28;                 // and the two notes crowd
+    const gain = 0.22 - wear * 0.07;
+
+    barStrike(c, { f0: 659.25, gain, decay, detune });                       // DING (E5)
+    barStrike(c, { f0: 523.25, gain: gain * 0.92, decay: decay * 1.1, detune, start: gap }); // DONG (C5)
+
+    // once it's worn, the mechanism rattles between the notes
+    if (wear > 0.55) crack(c, { hp: 1800, lp: 6000, duration: 0.05, gain: 0.05, start: gap * 0.5 });
   } catch { /* silent */ }
 }
 
@@ -268,20 +316,52 @@ export function sfxWhoosh(settings) {
   } catch { /* silent */ }
 }
 
-// Glass-ish shatter for smashed objections.
+/* Real breaking glass has three stages: the initial crack (one hard
+   transient), the burst (dozens of shards leaving the frame at once), and
+   the tinkle tail (shards landing over the next second). Doing only the
+   first two is why most game glass sounds like a snare. */
 export function sfxShatter(settings) {
   try {
     const c = ok(settings);
     if (!c) return;
-    crack(c, { hp: 2500, lp: 9000, duration: 0.16, gain: 0.3 });
-    for (let i = 0; i < 7; i++) {
+
+    // 1 · the crack — the pane failing
+    crack(c, { hp: 2200, lp: 12000, duration: 0.03, gain: 0.34 });
+    crack(c, { hp: 600, lp: 4000, duration: 0.09, gain: 0.16, start: 0.004 });
+
+    // 2 · the burst — 40 short noise grains at scattered pitches, all inside
+    //     the first 120ms, which is what reads as "a lot of glass at once"
+    for (let i = 0; i < 40; i++) {
+      const f = 2000 + ((i * 1409) % 6000);
+      crack(c, {
+        hp: f, lp: f + 2600,
+        duration: 0.012 + (i % 4) * 0.006,
+        gain: 0.035,
+        start: 0.002 + (i % 14) * 0.008,
+      });
+    }
+    // a bright ring cluster over the top so it has pitch, not just hiss
+    for (let i = 0; i < 6; i++) {
       blip(c, {
-        from: 2200 + ((i * 977) % 3800),
-        to: 1400 + ((i * 613) % 2600),
-        duration: 0.05 + (i % 3) * 0.03,
+        from: 3100 + ((i * 977) % 3600),
+        to: 2400 + ((i * 613) % 2400),
+        duration: 0.06 + (i % 3) * 0.04,
         type: "triangle",
-        gain: 0.05,
-        start: 0.01 + i * 0.024,
+        gain: 0.045,
+        start: 0.006 + i * 0.014,
+      });
+    }
+
+    // 3 · the tail — shards landing, staggered out to ~900ms
+    for (let i = 0; i < 14; i++) {
+      const t = 0.14 + i * 0.055 + ((i * 37) % 9) * 0.006;
+      blip(c, {
+        from: 3600 + ((i * 761) % 4200),
+        to: 2600 + ((i * 431) % 2000),
+        duration: 0.03 + (i % 3) * 0.02,
+        type: "triangle",
+        gain: 0.03 * (1 - i / 16),
+        start: t,
       });
     }
   } catch { /* silent */ }
@@ -1166,7 +1246,11 @@ export function sfxEvolveReveal(settings) {
 
 // ---------- loops (return a handle: { stop(), setLevel(0..1) }) ----------
 
-const NO_LOOP = { stop() {}, setLevel() {} };
+/* The null-object every loop factory falls back to when there's no audio
+   context (muted, autoplay-blocked, old webview). It must answer EVERY method
+   any loop handle exposes — a caller that reaches for one and gets undefined
+   takes the whole round down with it. */
+const NO_LOOP = { stop() {}, setLevel() {}, setLoad() {}, idle() {} };
 
 function makeLoop(c, buildChain) {
   // buildChain(c) -> { inputGain, nodes:[...], tick? } ; we fade out on stop.
@@ -1924,4 +2008,269 @@ export function sfxSpireHumLoop(settings) {
   } catch {
     return NO_LOOP;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE DOOR — synths for the rebuilt persistence arcade.
+   All procedural, no asset files, all fail silently. Same laws as above.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A chainsaw. The detail that sells it is the LOAD DROP: revs climb when the
+   bar is free and sag when it bites. `.setLoad(0..1)` drives that, so the
+   engine audibly labours exactly while you are cutting.
+   Returns the standard loop handle: { setLevel, setLoad, stop }. */
+export function sfxChainsawLoop(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return NO_LOOP;
+
+    const out = c.createGain();
+    out.gain.value = 0.0001;
+
+    // two detuned saws = a two-stroke that never sounds like one oscillator
+    const o1 = c.createOscillator();
+    const o2 = c.createOscillator();
+    o1.type = "sawtooth";
+    o2.type = "sawtooth";
+    o1.frequency.value = 42;
+    o2.frequency.value = 42 * 1.011;
+
+    // the chain itself — broadband noise through a resonant band-pass
+    const n = noise(c);
+    const bp = c.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1800;
+    bp.Q.value = 1.4;
+    const nGain = c.createGain();
+    nGain.gain.value = 0.16;
+
+    // the ragged idle wobble
+    const lfo = c.createOscillator();
+    const lfoGain = c.createGain();
+    lfo.frequency.value = 11;
+    lfoGain.gain.value = 5;
+    lfo.connect(lfoGain).connect(o1.frequency);
+
+    const lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 2600;
+
+    o1.connect(lp);
+    o2.connect(lp);
+    lp.connect(out);
+    n.connect(bp).connect(nGain).connect(out);
+    out.connect(bus);
+
+    const t = c.currentTime;
+    o1.start(t); o2.start(t); n.start(t); lfo.start(t);
+
+    let level = 0;
+    const handle = {
+      setLevel(v) {
+        level = Math.max(0, Math.min(1, v));
+        out.gain.setTargetAtTime(Math.max(0.0001, level * 0.3), c.currentTime, 0.05);
+      },
+      /* 0 = free-revving, 1 = buried in the cut. RPM DROPS under load. */
+      setLoad(v) {
+        const l = Math.max(0, Math.min(1, v));
+        const rpm = 112 - l * 34;                 // free ~112Hz, loaded ~78Hz
+        const now = c.currentTime;
+        o1.frequency.setTargetAtTime(rpm, now, 0.06);
+        o2.frequency.setTargetAtTime(rpm * 1.011, now, 0.06);
+        bp.frequency.setTargetAtTime(1800 + l * 1400, now, 0.06);
+        nGain.gain.setTargetAtTime(0.16 + l * 0.3, now, 0.06);
+        lp.frequency.setTargetAtTime(2600 + l * 3200, now, 0.06);
+      },
+      /* back to a lumpy idle */
+      idle() {
+        const now = c.currentTime;
+        o1.frequency.setTargetAtTime(42, now, 0.12);
+        o2.frequency.setTargetAtTime(42 * 1.011, now, 0.12);
+        nGain.gain.setTargetAtTime(0.1, now, 0.12);
+      },
+      stop() {
+        try {
+          const now = c.currentTime;
+          out.gain.setTargetAtTime(0.0001, now, 0.08);
+          o1.stop(now + 0.4); o2.stop(now + 0.4); n.stop(now + 0.4); lfo.stop(now + 0.4);
+        } catch { /* already stopped */ }
+      },
+    };
+    return handle;
+  } catch {
+    return NO_LOOP;
+  }
+}
+
+/* A rock leaving your hand. Doppler-ish downward bend on filtered noise. */
+export function sfxRockThrow(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const src = noise(c);
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 2.2;
+    const t = c.currentTime;
+    f.frequency.setValueAtTime(1500, t);
+    f.frequency.exponentialRampToValueAtTime(420, t + 0.3);
+    const g = env(c, { gain: 0.15, attack: 0.02, duration: 0.32 });
+    src.connect(f).connect(g).connect(bus);
+    src.start(t);
+    src.stop(t + 0.36);
+  } catch { /* silent */ }
+}
+
+/* Sparks off steel — a scatter of tiny bright ticks, never a single hiss. */
+export function sfxSparkShower(intensity = 1, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const n = 4 + Math.round(intensity * 5);
+    for (let i = 0; i < n; i++) {
+      crack(c, {
+        hp: 5200 + ((i * 911) % 5000),
+        lp: 15000,
+        duration: 0.006 + (i % 3) * 0.004,
+        gain: 0.05,
+        start: i * 0.011,
+      });
+    }
+  } catch { /* silent */ }
+}
+
+/* Chain-link fence, rattled. Metallic mesh + the padlock jumping. */
+export function sfxFenceRattle(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    for (let i = 0; i < 9; i++) {
+      blip(c, {
+        from: 1600 + ((i * 617) % 2400),
+        to: 900 + ((i * 331) % 1200),
+        duration: 0.03 + (i % 3) * 0.015,
+        type: "square",
+        gain: 0.035,
+        start: i * 0.026,
+      });
+    }
+    crack(c, { hp: 1200, lp: 7000, duration: 0.2, gain: 0.09 });
+    subDrop(c, { from: 90, to: 46, duration: 0.24, gain: 0.12 });
+  } catch { /* silent */ }
+}
+
+/* The callbox: a harsh entry buzzer, then the speaker opening. */
+export function sfxGateBuzzer(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 320, to: 320, duration: 0.26, type: "square", gain: 0.12 });
+    blip(c, { from: 322, to: 318, duration: 0.26, type: "sawtooth", gain: 0.06 });
+    crack(c, { hp: 700, lp: 3000, duration: 0.06, gain: 0.07, start: 0.27 });
+  } catch { /* silent */ }
+}
+
+/* Knuckle splitting open. Wet, low, short — and it should make you wince. */
+export function sfxKnuckleSplit(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 140, lp: 900, duration: 0.05, gain: 0.24 });
+    blip(c, { from: 260, to: 90, duration: 0.09, type: "triangle", gain: 0.1 });
+    crack(c, { hp: 1600, lp: 4200, duration: 0.02, gain: 0.08, start: 0.012 });
+  } catch { /* silent */ }
+}
+
+/* A drip landing. */
+export function sfxBloodDrip(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    blip(c, { from: 900, to: 240, duration: 0.06, type: "sine", gain: 0.07 });
+    crack(c, { hp: 300, lp: 1800, duration: 0.03, gain: 0.05 });
+  } catch { /* silent */ }
+}
+
+/* The referee's count, with a heartbeat under it. */
+export function sfxRefCount(n = 1, settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    barStrike(c, { f0: 880, gain: 0.16, decay: 0.5 });
+    subDrop(c, { from: 68, to: 40, duration: 0.16, gain: 0.3 });
+    subDrop(c, { from: 62, to: 36, duration: 0.2, gain: 0.22, start: 0.26 });
+    if (n >= 8) blip(c, { from: 220, to: 180, duration: 0.3, type: "sawtooth", gain: 0.07, start: 0.1 });
+  } catch { /* silent */ }
+}
+
+/* A boss telegraph cue. Distinct per weight class so you learn them by ear
+   before you learn them by eye. */
+export function sfxTellCue(kind = "mid", settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    const map = {
+      low: { from: 180, to: 120, type: "triangle", gain: 0.1, d: 0.16 },
+      mid: { from: 340, to: 250, type: "triangle", gain: 0.09, d: 0.13 },
+      sharp: { from: 900, to: 620, type: "square", gain: 0.07, d: 0.08 },
+      wet: { from: 150, to: 90, type: "sine", gain: 0.12, d: 0.22 },
+      heavy: { from: 110, to: 62, type: "sawtooth", gain: 0.14, d: 0.3 },
+      huge: { from: 80, to: 40, type: "sawtooth", gain: 0.2, d: 0.45 },
+    };
+    const m = map[kind] || map.mid;
+    blip(c, { from: m.from, to: m.to, duration: m.d, type: m.type, gain: m.gain });
+    if (kind === "heavy" || kind === "huge") subDrop(c, { from: 70, to: 34, duration: 0.34, gain: 0.2 });
+  } catch { /* silent */ }
+}
+
+/* Earning a star. */
+export function sfxStarEarn(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    barStrike(c, { f0: 1046.5, gain: 0.14, decay: 0.7 });
+    barStrike(c, { f0: 1568, gain: 0.1, decay: 0.6, start: 0.07 });
+    blip(c, { from: 2400, to: 3600, duration: 0.14, type: "triangle", gain: 0.05, start: 0.02 });
+  } catch { /* silent */ }
+}
+
+/* Wood tearing out of a panel. */
+export function sfxWoodSplinter(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 900, lp: 6000, duration: 0.09, gain: 0.16 });
+    for (let i = 0; i < 5; i++) {
+      blip(c, {
+        from: 700 + ((i * 421) % 900),
+        to: 300 + ((i * 233) % 400),
+        duration: 0.05,
+        type: "sawtooth",
+        gain: 0.045,
+        start: i * 0.018,
+      });
+    }
+  } catch { /* silent */ }
+}
+
+/* A cut-out slab tipping, falling and slamming flat. */
+export function sfxDoorFall(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 400, lp: 2600, duration: 0.18, gain: 0.14 });        // the tip
+    subDrop(c, { from: 120, to: 30, duration: 0.5, gain: 0.5, start: 0.24 }); // the slam
+    crack(c, { hp: 60, lp: 700, duration: 0.6, gain: 0.3, start: 0.24 });
+    subDrop(c, { from: 54, to: 22, duration: 0.9, gain: 0.3, start: 0.3 });   // the room
+  } catch { /* silent */ }
+}
+
+/* A security torch clicking on. */
+export function sfxFlashlightClick(settings) {
+  try {
+    const c = ok(settings);
+    if (!c) return;
+    crack(c, { hp: 2400, lp: 9000, duration: 0.012, gain: 0.14 });
+    blip(c, { from: 1400, to: 900, duration: 0.03, type: "square", gain: 0.05 });
+  } catch { /* silent */ }
 }

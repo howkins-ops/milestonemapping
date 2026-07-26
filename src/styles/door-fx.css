@@ -1,0 +1,55 @@
+/* ════════════════════════════════════════════════════════════════════════
+   DOOR FX layer — the DOM half of DoorFX.js.
+
+   The engine writes four custom properties on the scene every frame:
+     --fx-x  --fx-y  --fx-rot  --fx-zoom
+   .dg-cam consumes them. Nothing else in the game may write these.
+
+   transform/opacity only. No blur on moving layers. (door-game.css §law)
+   ════════════════════════════════════════════════════════════════════════ */
+
+.dg-scene {
+  --fx-x: 0px;
+  --fx-y: 0px;
+  --fx-rot: 0deg;
+  --fx-zoom: 1;
+}
+
+/* The camera. Everything that shakes lives inside this — including the FX
+   canvas, so particles stay welded to the world instead of sliding over it. */
+.dg-cam {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 58%;
+  transform: translate3d(var(--fx-x), var(--fx-y), 0) rotate(var(--fx-rot)) scale(var(--fx-zoom));
+  will-change: transform;
+}
+
+/* The FX canvas. Sits above the world art, below the HUD. Never eats taps. */
+.dg-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  display: block;
+}
+
+/* ── hit-stop ─────────────────────────────────────────────────────────────
+   The engine adds .is-frozen for the duration of a hit-stop. Freezing the
+   canvas alone isn't enough — every CSS animation in the scene has to stop
+   dead too, or the freeze reads as a stutter instead of an impact. */
+.dg-scene.is-frozen,
+.dg-scene.is-frozen * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* ── reduced motion ───────────────────────────────────────────────────────
+   The engine already zeroes shake/hit-stop/slow-mo internally; this pins the
+   camera so a stale custom property can never leave the scene off-centre. */
+@media (prefers-reduced-motion: reduce) {
+  .dg-cam { transform: none; }
+  .dg-scene.is-frozen,
+  .dg-scene.is-frozen * { animation-play-state: running !important; }
+}
+[data-reduced-motion="true"] .dg-cam { transform: none; }

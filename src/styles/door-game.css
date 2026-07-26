@@ -605,112 +605,10 @@
 .dg-hp--him .dg-hp__fill { transform-origin: 100% 50%; background: linear-gradient(90deg, #FF3B5C, #FFB000); box-shadow: 0 0 10px rgba(255, 59, 92, .5); }
 
 /* Harold himself */
-.dg-harold {
-  position: absolute; left: 50%; bottom: 14%; transform: translateX(-50%); z-index: 2;
-  padding: 18px; margin: 0; background: none; border: none; cursor: pointer;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
-}
-.dg-harold__shake { position: relative; display: flex; flex-direction: column; align-items: center; }
-.dg-harold__face { font-size: 74px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .6)); }
-.dg-harold__robe { font-size: 64px; line-height: .9; margin-top: -10px; }
-.dg-harold__stars { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); font-size: 26px; opacity: 0; }
-.dg-harold__fists { position: absolute; top: 46%; left: 50%; width: 150px; transform: translateX(-50%); }
-.dg-fist { position: absolute; font-size: 40px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
-.dg-fist--l { left: -8px; }
-.dg-fist--r { right: -8px; }
+/* The emoji brawl (a stack of face/robe/fist glyphs with glove glyphs for the
+   player) lived here. It is now a posed SVG rig — door/Boxer.jsx + the
+   presentation in door-bout.css. */
 
-.dg-harold.is-guard .dg-harold__shake { animation: dgBob 1.4s ease-in-out infinite; }
-@keyframes dgBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-/* the telegraph — LEARN THIS OR NAP */
-.dg-harold.is-windup .dg-harold__shake {
-  animation: dgTell .3s ease-in-out infinite;
-  filter: drop-shadow(0 0 22px rgba(255, 59, 92, .9));
-}
-.dg-harold.is-windup .dg-fist--r { transform: translate(10px, -16px) scale(1.35) rotate(-24deg); }
-@keyframes dgTell {
-  0%, 100% { transform: translateX(-3px) rotate(-2deg); }
-  50% { transform: translateX(3px) rotate(2deg); }
-}
-.dg-harold.is-swing .dg-fist--r {
-  animation: dgSwing .26s cubic-bezier(.4, 0, .6, 1) forwards;
-}
-@keyframes dgSwing {
-  0% { transform: translate(10px, -16px) scale(1.35); }
-  100% { transform: translate(-30px, 70px) scale(2.6); }
-}
-.dg-harold.is-open .dg-harold__shake { animation: dgWoozy .5s ease-in-out infinite; filter: drop-shadow(0 0 22px rgba(255, 216, 77, .9)); }
-.dg-harold.is-open .dg-harold__stars { opacity: 1; animation: dgStarSpin 1s linear infinite; }
-@keyframes dgWoozy {
-  0%, 100% { transform: rotate(-4deg); }
-  50% { transform: rotate(4deg); }
-}
-@keyframes dgStarSpin { to { transform: translateX(-50%) rotate(360deg); } }
-.dg-harold.is-ko { pointer-events: none; }
-.dg-harold.is-ko .dg-harold__shake { animation: dgTimber .8s cubic-bezier(.5, 0, .8, .4) forwards; }
-@keyframes dgTimber {
-  0% { transform: rotate(0); }
-  30% { transform: rotate(6deg); }
-  100% { transform: rotate(88deg) translateY(26px); opacity: .95; }
-}
-/* must out-rank the per-state animations above so landed punches rock him */
-.dg-harold .dg-harold__shake.is-hit { animation: dgKnock .26s var(--ease-out); }
-
-/* your gloves — POV fists at the bottom of the frame */
-.dg-gloves { position: absolute; left: 0; right: 0; bottom: -6px; z-index: 3; pointer-events: none; }
-.dg-glove { position: absolute; bottom: 0; font-size: 64px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .6)); transition: transform .14s var(--ease-out); }
-.dg-glove--l { left: 12%; transform: rotate(-14deg); }
-.dg-glove--r { right: 12%; transform: rotate(14deg) scaleX(-1); }
-.dg-gloves.is-ducking .dg-glove--l { transform: translateY(-34px) rotate(-30deg) scale(1.2); }
-.dg-gloves.is-ducking .dg-glove--r { transform: translateY(-34px) rotate(30deg) scaleX(-1) scale(1.2); }
-
-/* fight controls */
-.dg-fightctl { display: flex; gap: 10px; padding: 12px 4px 0; }
-.dg-duckbtn, .dg-punchbtn {
-  flex: 1; padding: 16px 10px; border-radius: 14px; border: none; cursor: pointer;
-  font-family: var(--font-display); font-weight: 900; font-size: 16px; letter-spacing: .04em;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
-  transition: transform .1s var(--ease-out), box-shadow .15s ease;
-}
-.dg-duckbtn { color: #14100a; background: linear-gradient(100deg, #FFD84D, #FFB000); box-shadow: 0 8px 22px rgba(255, 176, 0, .3); }
-.dg-duckbtn small { font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
-.dg-duckbtn.is-on { transform: translateY(4px) scale(.97); box-shadow: 0 2px 10px rgba(255, 176, 0, .5); }
-.dg-punchbtn { color: #fff; background: linear-gradient(100deg, #FF3B5C, #d11eff); box-shadow: 0 8px 22px rgba(255, 59, 92, .35); }
-.dg-punchbtn:active { transform: scale(.95); }
-.dg-duckbtn:disabled, .dg-punchbtn:disabled { opacity: .4; }
-
-.dg-fightnote {
-  position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 4;
-  padding: 6px 13px; border-radius: 999px; white-space: nowrap; max-width: 92%;
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 800; letter-spacing: .08em;
-  color: #FFD84D; background: rgba(20, 12, 0, .85); border: 1px solid rgba(255, 216, 77, .5);
-  animation: dgBubble .3s var(--ease-out) backwards;
-}
-
-/* getting hit — red vignette */
-.dg-flash.is-hurt { animation: dgHurt .45s var(--ease-out); }
-@keyframes dgHurt {
-  0% { opacity: 0; }
-  15% { opacity: 1; background: radial-gradient(circle at 50% 60%, transparent 30%, rgba(255, 30, 60, .55) 100%); }
-  100% { opacity: 0; }
-}
-
-/* the nap screen */
-.dg-koveil {
-  position: absolute; inset: 0; z-index: 8;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-  text-align: center; padding: 20px; background: rgba(2, 0, 6, .88);
-  animation: dgCineIn .4s var(--ease-out);
-}
-.dg-koveil__big {
-  margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 42px;
-  color: #FF3B5C; text-shadow: 0 0 30px rgba(255, 59, 92, .6);
-}
-.dg-koveil__sub { margin: 0 0 8px; color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
-
-/* ── THE WIFE ────────────────────────────────────────────────────────── */
 .dg-harold-flat {
   position: absolute; left: 24%; bottom: 7%; z-index: 1;
   font-size: 46px; transform: rotate(90deg); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5));
@@ -822,78 +720,8 @@
    steel/gate skins, the power-slap / kick charge, chainsaw and rock specials.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* ── level-select hub ────────────────────────────────────────────────── */
-.dl-hub {
-  position: relative; isolation: isolate; max-width: 660px; margin: 0 auto;
-  padding: 14px 14px calc(48px + var(--safe-bottom, 0px));
-  border-radius: 20px;
-  background: radial-gradient(circle at 50% 0%, rgba(40, 10, 14, .9), #07030a 72%);
-  border: 1px solid rgba(255, 59, 92, .16); box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
-}
-.dl-hub__top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.dl-hub__count {
-  margin-left: auto; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
-  letter-spacing: .08em; color: #FFD84D;
-  background: rgba(255, 216, 77, .08); border: 1px solid rgba(255, 216, 77, .25);
-  padding: 5px 10px; border-radius: 999px;
-}
-.dl-hub__head { text-align: center; padding: 8px 6px 18px; }
-.dl-hub__kicker {
-  margin: 0; font-family: var(--font-mono); font-size: 10.5px; font-weight: 800;
-  letter-spacing: .2em; text-transform: uppercase; color: #FF3B5C;
-}
-.dl-hero {
-  margin: 4px 0 8px; font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(38px, 12vw, 66px); line-height: .95; color: var(--text-main);
-  text-shadow: 0 0 40px rgba(255, 59, 92, .4);
-}
-.dl-hub__sub { margin: 0 auto; max-width: 480px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
-.dl-hub__sub b { color: var(--text-main); }
-
-.dl-ladder { display: flex; flex-direction: column; gap: 12px; }
-.dl-card {
-  --acc: #FF3B5C;
-  position: relative; overflow: hidden; isolation: isolate;
-  display: flex; align-items: stretch; gap: 14px; text-align: left; cursor: pointer;
-  padding: 16px 16px; border-radius: 18px; font-family: inherit;
-  background: linear-gradient(120deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
-  border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
-  transition: transform .16s var(--ease-out), box-shadow .2s ease, border-color .2s ease;
-}
-.dl-card:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 16px 40px color-mix(in srgb, var(--acc) 30%, transparent); border-color: var(--acc); }
-.dl-card:not(:disabled):active { transform: scale(.99); }
-.dl-card__aura {
-  position: absolute; inset: 0; z-index: -1; opacity: .55;
-  background: radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 60%);
-}
-.dl-card__num {
-  flex: none; width: 54px; display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 900; font-size: 34px; color: var(--acc);
-  border-right: 1px solid color-mix(in srgb, var(--acc) 24%, transparent);
-  text-shadow: 0 0 20px color-mix(in srgb, var(--acc) 60%, transparent);
-}
-.dl-card__body { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.dl-card__topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.dl-card__when { font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.dl-card__relic {
-  font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: .12em;
-  text-transform: uppercase; color: color-mix(in srgb, var(--acc) 80%, #fff 20%);
-}
-.dl-card__title { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--text-main); }
-.dl-card__blurb { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
-.dl-card__tag {
-  margin-top: 2px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 800;
-  letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--acc) 75%, #fff 25%);
-}
-.dl-card__cta {
-  flex: none; align-self: center; font-family: var(--font-display); font-weight: 800; font-size: 13px;
-  color: var(--acc); white-space: nowrap;
-}
-.dl-card.is-locked { cursor: not-allowed; opacity: .5; filter: grayscale(.6); }
-.dl-card.is-locked .dl-card__cta { color: var(--text-muted); }
-.dl-card.is-done { border-color: color-mix(in srgb, var(--acc) 70%, transparent); }
-.dl-card.is-done .dl-card__num::after { content: "✓"; position: absolute; margin-left: 2px; font-size: 14px; color: #41FF6B; }
+/* The level-select hub (.dl-*) is gone. Picking a level from a menu was
+   replaced by walking the block — see TheRoute.jsx / door-route.css. */
 
 /* ── brief lesson box + level-accent eyebrow ─────────────────────────── */
 .dg-stage { --lvacc: #FF3B5C; }
@@ -1000,34 +828,9 @@
 
 /* ── POWER-SLAP / KICK charge finale ─────────────────────────────────── */
 .dg-scene.is-finale { background: radial-gradient(circle at 50% 40%, rgba(40, 8, 14, .6), #05020a 72%); }
-.dg-face {
-  position: absolute; left: 50%; bottom: 20%; transform: translateX(-50%); z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-}
-.dg-face__emoji { font-size: 120px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, .6)); }
-.dg-face__hand { position: absolute; right: -30%; top: 20%; font-size: 66px; opacity: 0; }
-.dg-face.is-slapped .dg-face__emoji { animation: dgSlapHit .6s var(--ease-out); }
-.dg-face.is-slapped .dg-face__hand { animation: dgSlapHand .5s cubic-bezier(.4, 0, .7, 1); }
-/* bloody handprint left on the cheek when the fist is wrecked */
-.dg-face.is-slapped[data-blood="3"] .dg-face__emoji::after,
-.dg-face.is-slapped[data-blood="4"] .dg-face__emoji::after,
-.dg-face.is-slapped[data-blood="2"] .dg-face__emoji::after {
-  content: "🖐"; position: absolute; left: 30%; top: 34%; font-size: 44px;
-  color: #b3001b; filter: sepia(1) saturate(6) hue-rotate(-20deg); opacity: .8;
-  animation: dgHandprint .4s var(--ease-out) .18s backwards;
-}
-@keyframes dgSlapHit {
-  0% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(34px) rotate(16deg); }
-  45% { transform: translateX(-14px) rotate(-8deg); }
-  100% { transform: translateX(0) rotate(0); }
-}
-@keyframes dgSlapHand {
-  0% { opacity: 0; transform: translateX(60px) rotate(20deg) scale(.7); }
-  40% { opacity: 1; transform: translateX(-40px) rotate(-14deg) scale(1.3); }
-  100% { opacity: 0; transform: translateX(-90px) rotate(-30deg) scale(1); }
-}
-@keyframes dgHandprint { from { opacity: 0; transform: scale(1.6); } to { opacity: .8; transform: scale(1); } }
+/* The emoji slap (a shocked-face glyph with an open-hand glyph flying across
+   it) lived here. It is now a drawn arm rig — door-art.css §THE WIND-UP SLAP
+   — and the bloody handprint is a real canvas decal. Nothing here survives. */
 
 .dg-charge {
   position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 4;

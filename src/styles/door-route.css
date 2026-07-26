@@ -1,0 +1,243 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE ROUTE (.dr-) — the Paperboy overworld.
+
+   Three parallax bands share one camera variable, --cam, written imperatively
+   by the walk loop. Each band multiplies it:
+       far  0.15×   ·   mid 1×   ·   near 1.6×
+   Nothing here re-renders per frame; only --cam changes.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.dr-stage {
+  --cam: 0px;
+  --sky-t: #7fb2d8;
+  --sky-b: #dfe6ea;
+  --sun: #fff3cf;
+  --daylight: 1;
+
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 14px calc(20px + var(--safe-bottom, 0px));
+  border-radius: 20px;
+  overflow: hidden;
+  background: #07030a;
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+}
+
+/* ── top bar ──────────────────────────────────────────────────────────── */
+.dr-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.dr-top__title {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted);
+}
+.dr-top__score {
+  margin-left: auto; padding: 5px 10px; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  color: #00FFBF; background: rgba(0, 255, 191, .08); border: 1px solid rgba(0, 255, 191, .28);
+}
+
+/* ── the world ────────────────────────────────────────────────────────── */
+.dr-world {
+  position: relative;
+  height: min(58vh, 460px);
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(#000, #000);
+  transform-origin: 50% 70%;
+  transition: transform .9s cubic-bezier(.5, 0, .2, 1);
+}
+/* approach: the camera dollies into the porch */
+.dr-world.is-dollying { transform: scale(2.6) translateY(9%); }
+
+/* ── sky ──────────────────────────────────────────────────────────────── */
+.dr-sky {
+  position: absolute; inset: 0 0 26% 0;
+  background: linear-gradient(180deg, var(--sky-t), var(--sky-b));
+}
+.dr-sun {
+  position: absolute; right: 18%; top: 14%;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 40px 14px color-mix(in srgb, var(--sun) 45%, transparent);
+}
+.dr-stars {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 28% 46%, #dfe6ff, transparent),
+    radial-gradient(1.6px 1.6px at 47% 16%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 63% 38%, #cfd8ff, transparent),
+    radial-gradient(1.4px 1.4px at 78% 24%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 89% 52%, #e6ecff, transparent);
+  opacity: .8;
+}
+
+/* ── parallax bands ───────────────────────────────────────────────────── */
+.dr-band { position: absolute; left: 0; right: 0; will-change: transform; }
+.dr-band--far {
+  bottom: 26%; height: 22%;
+  transform: translate3d(calc(var(--cam) * .15), 0, 0);
+}
+.dr-band--far svg { width: 300%; height: 100%; display: block; }
+.dr-band--mid {
+  bottom: 0; top: 0;
+  transform: translate3d(var(--cam), 0, 0);
+}
+.dr-band--near {
+  bottom: 0; height: 16%;
+  z-index: 6; pointer-events: none;
+  transform: translate3d(calc(var(--cam) * 1.6), 0, 0);
+}
+.dr-band--near svg { width: 260%; height: 100%; display: block; }
+
+/* ── ground ───────────────────────────────────────────────────────────── */
+.dr-lawn {
+  position: absolute; left: -200px; right: -3000px; bottom: 14%; height: 22%;
+  background: linear-gradient(#2f5c30, #1f4021);
+  filter: brightness(calc(.45 + var(--daylight) * .55));
+}
+.dr-walk {
+  position: absolute; left: -200px; right: -3000px; bottom: 8%; height: 7%;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .22) 0 2px, transparent 2px 58px),
+    linear-gradient(#9a958c, #6f6a62);
+  filter: brightness(calc(.45 + var(--daylight) * .55));
+}
+.dr-curb {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 8%;
+  z-index: 5;
+  background: linear-gradient(#2b2b2f, #17171b);
+  border-top: 3px solid #43434a;
+}
+
+/* ── a lot ────────────────────────────────────────────────────────────── */
+.dr-lot {
+  position: absolute; bottom: 20%;
+  width: 220px; margin-left: -110px;
+  filter: brightness(calc(.42 + var(--daylight) * .58));
+}
+.dr-house { display: block; width: 100%; height: auto; }
+.dr-house.is-locked { filter: grayscale(.7) brightness(.6); }
+.dr-house__light.is-on circle { filter: drop-shadow(0 0 8px #ffd97a); }
+.dr-house.is-cleared .dr-house__door { animation: drDoorOpen .6s var(--ease-out); }
+@keyframes drDoorOpen {
+  0% { transform: none; }
+  100% { transform: none; }
+}
+
+/* the path up to the porch */
+.dr-path {
+  position: absolute; left: 50%; bottom: -22%;
+  width: 46px; height: 26%; margin-left: -23px;
+  background: repeating-linear-gradient(180deg, #a9a49a 0 9px, #8d887f 9px 12px);
+  clip-path: polygon(24% 0, 76% 0, 100% 100%, 0 100%);
+}
+.dr-mailpost { position: absolute; right: -6%; bottom: -20%; width: 30px; }
+.dr-signpost { position: absolute; left: -4%; bottom: -16%; width: 46px; }
+.dr-mailbox, .dr-sign { display: block; width: 100%; height: auto; }
+.dr-mailbox__flag { transform-origin: 29px 24px; transition: transform .35s var(--ease-out); }
+.dr-mailbox__flag.is-up { transform: rotate(-84deg); }
+
+.dr-lot__tag,
+.dr-lot__lock,
+.dr-gatelot__tag {
+  position: absolute; left: 50%; top: -14%;
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  padding: 5px 10px; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+  color: #ffe9b8; background: rgba(0, 0, 0, .62); border: 1px solid rgba(255, 255, 255, .2);
+}
+.dr-lot__lock, .dr-gatelot__tag { color: rgba(255, 255, 255, .5); }
+
+/* ── the gated community ──────────────────────────────────────────────── */
+.dr-gatelot {
+  position: absolute; bottom: 14%;
+  width: 260px; margin-left: -130px;
+  filter: brightness(calc(.42 + var(--daylight) * .58));
+}
+.dr-gate { display: block; width: 100%; height: auto; }
+.dr-gate__leaf { transform-box: view-box; transition: transform .8s var(--ease-out); }
+.dr-gate.is-breached .dr-gate__leaf--l { transform: translateX(-16px) rotate(-14deg); transform-origin: 100px 130px; }
+.dr-gate.is-breached .dr-gate__leaf--r { transform: translateX(16px) rotate(14deg); transform-origin: 164px 130px; }
+.dr-gate__led { animation: drLed 2.2s steps(2, jump-none) infinite; }
+@keyframes drLed { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .18; } }
+
+/* ── the rep ──────────────────────────────────────────────────────────── */
+.dr-repslot {
+  position: absolute; bottom: 12%; z-index: 4;
+  width: 46px; margin-left: -23px;
+}
+.dr-rep { display: block; width: 100%; height: auto; }
+.dr-repshadow {
+  position: absolute; left: 50%; bottom: -6px;
+  width: 34px; height: 8px; margin-left: -17px;
+  border-radius: 50%; background: rgba(0, 0, 0, .45);
+}
+.dr-rep__leg, .dr-rep__arm { transform-box: view-box; transform-origin: 30px 74px; }
+.dr-rep__arm { transform-origin: 30px 46px; }
+.dr-rep.is-walking .dr-rep__leg--f { animation: drStride .46s ease-in-out infinite; }
+.dr-rep.is-walking .dr-rep__leg--b { animation: drStride .46s ease-in-out infinite reverse; }
+.dr-rep.is-walking .dr-rep__arm--f { animation: drSwing .46s ease-in-out infinite reverse; }
+.dr-rep.is-walking .dr-rep__arm--b { animation: drSwing .46s ease-in-out infinite; }
+.dr-rep.is-walking { animation: drBob .23s ease-in-out infinite; }
+@keyframes drStride {
+  0%, 100% { transform: rotate(22deg); }
+  50% { transform: rotate(-22deg); }
+}
+@keyframes drSwing {
+  0%, 100% { transform: rotate(16deg); }
+  50% { transform: rotate(-16deg); }
+}
+@keyframes drBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.6px); }
+}
+
+/* ── HUD ──────────────────────────────────────────────────────────────── */
+.dr-hud {
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+.dr-walkbtn {
+  height: 56px; border-radius: 16px; cursor: pointer;
+  font-size: 20px; font-family: inherit; color: #fff;
+  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .18);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: transform .1s var(--ease-out), background .15s ease;
+}
+.dr-walkbtn.is-on, .dr-walkbtn:active { background: rgba(255, 255, 255, .16); transform: scale(.95); }
+.dr-knockbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 56px; padding: 0 18px; border: none; border-radius: 16px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 900; font-size: 15px; color: #14060a;
+  background: linear-gradient(100deg, #FF3B5C, #FFB000);
+  box-shadow: 0 10px 30px rgba(255, 59, 92, .35);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  animation: drKnockPulse 1.7s ease-in-out infinite;
+}
+.dr-knockbtn:active { transform: scale(.97); }
+@keyframes drKnockPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(255, 59, 92, .3); }
+  50% { box-shadow: 0 10px 40px rgba(255, 59, 92, .6); }
+}
+.dr-hint {
+  text-align: center; font-size: 12.5px; line-height: 1.4;
+  color: var(--text-soft); padding: 0 6px;
+}
+
+/* ── reduced motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .dr-rep.is-walking, .dr-rep.is-walking .dr-rep__leg--f, .dr-rep.is-walking .dr-rep__leg--b,
+  .dr-rep.is-walking .dr-rep__arm--f, .dr-rep.is-walking .dr-rep__arm--b,
+  .dr-knockbtn, .dr-gate__led { animation: none; }
+  .dr-world { transition-duration: .25s; }
+}
+[data-reduced-motion="true"] .dr-rep.is-walking,
+[data-reduced-motion="true"] .dr-knockbtn,
+[data-reduced-motion="true"] .dr-gate__led { animation: none; }

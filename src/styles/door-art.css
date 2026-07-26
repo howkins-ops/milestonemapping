@@ -1,0 +1,480 @@
+/* ════════════════════════════════════════════════════════════════════════
+   DOOR ART (.dga-) — the CSS half of DoorArt.jsx.
+
+   Continuous damage rides --p (0..1), which DoorLevel already writes on the
+   scene imperatively. Discrete impacts are class retriggers. React is never
+   involved in either.
+
+   transform / opacity / stroke-dashoffset only. No blur on moving layers.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── the slab ─────────────────────────────────────────────────────────── */
+.dga-door {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform-origin: 50% 100%;
+  /* the slab goes off plumb once it's badly hurt */
+  transform: rotate(calc(clamp((var(--p) - .72) * 3.5, 0, 1) * -2.5deg));
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, .6));
+}
+
+/* ── the fracture tree ────────────────────────────────────────────────────
+   strikeDoor() sets d + dasharray + dashoffset, then adds .is-drawing. The
+   crack DRAWS outward from the knuckle instead of fading in somewhere. */
+.dga-cracks path { stroke-dashoffset: 0; }
+.dga-cracks path.is-drawing { animation: dgaCrackDraw .3s cubic-bezier(.2, .9, .3, 1) forwards; }
+@keyframes dgaCrackDraw { to { stroke-dashoffset: 0; } }
+
+/* ── panels blowing out ──────────────────────────────────────────────────
+   The mask holes only open once the slab is genuinely failing, so the
+   interior light is a reward for damage rather than a constant. */
+.dga-hole { opacity: 0; transform-origin: 50% 50%; transition: opacity .25s ease; }
+.dga-hole--1 { opacity: clamp((var(--p) - .55) * 5, 0, 1); }
+.dga-hole--2 { opacity: clamp((var(--p) - .72) * 5, 0, 1); }
+.dga-hole--3 { opacity: clamp((var(--p) - .86) * 7, 0, 1); }
+
+/* what's behind — only worth lighting once a hole exists */
+.dga-interior { opacity: clamp((var(--p) - .5) * 3, 0, 1); }
+.dga-interior .dga-shape {
+  transform-origin: 50% 100%;
+  animation: dgaLurk 3.4s ease-in-out infinite;
+}
+@keyframes dgaLurk {
+  0%, 100% { transform: translateX(0) scaleY(1); }
+  40% { transform: translateX(-7px) scaleY(1.03); }
+  70% { transform: translateX(5px) scaleY(.98); }
+}
+
+/* an eye at the peephole once he starts watching you */
+.dga-peep__eye { opacity: 0; }
+.dg-scene[data-stage="2"] .dga-peep__eye,
+.dg-scene[data-stage="3"] .dga-peep__eye { animation: dgaPeek 4.2s ease-in-out infinite; }
+.dg-scene[data-stage="4"] .dga-peep__eye { animation: dgaPeek 2.1s ease-in-out infinite; }
+@keyframes dgaPeek {
+  0%, 62%, 100% { opacity: 0; }
+  68%, 88% { opacity: .95; }
+}
+
+/* steel: the sheen sweeps when the slab takes a hit */
+.dga-door--steel .dga-sheen { transform-origin: 50% 50%; }
+.dg-doorshake.is-pounded .dga-sheen { animation: dgaSheen .5s var(--ease-out); }
+@keyframes dgaSheen {
+  0% { transform: translateX(-30%); opacity: .3; }
+  40% { opacity: 1; }
+  100% { transform: translateX(30%); opacity: .3; }
+}
+
+/* ── the burst — door comes off its hinges ────────────────────────────── */
+.dga-door.is-burst { animation: dgaBurst .9s cubic-bezier(.5, 0, .8, .4) forwards; }
+@keyframes dgaBurst {
+  0% { transform: rotate(-2.5deg); }
+  14% { transform: rotate(2deg) scale(1.03); }
+  100% { transform: perspective(600px) rotateX(-84deg) translateY(24px); opacity: .9; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE DOORBELL
+   ════════════════════════════════════════════════════════════════════════ */
+.dga-bell { display: block; width: 100%; height: 100%; overflow: visible; }
+.dga-bell__btn { transform-origin: 20px 28px; transition: transform .07s var(--ease-out); }
+.dga-bell__glow { opacity: .55; transform-origin: 20px 28px; animation: dgaBellIdle 2.6s ease-in-out infinite; }
+.dga-bell__filament { opacity: .5; }
+
+@keyframes dgaBellIdle {
+  0%, 100% { opacity: .4; transform: scale(.96); }
+  50% { opacity: .7; transform: scale(1.04); }
+}
+
+/* pressed: the button physically goes in and the ring flares white */
+.dg-bellbtn:active .dga-bell__btn { transform: scale(.9) translateY(1.6px); }
+.dg-bellbtn:active .dga-bell__glow { opacity: 1; transform: scale(1.35); animation: none; }
+.dg-bellbtn:active .dga-bell__filament { opacity: 1; fill: #fffbe8; }
+
+/* dying: 20+ rings and the chime is on its way out */
+.dga-bell.is-dying .dga-bell__glow { animation: dgaBellDying .5s steps(2, jump-none) infinite; }
+@keyframes dgaBellDying {
+  0%, 100% { opacity: .15; }
+  30% { opacity: .8; }
+  55% { opacity: .1; }
+}
+
+/* stuck: the button never comes back out */
+.dga-bell.is-stuck .dga-bell__btn { transform: scale(.9) translateY(1.6px); }
+.dga-bell.is-stuck .dga-bell__glow { opacity: 1; animation: dgaBellStuck .13s linear infinite; }
+@keyframes dgaBellStuck {
+  0%, 100% { transform: scale(1.2); opacity: .9; }
+  50% { transform: scale(1.34); opacity: 1; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE FIST — anticipation → strike → hit-stop → follow-through.
+   60ms / 90ms / (engine freeze) / 220ms. Total 370ms.
+   The wrapper is parked at the hit point via --hx/--hy by the component.
+   ════════════════════════════════════════════════════════════════════════ */
+.dga-fistwrap {
+  position: absolute;
+  left: var(--hx, 50%);
+  top: var(--hy, 55%);
+  z-index: 4;
+  width: min(46%, 190px);
+  margin: -14% 0 0 -22%;
+  pointer-events: none;
+  opacity: 0;
+}
+.dga-fist { display: block; width: 100%; height: auto; overflow: visible; }
+
+.dga-fistwrap.is-punch { animation: dgaPunch .37s cubic-bezier(.3, .8, .4, 1) forwards; }
+@keyframes dgaPunch {
+  /* rest, low and right, out of frame */
+  0%   { opacity: 0; transform: translate(46%, 78%) scale(.62) rotate(14deg); }
+  /* ANTICIPATION — pull back before you commit */
+  16%  { opacity: 1; transform: translate(56%, 92%) scale(.58) rotate(18deg); }
+  /* STRIKE — coming at the camera, so it scales UP as it travels */
+  40%  { transform: translate(0, 0) scale(1.28) rotate(-4deg); }
+  /* squash on contact */
+  46%  { transform: translate(0, 2%) scale(1.18, 1.34) rotate(-3deg); }
+  /* FOLLOW-THROUGH — overshoot back out, settle */
+  72%  { opacity: .9; transform: translate(28%, 46%) scale(.82) rotate(8deg); }
+  100% { opacity: 0; transform: translate(46%, 78%) scale(.62) rotate(14deg); }
+}
+
+/* BONE-DEEP hands don't sit still between punches */
+.dga-fist[data-damage="4"] { animation: dgaTremor .07s linear infinite; }
+@keyframes dgaTremor {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(1.4px, -1.2px); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE CHAINSAW — the chain genuinely runs around the bar.
+   ════════════════════════════════════════════════════════════════════════ */
+.dga-saw { display: block; width: 100%; height: auto; overflow: visible; }
+.dga-saw__chain { stroke-dashoffset: 0; }
+
+.dga-saw.is-running .dga-saw__chain { animation: dgaChain .22s linear infinite; }
+.dga-saw.is-cutting .dga-saw__chain { animation-duration: .1s; }
+@keyframes dgaChain { to { stroke-dashoffset: -30; } }
+
+/* idle wobble — an engine at rest still shakes */
+.dga-saw.is-running { animation: dgaSawIdle .14s linear infinite; }
+.dga-saw.is-cutting { animation: dgaSawBite .07s linear infinite; }
+@keyframes dgaSawIdle {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  50% { transform: translate(.6px, -.8px) rotate(.25deg); }
+}
+@keyframes dgaSawBite {
+  0%, 100% { transform: translate(-1.6px, .8px) rotate(-.6deg); }
+  50% { transform: translate(1.8px, -1.2px) rotate(.7deg); }
+}
+
+/* friction heat at the tip while it bites */
+.dga-saw.is-cutting .dga-saw__tipglow { animation: dgaTipGlow .1s steps(2, jump-none) infinite; }
+@keyframes dgaTipGlow {
+  0%, 100% { opacity: .5; }
+  50% { opacity: .95; }
+}
+
+/* the pull cord, yanked */
+.dga-saw__cord { transform-origin: 7px 30px; }
+.dga-saw.is-pulling .dga-saw__cord { animation: dgaCord .3s var(--ease-out); }
+@keyframes dgaCord {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(-14px); }
+  100% { transform: translateX(0); }
+}
+
+/* the kerf — a real cut carved into the slab, following your finger */
+.dga-kerf {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.dga-kerf path {
+  fill: none;
+  stroke: #120a04;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dga-kerf path.dga-kerf__heat {
+  stroke: #ff8c1a;
+  stroke-width: 9;
+  opacity: .5;
+  filter: none;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   WINDOW PANES
+   ════════════════════════════════════════════════════════════════════════ */
+.dga-pane { display: block; width: 100%; height: 100%; overflow: visible; }
+.dga-pane__glass { transition: opacity .12s ease; }
+.dga-pane__jag { transition: opacity .2s ease .06s; }
+.dga-pane__body { transform-origin: 50% 100%; }
+.dga-pane__tv { animation: dgaTv 2.7s steps(3, jump-none) infinite; }
+@keyframes dgaTv {
+  0%, 100% { opacity: .18; }
+  35% { opacity: .45; }
+  60% { opacity: .1; }
+}
+.dga-pane__room { opacity: 0; transition: opacity .3s ease; }
+.dga-pane.is-lit .dga-pane__room { opacity: 1; }
+
+/* the moment the rock goes through */
+.dga-pane.is-broke .dga-pane__glass { opacity: 0; }
+.dga-pane.is-broke .dga-pane__jag { opacity: .85; }
+.dga-pane.is-broke .dga-pane__body { animation: dgaDuck .5s var(--ease-out) forwards; }
+@keyframes dgaDuck {
+  0% { transform: translateY(0) scaleY(1); }
+  40% { transform: translateY(16px) scaleY(.72); }
+  100% { transform: translateY(26px) scaleY(.6); opacity: .5; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE WIND-UP SLAP (and the kick that shares its rig)
+
+   --coil (0..1) is written imperatively while you hold. The arm's rotation
+   IS the charge meter. Release runs the swing: ~200° in 130ms with a smear
+   frame, then a follow-through that overshoots and settles.
+   ════════════════════════════════════════════════════════════════════════ */
+.dga-slap {
+  position: absolute;
+  left: -6%;
+  bottom: 4%;
+  z-index: 6;
+  width: min(96%, 430px);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+  --coil: 0;
+}
+.dga-slap__arm {
+  transform-box: view-box;
+  transform-origin: 14px 100px;
+  /* ANTICIPATION: winds back AND up along an arc as --coil climbs */
+  transform:
+    translate(14px, 100px)
+    rotate(calc(-14deg - var(--coil) * 128deg))
+    translateY(calc(var(--coil) * -14px));
+}
+.dga-slap__fore,
+.dga-slap__hand { transform-box: view-box; }
+
+/* the whole frame counter-rotates — the body coils, not just the arm */
+.dg-scene.is-coiling { --tilt: calc(var(--coil, 0) * 3deg); }
+.dg-scene.is-coiling .dg-cam { transform: rotate(calc(var(--tilt) * -1)) scale(var(--fx-zoom, 1)); }
+
+/* at full coil the limb quivers and the frame vignettes red */
+.dga-slap.is-full .dga-slap__arm { animation: dgaCoilShake .06s linear infinite; }
+@keyframes dgaCoilShake {
+  0%, 100% { transform: translate(14px, 100px) rotate(-142deg) translateY(-14px) translateX(0); }
+  50% { transform: translate(14px, 100px) rotate(-144deg) translateY(-15px) translateX(1.4px); }
+}
+
+/* ghost trail — each copy lags further behind the arc */
+.dga-slap__ghost {
+  transform-box: view-box;
+  transform-origin: 14px 100px;
+  opacity: 0;
+  transform:
+    translate(14px, 100px)
+    rotate(calc(-14deg - var(--coil) * 128deg + var(--g) * 9deg));
+}
+.dga-slap.is-swing .dga-slap__ghost { animation: dgaGhost .19s linear; animation-delay: calc(var(--g) * 11ms); }
+@keyframes dgaGhost {
+  0% { opacity: .5; }
+  100% { opacity: 0; }
+}
+
+/* THE SWING — 200° in 130ms */
+.dga-slap.is-swing .dga-slap__arm { animation: dgaSwing .5s cubic-bezier(.25, .9, .3, 1) forwards; }
+@keyframes dgaSwing {
+  0%   { transform: translate(14px, 100px) rotate(-142deg) translateY(-14px); }
+  /* strike — through the arc, hand squashed along velocity */
+  26%  { transform: translate(14px, 100px) rotate(38deg) translateY(0) scale(1.12, .86); }
+  /* follow-through: overshoot */
+  46%  { transform: translate(14px, 100px) rotate(58deg) scale(1, 1); }
+  /* settle */
+  100% { transform: translate(14px, 100px) rotate(-14deg); }
+}
+
+/* the smear frame — 2 frames at 33ms, right through the contact */
+.dga-slap__smear { opacity: 0; }
+.dga-slap.is-swing .dga-slap__smear { animation: dgaSmear .5s steps(1, jump-none) forwards; }
+@keyframes dgaSmear {
+  0%, 16% { opacity: 0; }
+  18%, 24% { opacity: .55; }
+  26%, 100% { opacity: 0; }
+}
+
+/* radial speed lines at the contact point */
+.dga-speed {
+  position: absolute;
+  left: 50%; top: 40%;
+  z-index: 7;
+  width: 62%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.dga-speed.is-live { animation: dgaSpeed .18s var(--ease-out) forwards; }
+@keyframes dgaSpeed {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ICONS
+   ════════════════════════════════════════════════════════════════════════ */
+.dg-ico { display: inline-block; vertical-align: -.16em; flex: none; }
+.dg-ico.is-flip { transform: scaleX(-1); }
+.dg-fistico { display: block; flex: none; }
+.dg-iconsheet { width: 0; height: 0; position: absolute; overflow: hidden; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   INTERACTION SURFACES
+   These override the emoji-era rules in door-game.css — that file styled a
+   text glyph inside a coloured circle; these host real SVG instead.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* the doorbell is now a mounted fixture on the wall, not a floating button */
+.dg-bellbtn {
+  position: absolute; right: 5%; bottom: 30%; z-index: 6;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 54px; height: auto; padding: 0;
+  background: none; border: none; border-radius: 10px;
+  cursor: pointer; font-family: inherit; color: #ffd98a;
+  box-shadow: none; animation: none;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .6));
+  transition: transform .1s var(--ease-out);
+}
+.dg-bellbtn:active { transform: scale(.94); }
+.dg-bellbtn small {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 800;
+  letter-spacing: .1em; color: #ffd98a;
+}
+
+/* the aim zone — the flowerbed you drag back from */
+.dg-aimzone {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  z-index: 6; cursor: grab;
+  touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none;
+  background: linear-gradient(0deg, rgba(20, 8, 4, .55), transparent 70%);
+}
+.dg-aimzone:active { cursor: grabbing; }
+.dg-aimzone__hint {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 7px 14px; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 800; letter-spacing: .1em;
+  color: #ffe0b8; background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .18);
+  pointer-events: none;
+}
+
+/* the trajectory preview */
+.dg-aim { position: absolute; inset: 0; z-index: 7; pointer-events: none; overflow: visible; }
+.dg-aim__pull { stroke: rgba(255, 216, 77, .55); stroke-width: 2.5; stroke-dasharray: 5 5; stroke-linecap: round; }
+.dg-aim__dot { fill: #FFD84D; }
+
+/* the saw button hosts the whole tool */
+.dg-sawbtn {
+  position: absolute; right: 3%; bottom: 24%; z-index: 6;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: min(46%, 190px); height: auto; padding: 0;
+  background: none; border: none; box-shadow: none; animation: none;
+  cursor: pointer; font-family: inherit; color: #ffcf8a;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .6));
+}
+.dg-sawbtn:active { transform: scale(.96); }
+.dg-sawbtn small {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 800; letter-spacing: .1em;
+}
+/* while cutting, the slab itself is the input surface */
+.dg-doorpos--saw { pointer-events: auto; touch-action: none; cursor: crosshair; }
+
+/* the three front windows */
+.dg-windows {
+  position: absolute; top: 20%; left: 5%; z-index: 1;
+  display: flex; gap: 10px; pointer-events: none;
+}
+.dg-windows__slot { display: block; width: 13vw; max-width: 62px; height: auto; }
+
+/* ── the wife + the contract (Level 1's signature close) ──────────────── */
+.dg-wife { display: flex; flex-direction: column; gap: 14px; padding: 18px 6px 6px; }
+.dg-wife__line {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(17px, 4.6vw, 22px); line-height: 1.4; color: rgba(255, 255, 255, .5);
+  transition: color .4s ease;
+}
+.dg-wife__line.is-live { color: var(--text-main); animation: dgWifeIn .6s var(--ease-out); }
+@keyframes dgWifeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dg-contract {
+  padding: 16px; border-radius: 14px;
+  background: linear-gradient(160deg, #f4efe2, #ddd4c0);
+  border: 1px solid rgba(0, 0, 0, .3);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .5);
+  animation: dgWifeIn .6s var(--ease-out);
+}
+.dg-contract__tag {
+  display: block; margin-bottom: 8px;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 800;
+  letter-spacing: .18em; text-transform: uppercase; color: #6b5a3a;
+}
+.dg-contract__body { margin: 0 0 14px; font-size: 13.5px; line-height: 1.6; color: #2f2718; }
+.dg-contract__sig {
+  height: 44px; border-bottom: 2px solid #2f2718;
+  background:
+    linear-gradient(105deg, transparent 12%, #1c2f6b 12.5%, transparent 14%),
+    radial-gradient(ellipse 40px 14px at 26% 62%, #1c2f6b 40%, transparent 70%),
+    radial-gradient(ellipse 30px 10px at 44% 52%, #1c2f6b 40%, transparent 70%),
+    radial-gradient(ellipse 34px 12px at 62% 64%, #1c2f6b 40%, transparent 70%);
+  opacity: .82;
+}
+
+/* round chips + fine print pick up the icons */
+.dg-rounds__item { display: inline-flex; align-items: center; gap: 6px; }
+.dg-fineprint {
+  margin: 10px 0 0; font-size: 12px; line-height: 1.5; font-style: italic;
+  color: rgba(255, 255, 255, .55);
+}
+.dg-clock { display: inline-flex; align-items: center; gap: 5px; }
+.dg-nos { display: inline-flex; align-items: center; gap: 5px; }
+.dg-resolve__label { display: inline-flex; align-items: center; gap: 5px; }
+/* the finale's control row (its old home went with the emoji brawl CSS) */
+.dg-fightctl { display: flex; gap: 10px; margin-top: 10px; }
+.dg-fightctl > * { flex: 1; }
+.dg-slapbtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — kill the loops, keep every readable state.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .dga-interior .dga-shape,
+  .dga-peep__eye,
+  .dga-bell__glow,
+  .dga-bell.is-dying .dga-bell__glow,
+  .dga-bell.is-stuck .dga-bell__glow,
+  .dga-fist[data-damage="4"],
+  .dga-saw.is-running,
+  .dga-saw.is-cutting,
+  .dga-saw.is-running .dga-saw__chain,
+  .dga-saw.is-cutting .dga-saw__tipglow,
+  .dga-pane__tv,
+  .dga-cracks path.is-drawing { animation: none; }
+
+  .dga-cracks path.is-drawing { stroke-dashoffset: 0; }
+  .dga-peep__eye { opacity: .8; }
+  .dga-fistwrap.is-punch { animation-duration: .12s; }
+}
+[data-reduced-motion="true"] .dga-saw.is-running,
+[data-reduced-motion="true"] .dga-saw.is-cutting,
+[data-reduced-motion="true"] .dga-fist[data-damage="4"],
+[data-reduced-motion="true"] .dga-bell__glow { animation: none; }
