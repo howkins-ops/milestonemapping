@@ -100,6 +100,13 @@ const FEATURE_STORE_KEYS = [
   "door_heat_v1",         // Heat meter / day log / the branded polo
   "door_grudge_v1",       // per-house grudge + neighbour suspicion
   "pressure_forge",       // Pressure Forge streak + trail
+  // SUPER KNOCK carries a whole seven-day week, so it is registered from the
+  // day it ships rather than after someone loses one. Deliberately ONE key:
+  // the mid-day resume snapshot (`sk_active_v1`) is device-local and must NOT
+  // be added here — this array is stringified every 20s and any change fires a
+  // debounced upsert of the entire user_data blob, so a key that changes after
+  // every house would mean ~200 whole-account uploads a week.
+  "super_knock_v1",       // SUPER KNOCK — the week, packed (<400 bytes)
 ];
 
 function snapshotFeatureStores() {

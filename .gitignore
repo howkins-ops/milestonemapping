@@ -47,3 +47,6 @@ _archive/
 # personal source material (distilled into netlify/functions/cornerVoice.js)
 A_MILLION_DOORS.docx
 Essence_Manual_John_Howkins.docx
+
+# ROM reference material for game design (Paperboy, Super Punch-Out) — never ship
+.agents/

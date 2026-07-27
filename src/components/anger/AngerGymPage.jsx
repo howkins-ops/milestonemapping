@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { useAppData } from "../../hooks/useAppData.js";
 import PressureForge from "./PressureForge.jsx";
 import StormCaptain from "../storm/StormCaptain.jsx";
@@ -9,6 +9,12 @@ import { loadForgeState, clearForgeTrail } from "./pressureForgeStore.js";
 import { getLevel, getNextLevel } from "./pressureForgeData.js";
 import { hasAdultAck, grantAdultAck } from "../../lib/adultAck.js";
 import "../../styles/anger.css";
+
+/* SUPER KNOCK is the only game here big enough to code-split — a canvas
+   engine, three scenes and a week of content. It also takes over the whole
+   screen via a portal rather than rendering into the page like its siblings,
+   so it must not be in the bundle a player pays for just to open the hub. */
+const SuperKnock = React.lazy(() => import("./superknock/SuperKnock.jsx"));
 
 /* ════════════════════════════════════════════════════════════════════════
    THE ANGER GYM — five games for turning heat into something useful.
@@ -29,6 +35,8 @@ const XP_STORM = 25;
 const XP_VALVE = 25;
 const XP_DOOR = 20;
 const XP_SLAM_LEVEL = 8; // per level cleared — levels are independently replayable
+const XP_KNOCK_WEEK = 60; // a full seven-day street, closed
+const XP_KNOCK_FIRED = 15; // …and washing out is still seven days of knocking
 
 const GAMES = [
   {
@@ -50,6 +58,16 @@ const GAMES = [
     sub: "Walk your territory door to door. Four houses, escalating warfare — knock through the screaming, breach a gated community, saw your way through steel, and finish every one of them in a Punch-Out bout on the porch. Bloody Knuckles, aimed rocks, real chainsaws. 21+, sound on.",
     tag: "Door-to-door arcade · 4 houses · 21+",
     accent: "#FF3B5C",
+    live: true,
+  },
+  {
+    id: "superknock",
+    name: "Super Knock",
+    when: "You want the whole territory",
+    relic: "The Route",
+    sub: "One street, twenty doors, seven days. Ride it once at dawn and throw door hangers — hook a handle and he opens warm, put one through his window and he opens swinging. Then walk it back and knock, and every objection is a punch you already know is coming. Paperboy meets Punch-Out. 21+, sound on.",
+    tag: "Arcade campaign · 3 streets · 21+",
+    accent: "#FFD65A",
     live: true,
   },
   {
@@ -195,6 +213,21 @@ export default function AngerGymPage() {
     });
   };
 
+  // Fires once per WEEK, not per day — a seven-day campaign that celebrated
+  // every evening would train the player to stop reading the results screen,
+  // which is the one place Wednesday's consequences are ever spelled out.
+  const onKnockComplete = (payload) => {
+    addXP(payload.won ? XP_KNOCK_WEEK : XP_KNOCK_FIRED, "Territory worked");
+    celebrate({
+      variant: "reward",
+      title: payload.fired ? "ROOKIE WASHES OUT" : payload.won ? `STREET ${payload.street}: CLOSED` : "THE WEEK IS DONE",
+      subtitle: `${payload.sold} ${payload.sold === 1 ? "door" : "doors"} closed · ${payload.score.toLocaleString()} points · ${payload.days} days worked.`,
+      detail: payload.fired
+        ? "Three quotas missed. The street goes to somebody else — take it back."
+        : "Every door you angered on Monday was still angry on Wednesday. That is the job.",
+    });
+  };
+
   const onSlamComplete = (payload) => {
     addXP(XP_SLAM_LEVEL, "Objections slammed");
     celebrate({
@@ -223,8 +256,19 @@ export default function AngerGymPage() {
     );
   }
 
-  if ((view === "door" || view === "slam") && !rawAck) {
+  if ((view === "door" || view === "slam" || view === "superknock") && !rawAck) {
     return <RawGate onConfirm={confirmRaw} onBack={() => setView(null)} />;
+  }
+
+  if (view === "superknock") {
+    return (
+      <Suspense fallback={null}>
+        <SuperKnock
+          onClose={() => { setView(null); setRefresh((n) => n + 1); }}
+          onComplete={onKnockComplete}
+        />
+      </Suspense>
+    );
   }
 
   if (view === "door") {

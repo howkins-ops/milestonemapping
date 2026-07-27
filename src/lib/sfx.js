@@ -1250,7 +1250,16 @@ export function sfxEvolveReveal(settings) {
    context (muted, autoplay-blocked, old webview). It must answer EVERY method
    any loop handle exposes — a caller that reaches for one and gets undefined
    takes the whole round down with it. */
-const NO_LOOP = { stop() {}, setLevel() {}, setLoad() {}, idle() {} };
+const NO_LOOP = {
+  stop() {}, setLevel() {}, setLoad() {}, idle() {},
+  /* setSpeed/setUrgency are attached to the REAL handles of sfxSegwayWhine
+     and sfxSirenLoop after makeLoop, so they were missing here — and
+     ChaseScene calls both unguarded every frame. That was a hard crash in
+     the middle of the cop chase for any player who had muted the game or
+     whose browser had blocked autoplay. Same class of bug as the missing
+     setLoad that would have killed the chainsaw round. */
+  setSpeed() {}, setUrgency() {},
+};
 
 function makeLoop(c, buildChain) {
   // buildChain(c) -> { inputGain, nodes:[...], tick? } ; we fade out on stop.

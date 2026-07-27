@@ -1,0 +1,420 @@
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import createDoorFX from "../door/DoorFX.js";
+import {
+  createRide, stepRide, throwHanger, ghost, hangersNow, drain, rideResult,
+} from "./skRideSim.js";
+import { drawRide, makeView } from "./skDraw.js";
+import {
+  SEGWAY, HANGER, STREET_LENGTH_M, DAYS, STREETS, RIDER_SCREEN_Y, PERF,
+} from "./skTuning.js";
+import {
+  sfxSegwayWhine, sfxRockThrow, sfxMagnetClack, sfxShatter, sfxHorn,
+  sfxImpact, sfxCoin, sfxWhoosh, sfxJumpWhoosh, sfxLandThud, sfxStarEarn,
+  sfxRainLoop, sfxPop,
+} from "../../../lib/sfx.js";
+
+/* ════════════════════════════════════════════════════════════════════════
+   SUPER KNOCK — PHASE 1, THE FLYER RUN.
+
+   ── PERFORMANCE LAW ──────────────────────────────────────────────────────
+   React does not re-render during the run. The sim writes to refs, one rAF
+   draws the canvas, and setState fires ONLY when a discrete, DOM-visible
+   thing actually changes — ammo, lives, score, speed tier. A run is a
+   handful of renders, not five thousand.
+
+   ── TWO CANVASES, ONE CAMERA ─────────────────────────────────────────────
+   DoorFX clears its own canvas every frame and owns its own rAF, so it can
+   never share this one. It sits STACKED above the world canvas inside the
+   same camera div, and its shake/zoom/flash write CSS custom properties onto
+   that div — which shakes both canvases together, for free, with no work in
+   the world loop at all.
+
+   ── THE CONTROLS ─────────────────────────────────────────────────────────
+   Two thumbs, both at the bottom. This deliberately breaks the older
+   one-thumb rule, which simply cannot express steer + throttle + throw-
+   either-side. Left half is an invisible relative stick: x steers, y is the
+   throttle. Right half is two throw pads.
+
+   HOLD TO AIM, RELEASE TO THROW. A quick tap throws immediately; hold past
+   120ms and the predicted-landing ghost fades in and tracks you until you let
+   go. The ghost calls the same resolver the throw does, so it cannot lie, and
+   it is opt-in — experts tap, learners hold and watch. It is also the
+   difficulty dial: street 3 turns it off.
+   ════════════════════════════════════════════════════════════════════════ */
+
+const GHOST_DELAY_MS = 120;
+const GHOST_FADE_MS = 180;
+
+export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish, onQuit }) {
+  const wrapRef = useRef(null);
+  const camRef = useRef(null);
+  const worldRef = useRef(null);
+  const fxCanvasRef = useRef(null);
+
+  const simRef = useRef(null);
+  const fxRef = useRef(null);
+  const rafRef = useRef(0);
+  const viewRef = useRef(null);
+  const lastRef = useRef(0);
+  const whineRef = useRef(null);
+  const rainRef = useRef(null);
+  const doneRef = useRef(false);
+
+  /* input lives entirely in a ref — a thumb must never cause a React render */
+  const inRef = useRef({
+    stickId: null, stickOx: 0, stickOy: 0, steer: 0, throttle: 0,
+    padL: null, padR: null, padLAt: 0, padRAt: 0, ghostL: 0, ghostR: 0,
+  });
+
+  const [hud, setHud] = useState({ ammo: HANGER.ammo, lives: 3, score: 0, combo: 0, tier: 1, cart: false });
+  const hudRef = useRef(hud);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(0);
+
+  const dayCfg = DAYS[Math.max(0, Math.min(6, day))];
+  const streetCfg = STREETS[Math.max(0, Math.min(2, streetN - 1))];
+  const aimGhostOn = streetCfg.aimGhost;
+
+  /* ── boot ──────────────────────────────────────────────────────────────*/
+  useLayoutEffect(() => {
+    const s = createRide({
+      street,
+      seed,
+      day,
+      trafficMul: dayCfg.traffic * streetCfg.traffic,
+      speedMul: dayCfg.speedMul || 1,
+    });
+    simRef.current = s;
+
+    const world = worldRef.current;
+    const fx = createDoorFX({
+      canvas: fxCanvasRef.current,
+      scene: wrapRef.current,
+      camera: camRef.current,
+    });
+    fxRef.current = fx;
+
+    const resize = () => {
+      const el = wrapRef.current;
+      if (!el || !world) return;
+      const w = el.clientWidth, h = el.clientHeight;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      world.width = Math.round(w * dpr);
+      world.height = Math.round(h * dpr);
+      world.style.width = `${w}px`;
+      world.style.height = `${h}px`;
+      const ctx = world.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      viewRef.current = makeView({ w, h, camY: s.y, dpr });
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    if (wrapRef.current) ro.observe(wrapRef.current);
+
+    whineRef.current = sfxSegwayWhine();
+    if (dayCfg.rain) rainRef.current = sfxRainLoop();
+
+    return () => {
+      ro.disconnect();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      if (whineRef.current) whineRef.current.stop();
+      if (rainRef.current) rainRef.current.stop();
+      fx.destroy();
+      fxRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── the loop ──────────────────────────────────────────────────────────*/
+  useEffect(() => {
+    let slow = 0;
+    const frame = (t) => {
+      rafRef.current = requestAnimationFrame(frame);
+      const s = simRef.current;
+      const v = viewRef.current;
+      const world = worldRef.current;
+      if (!s || !v || !world) return;
+
+      const t0 = performance.now();
+      const dt = lastRef.current ? Math.min(0.05, (t - lastRef.current) / 1000) : 1 / 60;
+      lastRef.current = t;
+
+      const inp = inRef.current;
+      const consumed = { throwL: inp.fireL, throwR: inp.fireR };
+      inp.fireL = false;
+      inp.fireR = false;
+
+      stepRide(s, dt, { steer: inp.steer, throttle: inp.throttle, ...consumed });
+      handleEvents(s, drain(s));
+
+      /* the camera follows without easing — a lagging camera in a game whose
+         whole skill is release timing would be lying about where you are */
+      v.camY = s.y;
+
+      /* ghost hold timers */
+      const now = performance.now();
+      inp.ghostL = aimGhostOn && inp.padL != null && now - inp.padLAt > GHOST_DELAY_MS
+        ? Math.min(1, (now - inp.padLAt - GHOST_DELAY_MS) / GHOST_FADE_MS) : 0;
+      inp.ghostR = aimGhostOn && inp.padR != null && now - inp.padRAt > GHOST_DELAY_MS
+        ? Math.min(1, (now - inp.padRAt - GHOST_DELAY_MS) / GHOST_FADE_MS) : 0;
+
+      const ctx = world.getContext("2d");
+      drawRide(ctx, s, v, {
+        hangers: hangersNow(s),
+        ghostL: inp.ghostL > 0 ? ghost(s, "L") : null,
+        ghostR: inp.ghostR > 0 ? ghost(s, "R") : null,
+        ghostAlphaL: inp.ghostL,
+        ghostAlphaR: inp.ghostR,
+        rain: !!dayCfg.rain,
+        t: t / 1000,
+        window: "morning",
+      });
+
+      if (whineRef.current) whineRef.current.setSpeed(s.v / SEGWAY.maxSpeed);
+
+      /* HUD: setState only on an actual change. */
+      const tier = s.v < 6.5 ? 0 : s.v < 11 ? 1 : 2;
+      const next = { ammo: s.ammo, lives: s.lives, score: s.score, combo: s.combo, tier, cart: !!s.cart };
+      const prev = hudRef.current;
+      if (next.ammo !== prev.ammo || next.lives !== prev.lives || next.score !== prev.score
+        || next.combo !== prev.combo || next.tier !== prev.tier || next.cart !== prev.cart) {
+        hudRef.current = next;
+        setHud(next);
+      }
+
+      /* progress bar rides a CSS var, never React */
+      if (camRef.current) {
+        camRef.current.style.setProperty("--sk-prog", (s.y / STREET_LENGTH_M).toFixed(4));
+        camRef.current.style.setProperty("--sk-speed", (s.v / SEGWAY.maxSpeed).toFixed(3));
+      }
+
+      if (s.finished && !doneRef.current) {
+        doneRef.current = true;
+        if (whineRef.current) whineRef.current.stop();
+        const res = rideResult(s);
+        window.setTimeout(() => onFinish && onFinish(res), 700);
+      }
+
+      /* the world canvas is a cost DoorFX cannot see — watch our own budget */
+      const ms = performance.now() - t0;
+      if (ms > PERF.drawBudgetMs) slow++; else slow = Math.max(0, slow - 1);
+      if (slow === 40 && typeof console !== "undefined") {
+        console.warn(`[SUPER KNOCK] world draw over budget (${ms.toFixed(1)}ms > ${PERF.drawBudgetMs}ms)`);
+      }
+    };
+    rafRef.current = requestAnimationFrame(frame);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); rafRef.current = 0; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aimGhostOn]);
+
+  /* ── events → juice ────────────────────────────────────────────────────*/
+  function handleEvents(s, events) {
+    const fx = fxRef.current;
+    const v = viewRef.current;
+    if (!events.length) return;
+    for (const e of events) {
+      const px = v ? v.sx(e.x != null ? e.x : s.x) : 0;
+      const py = v ? v.sy(e.y != null ? e.y : s.y) : 0;
+      switch (e.type) {
+        case "throw":
+          sfxRockThrow();
+          break;
+        case "hook":
+          /* THE CLACK. A hard contact plus a 50ms hit-stop is what turns a
+             score event into the thing people replay the game for. */
+          sfxMagnetClack(2);
+          if (fx) { fx.hitStop(50); fx.shake(0.2); fx.emit("star", px, py, { count: 8, power: 1.1 }); }
+          break;
+        case "nearmiss":
+          sfxPop();
+          if (fx) fx.emit("dust", px, py, { count: 6 });
+          break;
+        case "mailbox":
+          sfxCoin();
+          if (fx) fx.emit("dust", px, py, { count: 4 });
+          break;
+        case "smash":
+          sfxShatter();
+          if (fx) { fx.hitStop(40); fx.shake(0.35); fx.emit("glass", px, py, { count: 16, power: 1.3 }); }
+          break;
+        case "land":
+          if (e.key === "lawn") sfxWhoosh();
+          break;
+        case "pickup":
+          sfxCoin();
+          if (fx) fx.emit("star", px, py, { count: 5 });
+          break;
+        case "ramp":
+          sfxJumpWhoosh();
+          if (fx) fx.emit("dust", px, py, { count: 10 });
+          break;
+        case "clip":
+          sfxImpact(1);
+          if (fx) fx.shake(0.12);
+          break;
+        case "crash":
+          sfxImpact(3);
+          sfxLandThud(0.8);
+          if (fx) { fx.hitStop(90); fx.shake(0.5); fx.flash("#FF3B5C", 140, { alpha: 0.4 }); fx.emit("debris", px, py, { count: 14 }); }
+          break;
+        case "cart":
+          if (e.spawned) sfxHorn(1);
+          if (e.hit) sfxHorn(2);
+          break;
+        case "ruts":
+          break;
+        case "score":
+          if (e.pts >= 500) sfxStarEarn();
+          showToast(`${e.label}  +${e.pts}${e.combo > 1 ? `  ×${e.combo}` : ""}`, e.pts >= 500 ? "big" : e.pts > 0 ? "ok" : "bad");
+          break;
+        case "finish":
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  function showToast(text, kind) {
+    setToast({ text, kind, id: Math.random() });
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 1100);
+  }
+
+  /* ── input ─────────────────────────────────────────────────────────────
+     `setPointerCapture` on every surface, and NEVER onPointerLeave — a thumb
+     drifting two pixels off a control must not drop the input. That exact
+     bug is still live in The Route's walk button today. */
+  const capture = (e) => {
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* old webview */ }
+  };
+
+  const stickDown = (e) => {
+    e.preventDefault();
+    capture(e);
+    const i = inRef.current;
+    i.stickId = e.pointerId;
+    i.stickOx = e.clientX;
+    i.stickOy = e.clientY;
+  };
+  const stickMove = (e) => {
+    const i = inRef.current;
+    if (i.stickId !== e.pointerId) return;
+    const dx = e.clientX - i.stickOx;
+    const dy = e.clientY - i.stickOy;
+    const DEAD = 6, RANGE = 62;
+    i.steer = Math.max(-1, Math.min(1, (Math.abs(dx) < DEAD ? 0 : dx - Math.sign(dx) * DEAD) / RANGE));
+    i.throttle = Math.max(-1, Math.min(1, -(Math.abs(dy) < DEAD ? 0 : dy - Math.sign(dy) * DEAD) / RANGE));
+  };
+  const stickUp = (e) => {
+    const i = inRef.current;
+    if (i.stickId !== e.pointerId) return;
+    i.stickId = null;
+    i.steer = 0;
+    i.throttle = 0;
+  };
+
+  const padDown = (side) => (e) => {
+    e.preventDefault();
+    capture(e);
+    const i = inRef.current;
+    if (side === "L") { i.padL = e.pointerId; i.padLAt = performance.now(); }
+    else { i.padR = e.pointerId; i.padRAt = performance.now(); }
+  };
+  const padUp = (side) => (e) => {
+    const i = inRef.current;
+    const held = side === "L" ? i.padL : i.padR;
+    if (held !== e.pointerId) return;
+    if (side === "L") { i.padL = null; i.fireL = true; i.ghostL = 0; }
+    else { i.padR = null; i.fireR = true; i.ghostR = 0; }
+  };
+
+  /* keyboard, for desk testing and accessibility */
+  useEffect(() => {
+    const set = (k, on) => {
+      const i = inRef.current;
+      if (k === "ArrowLeft" || k === "a") i.steer = on ? -1 : 0;
+      if (k === "ArrowRight" || k === "d") i.steer = on ? 1 : 0;
+      if (k === "ArrowUp" || k === "w") i.throttle = on ? 1 : 0;
+      if (k === "ArrowDown" || k === "s") i.throttle = on ? -1 : 0;
+      if (on && (k === "q" || k === "z")) i.fireL = true;
+      if (on && (k === "e" || k === "x")) i.fireR = true;
+    };
+    const dn = (e) => set(e.key, true);
+    const up = (e) => set(e.key, false);
+    window.addEventListener("keydown", dn);
+    window.addEventListener("keyup", up);
+    return () => { window.removeEventListener("keydown", dn); window.removeEventListener("keyup", up); };
+  }, []);
+
+  const speedLabel = ["CRAWL", "CRUISE", "FLAT OUT"][hud.tier];
+
+  return (
+    <div className="sk-ride" ref={wrapRef}>
+      <div className="sk-cam" ref={camRef}>
+        <canvas className="sk-canvas sk-canvas--world" ref={worldRef} />
+        <canvas className="sk-canvas sk-canvas--fx" ref={fxCanvasRef} />
+      </div>
+
+      {/* ── HUD. DOM, never drawn into the world canvas — text in a scaled
+          canvas is the fastest way to make a game look cheap. ─────────── */}
+      <div className="sk-hud">
+        <div className="sk-hud__top">
+          <button type="button" className="sk-quit" onClick={onQuit} aria-label="Quit the run">✕</button>
+          <div className="sk-hud__score">{hud.score.toLocaleString()}</div>
+          <div className="sk-hud__lives" aria-label={`${hud.lives} lives`}>
+            {[0, 1, 2].map((i) => <span key={i} className={`sk-life ${i < hud.lives ? "is-on" : ""}`} />)}
+          </div>
+        </div>
+
+        <div className="sk-hud__bag">
+          <span className="sk-bag__n">{hud.ammo}</span>
+          <span className="sk-bag__label">HANGERS</span>
+          {hud.combo > 1 && <span className="sk-combo">×{hud.combo}</span>}
+        </div>
+
+        <div className="sk-progress"><div className="sk-progress__fill" /></div>
+        <div className={`sk-speed sk-speed--${hud.tier}`}>{speedLabel}</div>
+        {hud.cart && <div className="sk-warn">HOA — MOVE</div>}
+
+        {toast && (
+          <div key={toast.id} className={`sk-toast sk-toast--${toast.kind}`}>{toast.text}</div>
+        )}
+      </div>
+
+      {/* ── controls ───────────────────────────────────────────────────── */}
+      <div
+        className="sk-pad sk-pad--ride"
+        onPointerDown={stickDown}
+        onPointerMove={stickMove}
+        onPointerUp={stickUp}
+        onPointerCancel={stickUp}
+        onContextMenu={(e) => e.preventDefault()}
+        aria-label="Ride — drag to steer and to control speed"
+      >
+        <span className="sk-pad__hint">STEER · SPEED</span>
+      </div>
+      <div className="sk-throws">
+        <button
+          type="button"
+          className="sk-throw sk-throw--l"
+          onPointerDown={padDown("L")}
+          onPointerUp={padUp("L")}
+          onPointerCancel={padUp("L")}
+          onContextMenu={(e) => e.preventDefault()}
+          aria-label="Throw left"
+        >◀</button>
+        <button
+          type="button"
+          className="sk-throw sk-throw--r"
+          onPointerDown={padDown("R")}
+          onPointerUp={padUp("R")}
+          onPointerCancel={padUp("R")}
+          onContextMenu={(e) => e.preventDefault()}
+          aria-label="Throw right"
+        >▶</button>
+      </div>
+    </div>
+  );
+}
