@@ -5,8 +5,8 @@
    ONE LAW ABOVE ALL: everything in here is authored in METRES and SECONDS.
    Not pixels. The moment a single threshold is written in px the game plays
    differently on a 320px SE than on a 430px Pro Max, and no amount of art
-   fixes it. `pxPerM()` is the only bridge, and it is called exactly once
-   per resize.
+   fixes it. The projector in skDraw is the only bridge, and its scale is
+   solved once per resize.
 
    ── THE ONE MECHANIC, STATED ONCE ────────────────────────────────────────
    The hanger's launch is FIXED: 12 m/s sideways, 1.05 m/s up, from a hand
@@ -65,21 +65,41 @@ export const RIDE_X_MIN = 0.9;
 export const RIDE_X_MAX = LANE_TOTAL_M - 0.9;
 
 /* ── SCALE ────────────────────────────────────────────────────────────────
-   The DRAWN span is wider than the rideable street, because the houses have
-   to stand somewhere. x = −3.5 … 27.5 puts 3.5m of building depth outside
-   each facade plane, which is what the oblique projection needs: a house's
-   HEIGHT is drawn as horizontal distance back from its facade (see skDraw),
-   and with the facade planes hard against the screen edge there would be
-   nowhere to draw a house at all.
+   A metre of margin outside each facade plane, so a house's near corner and
+   its roof overhang have somewhere to sit.
 
-   No clamp. The full span always fits on every device, so nothing ever crops;
-   a narrow phone simply sees a physically smaller world, which is how every
-   2D game has handled this since 1985 and is far safer than cropping the
-   two rows of facades the entire game is aimed at. */
-export const DRAW_PAD_M = 3.5;
+   No clamp, and no fixed px-per-metre. The scale is SOLVED from the viewport
+   at every resize (see skDraw's makeView), so the full street always fits on
+   every device and nothing ever crops. A narrow phone simply sees a
+   physically smaller world — which is how every 2D game has handled this
+   since 1985, and far safer than cropping the row of facades the entire game
+   is aimed at. */
+export const DRAW_PAD_M = 1.0;
 export const DRAW_SPAN_M = LANE_TOTAL_M + DRAW_PAD_M * 2;
-export const pxPerM = (viewportW) => viewportW / DRAW_SPAN_M;
-export const HOUSE_H_M = 2.9; // drawn height; becomes horizontal depth in the projection
+
+/* ── THE SHEAR — Paperboy's oblique view ──────────────────────────────────
+   Height now goes UP the screen and the along-street axis leans right, which
+   is what makes the lanes run diagonally. See skDraw for the derivation; the
+   one number that matters is the budget:
+
+       W ≥ Lm·s + K·H          (horizontal drift is K·H, independent of fy)
+
+   The arcade's classic 2:1 diagonal is K = 0.5. In portrait that spends 310
+   of 390 pixels on lean and leaves 80 for twenty-six metres of world. K=0.20
+   spends 124px, leaves 266, and still reads unmistakably diagonal.
+
+   `DRAW_PAD_M` dropped 3.5 → 1.0 in the same change: the pad existed ONLY to
+   give the old projection somewhere to draw a house's height as horizontal
+   depth. Height stands up now, so that 5m of lateral span came back — which
+   is almost exactly the shear budget. The reprojection paid for itself. */
+export const SHEAR_K = 0.20;
+
+/* Real building dimensions, in metres. None of these are read by
+   `targetBoxes` — they are pure art, and the collision geometry does not move
+   when they change. */
+export const HOUSE_WALL_M = 3.4;   // eaves height
+export const HOUSE_RIDGE_M = 6.4;  // ridge line
+export const HOUSE_DEPTH_M = 6.0;  // back into the lot, away from the road
 
 /** Where the rider sits down the screen. 0.78 buys 4.2s of lead at cruise;
     0.72 only bought 3.9s, and recognition alone eats 0.8s of that. */

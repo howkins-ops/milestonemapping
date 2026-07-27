@@ -230,8 +230,11 @@ export default function FlyerRun({ street, seed, aimGhost = true, rain = false, 
     const v = viewRef.current;
     if (!events.length) return;
     for (const e of events) {
-      const px = v ? v.sx(e.x != null ? e.x : s.x) : 0;
-      const py = v ? v.sy(e.y != null ? e.y : s.y) : 0;
+      /* Particles are emitted in SCREEN space, so every event position goes
+         through the same projector the world is drawn with — including its
+         height, or a window smash would spray glass at ground level. */
+      const pt = v ? v.P(e.x != null ? e.x : s.x, e.y != null ? e.y : s.y, e.z || 0) : { x: 0, y: 0 };
+      const px = pt.x, py = pt.y;
       switch (e.type) {
         case "throw":
           sfxRockThrow();
@@ -357,8 +360,16 @@ export default function FlyerRun({ street, seed, aimGhost = true, rain = false, 
     else { i.padR = null; i.fireR = true; i.ghostR = 0; }
   };
 
-  /* keyboard, for desk testing and accessibility */
+  /* ── keyboard, for desk testing and accessibility ──────────────────────
+     CAPTURE PHASE, and it swallows what it uses. The app has global
+     single-key shortcuts, and without this an arrow key mid-ride opened THE
+     IRON on top of the run — the game handled the key AND so did the app.
+     A control surface that owns a key has to consume it. */
   useEffect(() => {
+    const KEYS = new Set([
+      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+      "a", "d", "w", "s", "q", "z", "e", "x",
+    ]);
     const set = (k, on) => {
       const i = inRef.current;
       if (k === "ArrowLeft" || k === "a") i.steer = on ? -1 : 0;
@@ -368,11 +379,25 @@ export default function FlyerRun({ street, seed, aimGhost = true, rain = false, 
       if (on && (k === "q" || k === "z")) i.fireL = true;
       if (on && (k === "e" || k === "x")) i.fireR = true;
     };
-    const dn = (e) => set(e.key, true);
-    const up = (e) => set(e.key, false);
-    window.addEventListener("keydown", dn);
-    window.addEventListener("keyup", up);
-    return () => { window.removeEventListener("keydown", dn); window.removeEventListener("keyup", up); };
+    const handle = (on) => (e) => {
+      if (!KEYS.has(e.key)) return;
+      /* …unless the player is typing somewhere, which they never are here,
+         but the guard costs nothing and the day someone adds a name field
+         to this screen it will already be right. */
+      const t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      set(e.key, on);
+    };
+    const dn = handle(true);
+    const up = handle(false);
+    window.addEventListener("keydown", dn, true);
+    window.addEventListener("keyup", up, true);
+    return () => {
+      window.removeEventListener("keydown", dn, true);
+      window.removeEventListener("keyup", up, true);
+    };
   }, []);
 
   const speedLabel = ["CRAWL", "CRUISE", "FLAT OUT"][hud.tier];

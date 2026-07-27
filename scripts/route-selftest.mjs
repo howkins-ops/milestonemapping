@@ -32,7 +32,8 @@ import {
 import {
   createRide, stepRide, throwHanger, rideResult, surfaceMul, bandAt,
 } from "../src/components/anger/route/skRideSim.js";
-import { STREET_LENGTH_M } from "../src/components/anger/route/skTuning.js";
+import { STREET_LENGTH_M, SHEAR_K, HOUSE_RIDGE_M } from "../src/components/anger/route/skTuning.js";
+import { makeView, LM_DRAWN } from "../src/components/anger/route/skDraw.js";
 import {
   routeStreet, houseForSlug, leadsBySlug, DOOR_SLOTS, _resetRouteStreetForTest,
 } from "../src/components/anger/route/routeStreet.js";
@@ -136,24 +137,6 @@ console.log(`    door     ${FACADE.boxes.door.w}m → ${f0(windowMs(FACADE.boxes
 console.log(`    mat      ${FACADE.boxes.mat.w}m → ${f0(windowMs(FACADE.boxes.mat.w, 9))}ms @cruise`);
 console.log(`    window   ${FACADE.boxes.window.w}m → ${f0(windowMs(FACADE.boxes.window.w, 9))}ms @cruise`);
 
-/* ═══════════════════════════════════════════════════════════════════════
-   TABLE 4 — THE RIDE, on a real screen.
-   ═══════════════════════════════════════════════════════════════════════ */
-head("TABLE 4 · THE RIDE — lead time on a real phone");
-for (const vw of [320, 390, 430]) {
-  const ppm = Math.max(13.3, Math.min(18, vw / LANE_TOTAL_M));
-  const vh = 780;
-  const visible = vh / ppm;
-  const ahead = 0.78 * vh / ppm;
-  console.log(`  ${vw}px wide → ${ppm.toFixed(2)} px/m · ${visible.toFixed(1)}m on screen · ${ahead.toFixed(1)}m ahead`);
-  for (const v of [4, 9, 15]) console.log(`      @${String(v).padStart(2)} m/s → ${(ahead / v).toFixed(2)}s of lead`);
-}
-const runS = (60 + HOUSE_COUNT * HOUSE_SPACING_M + 70) / SEGWAY.cruise;
-console.log(`  full run at cruise: ${runS.toFixed(0)}s · a house every ${(HOUSE_SPACING_M / SEGWAY.cruise).toFixed(2)}s`);
-
-/* ═══════════════════════════════════════════════════════════════════════
-   TABLE 5 — THE KNOCK, day by day.
-   ═══════════════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════════════
    ASSERTIONS
    ═══════════════════════════════════════════════════════════════════════ */
@@ -663,6 +646,71 @@ head("SUITE 19 · applyLead — the flyer run becomes the door");
     ok(d.rounds.every((r) => r.taps > 0 && r.taps < 200), `${lv.id}: even the worst lead stays playable, never a lockout`);
   });
   console.log(`   first: ${base.rounds.map((r) => r.taps).join("/")} knocks → hot ${hot.rounds.map((r) => r.taps).join("/")} · dead ${dead.rounds.map((r) => r.taps).join("/")}`);
+}
+
+head("TABLE 5 · THE PROJECTION — Paperboy's shear on a real phone");
+console.log(`  shear K = ${SHEAR_K}   drawn span = ${LM_DRAWN}m   solved from  W ≥ Lm·s + K·H`);
+console.log("  viewport      s px/m   lean px   world px   ahead(m)   lead@cruise");
+for (const [w, h] of [[320, 560], [390, 620], [430, 700]]) {
+  const v = makeView({ w, h, camY: 0 });
+  const lean = SHEAR_K * h;
+  const ahead = (h * 0.78) / v.fy;
+  console.log(`  ${w}×${h}    ${v.s.toFixed(2)}    ${lean.toFixed(0).padStart(6)}   ${(LM_DRAWN * v.s).toFixed(0).padStart(7)}   ${ahead.toFixed(1).padStart(7)}    ${(ahead / 9).toFixed(2)}s`);
+}
+
+head("SUITE 20 · the projection — the axes point where they must");
+{
+  for (const [w, h] of [[320, 560], [390, 620], [430, 700]]) {
+    const v = makeView({ w, h, camY: 0 });
+    const tag = `${w}×${h}`;
+
+    /* THE BUDGET. Overspend it and the world is squeezed off the screen. */
+    ok(LM_DRAWN * v.s + SHEAR_K * h <= w + 0.5, `${tag}: Lm·s + K·H fits the viewport (the whole reason s is solved, not divided)`);
+    ok(v.s > 6, `${tag}: ${v.s.toFixed(1)} px/m is a world, not a doll's house`);
+
+    /* ALONG THE STREET → up AND to the right. This is the Paperboy diagonal,
+       and getting it backwards gives vertical lanes. */
+    const a = v.P(12, 0, 0), b = v.P(12, 20, 0);
+    ok(b.y < a.y, `${tag}: further up the street is further UP the screen`);
+    ok(b.x > a.x, `${tag}: …and further RIGHT — the lanes run diagonally`);
+    near((b.x - a.x) / (a.y - b.y), SHEAR_K, 0.001, `${tag}: the lean is exactly K`);
+
+    /* ACROSS THE STREET → flat. */
+    const c = v.P(0, 40, 0), d = v.P(24, 40, 0);
+    near(c.y, d.y, 0.001, `${tag}: a line across the street is HORIZONTAL — lot lines and driveways lie flat`);
+    ok(d.x > c.x, `${tag}: …and runs left to right`);
+
+    /* HEIGHT → straight up. */
+    const g0 = v.P(6, 30, 0), g1 = v.P(6, 30, HOUSE_RIDGE_M);
+    near(g0.x, g1.x, 0.001, `${tag}: height is VERTICAL — houses stand up, they do not lean`);
+    ok(g1.y < g0.y, `${tag}: …and taller is higher on screen`);
+
+    /* Enough street ahead to actually see a house coming. */
+    const ahead = (h * 0.78) / v.fy;
+    ok(ahead / 9 >= 3.0, `${tag}: ${(ahead / 9).toFixed(1)}s of lead at cruise (want ≥3.0s to read a house and commit)`);
+
+    /* The camera must MOVE. This is the closure bug that would have shipped a
+       rider who rides while the street stands still. */
+    const before = v.P(12, 100, 0).y;
+    v.camY = 50;
+    ok(v.P(12, 100, 0).y > before, `${tag}: mutating camY actually scrolls the world`);
+  }
+
+  /* Every target box projects inside its own house's front wall. This is what
+     replaced the old canvas-vs-SVG identity check: there is one renderer now,
+     so the guarantee is that the projector never turns the handle loose. */
+  const v = makeView({ w: 390, h: 620, camY: 0 });
+  const h = HOUSE_L;
+  const boxes = targetBoxes(h);
+  const hb = boxes.find((b) => b.key === "handle");
+  const db = boxes.find((b) => b.key === "door");
+  const px = (b, which) => v.P(0, which === "lo" ? b.y0 : b.y1, which === "lo" ? b.z0 : b.z1);
+  const hLo = px(hb, "lo"), hHi = px(hb, "hi");
+  const dLo = px(db, "lo"), dHi = px(db, "hi");
+  ok(hLo.x >= dLo.x - 0.01 && hHi.x <= dHi.x + 0.01, "the handle stays inside the door AFTER projection");
+  ok(hHi.y >= dHi.y - 0.01 && hLo.y <= dLo.y + 0.01, "…in both axes");
+  const mb = boxes.find((b) => b.key === "mat");
+  near(v.P(0, mb.y0, mb.z0).y, v.P(0, mb.y0, 0).y, 0.001, "the mat still projects onto the ground");
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
