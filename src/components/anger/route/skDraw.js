@@ -67,26 +67,26 @@ import { targetBoxes, mailboxBox, PROPS } from "./skStreet.js";
    Bright, flat, saturated — the arcade register. Paperboy has no gradients
    on the ground and neither does this. */
 const P = {
-  road: "#8C8C94",
-  line: "#F0E27A",
-  walk: "#C4C0B4",
-  walkLine: "#AAA69A",
-  lawn: "#3E9E42",
-  lawnAlt: "#379038",
-  dirt: "#9A7042",
+  road: "#9C9CA4",
+  line: "#F2DE5E",
+  walk: "#D6D0BE",
+  walkLine: "#BAB4A2",
+  lawn: "#4CAE3E",
+  lawnAlt: "#43A036",
+  lawnSpeck: "#58BC48",
+  dirt: "#A8783E",
   rut: "#7A5A34",
-  kerb: "#D8D4C8",
-  shade: "rgba(0,0,0,0.22)",
-  roofA: "#B23A2E",
-  roofB: "#8E2C24",
+  kerb: "#E4DFCE",
+  shade: "rgba(0,0,0,0.2)",
+  roofA: "#C0392B",
   hangerA: "#FFD65A",
   ghostOk: "rgba(0,255,140,0.9)",
   ghostBad: "rgba(255,64,64,0.9)",
-  rider: "#2E5BD8",
-  riderTop: "#E8B23A",
+  rider: "#F2C230",   // the branded polo — high-contrast so you never lose him
+  riderTop: "#D8443C",
   riderSkin: "#E8B98E",
   cart: "#E8D24A",
-  car: ["#D8443C", "#3E6BD8", "#E0E0E4", "#E8A62E", "#3EA85E", "#B44ACC"],
+  car: ["#D8443C", "#3E6BD8", "#E8E8EC", "#E8A62E", "#3EA85E", "#B44ACC"],
 };
 
 const SKY = {
@@ -226,6 +226,24 @@ function drawGround(ctx, v, tint) {
     strip(ctx, v, 19, 24, y, y + step, P.lawnAlt);
   }
 
+  /* SPECKLE. The reference's grass is dithered, not a flat fill, and at this
+     scale two dozen dots per lawn is the difference between "turf" and
+     "green paint". Positions come off a fixed lattice so they scroll WITH the
+     world instead of crawling — a speckle that shimmers is worse than none. */
+  ctx.fillStyle = P.lawnSpeck;
+  const sp = 1.7;
+  const sy0 = Math.floor(y0 / sp) * sp;
+  for (let y = sy0; y < y1; y += sp) {
+    for (let i = 0; i < 6; i++) {
+      const h = ((y * 7.3 + i * 131.7) % 1);
+      const lx = 0.4 + h * 4.2;
+      const jy = y + ((y * 3.1 + i * 17.3) % 1) * sp;
+      const a = v.g(lx, jy), b = v.g(lx + 21 - lx * 2 + 2.6, jy);
+      ctx.fillRect(a.x, a.y, Math.max(1.5, v.m(0.22)), Math.max(1.5, v.m(0.16)));
+      ctx.fillRect(b.x, b.y, Math.max(1.5, v.m(0.22)), Math.max(1.5, v.m(0.16)));
+    }
+  }
+
   strip(ctx, v, 6.8, 7.0, y0, y1, P.kerb);
   strip(ctx, v, 17.0, 17.2, y0, y1, P.kerb);
   strip(ctx, v, 4.9, 5.0, y0, y1, P.walkLine);
@@ -267,31 +285,93 @@ function drawHouse(ctx, v, house, state) {
   const y0 = house.y, y1 = house.y + f.frontageM;
   const st = state || {};
 
-  const roof = shade(P.roofA, f.roofHue);
-  const roofDark = shade(P.roofB, f.roofHue);
+  const roof = shade(f.roofColor || P.roofA, f.roofHue);
+  const roofDark = darken(roof, 0.3);
+  const wall = f.siding;
+  const trim = f.trim;
+  const EAVE = 0.55; // the overhang, and the thing that stops a house reading as a box
 
   /* ROOF first — furthest from the road, so the wall in front of it paints
-     over it rather than the other way round. */
+     over it rather than the other way round. Both slopes overhang the gable
+     ends; a roof flush with its walls reads as a carton. */
   quad(ctx,
-    v.P(xb, y0, HOUSE_WALL_M), v.P(xb, y1, HOUSE_WALL_M),
-    v.P(xr, y1, HOUSE_RIDGE_M), v.P(xr, y0, HOUSE_RIDGE_M),
+    v.P(xb, y0 - EAVE, HOUSE_WALL_M), v.P(xb, y1 + EAVE, HOUSE_WALL_M),
+    v.P(xr, y1 + EAVE, HOUSE_RIDGE_M), v.P(xr, y0 - EAVE, HOUSE_RIDGE_M),
     roofDark);
-  quad(ctx,
-    v.P(xf, y0, HOUSE_WALL_M), v.P(xf, y1, HOUSE_WALL_M),
-    v.P(xr, y1, HOUSE_RIDGE_M), v.P(xr, y0, HOUSE_RIDGE_M),
-    roof, "rgba(0,0,0,0.25)");
 
-  /* GABLE END */
+  const eaveX = left ? xf + EAVE : xf - EAVE; // the near slope hangs past the wall
+  quad(ctx,
+    v.P(eaveX, y0 - EAVE, HOUSE_WALL_M - 0.35), v.P(eaveX, y1 + EAVE, HOUSE_WALL_M - 0.35),
+    v.P(xr, y1 + EAVE, HOUSE_RIDGE_M), v.P(xr, y0 - EAVE, HOUSE_RIDGE_M),
+    roof);
+
+  /* SHINGLE COURSES — four bands up the near slope. This is most of what
+     makes the reference read as a ROOF and not a coloured triangle. */
+  ctx.strokeStyle = "rgba(0,0,0,0.16)";
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 5; i++) {
+    const t = i / 5;
+    const cx0 = eaveX + (xr - eaveX) * t;
+    const cz = (HOUSE_WALL_M - 0.35) + (HOUSE_RIDGE_M - HOUSE_WALL_M + 0.35) * t;
+    const a = v.P(cx0, y0 - EAVE, cz), b = v.P(cx0, y1 + EAVE, cz);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  /* the ridge cap */
+  ctx.strokeStyle = darken(roof, 0.45);
+  ctx.lineWidth = Math.max(1.5, v.m(0.14));
+  {
+    const a = v.P(xr, y0 - EAVE, HOUSE_RIDGE_M), b = v.P(xr, y1 + EAVE, HOUSE_RIDGE_M);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  /* CHIMNEY */
+  {
+    const cy = y1 - 2.2, cw = 0.8, ch = HOUSE_RIDGE_M + 0.9;
+    const cxm = xr + (left ? -1.2 : 1.2);
+    quad(ctx, v.P(cxm - 0.4, cy, 0), v.P(cxm + 0.4, cy, 0),
+      v.P(cxm + 0.4, cy, ch), v.P(cxm - 0.4, cy, ch), darken("#9E5B44", 0.1));
+    quad(ctx, v.P(cxm - 0.4, cy, ch - 0.25), v.P(cxm + 0.4, cy, ch - 0.25),
+      v.P(cxm + 0.4, cy + cw, ch - 0.25), v.P(cxm - 0.4, cy + cw, ch - 0.25), "#7E4634");
+    void cw;
+  }
+
+  /* GABLE END — the near side wall and its triangle. */
   quad(ctx,
     v.P(xf, y0, 0), v.P(xb, y0, 0), v.P(xb, y0, HOUSE_WALL_M), v.P(xf, y0, HOUSE_WALL_M),
-    darken(f.siding, 0.22));
-  tri(ctx, v.P(xf, y0, HOUSE_WALL_M), v.P(xb, y0, HOUSE_WALL_M), v.P(xr, y0, HOUSE_RIDGE_M), darken(roof, 0.18));
+    darken(wall, 0.26));
+  tri(ctx, v.P(xf, y0, HOUSE_WALL_M), v.P(xb, y0, HOUSE_WALL_M), v.P(xr, y0, HOUSE_RIDGE_M), darken(wall, 0.4));
 
   /* FRONT FACE — tilted toward the viewer so it is not edge-on. See
      FACADE_TILT: the collision plane has not moved, only the drawing. */
   const F = (y, z) => facePt(v, house, y, z);
-  quad(ctx, F(y0, 0), F(y1, 0), F(y1, HOUSE_WALL_M), F(y0, HOUSE_WALL_M),
-    f.siding, "rgba(0,0,0,0.28)");
+  quad(ctx, F(y0, 0), F(y1, 0), F(y1, HOUSE_WALL_M), F(y0, HOUSE_WALL_M), wall);
+
+  /* SIDING COURSES. Horizontal in world terms, so they run along the
+     frontage — the cheapest possible "this is clapboard, not a slab". */
+  ctx.strokeStyle = "rgba(0,0,0,0.1)";
+  ctx.lineWidth = 1;
+  for (let z = 0.4; z < HOUSE_WALL_M; z += 0.42) {
+    const a = F(y0, z), b = F(y1, z);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  /* the trim board under the eave */
+  quad(ctx, F(y0, HOUSE_WALL_M - 0.28), F(y1, HOUSE_WALL_M - 0.28),
+    F(y1, HOUSE_WALL_M), F(y0, HOUSE_WALL_M), trim);
+
+  /* PICTURE WINDOWS either side of the door column — pure decoration, not
+     targets, and that is deliberate: the ONE breakable pane is the one
+     `targetBoxes` knows about, so the player can never be confused about
+     which glass counts. */
+  const deco = (cy0, cy1, cz0, cz1) => {
+    quad(ctx, F(cy0 - 0.1, cz0 - 0.1), F(cy1 + 0.1, cz0 - 0.1),
+      F(cy1 + 0.1, cz1 + 0.1), F(cy0 - 0.1, cz1 + 0.1), trim);
+    quad(ctx, F(cy0, cz0), F(cy1, cz0), F(cy1, cz1), F(cy0, cz1), "#8FC4DC");
+    const my = (cy0 + cy1) / 2, mz = (cz0 + cz1) / 2;
+    quad(ctx, F(my - 0.045, cz0), F(my + 0.045, cz0), F(my + 0.045, cz1), F(my - 0.045, cz1), trim);
+    quad(ctx, F(cy0, mz - 0.045), F(cy1, mz - 0.045), F(cy1, mz + 0.045), F(cy0, mz + 0.045), trim);
+  };
+  deco(y0 + 8.0, y0 + 9.3, 1.35, 2.45);
+  if (f.frontageM > 10) deco(y0 + 0.7, y0 + 1.9, 1.35, 2.45);
 
   /* ── the targets, straight from targetBoxes() — the SAME function the
      collision runs on, so the thing you aim at is the thing you hit. ───── */
@@ -307,26 +387,59 @@ function drawHouse(ctx, v, house, state) {
      500-point target — the whole reason to ride the middle of the road —
      invisible on the street. Back to front, handle last. */
   const mat = byKey("mat"), door = byKey("door"), win = byKey("window"), handle = byKey("handle");
-  if (mat) box(mat, "#6B5A3E");
-  if (door) {
-    box(door, st.plywood ? "#8A6E44" : f.doorColor, "rgba(0,0,0,0.45)");
-    const dw = door.y1 - door.y0, dh = door.z1 - door.z0;
-    const py0 = door.y0 + dw * 0.19, py1 = door.y1 - dw * 0.19;
-    quad(ctx, F(py0, door.z1 - dh * 0.46), F(py1, door.z1 - dh * 0.46),
-      F(py1, door.z1 - dh * 0.09), F(py0, door.z1 - dh * 0.09),
-      null, "rgba(0,0,0,0.3)");
-    quad(ctx, F(py0, door.z0 + dh * 0.08), F(py1, door.z0 + dh * 0.08),
-      F(py1, door.z0 + dh * 0.38), F(py0, door.z0 + dh * 0.38),
-      null, "rgba(0,0,0,0.3)");
+
+  if (mat) {
+    /* A porch step slab under the mat, so the door stands on something. */
+    quad(ctx, F(mat.y0 - 0.5, 0), F(mat.y1 + 0.5, 0),
+      F(mat.y1 + 0.5, 0.16), F(mat.y0 - 0.5, 0.16), "#C8C2B2");
+    box(mat, "#7E4A38");
   }
-  if (win) {
-    box(win, st.plywood ? "#8A6E44" : "#BFE4F2", "rgba(0,0,0,0.42)");
+
+  if (door) {
+    /* frame */
+    quad(ctx, F(door.y0 - 0.14, door.z0), F(door.y1 + 0.14, door.z0),
+      F(door.y1 + 0.14, door.z1 + 0.14), F(door.y0 - 0.14, door.z1 + 0.14), trim);
+    box(door, st.plywood ? "#A07C4A" : f.doorColor);
+    const dw = door.y1 - door.y0, dh = door.z1 - door.z0;
+    const py0 = door.y0 + dw * 0.2, py1 = door.y1 - dw * 0.2;
+    const panel = (a, b) => quad(ctx, F(py0, a), F(py1, a), F(py1, b), F(py0, b),
+      lighten(f.doorColor, 0.14), "rgba(0,0,0,0.32)");
     if (!st.plywood) {
+      panel(door.z1 - dh * 0.46, door.z1 - dh * 0.1);
+      panel(door.z0 + dh * 0.08, door.z0 + dh * 0.4);
+    }
+    /* PORCH AWNING — a little roof on two posts. It is the single detail
+       that stops the front reading as a painted flat and makes the door look
+       like somewhere a person actually stands. */
+    const aw0 = door.y0 - 0.7, aw1 = door.y1 + 0.7, az = door.z1 + 0.5;
+    const out = left ? 1.5 : -1.5;
+    quad(ctx, F(aw0, az), F(aw1, az),
+      v.P(xf + out, aw1, az - 0.25), v.P(xf + out, aw0, az - 0.25), darken(roof, 0.05));
+    ctx.strokeStyle = trim;
+    ctx.lineWidth = Math.max(1.4, v.m(0.1));
+    for (const py of [aw0 + 0.15, aw1 - 0.15]) {
+      const a = v.P(xf + out, py, 0), b = v.P(xf + out, py, az - 0.25);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+  }
+
+  if (win) {
+    if (st.plywood) {
+      box(win, "#A07C4A");
+      /* two boards nailed across, so a boarded window reads from the street */
+      const my = (win.y0 + win.y1) / 2;
+      quad(ctx, F(win.y0 - 0.2, my - 0.1), F(win.y1 + 0.2, my - 0.1),
+        F(win.y1 + 0.2, my + 0.12), F(win.y0 - 0.2, my + 0.12), "#7E5C32");
+    } else {
+      quad(ctx, F(win.y0 - 0.12, win.z0 - 0.12), F(win.y1 + 0.12, win.z0 - 0.12),
+        F(win.y1 + 0.12, win.z1 + 0.12), F(win.y0 + -0.12, win.z1 + 0.12), trim);
+      box(win, "#A8D8EC");
+      /* a diagonal glint — the arcade shorthand for "this is glass" */
+      tri(ctx, F(win.y0, win.z1), F(win.y1, win.z1), F(win.y0, win.z0 + (win.z1 - win.z0) * 0.35),
+        "rgba(255,255,255,0.42)");
       const my = (win.y0 + win.y1) / 2, mz = (win.z0 + win.z1) / 2;
-      quad(ctx, F(my - 0.04, win.z0), F(my + 0.04, win.z0),
-        F(my + 0.04, win.z1), F(my - 0.04, win.z1), "rgba(0,0,0,0.35)");
-      quad(ctx, F(win.y0, mz - 0.04), F(win.y1, mz - 0.04),
-        F(win.y1, mz + 0.04), F(win.y0, mz + 0.04), "rgba(0,0,0,0.35)");
+      quad(ctx, F(my - 0.05, win.z0), F(my + 0.05, win.z0), F(my + 0.05, win.z1), F(my - 0.05, win.z1), trim);
+      quad(ctx, F(win.y0, mz - 0.05), F(win.y1, mz - 0.05), F(win.y1, mz + 0.05), F(win.y0, mz + 0.05), trim);
     }
   }
   if (handle) {
@@ -399,33 +512,94 @@ function drawMailbox(ctx, v, house) {
     "#5E6A78", "rgba(0,0,0,0.35)");
 }
 
+/** A boxy world-space object: shaded footprint, near face, lit top. Enough to
+    make a van read as a van at 12 px/m without becoming a modelling problem. */
+function boxProp(ctx, v, x, y, w, len, h, col) {
+  quad(ctx, v.g(x - w / 2, y), v.g(x + w / 2, y), v.g(x + w / 2, y + len), v.g(x - w / 2, y + len), P.shade);
+  quad(ctx, v.P(x - w / 2, y, h), v.P(x + w / 2, y, h),
+    v.P(x + w / 2, y + len, h), v.P(x - w / 2, y + len, h), col);
+  quad(ctx, v.P(x - w / 2, y, 0), v.P(x + w / 2, y, 0),
+    v.P(x + w / 2, y, h), v.P(x - w / 2, y, h), darken(col, 0.28));
+}
+
 function drawYardProps(ctx, v, house) {
   const left = house.side === "L";
+
+  /* THE WALKWAY — kerb to porch. The reference has one at every house and it
+     is what makes a lawn read as a front yard rather than a green field. */
+  const wy = house.y + FACADE.doorY - 0.4;
+  const wx0 = left ? 0.6 : LANE_TOTAL_M - 4.6;
+  strip(ctx, v, wx0, wx0 + 4.0, wy, wy + 1.5, "#CFC9B8");
+
+  /* A PICKET FENCE along the lot line, in two-metre runs. */
+  ctx.strokeStyle = "#EDE7D6";
+  ctx.lineWidth = Math.max(1.2, v.m(0.09));
+  const fx = left ? 4.6 : LANE_TOTAL_M - 4.6;
+  for (let py = house.y + 0.4; py < house.y + FACADE.frontageM; py += 0.5) {
+    if (Math.abs(py - wy) < 1.6) continue; // the gate, where the path crosses
+    const a = v.g(fx, py), b = v.P(fx, py, 0.62);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
   house.props.forEach((key, i) => {
     const spec = PROPS[key];
     if (!spec) return;
     const py = house.y + 1.6 + i * 3.1;
-    const px = left ? 1.8 + i * 0.7 : LANE_TOTAL_M - 1.8 - i * 0.7;
+    const px = left ? 2.4 + i * 0.5 : LANE_TOTAL_M - 2.4 - i * 0.5;
     const [len, hgt] = spec.size;
-    quad(ctx, v.g(px - 0.6, py), v.g(px + 0.6, py), v.g(px + 0.6, py + len), v.g(px - 0.6, py + len), P.shade);
-    quad(ctx,
-      v.P(px - 0.6, py, 0), v.P(px - 0.6, py + len, 0),
-      v.P(px - 0.6, py + len, hgt), v.P(px - 0.6, py, hgt),
-      spec.big ? "#B8442E" : "#4C7A3E", "rgba(0,0,0,0.3)");
+    if (spec.big) {
+      /* a vehicle: body, cabin, and a windscreen so it is not a brick */
+      boxProp(ctx, v, px, py, 1.9, len, hgt * 0.62, PROP_COL[key] || "#C4453A");
+      boxProp(ctx, v, px, py + len * 0.28, 1.6, len * 0.42, hgt, lighten(PROP_COL[key] || "#C4453A", 0.1));
+      quad(ctx, v.P(px - 0.6, py + len * 0.28, hgt), v.P(px + 0.6, py + len * 0.28, hgt),
+        v.P(px + 0.6, py + len * 0.66, hgt), v.P(px - 0.6, py + len * 0.66, hgt), "rgba(190,225,245,0.8)");
+    } else {
+      boxProp(ctx, v, px, py, 0.9, len, hgt, PROP_COL[key] || "#4C7A3E");
+    }
   });
+
   house.scatter.forEach((sc) => {
     const px = left ? sc.x : LANE_TOTAL_M - sc.x;
-    const base = v.g(px, house.y + sc.y);
-    const top = v.P(px, house.y + sc.y, sc.k === "tree" ? 2.2 * sc.s : 0.7 * sc.s);
+    const py = house.y + sc.y;
+    const base = v.g(px, py);
     if (sc.k === "tree") {
-      ctx.strokeStyle = "#6A4A2A";
-      ctx.lineWidth = Math.max(2, v.m(0.16));
+      const h = 2.4 * sc.s;
+      const top = v.P(px, py, h);
+      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.beginPath(); ctx.ellipse(base.x, base.y, v.m(0.8 * sc.s), v.m(0.34 * sc.s), 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = "#7A5230";
+      ctx.lineWidth = Math.max(2, v.m(0.2));
       ctx.beginPath(); ctx.moveTo(base.x, base.y); ctx.lineTo(top.x, top.y); ctx.stroke();
+      /* three overlapping blobs, so a canopy is a canopy and not a circle */
+      const r = Math.max(4, v.m(0.75 * sc.s));
+      ctx.fillStyle = "#2F8A38";
+      for (const [ox, oy, k] of [[-0.5, 0.2, 0.9], [0.5, 0.15, 0.85], [0, -0.35, 1]]) {
+        ctx.beginPath(); ctx.arc(top.x + ox * r, top.y + oy * r, r * k, 0, 6.2832); ctx.fill();
+      }
+      ctx.fillStyle = "#48A84C";
+      ctx.beginPath(); ctx.arc(top.x - r * 0.3, top.y - r * 0.4, r * 0.5, 0, 6.2832); ctx.fill();
+    } else {
+      const top = v.P(px, py, 0.72 * sc.s);
+      const r = Math.max(3, v.m(0.46 * sc.s));
+      ctx.fillStyle = "rgba(0,0,0,0.16)";
+      ctx.beginPath(); ctx.ellipse(base.x, base.y, r, r * 0.4, 0, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = "#2E7A34";
+      for (const [ox, oy] of [[-0.6, 0.1], [0.6, 0.1], [0, -0.3]]) {
+        ctx.beginPath(); ctx.arc(top.x + ox * r, top.y + oy * r, r * 0.78, 0, 6.2832); ctx.fill();
+      }
+      ctx.fillStyle = "#3E9A42";
+      ctx.beginPath(); ctx.arc(top.x - r * 0.25, top.y - r * 0.3, r * 0.44, 0, 6.2832); ctx.fill();
     }
-    ctx.fillStyle = sc.k === "tree" ? "#2E7A34" : "#3C8A40";
-    ctx.beginPath(); ctx.arc(top.x, top.y, Math.max(3, v.m(0.7 * sc.s)), 0, 6.2832); ctx.fill();
   });
 }
+
+/* One colour per prop, so "the one with the boat" is a thing you can say. */
+const PROP_COL = {
+  minivan: "#C0453A", hoop: "#3A3A44", toys: "#E8A62E",
+  dogbowl: "#B44ACC", chain: "#6A6A72", boat: "#E4E4E8",
+  flag: "#E8E8EC", workvan: "#E8E8EC", solar: "#2A3A5A",
+  seczign: "#E8C24A", weeds: "#7A9A3A", boxes: "#B08048",
+};
 
 /* ── hazards ──────────────────────────────────────────────────────────────*/
 
@@ -481,8 +655,6 @@ function drawRider(ctx, v, s) {
   ctx.fill();
 
   const wheel = v.P(s.x, s.y, lift);
-  const hip = v.P(s.x, s.y, lift + 0.95);
-  const head = v.P(s.x, s.y, lift + 1.62);
   if (s.invulnLeft > 0 && Math.floor(s.invulnLeft * 14) % 2 === 0) ctx.globalAlpha = 0.4;
 
   ctx.save();
@@ -491,23 +663,52 @@ function drawRider(ctx, v, s) {
   ctx.rotate((s.lean * Math.PI) / 180 * 0.5);
   ctx.translate(-wheel.x, -wheel.y);
 
-  ctx.strokeStyle = "#2A2A32";
-  ctx.lineWidth = Math.max(2.4, v.m(0.16));
-  ctx.beginPath(); ctx.moveTo(wheel.x, wheel.y); ctx.lineTo(hip.x, hip.y); ctx.stroke();
-  ctx.fillStyle = "#3A3A44";
-  ctx.beginPath(); ctx.ellipse(wheel.x, wheel.y, v.m(0.42), v.m(0.18), 0, 0, 6.2832); ctx.fill();
+  /* Everything below is drawn in world metres off the rider's own position,
+     so he scales with the street instead of being a fixed pixel blob — but
+     at 1.3× life size, because a true-scale rep on a 10 px/m street is a
+     twenty-pixel smudge and he is the thing your eye has to track. Collision
+     still uses SEGWAY.collideHalfM; drawn size never feeds a hitbox. */
+  const U = v.m(1.3);
+  const px = (dx, dz) => ({ x: wheel.x + dx * U, y: wheel.y - dz * U });
+  const rect = (dx, dz, w, h, fill) => {
+    const a = px(dx, dz);
+    ctx.fillStyle = fill;
+    ctx.fillRect(a.x - (w * U) / 2, a.y - h * U, w * U, h * U);
+  };
+  const dot = (dx, dz, r, fill) => {
+    const a = px(dx, dz);
+    ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.arc(a.x, a.y, Math.max(1.2, r * U), 0, 6.2832); ctx.fill();
+  };
 
-  /* the branded polo */
-  ctx.strokeStyle = P.rider;
-  ctx.lineWidth = Math.max(4, v.m(0.42));
+  /* THE SEGWAY — deck, column, handlebar */
+  rect(0, 0.14, 0.9, 0.14, "#3A3A44");                        // deck
+  rect(0, 1.05, 0.13, 0.95, "#4A4A56");                       // column
+  rect(0, 1.12, 0.62, 0.1, "#2A2A32");                        // bar
+  ctx.fillStyle = "#22222A";                                   // wheel
+  { const a = px(0, 0.07); ctx.beginPath(); ctx.ellipse(a.x, a.y, 0.34 * U, 0.16 * U, 0, 0, 6.2832); ctx.fill(); }
+
+  /* THE REP — legs, polo, arms out to the bar, head, cap. Small, but he has
+     a silhouette now instead of being a two-pixel line. */
+  rect(-0.14, 0.72, 0.17, 0.6, "#2B3A63");                     // legs
+  rect(0.14, 0.72, 0.17, 0.6, "#2B3A63");
+  rect(0, 1.34, 0.52, 0.64, P.rider);                          // the branded polo
+  rect(0, 1.06, 0.54, 0.1, "#1A2540");                         // belt
+  ctx.strokeStyle = P.riderSkin;                               // arms to the bar
+  ctx.lineWidth = Math.max(1.6, 0.13 * U);
   ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.lineTo(head.x, head.y); ctx.stroke();
+  {
+    const sh = px(0, 1.3), hb = px(0.3, 1.14), hb2 = px(-0.3, 1.14);
+    ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(hb.x, hb.y);
+    ctx.moveTo(sh.x, sh.y); ctx.lineTo(hb2.x, hb2.y); ctx.stroke();
+  }
   ctx.lineCap = "butt";
+  dot(0, 1.58, 0.21, P.riderSkin);                             // head
+  { const a = px(0, 1.62);                                     // cap
+    ctx.fillStyle = P.riderTop;
+    ctx.beginPath(); ctx.arc(a.x, a.y, 0.22 * U, Math.PI, 0); ctx.fill();
+    ctx.fillRect(a.x - 0.26 * U, a.y - 0.02 * U, 0.52 * U, 0.07 * U); }
 
-  ctx.fillStyle = P.riderSkin;
-  ctx.beginPath(); ctx.arc(head.x, head.y, Math.max(3, v.m(0.24)), 0, 6.2832); ctx.fill();
-  ctx.fillStyle = P.riderTop;
-  ctx.beginPath(); ctx.arc(head.x, head.y - v.m(0.05), Math.max(3, v.m(0.25)), Math.PI, 0); ctx.fill();
   ctx.restore();
   ctx.globalAlpha = 1;
 }
@@ -646,10 +847,20 @@ function drawRain(ctx, v, t) {
 
 /* ── colour helpers ───────────────────────────────────────────────────────*/
 
-function darken(hex, amt) {
+const rgb = (hex) => {
+  if (hex[0] !== "#") return null;
   const n = parseInt(hex.slice(1), 16);
-  const c = (x) => Math.round(x * (1 - amt));
-  return `rgb(${c((n >> 16) & 255)},${c((n >> 8) & 255)},${c(n & 255)})`;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+function darken(hex, amt) {
+  const c = rgb(hex);
+  if (!c) return hex;
+  return `rgb(${c.map((x) => Math.round(x * (1 - amt))).join(",")})`;
+}
+function lighten(hex, amt) {
+  const c = rgb(hex);
+  if (!c) return hex;
+  return `rgb(${c.map((x) => Math.round(x + (255 - x) * amt)).join(",")})`;
 }
 function shade(hex, hue) {
   const n = parseInt(hex.slice(1), 16);

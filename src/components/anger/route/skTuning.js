@@ -97,8 +97,11 @@ export const SHEAR_K = 0.20;
 /* Real building dimensions, in metres. None of these are read by
    `targetBoxes` — they are pure art, and the collision geometry does not move
    when they change. */
-export const HOUSE_WALL_M = 3.4;   // eaves height
-export const HOUSE_RIDGE_M = 6.4;  // ridge line
+export const HOUSE_WALL_M = 3.8;   // eaves height
+/* The ridge is only 1.5m above the eaves. At 6.4 the roof was as tall as the
+   whole wall and the house read as a tent with a door in it — in the arcade
+   reference the WALL dominates and the roof is a shallow cap. */
+export const HOUSE_RIDGE_M = 5.3;
 export const HOUSE_DEPTH_M = 6.0;  // back into the lot, away from the road
 
 /** Where the rider sits down the screen. 0.78 buys 4.2s of lead at cruise;

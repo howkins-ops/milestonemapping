@@ -47,15 +47,19 @@ const int = (r, lo, hi) => lo + Math.floor(r() * (hi - lo + 1));
    scale, in any renderer — which is the cheap hedge against the three of them
    ever drifting apart. */
 export const DOOR_COLORS = [
-  { key: "red", hex: "#C6362F", name: "the red door" },
-  { key: "teal", hex: "#2E7D77", name: "the teal door" },
-  { key: "mustard", hex: "#C9922B", name: "the yellow door" },
-  { key: "navy", hex: "#2B4570", name: "the navy door" },
-  { key: "green", hex: "#3E6B3A", name: "the green door" },
-  { key: "plum", hex: "#6A3D5B", name: "the purple door" },
+  { key: "red", hex: "#D8352C", name: "the red door" },
+  { key: "teal", hex: "#1F9C90", name: "the teal door" },
+  { key: "mustard", hex: "#E8B028", name: "the yellow door" },
+  { key: "navy", hex: "#2B4E9E", name: "the navy door" },
+  { key: "green", hex: "#2E9E42", name: "the green door" },
+  { key: "plum", hex: "#8E3E92", name: "the purple door" },
 ];
 
-export const SIDINGS = ["#8E8377", "#A89880", "#6F7A78", "#9A7F6E", "#7E8896", "#8A7A86"];
+/* Arcade-bright, warm, and flat — the reference has no gradients anywhere and
+   every wall is a colour you could name from across the street. */
+export const SIDINGS = ["#EDE0B8", "#E8C05A", "#7FB6DE", "#E8A87C", "#DCDCE2", "#B8D8A0"];
+export const ROOF_COLORS = ["#C0392B", "#8E4B2A", "#3F5F8E", "#7A3550", "#4A6B3E"];
+export const TRIMS = ["#FFFFFF", "#F4EEDC"];
 export const ROOFS = ["gable", "hip", "flat", "gambrel"];
 
 /* ── props ────────────────────────────────────────────────────────────────
@@ -93,9 +97,10 @@ export function facadeSchema(r) {
     doorKey: door.key,
     doorName: door.name,
     siding: pick(r, SIDINGS),
-    trim: r() < 0.5 ? "#E8E2D6" : "#3A3630",
+    trim: pick(r, TRIMS),
     roof: pick(r, ROOFS),
-    roofHue: 0.06 + r() * 0.08,
+    roofColor: pick(r, ROOF_COLORS),
+    roofHue: 0.04 + r() * 0.05,
     porchLight: r() < 0.7,
     steps: int(r, 1, 3),
     frontageM: FACADE.frontageM,
