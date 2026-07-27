@@ -13,6 +13,7 @@ const TOPBAR_ICONS = {
   rewards: "/assets/topbar/topbar-rewards.png",
   paths: "/assets/topbar/topbar-paths.png",
   profile: "/assets/topbar/topbar-profile.png",
+  shadow: "/assets/nav/nav-shadow.png",
 };
 
 export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJournal, onOpenWorkout, onOpenGame, onOpenClearDay, children }) {
@@ -48,6 +49,20 @@ export default function AppShell({ currentPage, onNavigate, onSignOut, onOpenJou
                 <SyncStatus status={syncStatus} />
                 {/* The Zone lives in the bottom nav (opens the full-screen Zone app);
                     its top-bar button was removed to keep this cluster uncluttered. */}
+                {/* Shadow — pulled out of the bottom nav so the five primary tabs
+                    breathe; it sits first in this cluster, left of Hoops. */}
+                <button
+                  type="button"
+                  className={`app-topbar__profile-btn app-topbar__shadow ${currentPage === "essence" ? "is-active" : ""}`}
+                  onClick={() => onNavigate("essence")}
+                  aria-label="Open Shadow work"
+                  aria-current={currentPage === "essence" ? "page" : undefined}
+                >
+                  <span className="app-topbar__icon-box" aria-hidden="true">
+                    <img className="app-topbar__icon-art app-topbar__icon-art--glyph" src={TOPBAR_ICONS.shadow} alt="" />
+                  </span>
+                  <span className="app-topbar__btn-label">Shadow</span>
+                </button>
                 {onOpenGame && (
                   <button
                     type="button"

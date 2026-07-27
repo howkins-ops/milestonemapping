@@ -5,7 +5,7 @@ const PRIMARY_TABS = [
   { id: "daily", label: "Daily", art: "/assets/nav/nav-daily.png" },
   { id: "milestones", label: "Map", art: "/assets/nav/nav-map.png" },
   { id: "wellbeing", label: "Fill Cup", art: "/assets/nav/nav-cup.png" },
-  { id: "essence", label: "Shadow", art: "/assets/nav/nav-shadow.png" },
+  // Shadow moved to the top bar (next to Hoops) — see AppShell's right cluster.
   { id: "zone", label: "Zone", art: "/assets/nav/nav-zone.png" }
 ];
 

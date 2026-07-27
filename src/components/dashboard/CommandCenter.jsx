@@ -1,15 +1,13 @@
 import React from "react";
 import MissionHero from "./MissionHero.jsx";
 import SundayReviewAlert from "./SundayReviewAlert.jsx";
-import MapQuestHero from "../projects/MapQuestHero.jsx";
 import CityHeroCard from "./CityHeroCard.jsx";
-import ZoneHeroCard from "./ZoneHeroCard.jsx";
 import VisionFeatureCard from "../vision/VisionFeatureCard.jsx";
 import FirstHoursCard from "../onboarding/FirstHoursCard.jsx";
 import RecommitLauncher from "../zone/recommit/RecommitLauncher.jsx";
 import ClearDayStatusCard from "./ClearDayStatusCard.jsx";
 
-export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQuest, onOpenWorkout, onRecommit }) {
+export default function CommandCenter({ onNavigate, onOpenProject, onOpenWorkout, onRecommit }) {
   return (
     <div className="command-center-page">
       <MissionHero />
@@ -22,17 +20,14 @@ export default function CommandCenter({ onNavigate, onOpenProject, onOpenMapQues
           isSunday — renders null every other day, so order is unchanged then). */}
       <SundayReviewAlert onNavigate={onNavigate} />
 
-      {/* Two main features get matched heroes — the daily anchors of the app.
-          Everything else (Daily, Map, Fill Cup, Shadow) lives on the bottom
-          nav; Weekly Review surfaces via the Sunday alert; Rewards is a
-          top-bar icon. No more redundant quick-action grid. */}
+      {/* The City is the one hero card left on Command. The Zone has its own
+          bottom-nav tab and The Inner Alchemist lives on the Map page + in the
+          City, so neither needed a duplicate door here. Daily, Map, Fill Cup
+          are bottom-nav tabs; Shadow is a top-bar icon; Weekly Review surfaces
+          via the Sunday alert. No redundant quick-action grid. */}
       <CityHeroCard onEnter={() => onNavigate("city")} />
 
-      <ZoneHeroCard onEnter={() => onNavigate("zone")} />
-
       <VisionFeatureCard onNavigate={onNavigate} />
-
-      {onOpenMapQuest && <MapQuestHero onLaunch={onOpenMapQuest} />}
 
       {/* Command deck — quiet utility row anchoring the bottom of the page */}
       <div className="cmdeck">

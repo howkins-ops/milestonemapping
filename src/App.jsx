@@ -289,7 +289,6 @@ function AppContent({ signOut }) {
           <DashboardPage
             onNavigate={navigate}
             onOpenProject={openProject}
-            onOpenMapQuest={openMapQuest}
             onOpenWorkout={() => setWorkoutOpen(true)}
             onRecommit={openRecommit}
           />
@@ -358,7 +357,7 @@ function AppContent({ signOut }) {
             <ChapterComponent onComplete={() => navigate("openworld")} />
           </Suspense>
         ) : (
-          <DashboardPage onNavigate={navigate} onOpenProject={openProject} onOpenMapQuest={openMapQuest} />
+          <DashboardPage onNavigate={navigate} onOpenProject={openProject} />
         );
       }
       case "assets":
@@ -368,7 +367,6 @@ function AppContent({ signOut }) {
           <DashboardPage
             onNavigate={navigate}
             onOpenProject={openProject}
-            onOpenMapQuest={openMapQuest}
             onOpenWorkout={() => setWorkoutOpen(true)}
             onRecommit={openRecommit}
           />

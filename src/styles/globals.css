@@ -499,6 +499,42 @@ button {
   box-shadow: 0 0 20px rgba(240, 140, 60, 0.28);
 }
 
+/* Shadow — moved up from the bottom nav. Violet tile so it reads as the
+   descent, not another cyan utility, and it keeps the active state the
+   bottom nav used to give it. */
+.app-topbar__shadow .app-topbar__icon-box {
+  border-color: rgba(123, 44, 255, 0.34);
+  background:
+    radial-gradient(circle at 50% 15%, rgba(123, 44, 255, 0.2), transparent 62%),
+    rgba(8, 3, 16, 0.95);
+}
+.app-topbar__shadow .app-topbar__icon-art--glyph {
+  filter:
+    saturate(1.1)
+    brightness(1.02)
+    drop-shadow(0 0 8px rgba(155, 92, 255, 0.42));
+}
+.app-topbar__shadow:hover .app-topbar__icon-box {
+  border-color: rgba(155, 92, 255, 0.62);
+  background:
+    radial-gradient(circle at 50% 15%, rgba(123, 44, 255, 0.28), transparent 62%),
+    rgba(8, 3, 16, 0.95);
+  box-shadow: 0 0 20px rgba(123, 44, 255, 0.3);
+}
+.app-topbar__shadow.is-active {
+  color: #c9a8ff;
+}
+.app-topbar__shadow.is-active .app-topbar__icon-box {
+  border-color: rgba(178, 124, 255, 0.7);
+  box-shadow: 0 0 22px rgba(123, 44, 255, 0.38);
+}
+.app-topbar__shadow.is-active .app-topbar__icon-art--glyph {
+  filter:
+    saturate(1.2)
+    brightness(1.1)
+    drop-shadow(0 0 12px rgba(178, 124, 255, 0.6));
+}
+
 /* ── Diamond dropdown ── */
 .topbar-dropdown {
   position: absolute;
@@ -702,7 +738,7 @@ button {
 
 .bottom-nav__inner {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   max-width: 680px;
   margin: 0 auto;
   width: 100%;
@@ -6614,13 +6650,24 @@ h4,
 }
 
 /* Small phones: drop the button captions, grow the tap targets.
-   Icons alone read fine at this size and the bar stops feeling packed. */
-@media (max-width: 400px) {
+   Icons alone read fine at this size and the bar stops feeling packed.
+   Breakpoint widened from 400px when Shadow joined this cluster — six
+   captioned buttons no longer fit on a phone. */
+@media (max-width: 520px) {
   .app-topbar__btn-label { display: none; }
   .app-topbar__diamond,
-  .app-topbar__profile-btn { gap: 0; padding: 2px 4px; }
-  .app-topbar__icon-box { width: 40px; height: 40px; }
-  .app-topbar__right { gap: 6px; }
+  .app-topbar__profile-btn { gap: 0; padding: 2px 3px; }
+  .app-topbar__icon-box { width: 36px; height: 36px; }
+  .app-topbar__right { gap: 5px; }
+}
+
+/* Narrow phones (SE / mini): one more notch down so all six icons fit
+   without the bar forcing the page to scroll sideways. */
+@media (max-width: 380px) {
+  .app-topbar__diamond,
+  .app-topbar__profile-btn { padding: 2px; }
+  .app-topbar__icon-box { width: 32px; height: 32px; }
+  .app-topbar__right { gap: 4px; }
 }
 
 /* ============================================================
