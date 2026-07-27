@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/objection.css";
-import { SLAM_CUSTOMERS, SLAM_RESPONSES, SLAM_IMPRESSED, SLAM_WINS, SLAM_SUPER } from "../../data/angerVoiceLines";
+import { SLAM_CUSTOMERS, SLAM_RESPONSES, SLAM_IMPRESSED, SLAM_WINS, SLAM_SUPER } from "../../data/angerVoiceLines.js";
 import {
   sfxWhoosh,
   sfxImpact,

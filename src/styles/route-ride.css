@@ -1,0 +1,259 @@
+/* ════════════════════════════════════════════════════════════════════════
+   THE FLYER RUN (.rr-) — the segway half of The Door.
+
+   PERF LAW, enforced here rather than trusted to discipline:
+     · The camera div carries DoorFX's --fx-* transform and NOTHING ELSE.
+       Both canvases live inside it, so one shake moves the whole world for
+       free and the world loop never learns about screen shake at all.
+     · At most ONE filter in the whole game, and never on an element that
+       contains an infinite animation — an infinite animation inside a
+       filtered subtree re-rasterises the filter every single frame, which is
+       how you turn a phone into a hand warmer. (The Door learned this the
+       expensive way; see door-night.css.)
+     · Transform and opacity only on anything that moves. No blur, ever, on
+       a moving layer.
+     · The HUD is DOM. Text drawn into a scaled canvas is the single fastest
+       way to make a game look cheap.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── the ride ─────────────────────────────────────────────────────────── */
+
+.rr-ride {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0A0A0E;
+}
+
+.rr-cam {
+  --fx-x: 0px;
+  --fx-y: 0px;
+  --fx-rot: 0deg;
+  --fx-zoom: 1;
+  --rr-prog: 0;
+  --rr-speed: 0.5;
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  transform: translate3d(var(--fx-x), var(--fx-y), 0) rotate(var(--fx-rot)) scale(var(--fx-zoom));
+}
+
+.rr-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.rr-canvas--fx { pointer-events: none; }
+
+/* ── HUD ──────────────────────────────────────────────────────────────── */
+
+.rr-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding: calc(10px + var(--safe-top, 0px)) 12px 0;
+}
+
+.rr-hud__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rr-quit {
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(10, 10, 14, 0.55);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rr-hud__score {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+.rr-hud__lives { display: flex; gap: 5px; }
+.rr-life {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+  transform: rotate(45deg);
+}
+.rr-life.is-on { background: #00F0FF; }
+
+.rr-hud__bag {
+  position: absolute;
+  left: 12px;
+  bottom: calc(210px + var(--safe-bottom, 0px));
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.rr-bag__n {
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900;
+  font-size: 30px;
+  color: #FFD65A;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.rr-bag__label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.45);
+}
+.rr-combo {
+  margin-left: 4px;
+  font-weight: 900;
+  font-size: 14px;
+  color: #00FFBF;
+}
+
+/* Progress rides --rr-prog, written imperatively. Never React. */
+.rr-progress {
+  position: absolute;
+  right: 13px;
+  top: calc(58px + var(--safe-top, 0px));
+  bottom: calc(220px + var(--safe-bottom, 0px));
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.rr-progress__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--rr-prog) * 100%);
+  background: linear-gradient(to top, #00F0FF, #00FFBF);
+}
+
+.rr-speed {
+  position: absolute;
+  right: 24px;
+  bottom: calc(214px + var(--safe-bottom, 0px));
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.5);
+}
+.rr-speed--0 { color: #FFB000; }
+.rr-speed--2 { color: #FF3B5C; }
+
+.rr-warn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(250px + var(--safe-bottom, 0px));
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(255, 59, 92, 0.9);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  animation: rrWarn 0.55s ease-in-out infinite alternate;
+}
+@keyframes rrWarn { from { opacity: 0.55; } to { opacity: 1; } }
+
+.rr-toast {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  border-radius: 10px;
+  background: rgba(10, 10, 14, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--font-display, "Sora", sans-serif);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  animation: rrToast 1.1s ease-out forwards;
+}
+.rr-toast--big { color: #FFD65A; border-color: rgba(255, 214, 90, 0.5); font-size: 17px; }
+.rr-toast--ok { color: #00FFBF; }
+.rr-toast--bad { color: #FF6B7F; }
+@keyframes rrToast {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.94); }
+  14% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  76% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -14px); }
+}
+
+/* ── controls ─────────────────────────────────────────────────────────────
+   Two thumbs, both at the bottom. The ride pad is an INVISIBLE relative
+   stick: wherever the thumb lands becomes the origin, so it works one-handed
+   in bed and does not demand the player look down. */
+
+.rr-pad--ride {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 54%;
+  height: 200px;
+  padding-bottom: var(--safe-bottom, 0px);
+  touch-action: none;
+  background: linear-gradient(to top, rgba(0, 240, 255, 0.05), transparent);
+}
+.rr-pad__hint {
+  position: absolute;
+  left: 16px;
+  bottom: calc(12px + var(--safe-bottom, 0px));
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.rr-throws {
+  position: absolute;
+  right: 10px;
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  display: flex;
+  gap: 10px;
+}
+.rr-throw {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 214, 90, 0.42);
+  background: rgba(255, 214, 90, 0.12);
+  color: #FFD65A;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  touch-action: none;
+  cursor: pointer;
+}
+.rr-throw:active {
+  background: rgba(255, 214, 90, 0.3);
+  transform: scale(0.94);
+}
+
+/* ── reduced motion ───────────────────────────────────────────────────────
+   Degrade the decoration, never the game. DoorFX already no-ops shake,
+   hit-stop and slow-mo here, which is exactly why nothing MECHANICAL in the
+   flyer run is ever allowed to depend on them. */
+@media (prefers-reduced-motion: reduce) {
+  .rr-warn, .rr-toast { animation: none; opacity: 1; }
+}
+[data-reduced-motion="true"] .rr-warn,
+[data-reduced-motion="true"] .rr-toast { animation: none; opacity: 1; }

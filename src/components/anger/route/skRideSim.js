@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — PHASE 1, THE RIDE. The brain.
+   THE ROUTE — THE FLYER RUN. The brain.
 
    Pure. One mutable sim object, no React, no DOM, no rAF of its own, and
    never `Date.now()` — the caller ticks it and passes `dt` in. Same shape as
@@ -19,7 +19,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 import {
   SEGWAY, CART, HANGER, BANDS, RIDE_X_MIN, RIDE_X_MAX, SURFACE, HAZARDS,
-  CRASH, AIR, LIVES_PER_DAY, STREET_LENGTH_M, LANE_TOTAL_M, HEAT, GRUDGE_GAIN,
+  CRASH, AIR, LIVES_PER_RUN, STREET_LENGTH_M, LANE_TOTAL_M, HEAT, GRUDGE_GAIN,
 } from "./skTuning.js";
 import { rng, houseAt } from "./skStreet.js";
 import { launch, stepHanger, hangerAt, predictLanding } from "./skThrow.js";
@@ -80,7 +80,7 @@ export function surfaceMul(x, onDirt) {
 
 /* ── creation ─────────────────────────────────────────────────────────────*/
 
-export function createRide({ street, seed = 1, day = 0, trafficMul = 1, lives = LIVES_PER_DAY, ammo = HANGER.ammo, speedMul = 1 } = {}) {
+export function createRide({ street, seed = 1, day = 0, trafficMul = 1, lives = LIVES_PER_RUN, ammo = HANGER.ammo, speedMul = 1 } = {}) {
   return {
     street,
     seed,

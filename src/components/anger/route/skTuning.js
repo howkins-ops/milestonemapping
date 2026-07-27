@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — TUNING. One file, every dial. Nothing else may hardcode
+   THE ROUTE — TUNING. One file, every dial. Nothing else may hardcode
    a threshold.
 
    ONE LAW ABOVE ALL: everything in here is authored in METRES and SECONDS.
@@ -282,81 +282,6 @@ export const LEAD = {
 
 export const WAIT_S = 15; // how long you may stand there before it's your own fault
 
-/* ── THE KNOCK ────────────────────────────────────────────────────────────
-   The bible's Sunday numbers (1.8× rate, 11% width) give a 73ms window,
-   which after touch latency is a coin flip at the end of a 7-minute clock.
-   These land Sunday at 131ms — still brutal, still fair. */
-export const KNOCK = {
-  baseSweepS: 1.4,
-  rateByDay: [1.0, 1.1, 1.2, 1.3, 1.45, 1.5, 1.6],
-  widthByDay: [0.24, 0.225, 0.21, 0.195, 0.18, 0.165, 0.15],
-  sweetCenter: 0.62, // where in the sweep the band sits
-  /* The accepted band is offset EARLY by this much to eat touch latency.
-     Without it every player is systematically late and blames themselves. */
-  latencyOffsetS: 0.04,
-  softRetry: true, // GUARANTEED, not "one retry" — see above
-  softClockPenaltyS: 20,
-  hardAggroMul: 1.2,
-};
-
-/** Sweep period and sweet-spot window (seconds) for a given day index 0..6. */
-export function knockWindow(day) {
-  const d = Math.max(0, Math.min(6, day | 0));
-  const sweepS = KNOCK.baseSweepS / KNOCK.rateByDay[d];
-  return { sweepS, widthPct: KNOCK.widthByDay[d], windowS: sweepS * KNOCK.widthByDay[d] };
-}
-
-/* ── THE APPROACH ─────────────────────────────────────────────────────────
-   Stance is a drag, not a stick — one gesture, three stops. */
-export const STANCE = {
-  back: { openMul: 1.25, aggro: 0.85, label: "BACK, ANGLED" },
-  square: { openMul: 1.0, aggro: 1.0, label: "SQUARE ON" },
-  crowd: { openMul: 0.7, aggro: 1.3, label: "IN THEIR FACE" },
-};
-export const PEEK_COST_S = 3; // pay 3s of clock, learn one more objection family
-export const LAWN_CUT_OPINION = -10;
-
-/* ── THE DAY ──────────────────────────────────────────────────────────────
-   The bible says 8 game-hours ≈ 20 real minutes. Seven of those is 2h20 of
-   play for one week, which is not a phone game. A day here is ONE SITTING:
-   a ~95s ride plus a 7-minute knock run ≈ 8 minutes, ≈1 hour for the week.
-
-   The per-window dilation is kept, because it is load-bearing: a flat rate
-   would make MIDDAY five real minutes of nobody answering the door, which is
-   the single largest fun risk in the whole bible. Dilation keeps the lesson
-   ("9-to-5 knocking fails") while GOLDEN gets the most real playtime. */
-export const DAY_REAL_S = 420;
-export const WINDOWS = [
-  { key: "morning", label: "MORNING", fromH: 8, toH: 11, realS: 112, openMul: 1.0 },
-  { key: "midday", label: "MIDDAY", fromH: 11, toH: 16, realS: 94, openMul: 0.55 },
-  { key: "golden", label: "GOLDEN HOURS", fromH: 16, toH: 20, realS: 214, openMul: 1.25 },
-];
-
-/** Clock charge per door outcome, flat — never in real time. Charging a fight
-    by its duration couples two systems and makes the reward feel like a fine. */
-export const CLOCK_COST = { sale: 12, callback: 8, hostile: 6, dead: 4, walkaway: 4 };
-export const TRAVEL_BASE_S = 6; // getting to any house at all
-export const TRAVEL_PER_HOUSE_S = 2; // ...plus distance. Working a cluster is cheaper.
-export const TRAVEL_MAX_S = 26;
-
-/* ── THE WEEK ─────────────────────────────────────────────────────────────
-   Missing quota costs A LIFE AND THE DAY — never the whole week. FIRED only
-   happens at zero lives. A variance-heavy Sunday that deletes an hour of play
-   is how a game gets uninstalled. */
-export const QUOTA = [1, 2, 2, 3, 4, 3, 5];
-export const LIVES_PER_DAY = 3;
-export const SURPLUS_BANK_CAP = 2; // sales above quota carry forward, capped
-
-export const DAYS = [
-  { key: "mon", name: "MONDAY", tag: "Learn the street.", traffic: 0.6, knockDay: 0 },
-  { key: "tue", name: "TUESDAY", tag: "The dog is loose.", traffic: 0.8, knockDay: 1, dog: true },
-  { key: "wed", name: "WEDNESDAY", tag: "They put up signs.", traffic: 0.9, knockDay: 2, signs: true },
-  { key: "thu", name: "THURSDAY", tag: "Rain. Everyone's inside.", traffic: 0.7, knockDay: 3, rain: true, speedMul: 0.85, openMul: 1.25 },
-  { key: "fri", name: "FRIDAY", tag: "Everyone's home. So is he.", traffic: 1.0, knockDay: 4, rival: true, scoreMul: 2 },
-  { key: "sat", name: "SATURDAY", tag: "Every grudge comes due.", traffic: 1.0, knockDay: 5, cops: true },
-  { key: "sun", name: "SUNDAY", tag: "The house at the end opens.", traffic: 0.5, knockDay: 6, finalHouse: true },
-];
-
 /* ── GRUDGE ───────────────────────────────────────────────────────────────
    Per house, and it is what makes Wednesday read as YOUR Monday. */
 export const GRUDGE = [
@@ -369,53 +294,22 @@ export const GRUDGE = [
 export const GRUDGE_GAIN = { window: 4, tracks: 1, flowers: 2, crowd: 1, nosolicit: 2 };
 
 /* ── HEAT ─────────────────────────────────────────────────────────────────
-   SUPER KNOCK keeps its OWN week-scoped heat and only ever READS The Door's.
+   These numbers now feed The Door's REAL heat meter — the door_heat_v1 store,
+   the same one the night gallery and the cop chase already write to.
 
-   Sharing the write path looked elegant and is a trap: `door_heat_v1` rolls
-   over on the real calendar day and caps at 8, so a player doing the whole
-   week in one sitting gets no cooling at all — seven window smashes (the most
-   REWARDED action in phase 1) would pin them at HUNTED and hard-lock phase 2
-   by Wednesday. Meanwhile Sunday's five sales would refund 5 heat straight
-   out of The Door's economy. Two independently-tuned meters, one number on
-   screen, neither corrupting the other. */
+   The old rationale for a private meter was that a seven-day week played
+   through in one sitting gets no passive cooling, so seven window smashes
+   would pin the player at HUNTED and hard-lock the door work. That week is
+   gone — this is one run down one street — so the argument went with it, and
+   two meters collapse into the one that was already cloud-synced.
+
+   Which is better than a tie: smash a window on the flyer run at dawn and the
+   Heat you earn is the same Heat that decides whether Steele's night gallery
+   gets you spotted at 11:47pm. One number, one economy, one consequence. */
 export const HEAT = {
   max: 8,
   gain: { window: 1.0, noSolicitWindow: 3.0, flowers: 2.0, cartHit: 1.0, copSeen: 1.5 },
-  coolPerCleanDay: 1.0,
-  doorHeatWeight: 0.5, // Saturday = clamp(weekHeat + 0.5·doorHeat, 0, max)
-  copPatrolAt: 3.0,
 };
-
-/* ── THE FIGHT ────────────────────────────────────────────────────────────
-   Its OWN hp table. Importing BOSSES' 100hp would be a 40-second fight, and
-   there are twenty of them in a week. 45 base lands at 25–30s. */
-export const FIGHT = {
-  baseHp: 45,
-  hpFloor: 14,
-  knockdownsToTko: 1,
-  /* 220ms is the stock tell floor and it is FATAL here: the answer is a CARD
-     you have to READ, not a direction you can flinch. BOSSES.steele already
-     carries tellFloor 420 in production for exactly this reason — inherit
-     the lesson rather than rediscovering it in play. */
-  tellFloorMs: 440,
-  tellBaseMs: 900,
-  counterWindowMs: 480,
-  deckSize: 3,
-  closeStreak: 3, // clean counters in a row → THE CLOSE
-  closeSlowMo: 0.35,
-  closeMs: 500,
-  eatItReduction: 0.45, // no card for this family? EAT IT. Costs you, never fatal.
-  composureDrain: { hit: 9, wrongCard: 12, mash: 3, volume: 2 },
-  composureTiers: [70, 40, 18], // → steady / tight / rattled / gone
-};
-
-/* ── THE THREE STREETS ────────────────────────────────────────────────────
-   The replay ladder, exactly as the original. */
-export const STREETS = [
-  { n: 1, noSolicit: 6, mercy: true, aimGhost: true, traffic: 1.0, scoreMul: 1 },
-  { n: 2, noSolicit: 10, mercy: false, aimGhost: true, traffic: 1.25, scoreMul: 2 },
-  { n: 3, noSolicit: 14, mercy: false, aimGhost: false, traffic: 1.5, scoreMul: 3, copsFromMonday: true },
-];
 
 /* ── THE STREET, LONGITUDINALLY ───────────────────────────────────────────
    40m of frontage per house, ALTERNATING sides. Alternating is what turns
@@ -467,6 +361,13 @@ export const HAZARDS = {
   bundle: { everyM: [95, 180], w: 1.2, l: 1.2, gives: 6, atX: [3.2, 6.4, 17.6, 20.8] },
 };
 export const CRASH = { invulnS: 1.6, recoverS: 0.9, speedAfter: 4.0 };
+
+/* Three crashes and the run is over. This used to be LIVES_PER_DAY and lived
+   in the seven-day week; it was never a week concept — it is how many times
+   you get to hit a parked car before the bag goes home. Running out ends the
+   RUN, never the game: you still walk the street and knock, you just do it
+   with whatever hangers you had already placed. */
+export const LIVES_PER_RUN = 3;
 export const AIR = { throwOk: true, zBonus: 0.55 }; // a throw off a ramp arrives higher
 
 /* ── PERF BUDGET ──────────────────────────────────────────────────────────
@@ -477,6 +378,5 @@ export const PERF = { drawBudgetMs: 8, maxProps: 6 };
 
 export default {
   LANE_TOTAL_M, BANDS, SURFACE, SEGWAY, CART, HANGER, FACADE, MAILBOX,
-  OUTCOMES, LEAD, KNOCK, STANCE, WINDOWS, QUOTA, DAYS, GRUDGE, HEAT,
-  FIGHT, STREETS, CAM, PERF,
+  OUTCOMES, LEAD, GRUDGE, HEAT, HAZARDS, CAM, PERF,
 };

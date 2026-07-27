@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — headless self-test.
+   THE ROUTE — headless self-test.
 
-       node scripts/superknock-selftest.mjs
+       node scripts/route-selftest.mjs
 
    This repo has no test runner installed, and does not need one: everything
    worth proving here is a pure function of numbers. Plain node:assert.
@@ -18,51 +18,26 @@
    ════════════════════════════════════════════════════════════════════════ */
 import assert from "node:assert/strict";
 import {
-  HANGER, MAILBOX, FACADE, SEGWAY, CART, KNOCK, QUOTA, LEAD, FIGHT,
-  BANDS, LANE_TOTAL_M, ROAD_CENTER_X, arrivalZ, flightTime, knockWindow,
-  DAY_REAL_S, WINDOWS, HOUSE_COUNT, HOUSE_SPACING_M,
-} from "../src/components/anger/superknock/skTuning.js";
+  HANGER, MAILBOX, FACADE, SEGWAY, CART, LEAD,
+  BANDS, LANE_TOTAL_M, ROAD_CENTER_X, arrivalZ, flightTime,
+  HOUSE_COUNT, HOUSE_SPACING_M,
+} from "../src/components/anger/route/skTuning.js";
 import {
   buildStreet, targetBoxes, mailboxBox, houseAt, rng, FAMILIES, PROPS,
-} from "../src/components/anger/superknock/skStreet.js";
+} from "../src/components/anger/route/skStreet.js";
 import {
   resolveThrow, predictLanding, zAt, groundTime, hangerAt, launch, stepHanger,
   MAX_REACH, windowMs, LAWN_PAD_M, zoneFor,
-} from "../src/components/anger/superknock/skThrow.js";
+} from "../src/components/anger/route/skThrow.js";
 import {
   createRide, stepRide, throwHanger, rideResult, surfaceMul, bandAt,
-} from "../src/components/anger/superknock/skRideSim.js";
-import { STREET_LENGTH_M, GRUDGE, SURPLUS_BANK_CAP } from "../src/components/anger/superknock/skTuning.js";
-import { PORCH, porchProject, porchRect } from "../src/components/anger/superknock/skStreet.js";
+} from "../src/components/anger/route/skRideSim.js";
+import { STREET_LENGTH_M } from "../src/components/anger/route/skTuning.js";
 import {
-  createWeek, grudgeTier, houseState, applyRide, applyDoor, endDay, quotaFor,
-  expectedSales, packHouses, unpackHouses, WEDNESDAY, SUNDAY, FINAL_HOUSE,
-} from "../src/components/anger/superknock/skWeek.js";
-import {
-  sweetBand, meterVerdict, createKnockMeter, stepKnockMeter, stopKnockMeter,
-  canRetry, knockOutcome, createWait, stepWait,
-} from "../src/components/anger/superknock/skKnock.js";
-import {
-  createFight, stepFight, playCard, eatIt, closeIt, walkAway, playerPower,
-  packFight, unpackFight,
-} from "../src/components/anger/superknock/skFight.js";
-import { CARDS, TELLS, OBJECTIONS, REBUTTALS } from "../src/components/anger/superknock/skObjections.js";
-import { saveSize } from "../src/components/anger/superknock/skStore.js";
-import { readFileSync } from "node:fs";
-
-/* Boxer.jsx cannot be imported by node, so its POSES table is read as TEXT.
-   Worth the ugliness: a tell whose name has no matching pose silently falls
-   back to `guard`, the boss becomes unreadable, and NO BUILD CATCHES IT.
-   The Door hit exactly this and added a static check for the same reason. */
-const POSE_NAMES = (() => {
-  const src = readFileSync(new URL("../src/components/anger/door/Boxer.jsx", import.meta.url), "utf8");
-  const block = src.slice(src.indexOf("const POSES"), src.indexOf("export const POSE_NAMES"));
-  return [...block.matchAll(/^\s{2}(\w+):\s*P\(/gm)].map((m) => m[1]);
-})();
-import {
-  createClock, remaining, charge, pauseClock, resumeClock, timeOfDay, isOut,
-  packClock, unpackClock,
-} from "../src/components/anger/superknock/skClock.js";
+  routeStreet, houseForSlug, leadsBySlug, DOOR_SLOTS, _resetRouteStreetForTest,
+} from "../src/components/anger/route/routeStreet.js";
+import { applyLead, LEAD_TABLE, LEAD_KEYS } from "../src/components/anger/doorLeadTransform.js";
+import { DOOR_LADDER, getDoorLevel } from "../src/components/anger/doorLevels.js";
 
 /* ── harness ──────────────────────────────────────────────────────────────*/
 let N = 0, FAILED = 0;
@@ -179,13 +154,6 @@ console.log(`  full run at cruise: ${runS.toFixed(0)}s · a house every ${(HOUSE
 /* ═══════════════════════════════════════════════════════════════════════
    TABLE 5 — THE KNOCK, day by day.
    ═══════════════════════════════════════════════════════════════════════ */
-head("TABLE 5 · THE KNOCK — sweet-spot window by day");
-const DAYNAME = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-for (let d = 0; d < 7; d++) {
-  const w = knockWindow(d);
-  console.log(`  ${DAYNAME[d]}  sweep ${f2(w.sweepS)}s × ${(w.widthPct * 100).toFixed(1)}% = ${f0(w.windowS * 1000)}ms   quota ${QUOTA[d]}`);
-}
-
 /* ═══════════════════════════════════════════════════════════════════════
    ASSERTIONS
    ═══════════════════════════════════════════════════════════════════════ */
@@ -388,8 +356,7 @@ head("SUITE 9 · the street is deterministic");
   for (let i = 1; i < a.houses.length; i++) {
     ok(a.houses[i].side !== a.houses[i - 1].side, `house ${i} alternates sides — a rhythm, not a stutter`);
   }
-  eq(a.houses.filter((h) => h.noSolicit).length, 6, "street 1 has six NO SOLICITING houses");
-  eq(buildStreet({ street: 3, seed: 99 }).houses.filter((h) => h.noSolicit).length, 14, "street 3 has fourteen");
+  eq(a.houses.filter((h) => h.noSolicit).length, 6, "six of the twenty put up a NO SOLICITING sign");
   a.houses.forEach((h) => {
     ok(h.props.length >= 2 && h.props.length <= 3, `house ${h.idx} has 2-3 props`);
     ok(h.families.length === 5, `house ${h.idx} ranks all five objection families`);
@@ -457,64 +424,6 @@ head("SUITE 12 · the aim ghost cannot lie");
       eq(g.pts, r.pts, `…including the score @x${x} v${vF}`);
     }
   }
-}
-
-head("SUITE 13 · lead states drive the fight");
-{
-  ok(LEAD.hot.hpMul < LEAD.warm.hpMul, "a HOT lead is an easier fight");
-  ok(LEAD.hostile.hpMul > LEAD.warm.hpMul && LEAD.hostile.dmgMul > 1, "a HOSTILE lead is a harder one");
-  ok(LEAD.hostile.payMul === 3, "…and pays triple, which is why smashing a window is a real choice");
-  eq(LEAD.dead.openS, Infinity, "a DEAD lead never opens");
-  ok(LEAD.hot.openS < LEAD.warm.openS && LEAD.warm.openS < LEAD.lukewarm.openS, "warmer doors open sooner");
-  ok(LEAD.hostile.openS < LEAD.hot.openS, "a hostile door is FLUNG open");
-  ok(LEAD.hot.grace, "a hot lead opens with his guard down");
-}
-
-head("SUITE 14 · the knock meter is fair on Sunday");
-{
-  for (let d = 0; d < 7; d++) {
-    const w = knockWindow(d);
-    ok(w.windowS * 1000 >= 120, `${DAYNAME[d]} window ${Math.round(w.windowS * 1000)}ms ≥ 120ms (touch latency is 30-60ms)`);
-  }
-  ok(knockWindow(6).windowS < knockWindow(0).windowS, "Sunday is harder than Monday");
-  ok(KNOCK.softRetry, "a too-soft knock is ALWAYS retryable — a sub-100ms hard fail at the end of a 7-minute clock is not a game");
-  ok(KNOCK.latencyOffsetS > 0, "the accepted band is offset early to eat touch latency");
-}
-
-head("SUITE 15 · the day and the week close");
-{
-  const total = WINDOWS.reduce((a, w) => a + w.realS, 0);
-  eq(total, DAY_REAL_S, "the three windows sum to the day");
-  const midday = WINDOWS.find((w) => w.key === "midday");
-  const golden = WINDOWS.find((w) => w.key === "golden");
-  ok(midday.openMul < 1 && golden.openMul > 1, "9-to-5 knocking fails; golden hours pay — the lesson is mechanical");
-  ok(golden.realS > midday.realS, "…and GOLDEN gets the most real playtime, so the lesson isn't just five dead minutes");
-
-  // the arithmetic that decides whether the week is possible at all
-  const perHouse = 6 + 5 + 7 + 28; // travel + knock + wait + fight
-  const houses = DAY_REAL_S / perHouse;
-  console.log(`   ~${houses.toFixed(1)} houses per day at ${perHouse}s each`);
-  for (let d = 0; d < 7; d++) {
-    const need = QUOTA[d];
-    ok(houses >= need + 1, `${DAYNAME[d]}: ${houses.toFixed(1)} houses available vs quota ${need} — reachable with room to fail`);
-  }
-  eq(QUOTA.length, 7, "seven quotas");
-  ok(QUOTA[6] === Math.max(...QUOTA), "Sunday is the hardest day");
-}
-
-head("SUITE 16 · the fight is 30 seconds, not 40");
-{
-  ok(FIGHT.baseHp <= 50, `base hp ${FIGHT.baseHp} — twenty 40-second fights a week is a different, worse game`);
-  eq(FIGHT.knockdownsToTko, 1, "one knockdown ends it");
-  ok(FIGHT.tellFloorMs >= 420, `tell floor ${FIGHT.tellFloorMs}ms — 220ms is fatal when the answer is a CARD you must read`);
-  ok(FIGHT.counterWindowMs >= 300, "the counter window is readable");
-  eq(FIGHT.deckSize, 3, "three cards, locked at the knock");
-  ok(FIGHT.deckSize < FAMILIES.length, "…out of five families, so you must guess two of them wrong sometimes");
-  ok(FIGHT.eatItReduction > 0 && FIGHT.eatItReduction < 1, "EAT IT costs you but is never fatal — no unwinnable hand");
-  const hotHp = Math.round(FIGHT.baseHp * LEAD.hot.hpMul);
-  const hostileHp = Math.round(FIGHT.baseHp * LEAD.hostile.hpMul);
-  console.log(`   hot ${hotHp}hp · warm ${FIGHT.baseHp}hp · hostile ${hostileHp}hp`);
-  ok(hotHp >= FIGHT.hpFloor, "even the easiest fight is a fight");
 }
 
 head("SUITE 17 · the ride — the four rules that cannot break");
@@ -648,423 +557,112 @@ head("SUITE 17 · the ride — the four rules that cannot break");
   }
 }
 
-head("SUITE 18 · the canvas and the SVG cannot disagree");
+head("SUITE 18 · the seam — five of twenty are Door levels");
 {
-  /* THE seam. The ride canvas draws a house at ride scale, the block strip
-     draws it at 26px, and the porch draws it in SVG at full fidelity — on
-     three different days, in three different files. If they ever disagree
-     about where the handle is, "the hanger you threw IS the lead state"
-     dies, and it dies silently. All three read targetBoxes(). */
-  const h = HOUSE_L;
-  const boxes = targetBoxes(h);
-  for (const b of boxes) {
-    const r = porchRect(b, h);
-    ok(r.w > 0, `${b.key}: porch rect has positive width`);
-    ok(r.h > 0, `${b.key}: porch rect has positive height`);
-    ok(r.x >= -1 && r.x + r.w <= PORCH.w + 1, `${b.key}: fits the porch viewBox horizontally`);
-    ok(r.y >= -1 && r.y + r.h <= PORCH.h + 1, `${b.key}: fits the porch viewBox vertically`);
-  }
-  const hb = boxes.find((b) => b.key === "handle");
-  const db = boxes.find((b) => b.key === "door");
-  const hr = porchRect(hb, h), dr = porchRect(db, h);
-  ok(hr.x >= dr.x - 0.01 && hr.x + hr.w <= dr.x + dr.w + 0.01, "the handle still sits inside the door AFTER projection");
-  ok(hr.y >= dr.y - 0.01 && hr.y + hr.h <= dr.y + dr.h + 0.01, "…in both axes");
-  const mr = porchRect(boxes.find((b) => b.key === "mat"), h);
-  near(mr.y + mr.h, PORCH.h, 0.01, "the mat still lands on the ground after projection");
-  /* ORDER: the projection must not flip the world. Up must stay up. */
-  ok(porchProject(0, 2).y < porchProject(0, 0).y, "higher z projects HIGHER on the porch, not lower");
-  ok(porchProject(6, 0).x > porchProject(3, 0).x, "further along the frontage projects further right");
-  /* and every house projects identically, so the art is house-independent */
-  const ref = JSON.stringify(targetBoxes(STREET.houses[0]).map((b) => porchRect(b, STREET.houses[0])).map((r) => [Math.round(r.x * 100), Math.round(r.y * 100)]));
-  STREET.houses.forEach((hh) => {
-    const got = JSON.stringify(targetBoxes(hh).map((b) => porchRect(b, hh)).map((r) => [Math.round(r.x * 100), Math.round(r.y * 100)]));
-    eq(got, ref, `house ${hh.idx} projects identically to the porch`);
+  const st = routeStreet();
+  eq(st.houses.length, 20, "twenty houses on the block");
+  const doors = st.houses.filter((h) => h.kind === "door");
+  eq(doors.length, 5, "five of them are Door levels");
+  eq(st.houses.filter((h) => h.kind === "filler").length, 15, "fifteen are just windows");
+
+  DOOR_LADDER.forEach((lv) => {
+    const h = houseForSlug(lv.id);
+    ok(h, `${lv.id} has a house on the street`);
+    eq(h.kind, "door", `${lv.id}'s house is workable`);
+    eq(h.title, lv.title, `${lv.id}'s house carries its title`);
   });
+  /* The slots preserve The Door's original proportional spacing on the old
+     2480px block, so a returning player walks the same shape of street. */
+  const order = doors.map((h) => h.slug);
+  eq(JSON.stringify(order), JSON.stringify(["first", "steele", "persist", "steel", "callback"]),
+    "the five appear in ladder order along the street");
+  for (let i = 1; i < doors.length; i++) ok(doors[i].y > doors[i - 1].y, `door ${i} is further up the street than ${i - 1}`);
+
+  ok(st.gateY > 0 && st.gateY < houseForSlug("steel").y, "the gate stands before the gated house");
+  ok(st.gateY > houseForSlug("persist").y, "…and after the one before it");
+
+  // determinism: the street you learn is the street you get back
+  _resetRouteStreetForTest();
+  eq(JSON.stringify(routeStreet().houses.map((h) => [h.idx, h.slug, Math.round(h.y)])),
+    JSON.stringify(st.houses.map((h) => [h.idx, h.slug, Math.round(h.y)])),
+    "the route is the SAME street every session — you are meant to learn it");
+
+  // index→slug translation, and fillers dropped
+  const table = leadsBySlug({ 2: "hot", 3: "window", 5: "hostile", 11: "dead", 17: "warm" });
+  eq(table.first, "hot", "house 2's lead lands on `first`");
+  eq(table.steele, "hostile", "house 5's lands on `steele`");
+  eq(table.callback, "warm", "house 17's lands on `callback`");
+  eq(table["3"], undefined, "a filler's lead is dropped — it was only ever points");
+  eq(Object.keys(table).length, 3, "…and only the doors survive");
 }
 
-head("SUITE 19 · the week, and Wednesday");
+head("SUITE 19 · applyLead — the flyer run becomes the door");
 {
-  const w = createWeek({ street: 1, seed: 7 });
-  eq(w.houses.length, 20, "twenty house records");
-  eq(w.strikes, 0, "no strikes on Monday morning");
+  const base = getDoorLevel("first");
+  const steele = getDoorLevel("steele");
 
-  // grudge tiers escalate the way the bible says
-  eq(grudgeTier(0).key, "none", "a clean house has no tier");
-  eq(grudgeTier(2).key, "watchful", "2 = curtain twitches");
-  eq(grudgeTier(5).key, "armed", "5 = floodlight");
-  eq(grudgeTier(9).key, "hostile", "9 = dog out");
-  eq(grudgeTier(14).key, "boss", "14 = he's on the lawn");
-  eq(grudgeTier(14).openMul, 0, "…and that door never opens again");
-  for (let i = 1; i < GRUDGE.length; i++) {
-    ok(GRUDGE[i].openMul < GRUDGE[i - 1].openMul, `tier ${GRUDGE[i].key} opens less often than ${GRUDGE[i - 1].key}`);
-  }
+  // purity
+  const snapshot = JSON.stringify(base);
+  applyLead(base, "hostile");
+  applyLead(base, "dead");
+  eq(JSON.stringify(base), snapshot, "applyLead NEVER mutates the authored level — a replay would compound");
 
-  /* THE KEYSTONE. Monday's window, Wednesday's sign — and it has to be the
-     PLAYER'S action that put it there, not a difficulty curve. */
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    applyRide(wk, { leads: { 4: "hostile" }, grudge: { 4: 4 }, ruts: [], score: 1000, heat: 1 }, 0);
-    ok(wk.houses[4].plywood, "a smashed window boards up");
-    ok(wk.houses[4].grudge >= 2, "…and he remembers");
-    const monday = houseState(wk, 4, 0, false);
-    ok(!monday.noSolicit, "no sign on Monday");
-    const wednesday = houseState(wk, 4, WEDNESDAY, false);
-    ok(wednesday.noSolicit, "THE KEYSTONE: a sign is up on Wednesday, on the house YOU broke");
-    ok(wednesday.openMul < monday.openMul, "…and it is materially harder to open");
-    const clean = houseState(wk, 6, WEDNESDAY, false);
-    ok(!clean.noSolicit, "a house you never touched has no sign — the signs are yours, not the game's");
-  }
-  {
-    // tyre ruts alone are enough to earn one
-    const wk = createWeek({ street: 1, seed: 7 });
-    applyRide(wk, { leads: {}, grudge: { 8: 1, 9: 1 }, ruts: [{ h: 8 }, { h: 9 }], score: 0, heat: 0 }, 0);
-    applyRide(wk, { leads: {}, grudge: { 8: 1 }, ruts: [{ h: 8 }], score: 0, heat: 0 }, 1);
-    ok(houseState(wk, 8, WEDNESDAY, false).noSolicit, "two days of tyre tracks also buys a sign");
-    ok(wk.houses[8].tracked, "…and the ruts are recorded to be drawn");
-  }
+  // identity
+  eq(applyLead(base, "none"), base, "`none` is the identity — skipping the run plays what shipped");
+  eq(applyLead(base, "warm"), base, "`warm` is the identity too — landing on the door is baseline");
+  eq(applyLead(base, undefined), base, "…and so is a missing lead");
 
-  // a sale warms the neighbours
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    applyDoor(wk, 10, "sale", 0);
-    ok(houseState(wk, 9, 0, false).warmedByNeighbour, "your yard sign warms the house on the left");
-    ok(houseState(wk, 11, 0, false).warmedByNeighbour, "…and the one on the right");
-    ok(!houseState(wk, 14, 0, false).warmedByNeighbour, "…but not the whole street");
-    ok(houseState(wk, 9, 0, false).openMul > 1, "and that is a real advantage, not a label");
-    ok(!houseState(wk, 10, 0, false).workable, "a closed door is not knocked on again");
-  }
+  // the table actually bites
+  const hot = applyLead(base, "hot");
+  const dead = applyLead(base, "dead");
+  ok(hot.rounds[0].taps < base.rounds[0].taps, `a hook takes ${base.rounds[0].taps} knocks down to ${hot.rounds[0].taps}`);
+  ok(dead.rounds[0].taps > base.rounds[0].taps, `the bushes take it up to ${dead.rounds[0].taps}`);
+  eq(hot.rounds[0].drain, false, "a hot lead strips the drain off the first round");
+  ok(dead.rounds.every((r) => r.drain === true), "a dead lead makes every round bleed back");
 
-  // dead leads, and the street-1 mercy
-  {
-    const s1 = createWeek({ street: 1, seed: 7 });
-    applyRide(s1, { leads: { 2: "dead" }, grudge: {}, ruts: [], score: 0, heat: 0 }, 0);
-    ok(s1.houses[2].dead, "a hanger in the bushes kills the lead");
-    ok(!houseState(s1, 2, 1, false).workable, "…and it is still dead on Tuesday");
-    const back = applyRide(s1, { leads: { 2: "hot" }, grudge: {}, ruts: [], score: 0, heat: 0 }, 3);
-    ok(!s1.houses[2].dead, "STREET 1 MERCY: a hook later in the week brings it back");
-    eq(back[2], "hot", "…as a hot lead");
-    ok(s1.houses[2].revived, "…exactly once");
+  // hp
+  eq(hot.finale.hpMul, LEAD_TABLE.hot.hp, "a hot lead scales the bout too");
+  eq(applyLead(steele, "hot").finale.hpMul, undefined,
+    "…but NEVER Steele: his HP is already arithmetic off the night gallery, and scaling twice would double-pay the whole phase");
+  eq(applyLead(steele, "hostile").finale.hpFrom, "objection", "…and hpFrom survives untouched");
 
-    const s3 = createWeek({ street: 3, seed: 7 });
-    applyRide(s3, { leads: { 2: "dead" }, grudge: {}, ruts: [], score: 0, heat: 0 }, 0);
-    applyRide(s3, { leads: { 2: "hot" }, grudge: {}, ruts: [], score: 0, heat: 0 }, 3);
-    ok(s3.houses[2].dead, "STREET 3: dead is dead. No mercy.");
-  }
-
-  // quota, strikes, and NOT losing the week on one bad Sunday
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    wk.salesByDay[0] = 0;
-    const r1 = endDay(wk, 0);
-    eq(r1.met, false, "missing Monday's quota of 1 is a miss");
-    eq(wk.strikes, 1, "…and costs a strike");
-    eq(wk.fired, false, "…but NOT the week");
-    eq(wk.day, 1, "…and the week rolls on to Tuesday");
-    wk.salesByDay[1] = 0;
-    endDay(wk, 1);
-    eq(wk.fired, false, "two strikes is still not fired");
-    wk.salesByDay[2] = 0;
-    endDay(wk, 2);
-    eq(wk.strikes, 3, "three strikes");
-    eq(wk.fired, true, "…and NOW you're fired");
-  }
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    wk.salesByDay[0] = 4;
-    const r = endDay(wk, 0);
-    eq(r.met, true, "beating quota is a hit");
-    eq(wk.banked, SURPLUS_BANK_CAP, `surplus banks, capped at ${SURPLUS_BANK_CAP}`);
-    ok(wk.banked <= SURPLUS_BANK_CAP, "a monster day helps tomorrow without trivialising it");
-  }
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    wk.houses[3].grudge = 3;
-    const r = endDay(wk, WEDNESDAY - 1);
-    ok(r.signsComingTomorrow >= 1, "Tuesday night TELLS you the signs are coming — the debt is named out loud");
-  }
-
-  // the final house
-  {
-    const wk = createWeek({ street: 1, seed: 7 });
-    ok(houseState(wk, FINAL_HOUSE, 0, false).locked, "the house at the end is locked on Monday");
-    ok(!houseState(wk, FINAL_HOUSE, SUNDAY, false).locked, "…and opens on Sunday");
-  }
-
-  // and the gate: can a competent player actually clear these quotas?
-  for (let d = 0; d < 7; d++) {
-    const can = expectedSales(d);
-    ok(can >= quotaFor(d), `${DAYNAME[d]}: a competent day yields ~${can.toFixed(1)} sales vs quota ${quotaFor(d)}`);
-  }
-}
-
-head("SUITE 20 · the knock");
-{
-  for (let d = 0; d < 7; d++) {
-    const band = sweetBand(d);
-    ok(band.to > band.from, `${DAYNAME[d]}: the sweet band exists`);
-    eq(meterVerdict((band.from + band.to) / 2, d), "sweet", `${DAYNAME[d]}: dead centre is sweet`);
-    eq(meterVerdict(0.02, d), "soft", `${DAYNAME[d]}: barely tapping it is too soft`);
-    eq(meterVerdict(0.99, d), "hard", `${DAYNAME[d]}: hammering it is too hard`);
-  }
-  {
-    const m = createKnockMeter(0);
-    ok(m.sweepS > 0, "the meter sweeps");
-    let bounced = false;
-    for (let i = 0; i < 600; i++) { stepKnockMeter(m, 1 / 60); if (m.dir === -1) bounced = true; }
-    ok(bounced, "it ping-pongs rather than teleporting back to zero");
-    ok(m.pos >= 0 && m.pos <= 1, "…and stays in range");
-    m.pos = 0.02;
-    stopKnockMeter(m);
-    eq(m.verdict, "soft", "a soft stop is judged soft");
-    ok(canRetry(m), "…and a soft knock is ALWAYS retryable");
-    m.pos = 0.99; m.stopped = false;
-    stopKnockMeter(m);
-    ok(!canRetry(m), "…but a too-hard one is not");
-  }
-  {
-    // lead state governs how fast the door opens, deterministically
-    const o = (lead) => knockOutcome({ lead, houseOpenMul: 1, roll: 0 });
-    ok(o("hot").openS < o("warm").openS, "a hot door opens sooner than a warm one");
-    ok(o("warm").openS < o("lukewarm").openS, "…and warm sooner than lukewarm");
-    ok(o("hostile").openS < o("hot").openS, "a hostile door is FLUNG open");
-    eq(o("dead").opens, false, "a dead door never opens");
-    eq(knockOutcome({ lead: "hot", houseOpenMul: 0, roll: 0 }).opens, false, "…nor does a boss-tier grudge");
-  }
-  {
-    // stance is a real modifier, not flavour
-    const back = knockOutcome({ lead: "warm", houseOpenMul: 1, stance: "back", roll: 0.85 });
-    const crowd = knockOutcome({ lead: "warm", houseOpenMul: 1, stance: "crowd", roll: 0.85 });
-    ok(back.opens && !crowd.opens, "standing back gets you in where crowding the door does not");
-    ok(crowd.aggro > back.aggro, "…and crowding him starts the fight angrier");
-    const hard = knockOutcome({ lead: "warm", houseOpenMul: 1, verdict: "hard", roll: 0 });
-    ok(hard.aggro > 1, "hammering the door costs you for the WHOLE fight");
-  }
-  {
-    const out = knockOutcome({ lead: "hot", houseOpenMul: 1, roll: 0 });
-    const w = createWait(out);
-    for (let i = 0; i < 60 * 20; i++) stepWait(w, 1 / 60);
-    ok(w.opened, "a hot door opens inside the wait");
-    const dead = createWait(knockOutcome({ lead: "dead", houseOpenMul: 1, roll: 0 }));
-    for (let i = 0; i < 60 * 20; i++) stepWait(dead, 1 / 60);
-    ok(dead.expired && !dead.opened, "…and a dead one wastes the full fifteen seconds if you let it");
-  }
-}
-
-head("SUITE 21 · the fight");
-{
-  const house = STREET.houses[0];
-  const mkF = (over = {}) => createFight({ house, lead: "warm", deck: ["reflex", "deferral", "hostile"], aggro: 1, ...over });
-
-  {
-    const f = mkF();
-    ok(f.maxHp <= 50, `warm fight is ${f.maxHp}hp — not the 100hp that makes a 40-second bout`);
-    ok(mkF({ lead: "hot" }).maxHp < f.maxHp, "a HOT lead is a shorter fight — the hook pays off here");
-    ok(mkF({ lead: "hostile" }).maxHp > f.maxHp, "a HOSTILE lead is a longer one");
-    ok(mkF({ lead: "hostile" }).dmgMul > f.dmgMul, "…and he hits twice as hard");
-    eq(f.deck.length, FIGHT.deckSize, "three cards");
-    eq(f.composure, 100, "you start composed");
-  }
-  {
-    // the deck is LOCKED: a family you didn't bring cannot be played
-    const f = mkF();
-    const r = playCard(f, "ego");
-    eq(r.verdict, "notheld", "you cannot play a card you did not bring");
-  }
-  {
-    // EAT IT is always available and never fatal on its own
-    const f = mkF();
-    let guard = 0;
-    while (f.phase !== "tell" && guard++ < 600) stepFight(f, 1 / 60);
-    const r = eatIt(f);
-    eq(r.verdict, "eat", "EAT IT works when a family lands that you didn't bring");
-    ok(f.composure > 0, "…and does not kill you outright");
-    ok(f.composure < 100, "…but it costs");
-  }
-  {
-    // a full fight of nothing but EAT IT should LOSE, not stalemate
-    const f = mkF();
-    let guard = 0;
-    while (!f.result && guard++ < 60 * 200) {
-      stepFight(f, 1 / 60);
-      if (f.phase === "tell") eatIt(f);
-    }
-    ok(f.result, "a fight of pure blocking resolves");
-    ok(f.result !== "sale", "…and never closes the sale — you have to actually counter");
-  }
-  {
-    /* A well-played fight: you READ THE YARD and brought the three families
-       his props actually predict, then countered on time. Played across six
-       doors, because the two families you didn't bring still show up and
-       break a streak — which is the whole reason the deck is three of five. */
-    const play = (hh, lead) => {
-      const f = createFight({ house: hh, lead, deck: hh.families.slice(0, FIGHT.deckSize), aggro: 1 });
-      let guard = 0, closes = 0, ate = 0;
-      while (!f.result && guard++ < 60 * 400) {
-        stepFight(f, 1 / 60);
-        if (f.closeReady) { closeIt(f); closes++; continue; }
-        if (f.phase === "tell" && f.atk) {
-          const ms = f.strikeAt - f.t * 1000;
-          if (ms <= 60 && ms >= -30) {
-            if (f.deck.includes(f.atk.family)) playCard(f, f.atk.family);
-            else { eatIt(f); ate++; }
-          }
+  // the guards
+  LEAD_KEYS.forEach((k) => {
+    const lv = applyLead(base, k);
+    ok(Array.isArray(lv.rounds) && lv.rounds.length > 0, `${k}: rounds stays a non-empty array`);
+    ok(lv.finale && lv.finale.bout, `${k}: finale.bout survives`);
+    lv.rounds.forEach((r, i) => {
+      ok(r.taps > 0, `${k}: round ${i} taps stays > 0 — zero would make --p a NaN and blank the door`);
+      ok(Number.isInteger(r.taps), `${k}: round ${i} taps is a whole number`);
+    });
+  });
+  DOOR_LADDER.forEach((lv) => {
+    LEAD_KEYS.forEach((k) => {
+      const out = applyLead(lv, k);
+      out.rounds.forEach((r, i) => {
+        const src = lv.rounds[i];
+        ok(r.taps > 0, `${lv.id}/${k}: round ${i} survives`);
+        if (src.special === "bout") ok(r.taps >= 1, `${lv.id}/${k}: a bout round's placeholder taps never hits zero`);
+        if (src.skin === "steel" || src.skin === "gate") {
+          eq(r.skin, src.skin, `${lv.id}/${k}: a ${src.skin} round keeps its slab — a shifted skin would swap steel for wood mid-level`);
         }
-      }
-      return { f, closes, ate };
-    };
-
-    let totalCloses = 0, sales = 0, dur = 0;
-    for (let i = 0; i < 6; i++) {
-      const r = play(STREET.houses[i], "warm");
-      totalCloses += r.closes;
-      if (r.f.result === "sale") sales++;
-      dur += r.f.t;
-      ok(r.f.result, `house ${i}: a played fight resolves`);
-    }
-    eq(sales, 6, "reading the yard and countering on time closes every door");
-    ok(totalCloses > 0, "THE CLOSE fires — the finisher is reachable in normal play");
-    const avg = dur / 6;
-    ok(avg >= 6 && avg <= 34, `a well-played fight averages ${avg.toFixed(1)}s (want 6-34s, not the 40s+ a 100hp bar gives)`);
-    console.log(`   six doors, played well: ${sales}/6 closed · ${totalCloses} finishers · ${avg.toFixed(1)}s average`);
-
-    /* And the fallback: a player who NEVER lands three in a row must still be
-       able to grind the sale out on counters alone. No hand is ever locked. */
-    const g = createFight({ house: STREET.houses[0], lead: "warm", deck: STREET.houses[0].families.slice(0, 3), aggro: 1 });
-    let guard = 0, counters = 0;
-    while (!g.result && guard++ < 60 * 400) {
-      stepFight(g, 1 / 60);
-      if (g.closeReady) { g.closeReady = false; g.streak = 0; continue; } // refuse the finisher
-      if (g.phase === "tell" && g.atk) {
-        const ms = g.strikeAt - g.t * 1000;
-        if (ms <= 60 && ms >= -30) {
-          if (g.deck.includes(g.atk.family)) { playCard(g, g.atk.family); counters++; } else eatIt(g);
+        if (src.special === "chainsaw") {
+          ok(r.taps <= Math.ceil(src.taps * 1.2), `${lv.id}/${k}: the chainsaw cut is capped — taps is a DRAG LENGTH there, not a press count`);
         }
-      }
-    }
-    eq(g.result, "sale", "…and a player who never uses THE CLOSE can still grind the sale out on counters");
-  }
-  {
-    // composure scales damage — rattled is expensive, not instantly fatal
-    const a = mkF(); const b = mkF();
-    b.composure = 20;
-    ok(playerPower(b) < playerPower(a), "a rattled rep hits softer");
-    ok(playerPower(b) > 0.4, "…but never so soft that the fight is unwinnable");
-  }
-  {
-    // resume: five numbers, and always at the top of a fresh tell
-    const f = mkF();
-    for (let i = 0; i < 200; i++) stepFight(f, 1 / 60);
-    f.hp = 20; f.composure = 55;
-    const snap = packFight(f);
-    ok(snap && snap.hp === 20 && snap.composure === 55, "a live fight packs down to five numbers");
-    ok(JSON.stringify(snap).length < 200, "…and is tiny");
-    const back = unpackFight(snap, house);
-    eq(back.hp, 20, "…and restores his bar");
-    eq(back.composure, 55, "…and yours");
-    eq(back.phase, "intro", "RESUMES AT THE TOP OF A FRESH TELL — never mid-strike, into damage you never saw");
-    const done = mkF(); walkAway(done);
-    eq(packFight(done), null, "a finished fight is not resumable");
-  }
-  {
-    // walking away on a nearly-won door books a callback rather than nothing
-    const f = mkF();
-    f.hp = f.maxHp * 0.2;
-    walkAway(f);
-    eq(f.result, "callback", "leaving a door you were winning books a callback");
-    const g = mkF();
-    walkAway(g);
-    eq(g.result, "walkaway", "…leaving a fresh one does not");
-  }
-  {
-    // every family has a pose the Boxer rig can actually draw
-    Object.entries(TELLS).forEach(([fam, t]) => {
-      ok(POSE_NAMES.includes(t.pose), `${fam}'s tell "${t.pose}" is a real Boxer pose — an unknown tell silently falls back to guard and the boss becomes unreadable`);
-      ok(t.tellMs >= FIGHT.tellFloorMs, `${fam}'s tell is at least the ${FIGHT.tellFloorMs}ms floor`);
-    });
-    eq(Object.keys(TELLS).length, 5, "five families");
-    eq(Object.keys(CARDS).length, 5, "five cards");
-    Object.values(CARDS).forEach((c) => {
-      eq(c.name.split(" ").length, 3, `"${c.name}" is a THREE-WORD INSTRUCTION, not a label`);
-      ok(c.name === c.name.toUpperCase(), `"${c.name}" is shouted`);
-    });
-    let objections = 0, rebuttals = 0;
-    Object.values(OBJECTIONS).forEach((l) => { objections += l.length; });
-    Object.values(REBUTTALS).forEach((l) => { rebuttals += l.length; });
-    ok(objections >= 40, `${objections} objections written (want ≥40)`);
-    ok(rebuttals >= 30, `${rebuttals} rebuttals written (want ≥30)`);
-  }
-}
-
-head("SUITE 22 · persistence");
-{
-  const w = createWeek({ street: 2, seed: 4242 });
-  w.day = 3;
-  w.strikes = 1;
-  w.score = 48200;
-  w.weekHeat = 3.4;
-  w.salesByDay = [1, 2, 0, 3, 0, 0, 0];
-  w.quotaMet = [true, true, false, true, false, false, false];
-  w.houses.forEach((h, i) => {
-    h.grudge = i % 13;
-    h.sold = i % 5 === 0;
-    h.plywood = i % 7 === 0;
-    h.dead = i % 6 === 0;
-    h.tracked = i % 3 === 0;
-    h.noSolicit = i % 4 === 0;
-  });
-
-  const packed = packHouses(w.houses);
-  eq(packed.length, 40, "twenty houses pack into forty characters");
-  const back = unpackHouses(packed);
-  w.houses.forEach((h, i) => {
-    eq(back[i].grudge, Math.min(15, h.grudge), `house ${i} grudge survives the round trip`);
-    ["sold", "plywood", "dead", "tracked", "noSolicit"].forEach((k) => {
-      eq(back[i][k], h[k], `house ${i} ${k} survives the round trip`);
+        if (src.special === "gallery" && src.gallery) {
+          eq(r.taps, src.taps, `${lv.id}/${k}: a gallery round ignores taps (it owns a 90s clock)`);
+          ok(r.gallery.seconds > 0, `${lv.id}/${k}: …and its clock is scaled instead`);
+        }
+      });
     });
   });
 
-  const size = saveSize(w);
-  ok(size < 400, `the whole week saves in ${size} bytes (budget 400)`);
-  console.log(`   save blob: ${size} bytes`);
-  ok(size < 3500, "…versus ~3.5KB for twenty raw house objects, uploaded inside the entire user_data blob");
-}
-
-head("SUITE 23 · the clock");
-{
-  const t0 = 1_000_000;
-  const c = createClock(t0);
-  near(remaining(c, t0), DAY_REAL_S, 0.01, "a fresh day is the full clock");
-  near(remaining(c, t0 + 60_000), DAY_REAL_S - 60, 0.01, "and it is DERIVED from the wall clock, never decremented");
-
-  /* THE DEVIATION FROM HOOPS. Hoops snaps forward on return because a
-     basketball quarter really did burn. A phone call must not cost you the
-     day. */
-  pauseClock(c, t0 + 60_000);
-  near(remaining(c, t0 + 600_000), DAY_REAL_S - 60, 0.01, "BANKED AND PAUSED — nine minutes in a phone call cost nothing");
-  resumeClock(c, t0 + 600_000);
-  near(remaining(c, t0 + 610_000), DAY_REAL_S - 70, 0.01, "…and it picks up exactly where it stopped");
-
-  charge(c, 20, t0 + 610_000);
-  near(remaining(c, t0 + 610_000), DAY_REAL_S - 90, 0.01, "a soft knock's 20s comes off the banked value AND re-anchors");
-  near(remaining(c, t0 + 620_000), DAY_REAL_S - 100, 0.01, "…and is not silently undone by the next read");
-
-  ok(!isOut(c, t0 + 620_000), "not out yet");
-  charge(c, 9999, t0 + 620_000);
-  ok(isOut(c, t0 + 620_000), "…and the day does end");
-
-  const tod0 = timeOfDay(createClock(t0), t0);
-  eq(tod0.window, "morning", "the day starts in the morning");
-  eq(tod0.text, "08:00", "at 08:00");
-  const late = createClock(t0, 10);
-  eq(timeOfDay(late, t0).window, "golden", "and ends in the golden hours");
-  ok(timeOfDay(late, t0).openMul > tod0.openMul, "…when far more doors open");
-  const mid = createClock(t0, DAY_REAL_S - 150);
-  eq(timeOfDay(mid, t0).window, "midday", "with a midday nobody is home for");
-  ok(timeOfDay(mid, t0).openMul < 1, "…which is the lesson, made mechanical");
-
-  const p = packClock(c, t0 + 620_000);
-  const u = unpackClock(p, t0 + 700_000);
-  near(remaining(u, t0 + 700_000), 0, 0.2, "the clock survives a resume");
+  // a dead lead must never lock you out of a five-level ladder
+  DOOR_LADDER.forEach((lv) => {
+    const d = applyLead(lv, "dead");
+    ok(d.rounds.every((r) => r.taps > 0 && r.taps < 200), `${lv.id}: even the worst lead stays playable, never a lockout`);
+  });
+  console.log(`   first: ${base.rounds.map((r) => r.taps).join("/")} knocks → hot ${hot.rounds.map((r) => r.taps).join("/")} · dead ${dead.rounds.map((r) => r.taps).join("/")}`);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */

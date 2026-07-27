@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — THE STREET. Generated, never authored.
+   THE ROUTE — THE STREET. Generated, never authored.
 
    Twenty houses, alternating sides, 40m apart, plus a kerbside mailbox each.
    Everything about a house — its paint, its props, which objections its owner
@@ -25,7 +25,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 import {
   FACADE, MAILBOX, HOUSE_COUNT, HOUSE_SPACING_M, STREET_START_M,
-  STREET_LENGTH_M, FACADE_L_X, FACADE_R_X, STREETS,
+  STREET_LENGTH_M, FACADE_L_X, FACADE_R_X,
 } from "./skTuning.js";
 
 /* ── the PRNG ─────────────────────────────────────────────────────────────
@@ -206,7 +206,10 @@ function makeHouse(idx, r, cfg) {
  * to reproduce twenty houses is `{street, seed}`.
  */
 export function buildStreet({ street = 1, seed = 1 } = {}) {
-  const cfg = STREETS[Math.max(0, Math.min(STREETS.length - 1, street - 1))];
+  /* Six of the twenty put up a NO SOLICITING sign. There is no longer a
+     street-tier ladder to scale that with — this is ONE street, and it is
+     the same one every time. */
+  const cfg = { noSolicit: 6 };
   const r = rng(seed * 7919 + street * 104729);
   const houses = [];
   for (let i = 0; i < HOUSE_COUNT; i++) houses.push(makeHouse(i, r, cfg));
@@ -217,47 +220,7 @@ export function buildStreet({ street = 1, seed = 1 } = {}) {
   const order = houses.map((h) => h.idx).sort(() => r() - 0.5);
   order.slice(0, cfg.noSolicit).forEach((i) => { houses[i].noSolicit = true; });
 
-  /* Street 2 is the same twenty houses REARRANGED — same paint, same props,
-     same owners, new order. That is what makes it read as a replay of a place
-     you know rather than a new place you don't. */
-  if (street === 2) {
-    const shuffled = [...houses].sort(() => r() - 0.5);
-    shuffled.forEach((h, i) => {
-      h.idx = i;
-      h.side = i % 2 === 0 ? "L" : "R";
-      h.y = STREET_START_M + i * HOUSE_SPACING_M;
-    });
-    shuffled.sort((a, b) => a.idx - b.idx);
-    return { street, seed, cfg, houses: shuffled, lengthM: STREET_LENGTH_M };
-  }
-
   return { street, seed, cfg, houses, lengthM: STREET_LENGTH_M };
-}
-
-/* ── the porch projection ─────────────────────────────────────────────────
-   Lives HERE, next to targetBoxes, and not in skArt.jsx — because the whole
-   reason targetBoxes exists is that the ride canvas and the SVG porch must
-   not be able to disagree about where the handle is, and a projection that
-   lived in the JSX file could not even be imported by the headless test that
-   proves it. One file owns the geometry and everything that maps it.
-
-   The porch crops to the interesting 6.2m of frontage (window, door, mat)
-   rather than showing all 11m, most of which is siding. */
-export const PORCH = { y0: 1.8, y1: 8.0, zMax: 2.6, w: 100, h: 140 };
-
-/** facade-local (y, z) → porch SVG (x, y). */
-export function porchProject(localY, z) {
-  return {
-    x: ((localY - PORCH.y0) / (PORCH.y1 - PORCH.y0)) * PORCH.w,
-    y: PORCH.h - (z / PORCH.zMax) * PORCH.h,
-  };
-}
-
-/** A world-space target box → a porch rect. Art AND hit areas both use it. */
-export function porchRect(box, house) {
-  const a = porchProject(box.y0 - house.y, box.z1);
-  const b = porchProject(box.y1 - house.y, box.z0);
-  return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
 }
 
 /* ── lookups ──────────────────────────────────────────────────────────────*/

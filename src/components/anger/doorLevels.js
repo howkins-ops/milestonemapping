@@ -36,7 +36,7 @@ import {
   L4_KICK, L4_FIGHT_THEM, L4_FIGHT_YOU, L4_KO,
   ST_THEM_DRAW, ST_YOU_DRAW, ST_TRUMP, ST_WALL, ST_THEM_NIGHT,
   ST_FIGHT_THEM, ST_FIGHT_YOU, ST_KO,
-} from "../../data/angerVoiceLines";
+} from "../../data/angerVoiceLines.js";
 
 /* DOOR_TIERS is authored as escalating tiers of homeowner rage; the round
    engine wants one flat pool per round. Early rounds pull the calm tiers,

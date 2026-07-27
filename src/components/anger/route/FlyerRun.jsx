@@ -5,16 +5,20 @@ import {
 } from "./skRideSim.js";
 import { drawRide, makeView } from "./skDraw.js";
 import {
-  SEGWAY, HANGER, STREET_LENGTH_M, DAYS, STREETS, RIDER_SCREEN_Y, PERF,
+  SEGWAY, HANGER, STREET_LENGTH_M, RIDER_SCREEN_Y, PERF,
 } from "./skTuning.js";
 import {
   sfxSegwayWhine, sfxRockThrow, sfxMagnetClack, sfxShatter, sfxHorn,
   sfxImpact, sfxCoin, sfxWhoosh, sfxJumpWhoosh, sfxLandThud, sfxStarEarn,
   sfxRainLoop, sfxPop,
 } from "../../../lib/sfx.js";
+/* The shell that used to own this stylesheet was deleted in the merge, so the
+   scene owns it now — it is the only consumer left. */
+import { recordVandalism } from "../heat/heatStore.js";
+import "../../../styles/route-ride.css";
 
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — PHASE 1, THE FLYER RUN.
+   THE FLYER RUN — the segway half of The Door.
 
    ── PERFORMANCE LAW ──────────────────────────────────────────────────────
    React does not re-render during the run. The sim writes to refs, one rAF
@@ -45,7 +49,7 @@ import {
 const GHOST_DELAY_MS = 120;
 const GHOST_FADE_MS = 180;
 
-export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish, onQuit }) {
+export default function FlyerRun({ street, seed, aimGhost = true, rain = false, onFinish, onQuit }) {
   const wrapRef = useRef(null);
   const camRef = useRef(null);
   const worldRef = useRef(null);
@@ -59,6 +63,7 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
   const whineRef = useRef(null);
   const rainRef = useRef(null);
   const doneRef = useRef(false);
+  const finishTimer = useRef(0);
 
   /* input lives entirely in a ref — a thumb must never cause a React render */
   const inRef = useRef({
@@ -71,18 +76,18 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(0);
 
-  const dayCfg = DAYS[Math.max(0, Math.min(6, day))];
-  const streetCfg = STREETS[Math.max(0, Math.min(2, streetN - 1))];
-  const aimGhostOn = streetCfg.aimGhost;
+  /* The seven-day week is gone — this is one run down one street, so the
+     ride no longer reads a day config or a street tier. What used to be
+     STREETS[n].aimGhost is now a prop, because the thing that should switch
+     the predicted-landing marker off is progress through The Door's ladder,
+     not a difficulty tier that no longer exists. */
+  const aimGhostOn = aimGhost;
 
   /* ── boot ──────────────────────────────────────────────────────────────*/
   useLayoutEffect(() => {
     const s = createRide({
       street,
       seed,
-      day,
-      trafficMul: dayCfg.traffic * streetCfg.traffic,
-      speedMul: dayCfg.speedMul || 1,
     });
     simRef.current = s;
 
@@ -112,12 +117,14 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
     if (wrapRef.current) ro.observe(wrapRef.current);
 
     whineRef.current = sfxSegwayWhine();
-    if (dayCfg.rain) rainRef.current = sfxRainLoop();
+    if (rain) rainRef.current = sfxRainLoop();
 
     return () => {
       ro.disconnect();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
+      window.clearTimeout(finishTimer.current);
+      finishTimer.current = 0;
       if (whineRef.current) whineRef.current.stop();
       if (rainRef.current) rainRef.current.stop();
       fx.destroy();
@@ -166,9 +173,9 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
         ghostR: inp.ghostR > 0 ? ghost(s, "R") : null,
         ghostAlphaL: inp.ghostL,
         ghostAlphaR: inp.ghostR,
-        rain: !!dayCfg.rain,
+        rain: !!rain,
         t: t / 1000,
-        window: "morning",
+        sky: "morning",
       });
 
       if (whineRef.current) whineRef.current.setSpeed(s.v / SEGWAY.maxSpeed);
@@ -183,24 +190,33 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
         setHud(next);
       }
 
-      /* progress bar rides a CSS var, never React */
-      if (camRef.current) {
-        camRef.current.style.setProperty("--sk-prog", (s.y / STREET_LENGTH_M).toFixed(4));
-        camRef.current.style.setProperty("--sk-speed", (s.v / SEGWAY.maxSpeed).toFixed(3));
+      /* Progress rides a CSS var, never React — but it must be written on the
+         WRAPPER, not on `.rr-cam`. The HUD is a SIBLING of the camera div, so
+         a variable set on the camera never cascades into the progress bar and
+         the bar sat empty for the whole run. Custom properties inherit down,
+         never sideways. */
+      if (wrapRef.current) {
+        wrapRef.current.style.setProperty("--rr-prog", (s.y / STREET_LENGTH_M).toFixed(4));
+        wrapRef.current.style.setProperty("--rr-speed", (s.v / SEGWAY.maxSpeed).toFixed(3));
       }
 
       if (s.finished && !doneRef.current) {
         doneRef.current = true;
         if (whineRef.current) whineRef.current.stop();
         const res = rideResult(s);
-        window.setTimeout(() => onFinish && onFinish(res), 700);
+        /* Held in a ref and cleared on unmount. Quitting inside this 700ms
+           beat used to hand a finished run to a dead parent. */
+        finishTimer.current = window.setTimeout(() => {
+          finishTimer.current = 0;
+          if (onFinish) onFinish(res);
+        }, 700);
       }
 
       /* the world canvas is a cost DoorFX cannot see — watch our own budget */
       const ms = performance.now() - t0;
       if (ms > PERF.drawBudgetMs) slow++; else slow = Math.max(0, slow - 1);
       if (slow === 40 && typeof console !== "undefined") {
-        console.warn(`[SUPER KNOCK] world draw over budget (${ms.toFixed(1)}ms > ${PERF.drawBudgetMs}ms)`);
+        console.warn(`[THE ROUTE] world draw over budget (${ms.toFixed(1)}ms > ${PERF.drawBudgetMs}ms)`);
       }
     };
     rafRef.current = requestAnimationFrame(frame);
@@ -237,6 +253,10 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
         case "smash":
           sfxShatter();
           if (fx) { fx.hitStop(40); fx.shake(0.35); fx.emit("glass", px, py, { count: 16, power: 1.3 }); }
+          /* Into The Door's OWN meter, not a private one. Broken glass at
+             dawn is the same Heat that gets you spotted in the bushes at
+             11:47pm — the sim stays pure and the scene does the writing. */
+          recordVandalism("windowBroken");
           break;
         case "land":
           if (e.key === "lawn") sfxWhoosh();
@@ -290,10 +310,16 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* old webview */ }
   };
 
+  /* FIRST FINGER WINS. A second touch landing on the ride pad used to
+     overwrite `stickId`, so when THAT finger lifted first the stick was
+     released while the original thumb was still down — steering just died
+     mid-corner and looked like an input bug. A pad already owned by a live
+     pointer ignores new ones. */
   const stickDown = (e) => {
     e.preventDefault();
-    capture(e);
     const i = inRef.current;
+    if (i.stickId !== null) return;
+    capture(e);
     i.stickId = e.pointerId;
     i.stickOx = e.clientX;
     i.stickOy = e.clientY;
@@ -317,8 +343,9 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
 
   const padDown = (side) => (e) => {
     e.preventDefault();
-    capture(e);
     const i = inRef.current;
+    if ((side === "L" ? i.padL : i.padR) !== null) return; // first finger wins
+    capture(e);
     if (side === "L") { i.padL = e.pointerId; i.padLAt = performance.now(); }
     else { i.padR = e.pointerId; i.padRAt = performance.now(); }
   };
@@ -351,41 +378,41 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
   const speedLabel = ["CRAWL", "CRUISE", "FLAT OUT"][hud.tier];
 
   return (
-    <div className="sk-ride" ref={wrapRef}>
-      <div className="sk-cam" ref={camRef}>
-        <canvas className="sk-canvas sk-canvas--world" ref={worldRef} />
-        <canvas className="sk-canvas sk-canvas--fx" ref={fxCanvasRef} />
+    <div className="rr-ride" ref={wrapRef}>
+      <div className="rr-cam" ref={camRef}>
+        <canvas className="rr-canvas rr-canvas--world" ref={worldRef} />
+        <canvas className="rr-canvas rr-canvas--fx" ref={fxCanvasRef} />
       </div>
 
       {/* ── HUD. DOM, never drawn into the world canvas — text in a scaled
           canvas is the fastest way to make a game look cheap. ─────────── */}
-      <div className="sk-hud">
-        <div className="sk-hud__top">
-          <button type="button" className="sk-quit" onClick={onQuit} aria-label="Quit the run">✕</button>
-          <div className="sk-hud__score">{hud.score.toLocaleString()}</div>
-          <div className="sk-hud__lives" aria-label={`${hud.lives} lives`}>
-            {[0, 1, 2].map((i) => <span key={i} className={`sk-life ${i < hud.lives ? "is-on" : ""}`} />)}
+      <div className="rr-hud">
+        <div className="rr-hud__top">
+          <button type="button" className="rr-quit" onClick={onQuit} aria-label="Quit the run">✕</button>
+          <div className="rr-hud__score">{hud.score.toLocaleString()}</div>
+          <div className="rr-hud__lives" aria-label={`${hud.lives} lives`}>
+            {[0, 1, 2].map((i) => <span key={i} className={`rr-life ${i < hud.lives ? "is-on" : ""}`} />)}
           </div>
         </div>
 
-        <div className="sk-hud__bag">
-          <span className="sk-bag__n">{hud.ammo}</span>
-          <span className="sk-bag__label">HANGERS</span>
-          {hud.combo > 1 && <span className="sk-combo">×{hud.combo}</span>}
+        <div className="rr-hud__bag">
+          <span className="rr-bag__n">{hud.ammo}</span>
+          <span className="rr-bag__label">HANGERS</span>
+          {hud.combo > 1 && <span className="rr-combo">×{hud.combo}</span>}
         </div>
 
-        <div className="sk-progress"><div className="sk-progress__fill" /></div>
-        <div className={`sk-speed sk-speed--${hud.tier}`}>{speedLabel}</div>
-        {hud.cart && <div className="sk-warn">HOA — MOVE</div>}
+        <div className="rr-progress"><div className="rr-progress__fill" /></div>
+        <div className={`rr-speed rr-speed--${hud.tier}`}>{speedLabel}</div>
+        {hud.cart && <div className="rr-warn">HOA — MOVE</div>}
 
         {toast && (
-          <div key={toast.id} className={`sk-toast sk-toast--${toast.kind}`}>{toast.text}</div>
+          <div key={toast.id} className={`rr-toast rr-toast--${toast.kind}`}>{toast.text}</div>
         )}
       </div>
 
       {/* ── controls ───────────────────────────────────────────────────── */}
       <div
-        className="sk-pad sk-pad--ride"
+        className="rr-pad rr-pad--ride"
         onPointerDown={stickDown}
         onPointerMove={stickMove}
         onPointerUp={stickUp}
@@ -393,12 +420,12 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
         onContextMenu={(e) => e.preventDefault()}
         aria-label="Ride — drag to steer and to control speed"
       >
-        <span className="sk-pad__hint">STEER · SPEED</span>
+        <span className="rr-pad__hint">STEER · SPEED</span>
       </div>
-      <div className="sk-throws">
+      <div className="rr-throws">
         <button
           type="button"
-          className="sk-throw sk-throw--l"
+          className="rr-throw rr-throw--l"
           onPointerDown={padDown("L")}
           onPointerUp={padUp("L")}
           onPointerCancel={padUp("L")}
@@ -407,7 +434,7 @@ export default function RideScene({ street, seed, day = 0, streetN = 1, onFinish
         >◀</button>
         <button
           type="button"
-          className="sk-throw sk-throw--r"
+          className="rr-throw rr-throw--r"
           onPointerDown={padDown("R")}
           onPointerUp={padUp("R")}
           onPointerCancel={padUp("R")}

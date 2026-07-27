@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — THE RIDE, DRAWN. Canvas-2d, one pass, no allocation in the
+   THE ROUTE — THE RIDE, DRAWN. Canvas-2d, one pass, no allocation in the
    hot loop, no text (all text lives in DOM above the canvas so it stays
    crisp and selectable-free at any zoom).
 
@@ -33,7 +33,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 import {
   BANDS, LANE_TOTAL_M, DRAW_PAD_M, FACADE_L_X, FACADE_R_X, HOUSE_H_M,
-  RIDER_SCREEN_Y, SEGWAY, FACADE, MAILBOX, HAZARDS, WINDOWS,
+  RIDER_SCREEN_Y, SEGWAY, FACADE, MAILBOX, HAZARDS,
 } from "./skTuning.js";
 import { targetBoxes, mailboxBox, DOOR_COLORS, PROPS } from "./skStreet.js";
 
@@ -214,19 +214,33 @@ function drawHouse(ctx, v, house, state) {
   };
 
   const st = state || {};
-  for (const b of boxes) {
-    if (b.key === "mat") rect(b, "#3B342C");
-    else if (b.key === "door") rect(b, st.plywood ? "#6B5638" : f.doorColor, "rgba(0,0,0,0.35)");
-    else if (b.key === "window") rect(b, st.smashed ? "#141418" : "#8FB6C9", "rgba(0,0,0,0.3)");
-    else if (b.key === "handle") {
-      /* The BOX is 0.55m so a thumb can earn it; the DRAWN handle is a few
-         centimetres, at the box's centre. Art size and collision size are
-         decoupled here exactly as they are in The Door's night gallery. */
-      const cy = v.sy((b.y0 + b.y1) / 2);
-      const cx = gx + v.zx((b.z0 + b.z1) / 2, side);
-      ctx.fillStyle = "#D8C78A";
-      ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.6, v.m(0.11)), 0, 6.2832); ctx.fill();
-    }
+  const byKey = (k) => boxes.find((b) => b.key === k);
+
+  /* PAINT ORDER IS NOT COLLISION ORDER, and conflating them cost the game its
+     best target. `targetBoxes` returns [handle, window, door, mat] because the
+     handle sits INSIDE the door and must be hit-tested first or it can never
+     be hit at all. Painting in that same order drew the handle and then
+     covered it with the door — so the 500-point target, the whole point of
+     riding the middle of the road, was invisible on the street.
+
+     Back to front: mat, door, window, then the handle LAST and on top. */
+  const mat = byKey("mat"), door = byKey("door"), win = byKey("window"), handle = byKey("handle");
+  if (mat) rect(mat, "#3B342C");
+  if (door) rect(door, st.plywood ? "#6B5638" : f.doorColor, "rgba(0,0,0,0.35)");
+  if (win) rect(win, st.smashed ? "#141418" : "#8FB6C9", "rgba(0,0,0,0.3)");
+  if (handle) {
+    /* The BOX is 0.55m so a thumb can earn it; the DRAWN handle is a few
+       centimetres, at the box's centre. Art size and collision size are
+       decoupled here exactly as they are in The Door's night gallery. It gets
+       a dark ring so it reads against any of the six door colours — a brass
+       dot on a mustard door is not a target, it is a smudge. */
+    const cy = v.sy((handle.y0 + handle.y1) / 2);
+    const cx = gx + v.zx((handle.z0 + handle.z1) / 2, side);
+    const r = Math.max(2, v.m(0.13));
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.beginPath(); ctx.arc(cx, cy, r * 1.7, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = "#F2DFA0";
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.fill();
   }
 
   /* the hanger you actually threw, still on the door. THE promise of the
@@ -483,8 +497,10 @@ function drawGhost(ctx, v, g, side, alpha) {
 export function drawRide(ctx, s, view, opts = {}) {
   const v = view;
   ctx.clearRect(0, 0, v.w, v.h);
-  const win = WINDOWS.find((w) => w.key === opts.window) || WINDOWS[0];
-  drawGround(ctx, v, s, SKY[win.key] || SKY.morning);
+  /* The three dilated day-windows went out with the seven-day week. The run
+     is one ride at one time of day, so the sky is a named key the caller
+     picks rather than a clock the renderer reads. */
+  drawGround(ctx, v, s, SKY[opts.sky] || SKY.morning);
   drawRuts(ctx, v, opts.oldRuts);
   drawRuts(ctx, v, s.ruts);
 

@@ -23,11 +23,7 @@ const ACCOUNT_KEYS = ["clearday_v1", "iron_workout_cache_v1", "field_journal_cac
   // blob-synced feature stores (FEATURE_STORE_KEYS in useAppData.js) — synced
   // per account, so they must not survive an account switch on this device
   "anxiety_wave_v1", "shadow_work_v2", "mapquest_city_v1", "mq_street_v1",
-  "mask_court_v1", "shadow_descent_v1", "shifts_state", "hoops_records", "arena_frog_v1",
-  // SUPER KNOCK: both the synced week AND the device-local mid-day snapshot.
-  // The snapshot is not blob-synced, but it is still one account's half-played
-  // Tuesday and must not survive into another account's session on this phone.
-  "super_knock_v1", "sk_active_v1"];
+  "mask_court_v1", "shadow_descent_v1", "shifts_state", "hoops_records", "arena_frog_v1"];
 
 function claimLocalData(userId) {
   const prev = localStorage.getItem(OWNER_KEY);

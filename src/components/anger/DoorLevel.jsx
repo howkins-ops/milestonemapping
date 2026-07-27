@@ -911,6 +911,17 @@ export default function DoorLevel({ level, onClose, onComplete }) {
       const left = Math.max(0, objRef.current) / (level.objection.start || 100);
       hp = Math.max(fin.hpFloor || 6, Math.round(who.hp * left * (aHpPctRef.current || 1)));
     }
+    /* THE SAME TRICK, ONE STEP EARLIER IN THE DAY.
+       `hpMul` is set by doorLeadTransform from where your door hanger landed
+       this morning — hook his handle and he answers softer; put one through
+       his window and he's been waiting for you. It is deliberately skipped
+       when `hpFrom` is already doing the arithmetic above, because Steele's
+       morning HP is the payoff of the night gallery and must not be scaled
+       twice. No authored level carries `hpMul`, so this is inert until a
+       flyer run puts one there. */
+    if (kind !== "guard" && fin.hpMul && fin.hpFrom !== "objection") {
+      hp = Math.max(fin.hpFloor || 6, Math.round(hp * fin.hpMul));
+    }
 
     b.current = {
       hp, pHp: 100, state: "guard", attack: null, strikeAt: 0, comboLeft: 0,

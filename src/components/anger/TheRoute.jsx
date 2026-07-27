@@ -10,13 +10,34 @@ import "../../styles/door-heat.css";
 import { IconSheet, GameIcon } from "./door/GameIcons.jsx";
 import { sfxFootstep, sfxDoorChime, sfxWhoosh, sfxRoundBell } from "../../lib/sfx.js";
 import { tapLight } from "../../lib/haptics.js";
+import FlyerRun from "./route/FlyerRun.jsx";
+import { routeStreet, leadsBySlug } from "./route/routeStreet.js";
+import { applyLead, leadBadge } from "./doorLeadTransform.js";
+import FlyerBoard from "./route/FlyerBoard.jsx";
 
 /* ════════════════════════════════════════════════════════════════════════
-   THE ROUTE — the overworld.
+   THE ROUTE — the overworld, and now the whole day.
 
-   Replaces the level-select menu with a street you actually walk. You have a
-   territory; the houses on it are the levels. Walk the block, pick a porch,
-   and the camera dollies in until the door fills the frame.
+   ── THE LOOP ─────────────────────────────────────────────────────────────
+       THE FLYER RUN   ride the block once, throw door hangers
+             ↓
+       THE STREET      walk it back, pick a porch
+             ↓
+       THE DOOR        knock it down                    (DoorLevel, untouched)
+             ↓
+       THE BOUT        Punch-Out on the porch           (DoorLevel, untouched)
+             ↓
+       back to the street
+
+   The flyer run and the door work were built as two separate games. They are
+   one game, and this component is the seam. It owns a MODE, not a street.
+
+   Where your hanger landed at dawn is the only thing that changes about the
+   fight you walk into: hook his handle and the door goes down in seventeen
+   knocks instead of twenty-four; put one through his window and it takes
+   thirty-two and bleeds back while you catch your breath. All of that is a
+   transform on the `level` OBJECT (see doorLeadTransform.js) — DoorLevel is
+   1969 lines of shipped game and it never learns why the number changed.
 
    Three parallax bands (skyline 0.15× · houses 1× · foreground 1.6×) scrolled
    by the rep's world position. The block escalates with your progress: clear
@@ -27,6 +48,9 @@ import { tapLight } from "../../lib/haptics.js";
    ladder position, so the roster can be reordered without lying to anyone
    about which fights they've won. A legacy save migrates on first load.
    ════════════════════════════════════════════════════════════════════════ */
+
+/* intro → flyer → board → street ⇄ door */
+const MODE = { intro: "intro", flyer: "flyer", board: "board", street: "street", door: "door" };
 
 const WORLD_W = 2480;             // world units across the whole block
 const REP_SCREEN = 0.36;          // where the rep sits horizontally, 0..1
@@ -292,6 +316,19 @@ export default function TheRoute({ onClose, onComplete }) {
   const [heat, setHeat] = useState(() => loadHeat().heat);
   const [playing, setPlaying] = useState(null);
   const [dollying, setDollying] = useState(null);
+
+  /* ── the day ───────────────────────────────────────────────────────────
+     The flyer run happens ONCE, at the start, and its results ride in a ref
+     for the rest of the session. A ref rather than state because nothing in
+     the render loop reads it per frame, and a ref rather than storage because
+     leads are for today — when they need to survive a reload they belong in
+     `door_campaign_v2`, which is already registered and cloud-synced, not in
+     a new key nobody has to maintain. */
+  const [mode, setMode] = useState(MODE.intro);
+  const street = useRef(routeStreet()).current;
+  const leadsRef = useRef({});          // slug → "hot"|"warm"|…
+  const flyerRef = useRef(null);        // the ride result, for the board
+  const approachTimer = useRef(0);
   const [near, setNear] = useState(null);
   const [walking, setWalking] = useState(0);        // -1 | 0 | 1
   // Facing and the gate hint are the ONLY things his position feeds into the
@@ -311,6 +348,13 @@ export default function TheRoute({ onClose, onComplete }) {
   const maxOrder = state.maxOrder;
   const isUnlocked = (slug) => orderUnlocked(state, ORDER_OF[slug] ?? Infinity);
   const isCleared = (slug) => slugCleared(state, slug);
+
+  /* Hold the pointer to the button it started on, so a drifting thumb keeps
+     walking instead of silently stopping. Older webviews throw; they simply
+     get the old behaviour. */
+  const capture = (e) => {
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* old webview */ }
+  };
 
   // The block gets later as you close doors — the street itself keeps score.
   const clearedCount = HOUSES.filter((h) => isCleared(h.id)).length;
@@ -399,20 +443,29 @@ export default function TheRoute({ onClose, onComplete }) {
   // the exact recipe for ocean surf — and it washed under the whole route.
   // The footsteps, chimes and bells carry the scene on their own.
 
-  /* ── approach: dolly the camera into the porch ───────────────────────── */
+  /* ── approach: dolly the camera into the porch ─────────────────────────
+     The 900ms matches `.dr-world.is-dollying`'s transition exactly. The
+     handle is kept in a ref and cleared on unmount — leaving the app during
+     the dolly used to fire setPlaying/setDollying on a dead tree. */
   const approach = (house) => {
     if (!isUnlocked(house.id)) return;
     tapLight();
     sfxWhoosh();
     setWalking(0);
     setDollying(house);
-    window.setTimeout(() => {
+    window.clearTimeout(approachTimer.current);
+    approachTimer.current = window.setTimeout(() => {
+      approachTimer.current = 0;
       sfxRoundBell();
-      const lv = getDoorLevel(house.id);
-      if (lv) setPlaying(lv);
+      const base = getDoorLevel(house.id);
+      /* THE SEAM. Everything the flyer run earned is folded into the level
+         object right here, and nowhere else. */
+      if (base) setPlaying(applyLead(base, leadsRef.current[house.id] || "none"));
       setDollying(null);
     }, 900);
   };
+
+  useEffect(() => () => window.clearTimeout(approachTimer.current), []);
 
   const finish = (payload) => {
     setState((prev) => recordClear(prev, payload.level));
@@ -421,6 +474,72 @@ export default function TheRoute({ onClose, onComplete }) {
     sfxDoorChime();
     onComplete(payload);
   };
+
+  /* ── the flyer run ─────────────────────────────────────────────────────*/
+  const startFlyerRun = () => { setMode(MODE.flyer); };
+
+  const onFlyerFinish = (result) => {
+    flyerRef.current = result;
+    leadsRef.current = leadsBySlug(result.leads);
+    setHeat(loadHeat().heat);
+    setMode(MODE.board);
+  };
+
+  /* Skipping the run is allowed and costs you nothing but the advantage —
+     every lead falls back to "none", which applyLead treats as the identity,
+     so the five levels play exactly as they shipped. */
+  const skipFlyerRun = () => {
+    flyerRef.current = null;
+    leadsRef.current = {};
+    setMode(MODE.street);
+  };
+
+  if (mode === MODE.intro) {
+    return (
+      <FlyerBoard
+        variant="intro"
+        street={street}
+        cleared={clearedCount}
+        total={HOUSES.length}
+        onStart={startFlyerRun}
+        onSkip={skipFlyerRun}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (mode === MODE.flyer) {
+    return (
+      <div className="dr-stage dr-stage--flyer" ref={stageRef}>
+        <IconSheet />
+        <div className="dr-flyerwrap">
+          {/* The aim ghost is the tutorial, not a difficulty tier: it shows
+              you where a throw lands until you have closed a door and proved
+              you can read the lead yourself. */}
+          <FlyerRun
+            street={street}
+            seed={street.seed}
+            aimGhost={clearedCount < 1}
+            onFinish={onFlyerFinish}
+            onQuit={skipFlyerRun}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === MODE.board) {
+    return (
+      <FlyerBoard
+        variant="results"
+        street={street}
+        result={flyerRef.current}
+        leads={leadsRef.current}
+        onStart={() => setMode(MODE.street)}
+        onClose={onClose}
+      />
+    );
+  }
 
   if (playing) {
     return <DoorLevel level={playing} onClose={() => setPlaying(null)} onComplete={finish} />;
@@ -466,6 +585,14 @@ export default function TheRoute({ onClose, onComplete }) {
                 <div className="dr-path" />
                 <span className="dr-mailpost"><Mailbox flagUp={cleared} /></span>
                 {cleared && <span className="dr-signpost"><YardSign /></span>}
+                {/* What your hanger did to this house this morning. The
+                    badge is parent-owned on purpose — DoorLevel's top bar
+                    renders a fixed set and does not get edited for this. */}
+                {unlocked && !cleared && leadBadge(leadsRef.current[h.id]) && (
+                  <span className={`dr-lot__lead is-${leadsRef.current[h.id]}`}>
+                    <GameIcon name="door" size={11} /> {leadBadge(leadsRef.current[h.id]).label}
+                  </span>
+                )}
                 {unlocked && !cleared && (
                   <span className="dr-lot__tag">
                     <GameIcon name="door" size={12} /> {getDoorLevel(h.id)?.when || ""}
@@ -501,14 +628,16 @@ export default function TheRoute({ onClose, onComplete }) {
         <div className="dr-curb" />
       </div>
 
-      {/* ── controls ────────────────────────────────────────────────────── */}
+      {/* ── controls ──────────────────────────────────────────────────────
+          setPointerCapture, and deliberately NO onPointerLeave: a thumb
+          drifting two pixels off the button used to stop the rep dead. */}
       <div className="dr-hud">
         <button
           className={`dr-walkbtn ${walking === -1 ? "is-on" : ""}`}
-          onPointerDown={() => setWalking(-1)}
+          onPointerDown={(e) => { capture(e); setWalking(-1); }}
           onPointerUp={() => setWalking(0)}
-          onPointerLeave={() => setWalking(0)}
           onPointerCancel={() => setWalking(0)}
+          onContextMenu={(e) => e.preventDefault()}
           aria-label="Walk left"
         ><GameIcon name="chev" size={22} className="is-flip" /></button>
 
@@ -527,10 +656,10 @@ export default function TheRoute({ onClose, onComplete }) {
 
         <button
           className={`dr-walkbtn ${walking === 1 ? "is-on" : ""}`}
-          onPointerDown={() => setWalking(1)}
+          onPointerDown={(e) => { capture(e); setWalking(1); }}
           onPointerUp={() => setWalking(0)}
-          onPointerLeave={() => setWalking(0)}
           onPointerCancel={() => setWalking(0)}
+          onContextMenu={(e) => e.preventDefault()}
           aria-label="Walk right"
         ><GameIcon name="chev" size={22} /></button>
       </div>

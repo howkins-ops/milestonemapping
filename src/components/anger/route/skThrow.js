@@ -1,10 +1,10 @@
 /* ════════════════════════════════════════════════════════════════════════
-   SUPER KNOCK — THE THROW. The whole game is in this file.
+   THE ROUTE — THE THROW. The whole flyer run is in this file.
 
    Pure. No React, no DOM, no rAF, no Date.now(). Every function here takes
    plain numbers and returns plain objects, which is why the entire feel of
    phase 1 can be tuned by reading a table in a terminal instead of by
-   thrashing a phone. See scripts/superknock-selftest.mjs.
+   thrashing a phone. See scripts/route-selftest.mjs.
 
    ── CLOSED FORM, NOT INTEGRATED ──────────────────────────────────────────
    The hanger's path is evaluated analytically at any age t:
