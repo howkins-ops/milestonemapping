@@ -61,6 +61,8 @@ const DEFAULT_STATE = {
   contracts: {}, // { [dayNum]: { signedAt: ISO, sig: dataURL|null } } — the daily signed contract
   reignited: {}, // { [dayNum]: ISO } — gaps reclaimed after the fact (the blue flame)
   streakBackfilledAt: null, // one-time stamp: days that predate THE STREAK were counted lit
+  slipCauses: {}, // { [dayNum]: causeString } — structured echo of the SLIP_CAUSES chip picked in the comeback flow
+  welcomeBackAckSlipDay: null, // dayNum of the most recent slip whose re-entry moment has already shown once
   seenLies: { weed: [], porn: [] }, // last-shown seed-lie ids (anti-repeat, cap 8)
   curriculumDone: [], // day numbers with the daily rep cast
   freedomAudit: [], // strings — what's been reclaimed
@@ -178,6 +180,8 @@ function normalize(parsed) {
     contracts: pruneContracts(obj(p.contracts), p),
     reignited: obj(p.reignited),
     streakBackfilledAt: typeof p.streakBackfilledAt === "string" ? p.streakBackfilledAt : null,
+    slipCauses: obj(p.slipCauses),
+    welcomeBackAckSlipDay: Number.isFinite(p.welcomeBackAckSlipDay) ? p.welcomeBackAckSlipDay : null,
     seenLies: {
       weed: arr(obj(p.seenLies).weed).filter((s) => typeof s === "string").slice(-8),
       porn: arr(obj(p.seenLies).porn).filter((s) => typeof s === "string").slice(-8),
@@ -271,6 +275,15 @@ export function currentRun(state = loadClearDay()) {
    ──────────────────────────────────────────────────────────────────────── */
 
 export const REIGNITE_WINDOW = 7;
+
+// ── THE PATTERN TIER — when a slip isn't a one-off ──────────────────────
+// Tunable, not research-derived. The trigger itself must stay invisible to
+// the user (see SlipFlow's compassion phase): it may change which screens
+// appear, never what the app says about a count.
+export const PATTERN_TIER_WINDOW_DAYS = 21;
+export const PATTERN_TIER_MIN_SLIPS = 3;
+export const RECURRING_CAUSE_MIN = 2;
+export const AVOIDANT_GAP_MIN = 2;
 
 function startOf(state) {
   if (!state.startedAt || typeof state.startedAt !== "string") return null;
@@ -381,6 +394,76 @@ export function streakStats(state = loadClearDay()) {
     reignitable,
     absDay,
   };
+}
+
+// Records which SLIP_CAUSES chip was picked for today's slip — today that
+// pick only lived in SlipFlow's local useState and was lost on close. This
+// is the one write getSlipPattern needs to detect a recurring cause.
+export function recordSlipCause(cause) {
+  const state = loadClearDay();
+  const clean = String(cause || "").trim();
+  if (!clean) return state;
+  const day = elapsedDay(state);
+  state.slipCauses = { ...state.slipCauses, [day]: clean };
+  save(state);
+  return state;
+}
+
+// Is this slip part of a pattern, or a one-off? Reads closedDays directly,
+// so it automatically counts slips confessed retroactively via markAshDay
+// too — no separate wiring needed for the frequency tally. Never expose
+// the count or the cause back to the user as a disclosed number: the tier
+// switch may only change which screens appear, never what's said about it
+// (see the What-the-Hell-Effect note on SlipFlow's compassion phase).
+export function getSlipPattern(state = loadClearDay(), absDay = elapsedDay(state)) {
+  const since = absDay - PATTERN_TIER_WINDOW_DAYS + 1;
+  const windowSlips = [];
+  const causeTally = {};
+  for (let d = Math.max(1, since); d <= absDay; d += 1) {
+    if (state.closedDays[d] === "slip") {
+      windowSlips.push(d);
+      const cause = state.slipCauses[d];
+      if (cause) causeTally[cause] = (causeTally[cause] || 0) + 1;
+    }
+  }
+  let recurringCause = null;
+  let recurringCount = 0;
+  Object.keys(causeTally).forEach((c) => {
+    if (causeTally[c] > recurringCount) {
+      recurringCause = c;
+      recurringCount = causeTally[c];
+    }
+  });
+  return {
+    windowSlips: windowSlips.length,
+    tier: windowSlips.length >= PATTERN_TIER_MIN_SLIPS,
+    recurringCause: recurringCount >= RECURRING_CAUSE_MIN ? recurringCause : null,
+    recurringCount,
+  };
+}
+
+// Behavioral signal only — never a self-report, never a label. Walks back
+// from today; if the most recent unclosed run sits directly after an ash
+// day and runs AVOIDANT_GAP_MIN days or more, someone went quiet right
+// after a slip. Purely a trigger for tone (see StreakBanner) — the gap
+// length and the word "avoidant" must never reach the user.
+export function getAvoidantReturn(state = loadClearDay(), absDay = elapsedDay(state)) {
+  let gapDays = 0;
+  let d = absDay - 1;
+  while (d >= 1 && (state.closedDays[d] === undefined)) {
+    gapDays += 1;
+    d -= 1;
+  }
+  if (d < 1 || state.closedDays[d] !== "slip") return { flagged: false };
+  return { flagged: gapDays >= AVOIDANT_GAP_MIN, slipDay: d, gapDays };
+}
+
+// UI bookkeeping only — no vote, no ballot entry, this isn't evidence.
+export function ackWelcomeBack(slipDay) {
+  const state = loadClearDay();
+  state.welcomeBackAckSlipDay = slipDay;
+  save(state);
+  return state;
 }
 
 // One month of cells, leading blanks included, ready to drop into a 7-col grid.

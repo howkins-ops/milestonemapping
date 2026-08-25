@@ -21,6 +21,8 @@ import {
   addWhy, addCard, saveTape, streakStats, backfillStreak,
   addFreedomItem, addFutureLetter, openFutureLetter,
   setLaw, fileService, addRepair, setRepairStatus, setDevotion, addCatch,
+  recordSlipCause, getSlipPattern, addRule, armRule,
+  getAvoidantReturn, ackWelcomeBack,
 } from "./clearDayStore.js";
 import {
   lessonFor, PHASES, phaseColorVar, LADDER,
@@ -665,7 +667,7 @@ function CheckInCard({ S, day, settings, celebrate, addXPSafe }) {
 
 /* ═══ TODAY ═══════════════════════════════════════════════════════════ */
 
-function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner, onLedger }) {
+function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, onGoTab, onCorner, onLedger, welcomeBack }) {
   const [reachOpen, setReachOpen] = useState(false);
   const [devotionOpen, setDevotionOpen] = useState(false);
   const [nightOpen, setNightOpen] = useState(false);
@@ -712,7 +714,7 @@ function Today({ S, day, settings, onBattle, onSlipFlow, celebrate, addXPSafe, o
           stack of pills. Everything that used to crowd this slot (the clock
           chip, the streak chip, the laws nag) either has its own home or
           isn't Today's question. */}
-      <StreakBanner S={S} onOpen={() => onGoTab && onGoTab("streak")} />
+      <StreakBanner S={S} onOpen={() => onGoTab && onGoTab("streak")} welcomeBack={welcomeBack} />
 
       <CatchCard S={S} day={day} settings={settings} celebrate={celebrate} addXPSafe={addXPSafe} />
 
@@ -888,11 +890,14 @@ const SLIP_CAUSES = ["A place", "A person", "A feeling", "The late hours", "Bore
 const RECOVERY_ACTS = ["Removed the cue from reach", "Left the room", "Texted someone real", "Cold water, face first", "10 hard pushups"];
 
 function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
-  const [step, setStep] = useState(0);
+  const [phase, setPhase] = useState("cause"); // cause → math → (compassion → precommit)? → act → ledger
   const [cause, setCause] = useState(null);
   const [act, setAct] = useState(null);
   const [renegotiate, setRenegotiate] = useState(false);
   const [newLaw, setNewLaw] = useState("");
+  const [pattern, setPattern] = useState(null);
+  const [armWhen, setArmWhen] = useState(null);
+  const [armThen, setArmThen] = useState(null);
   const day = dayNumber(S);
   const votesFor = S.votes;
   const votesAgainst = (S.stats.slips || 0) + 1;
@@ -903,9 +908,24 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Arms a when-then for the recurring wall, reusing THE CODE's mechanic
+  // (same store functions IdentityTab's TheCode uses) rather than a new one.
+  const armForCause = () => {
+    const text = `When ${armWhen.toLowerCase()} shows up again, the move is already decided.`;
+    const { added, state } = addRule(text);
+    const rule = added
+      ? state.rules[state.rules.length - 1]
+      : state.rules.find((r) => r.text.toLowerCase() === text.toLowerCase());
+    if (rule && !rule.armedAt) armRule(rule.id, armWhen, armThen);
+    if (added) addXPSafe(XP_VALUES.cleardayRuleAdded, "Non-negotiable added");
+    tapMedium();
+    sfxPop(settings);
+    setPhase("act");
+  };
+
   return (
     <div className="cd-slip">
-      {step === 0 && (
+      {phase === "cause" && (
         <div className="cd-ob-step">
           <div className="cd-eyebrow">FIRST — WHAT WAS THE SITUATION?</div>
           <h1 className="cd-h1">Before anything else:<br />where did it find you?</h1>
@@ -917,10 +937,14 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
               <button key={c} type="button" className={`cd-chip ${cause === c ? "cd-chip--on" : ""}`} onClick={() => setCause(c)}>{c}</button>
             ))}
           </div>
-          <button type="button" className="cd-btn" disabled={!cause} onClick={() => setStep(1)}>FILED</button>
+          <button type="button" className="cd-btn" disabled={!cause} onClick={() => {
+            const { state } = recordSlipCause(cause);
+            setPattern(getSlipPattern(state));
+            setPhase("math");
+          }}>FILED</button>
         </div>
       )}
-      {step === 1 && (
+      {phase === "math" && (
         <div className="cd-ob-step">
           <div className="cd-eyebrow">NOW — THE MATH</div>
           <h1 className="cd-h1">{votesFor} exhibits for the new you.<br />{votesAgainst} against.</h1>
@@ -930,10 +954,41 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
             about whether the habit formed.
           </p>
           <div className="cd-cite">◈ Lally et al. 2010 — one miss did not affect habit formation</div>
-          <button type="button" className="cd-btn" onClick={() => setStep(2)}>KEEP COUNTING</button>
+          <button type="button" className="cd-btn" onClick={() => setPhase(pattern?.tier ? "compassion" : "act")}>KEEP COUNTING</button>
         </div>
       )}
-      {step === 2 && (
+      {phase === "compassion" && (
+        <div className="cd-ob-step">
+          <div className="cd-eyebrow">ONE MORE THING</div>
+          <h1 className="cd-h1">Kindness gets people back up.<br />Shame keeps them down.</h1>
+          <p className="cd-p cd-p--soft">
+            Whatever brought you here, the way through isn't harder judgment on yourself — it's the
+            same thing you'd tell someone you loved, standing in this exact spot. Everyone doing
+            this work hits the same wall more than once. That's the work, not a failure of it.
+          </p>
+          <div className="cd-cite">◈ Neff — self-compassion, not self-judgment, predicts getting back up after a lapse</div>
+          <button type="button" className="cd-btn" onClick={() => { setArmWhen(cause); setPhase("precommit"); }}>NAME THE WALL</button>
+        </div>
+      )}
+      {phase === "precommit" && (
+        <div className="cd-ob-step">
+          <div className="cd-eyebrow">DECIDE IT NOW, ONCE</div>
+          <h1 className="cd-h1">Same wall next time?<br />Pre-decide the way over it.</h1>
+          <p className="cd-p cd-p--soft">
+            When {(armWhen || cause || "").toLowerCase()} shows up again — what's the exact move,
+            already chosen, before you need it?
+          </p>
+          <div className="cd-chips cd-chips--wrap">
+            {RECOVERY_ACTS.map((a) => (
+              <button key={a} type="button" className={`cd-chip ${armThen === a ? "cd-chip--on" : ""}`} onClick={() => setArmThen(a)}>{a}</button>
+            ))}
+          </div>
+          <div className="cd-cite">◈ Gollwitzer &amp; Sheeran — a when-then decided in advance outperforms willpower in the moment</div>
+          <button type="button" className="cd-btn" disabled={!armThen} onClick={armForCause}>ARM IT</button>
+          <button type="button" className="cd-slip-link" onClick={() => setPhase("act")}>Not now — just the comeback rep</button>
+        </div>
+      )}
+      {phase === "act" && (
         <div className="cd-ob-step">
           <div className="cd-eyebrow">THE COMEBACK REP — 60 SECONDS</div>
           <h1 className="cd-h1">The last move of this day<br />is yours.</h1>
@@ -948,11 +1003,11 @@ function SlipFlow({ S, settings, onClose, celebrate, addXPSafe }) {
             addXPSafe(XP_VALUES.cleardaySlipRecovered, "The comeback rep");
             sfxPhoenix(settings);
             celebrate(true);
-            setStep(3);
+            setPhase("ledger");
           }}>DONE — STAMP IT</button>
         </div>
       )}
-      {step === 3 && (
+      {phase === "ledger" && (
         <div className="cd-ob-step">
           <div className="cd-eyebrow">LAST — THE HONEST LEDGER</div>
           <h1 className="cd-h1">One question.</h1>
@@ -1021,7 +1076,7 @@ function StreakCard({ S, onOpen }) {
    point. It's the point. Big number, live fire, the last seven days
    underneath, and one honest line about tonight. All motion is CSS and
    slow on purpose: this card should feel like warmth, not an alarm. */
-function StreakBanner({ S, onOpen }) {
+function StreakBanner({ S, onOpen, welcomeBack }) {
   const st = streakStats(S);
   const reclaim = st.reignitable.length;
   // never a bare 0 on the wall — an unsigned chain is a chain waiting, not nil
@@ -1036,11 +1091,16 @@ function StreakBanner({ S, onOpen }) {
       ? "today is link one"
       : st.current === 1 ? "day lit" : "days in a row";
 
-  const foot = waiting
-    ? "Days inside the window are still yours — reclaim them."
-    : sealed
-      ? `Day ${st.absDay} is signed. The chain holds.`
-      : "Tonight's link isn't signed yet — the Ritual closes it.";
+  // Behavioral re-entry — never named, never explained, never counted out
+  // loud. The only thing that changes here is warmth; the CTA still just
+  // points at the same Streak page everyone else's banner points at.
+  const foot = welcomeBack
+    ? "Nothing here reset while you were away. Pick back up whenever you're ready — no explanation owed."
+    : waiting
+      ? "Days inside the window are still yours — reclaim them."
+      : sealed
+        ? `Day ${st.absDay} is signed. The chain holds.`
+        : "Tonight's link isn't signed yet — the Ritual closes it.";
 
   return (
     <button
@@ -1341,6 +1401,7 @@ export default function ClearDay({ onExit, settings }) {
   const [corner, setCorner] = useState(false);
   const [ceremony, setCeremony] = useState(null);
   const [ignition, setIgnition] = useState(null); // { kind, reclaimed }
+  const [welcomeBack, setWelcomeBack] = useState(null);
   const gamify = useGamification();
   const gamifyRef = useRef(gamify);
   gamifyRef.current = gamify;
@@ -1351,6 +1412,17 @@ export default function ClearDay({ onExit, settings }) {
   // page all read the same post-migration numbers instead of the card
   // showing pre-backfill stats until the page happens to be opened.
   useEffect(() => { backfillStreak(); }, []);
+  // Behavioral re-entry check — runs once per mount, after backfill. Purely
+  // a trigger for StreakBanner's tone (see there); acked immediately so a
+  // reload never shows it twice for the same slip-then-silence episode.
+  useEffect(() => {
+    const fresh = loadClearDay();
+    const ar = getAvoidantReturn(fresh, elapsedDay(fresh));
+    if (ar.flagged && fresh.welcomeBackAckSlipDay !== ar.slipDay) {
+      setWelcomeBack(ar);
+      ackWelcomeBack(ar.slipDay);
+    }
+  }, []);
   // Two readings of the same day, and mixing them up breaks things:
   // `day` is the curriculum position (clamped at 66 — lessons, phases,
   // "of 66"); `absDay` is the real elapsed day and the key every ledger
@@ -1437,7 +1509,7 @@ export default function ClearDay({ onExit, settings }) {
       {!slip && (
         <>
           {tab === "today" && (
-            <Today S={S} day={absDay} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} onLedger={() => setLedger(true)} />
+            <Today S={S} day={absDay} settings={settings} onBattle={startBattle} onSlipFlow={() => setSlip(true)} celebrate={celebrate} addXPSafe={addXPSafe} onGoTab={setTab} onCorner={() => setCorner(true)} onLedger={() => setLedger(true)} welcomeBack={welcomeBack} />
           )}
           {tab === "daily" && (
             <DailyTab
